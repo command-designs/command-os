@@ -1,0 +1,39 @@
+# Command OS - base package layer installed on top of Arch Linux ARM / Arch Linux.
+# One pacman package name per line. Comments start with #.
+
+# Wayland compositor + session essentials
+hyprland
+xdg-desktop-portal-hyprland
+xdg-desktop-portal
+polkit
+seatd
+qt5-wayland
+qt6-wayland
+
+# Shell / status bar / launcher
+waybar
+wofi
+
+# Terminal
+kitty
+alacritty
+
+# Fonts (needed for waybar icons / general UI)
+ttf-jetbrains-mono-nerd
+noto-fonts
+noto-fonts-emoji
+
+# Utilities used by the default session
+grim
+slurp
+wl-clipboard
+brightnessctl
+pamixer
+network-manager-applet
+networkmanager
+
+# Base dev/user tooling
+git
+vim
+sudo
+openssh
