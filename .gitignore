@@ -1,4 +1,5 @@
 build/iso/*.iso
+build/packer/keys/
 build/packer/output-*/
 build/packer/packer_cache/
 build/packer/crash.log

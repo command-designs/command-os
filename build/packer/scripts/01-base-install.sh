@@ -4,7 +4,6 @@
 set -euxo pipefail
 
 DISK=/dev/sda
-ROOT_PASSWORD=packer
 HOSTNAME=command-os-dev
 
 timedatectl set-ntp true
@@ -28,6 +27,13 @@ pacstrap -K /mnt base linux linux-firmware sudo networkmanager openssh \
 
 genfstab -U /mnt >> /mnt/etc/fstab
 
+# Carry over the SSH key that boot_command placed in the live environment,
+# so Packer can reconnect once we reboot into this fresh install.
+mkdir -p /mnt/root/.ssh
+cp /root/.ssh/authorized_keys /mnt/root/.ssh/authorized_keys
+chmod 700 /mnt/root/.ssh
+chmod 600 /mnt/root/.ssh/authorized_keys
+
 arch-chroot /mnt /bin/bash -euxc "
   ln -sf /usr/share/zoneinfo/UTC /etc/localtime
   hwclock --systohc
@@ -35,8 +41,8 @@ arch-chroot /mnt /bin/bash -euxc "
   locale-gen
   echo 'LANG=en_US.UTF-8' > /etc/locale.conf
   echo '${HOSTNAME}' > /etc/hostname
-  echo 'root:${ROOT_PASSWORD}' | chpasswd
-  sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+  passwd -d root
+  sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
   systemctl enable NetworkManager.service
   systemctl enable sshd.service
   grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB

@@ -53,10 +53,24 @@ ExecStart=
 ExecStart=-/usr/bin/agetty --autologin ${TARGET_USER} --noclear %I \$TERM
 EOF
 
-PROFILE_SNIPPET='[ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ] && exec Hyprland'
 BASH_PROFILE="${TARGET_HOME}/.bash_profile"
 touch "${BASH_PROFILE}"
-grep -qF "${PROFILE_SNIPPET}" "${BASH_PROFILE}" || echo "${PROFILE_SNIPPET}" >> "${BASH_PROFILE}"
+MARKER="# --- Command OS: autostart Hyprland on tty1 ---"
+if ! grep -qF "${MARKER}" "${BASH_PROFILE}"; then
+  cat >> "${BASH_PROFILE}" <<'EOF'
+# --- Command OS: autostart Hyprland on tty1 ---
+if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+  # Virtualized GPUs (e.g. VirtualBox's vmwgfx) don't support real hardware
+  # cursors/GBM the way Hyprland expects; force the software fallback there.
+  # Real hardware (Raspberry Pi 5) hits neither of these and runs natively.
+  if systemd-detect-virt --quiet; then
+    export WLR_NO_HARDWARE_CURSORS=1
+    export WLR_RENDERER_ALLOW_SOFTWARE=1
+  fi
+  exec Hyprland
+fi
+EOF
+fi
 chown "${TARGET_USER}:${TARGET_USER}" "${BASH_PROFILE}"
 
 echo "==> Command OS layer installed."

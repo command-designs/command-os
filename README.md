@@ -13,13 +13,21 @@ infraestructura de paquetes: usamos pacman tal cual.
   Esto es lo que se instala tanto en la VM de pruebas como, más adelante, en
   el Pi real.
 - `build/packer/` — pipeline de build desatendido para la VM de desarrollo
-  (VirtualBox, x86_64). Particiona disco, instala Arch base y corre
+  (QEMU, x86_64). Particiona disco, instala Arch base y corre
   `os/install.sh` sin intervención manual.
 - `build/iso/` — ISOs descargadas (no versionadas, ver `.gitignore`).
 
-## Flujo de desarrollo (VM x86_64 en VirtualBox)
+## Flujo de desarrollo (VM x86_64 en QEMU)
 
-Ver `docs/testing.md` para el ciclo completo de build → snapshot → iteración.
+Ver `docs/testing.md` para el ciclo completo de build → iteración, y por qué
+se usa QEMU en vez de VirtualBox.
+
+Esta VM valida que `os/install.sh` instala todo sin errores (paquetes,
+dotfiles, servicios) — es el ciclo rápido para iterar cambios. La
+verificación visual real de Hyprland (cómo se ve, animaciones, etc.) se hace
+en el Raspberry Pi 5 físico: la GPU virtualizada en una VM de Windows tiene
+problemas de compatibilidad conocidos con compositores Wayland que no vale
+la pena perseguir (ver `docs/testing.md`).
 
 ## Próximos pasos hacia ARM real
 
