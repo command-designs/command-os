@@ -6,6 +6,22 @@ mantenida por terceros — Arch Linux ARM en el hardware real (Raspberry Pi 5),
 Arch Linux x86_64 en la VM de desarrollo. No reinventamos kernel ni
 infraestructura de paquetes: usamos pacman tal cual.
 
+## Objetivo y por qué esta base
+
+La meta original era **CachyOS + Omarchy corriendo en ARM** (Raspberry Pi 5).
+Ninguno de los dos existe para aarch64: CachyOS solo publica x86_64 (su valor
+son los repos y el kernel optimizados para x86-64-v3/v4) y Omarchy se instala
+sobre Arch x86_64. Por eso la decisión fue **Arch Linux ARM + Hyprland,
+modificado para llegar al mismo resultado que Omarchy**: misma idea de capa
+curada (instalador + paquetes + dotfiles) sobre Arch, pero reconstruida por
+nosotros y arquitectura-agnóstica.
+
+**Estado respecto a esa meta**: `os/` hoy es una base Hyprland mínima
+(Waybar, Wofi, Alacritty/Kitty) que valida el pipeline de instalación. Todavía
+no replica la experiencia Omarchy (launcher, notificaciones, bloqueo/idle,
+OSD, sistema de temas, apps y atajos por defecto) — ese es el trabajo de
+producto pendiente una vez que se pueda ver Hyprland renderizado.
+
 ## Estructura
 
 - `os/` — el producto: lista de paquetes (`packages.txt`), instalador

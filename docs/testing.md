@@ -15,16 +15,61 @@ ARM más adelante.
 
 ## Qué SÍ y qué NO se valida en esta VM
 
-- **Sí**: que `os/install.sh` corre sin errores — paquetes, usuario, dotfiles,
-  servicios, autologin. Esto es rápido y 100% confiable en la VM.
-- **No**: cómo se ve Hyprland renderizado. En este host (Windows + QEMU +
-  WHPX) `virtio-gpu` sin aceleración 3D bootea bien pero Hyprland no puede
-  arrancar (necesita GBM); con aceleración 3D (`virtio-gpu-gl-pci` +
-  `-display sdl,gl=on`) la VM cuelga (~100% CPU sin avanzar). Es un límite
-  de la virtualización de GPU en Windows, no de nuestra configuración.
-  **La verificación visual real de Hyprland queda para el Raspberry Pi 5
-  físico**, que tiene una GPU real con DRM/KMS/GBM nativo y ninguno de estos
-  problemas.
+- **QEMU nativo de Windows (WHPX)**: sirve para validar que `os/install.sh`
+  corre sin errores — paquetes, usuario, dotfiles, servicios, autologin — pero
+  **no** para ver Hyprland: sin aceleración 3D no hay GBM y Hyprland no
+  arranca; con `virtio-gpu-gl-pci` + `-display sdl,gl=on` la VM cuelga
+  (~100% CPU sin avanzar).
+- **QEMU dentro de WSL2 con KVM anidado**: Hyprland **sí** renderiza (virgl →
+  Mesa d3d12 → GPU del host, ventana vía WSLg). Es la forma preferida. Ver
+  la sección siguiente.
+
+## VM con Hyprland renderizado: QEMU dentro de WSL2 + KVM
+
+Requisitos (una sola vez, ya hecho en la PC de desarrollo): WSL2 instalado,
+`%USERPROFILE%\.wslconfig` con `nestedVirtualization=true` (más
+`memory=10GB`, `processors=10`), y la distro oficial de Arch:
+```
+wsl --install -d archlinux --no-launch
+```
+
+Preparar el anfitrión (instala QEMU/OVMF/virglrenderer/Mesa y copia disco,
+`efivars.fd`, firmware y llave SSH a `/root/vm` dentro de WSL — correr desde
+`/mnt/c` es lento). **Ojo**: re-correrlo sobreescribe la copia de WSL con la
+de Windows.
+```
+wsl -d archlinux -u root -- sh /mnt/c/Workspace/command/command-os/build/wsl/setup.sh
+```
+
+Arrancar la VM y verla con TigerVNC (`winget install TigerVNC.TigerVNC`):
+```
+wsl -d archlinux -u root -- sh /mnt/c/Workspace/command/command-os/build/wsl/run-vm.sh
+"C:\Program Files\TigerVNC\vncviewer.exe" -AutoSelect=0 -PreferredEncoding=Raw -FullColor 127.0.0.1::5901
+```
+Por defecto la ventana de QEMU va a un X virtual (`Xvnc :1`) dentro de WSL y
+no a WSLg: WSLg transporta las ventanas por RDP (`msrdc.exe`) y con un
+compositor animado se ve cortado (tearing) y con lag. `run-vm.sh wslg` usa
+el camino viejo (ventana directa vía WSLg). `RES=1920x1080` cambia la
+resolución del guest. WSL no expone `/dev/dri`, así que `-display
+egl-headless` / `spice gl=on` de QEMU no funcionan acá.
+
+`run-vm.sh` exporta `GALLIUM_DRIVER=d3d12`: sin eso Mesa en WSL usa
+`llvmpipe` (software) y no la GPU real. En el log de Hyprland aparece
+`eglCreateContext failed with GLES 3.2, retrying GLES 3.0` — es benigno.
+
+Desde WSL, SSH y captura de pantalla del compositor:
+```
+ssh -i /root/vm/packer_build_key -p 2900 root@127.0.0.1
+# dentro del guest (grim no viene en la imagen, instalarlo si hace falta):
+su deck -c 'XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-1 \
+  HYPRLAND_INSTANCE_SIGNATURE=$(ls -t /run/user/1000/hypr | head -1) grim /tmp/shot.png'
+```
+
+Para iterar sobre `os/` desde WSL, el repo está en
+`/mnt/c/Workspace/command/command-os`: mismo `scp` + `install.sh` que en la
+sección "Ciclo de iteración" pero con `-i /root/vm/packer_build_key`.
+
+Apagar siempre con `ssh ... 'shutdown -h now'` (nunca matar QEMU).
 
 ## Build inicial
 

@@ -9,10 +9,13 @@ base aarch64 oficial en vez de x86_64. Un colega hace el hardware, este repo
 es la parte de software/SO. Ver `README.md` para la estructura del repo.
 
 **Estado actual**: el pipeline de instalación (`os/install.sh` + paquetes +
-dotfiles) está probado y funciona de punta a punta en una VM x86_64 de
-desarrollo (QEMU, en Windows). Falta: verificación visual de Hyprland
-renderizado (ver más abajo, es la parte pendiente), y todavía no se probó
-nada sobre Arch Linux ARM / hardware real.
+dotfiles) está probado — ojo: es una base Hyprland mínima, todavía no se
+parece a Omarchy (la meta real, ver "Objetivo" en `README.md`: CachyOS +
+Omarchy en ARM, que no existen para aarch64, así que se replica sobre Arch
+Linux ARM). El pipeline funciona de punta a punta en una VM x86_64 de
+desarrollo (QEMU), y Hyprland se ve renderizado corriendo esa VM dentro de
+WSL2 con KVM + virgl (ver "Verificación visual" más abajo). Falta: todavía
+no se probó nada sobre Arch Linux ARM / hardware real.
 
 ## Qué se probó y qué se descartó (no repetir)
 
@@ -50,23 +53,72 @@ nada sobre Arch Linux ARM / hardware real.
    `getty@tty1.service.d/override.conf`, quedó lleno de bytes nulos).
    Siempre `shutdown -h now` por SSH antes de cerrar la ventana/proceso.
 
-## Decisión pendiente (esto es lo primero a retomar)
+## Siguiente paso (esto es lo primero a retomar)
 
-Se le propuso al usuario probar **WSL2 con KVM anidado** como último intento
-razonable para lograr ver Hyprland renderizado en la PC Windows del usuario
-(la idea: un kernel Linux real dentro de WSL2 haciendo la virtualización de
-GPU con KVM nativo, en vez de que Windows/WHPX traduzca con ANGLE — es una
-combinación con mejor track record para wlroots+virtio-gpu-gl). **Todavía no
-se ejecutó** — quedó en "¿seguimos con eso?" sin respuesta del usuario al
-momento de escribir esto. Si el usuario confirma, ese es el siguiente paso.
-Si WSL2+KVM también falla o se cuelga, la recomendación acordada es dejar de
-perseguir la verificación visual en VM y esperar al Raspberry Pi 5 físico
-para eso (la GPU real del Pi no tiene ninguno de estos problemas).
+**Arrancar Command OS en bare metal desde un USB en la PC de desarrollo**,
+para probar la UX de Hyprland (atajos con Super, waybar, apps, theming) con
+fluidez nativa, sin VM. Propuesto al usuario el 2026-09-27; todavía no
+confirmó si tiene un USB ≥32 GB a mano — preguntarle eso primero. No
+reemplaza la prueba en el Raspberry Pi 5 (el hardware real), es el puente
+hasta tenerlo.
+
+Plan:
+1. Variante x86 de desarrollo con driver NVIDIA para la GTX 1650 Super
+   (Turing → `nvidia-open` + `nvidia-utils`, KMS habilitado con
+   `nvidia_drm.modeset=1`). Solo para esta build de pruebas, **no** va en
+   `os/packages.txt` del producto (el Pi usa la GPU de Broadcom/V3D).
+2. Grabar la imagen al USB desde WSL: `wsl --mount \\.\PHYSICALDRIVE<n>
+   --bare` (PowerShell elevado; identificar el disco con `Get-Disk` y
+   confirmar con el usuario antes de escribir — **no equivocarse de disco**)
+   y `qemu-img convert` / `dd` del qcow2 al dispositivo. Alternativa: bootear
+   la ISO de Arch desde el USB y correr `build/packer/scripts/01-base-install.sh` +
+   `os/install.sh` apuntando a un segundo USB.
+3. Revisar que el arranque no dependa de algo de la VM. Ya se sabe que
+   **falla tal cual**: `01-base-install.sh` hace `grub-install` sin
+   `--removable`, así que GRUB queda registrado solo en la NVRAM de la VM
+   (`efivars.fd`) y el USB no tiene `EFI/BOOT/BOOTX64.EFI` — agregar
+   `--removable`. Revisar también fstab por UUID y microcode.
+4. El usuario reinicia y elige el USB en el menú de arranque de la BIOS; su
+   Windows no se toca.
+
+## Verificación visual en VM: WSL2 + KVM anidado (2026-09-27)
+
+Hyprland **sí renderiza** en la VM de desarrollo corriendo QEMU dentro de
+WSL2 (Arch oficial para WSL, `wsl -d archlinux -u root`) con `-accel kvm
+-cpu host -device virtio-vga-gl -display sdl,gl=on`. Cadena gráfica: virgl
+en el guest → virglrenderer → Mesa d3d12 → GTX 1650 Super; la ventana se ve
+en Windows vía WSLg. Confirmado con captura `grim` dentro del guest
+(wallpaper + waybar, 1280x800) y el log de aquamarine
+(`Renderer: virgl (D3D12 (NVIDIA GeForce GTX 1650 SUPER))`).
+
+Detalles que importan:
+- **`GALLIUM_DRIVER=d3d12` es obligatorio** en el anfitrión WSL: sin eso
+  Mesa cae a `llvmpipe` (software).
+- El `ERR ... eglCreateContext failed with GLES 3.2, retrying GLES 3.0` en
+  el log de Hyprland es benigno (virgl da GLES 3.1).
+- Host: i5-10400F, 16 GB, GTX 1650 Super; `%USERPROFILE%\.wslconfig` con
+  `nestedVirtualization=true`, `memory=10GB`, `processors=10`.
+- El anfitrión WSL NO es el producto, solo corre QEMU; el producto es el
+  qcow2. La copia de trabajo del disco vive en `/root/vm` dentro de WSL
+  (correr desde `/mnt/c` es lento); la de `build/packer/output-arch/` en
+  Windows queda como respaldo y **ya no está sincronizada** con la de WSL.
+- **Pero no es usable para probar a mano.** Vía WSLg (RDP) se ve cortado y
+  con lag. Vía `Xvnc` en WSL + TigerVNC en Windows (`run-vm.sh` modo `vnc`)
+  sigue con mucho lag, se ve chico (1280x800 en monitor 1440p) y los clicks
+  no llegaban (no se diagnosticó). `egl-headless`/SPICE-GL de QEMU no
+  sirven: WSL no tiene `/dev/dri`. Además Windows se come la tecla Super,
+  que es la base de los atajos de Hyprland. Conclusión: la VM sirve para
+  validar el instalador y ver que Hyprland arranca, no para probar la UX.
+- Scripts: `build/wsl/setup.sh` y `build/wsl/run-vm.sh`. Pasos en
+  `docs/testing.md`.
 
 ## Cómo retomar la VM de desarrollo
 
 Ver `docs/testing.md` para comandos exactos. Resumen:
-- Disco ya instalado en `build/packer/output-arch/command-os-dev.qcow2`
+- Forma preferida: dentro de WSL (`build/wsl/run-vm.sh`), disco en
+  `/root/vm/command-os-dev.qcow2`. SSH desde WSL a `127.0.0.1:2900` con
+  `/root/vm/packer_build_key`.
+- Disco original (Windows) en `build/packer/output-arch/command-os-dev.qcow2`
   (Arch base + capa Hyprland completa, usuario `deck`, servicios
   habilitados) — no hace falta reinstalar desde cero para seguir iterando
   dotfiles/paquetes, solo re-correr `os/install.sh` sobre él.
