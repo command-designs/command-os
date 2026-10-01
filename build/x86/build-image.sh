@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Construye una imagen de disco raw (UEFI, GPT) de Command OS para PC x86_64,
+# grabable en un USB con dd. Correr como root dentro de WSL (Arch):
+#   wsl -d archlinux -u root -- bash /mnt/c/<repo>/build/x86/build-image.sh
+# Variables: IMG (ruta de salida), SIZE (tamaño sparse), VARIANT (variante de
+# os/variants/, default pc-nvidia), DEV_SSH_PUBKEY (fichero .pub opcional: se
+# instala en ~deck/.ssh/authorized_keys, solo para pruebas en VM).
+set -euo pipefail
+
+REPO=$(cd "$(dirname "$0")/../.." && pwd)
+IMG=${IMG:-/root/vm/command-os-x86.img}
+SIZE=${SIZE:-14G}
+VARIANT=${VARIANT:-pc-nvidia}
+MNT=/mnt/command-os-build
+LOOP=
+
+cleanup() {
+  set +e
+  mountpoint -q "$MNT" && umount -R "$MNT"
+  [[ -n "$LOOP" ]] && losetup -d "$LOOP"
+}
+trap cleanup EXIT
+
+[[ $(id -u) -eq 0 ]] || { echo "correr como root" >&2; exit 1; }
+pacman -S --needed --noconfirm arch-install-scripts parted dosfstools e2fsprogs >/dev/null
+
+mkdir -p "$(dirname "$IMG")" "$MNT"
+rm -f "$IMG"
+truncate -s "$SIZE" "$IMG"
+LOOP=$(losetup --find --show --partscan "$IMG")
+
+parted -s "$LOOP" mklabel gpt
+parted -s "$LOOP" mkpart ESP fat32 1MiB 1025MiB
+parted -s "$LOOP" set 1 esp on
+parted -s "$LOOP" mkpart root ext4 1025MiB 100%
+partprobe "$LOOP"; udevadm settle 2>/dev/null || sleep 2
+
+mkfs.fat -F32 "${LOOP}p1"
+mkfs.ext4 -F -L command-os "${LOOP}p2"
+mount "${LOOP}p2" "$MNT"
+mkdir -p "$MNT/boot"
+mount "${LOOP}p1" "$MNT/boot"
+
+pacstrap -cK "$MNT" base linux linux-firmware intel-ucode amd-ucode sudo \
+  networkmanager openssh grub efibootmgr vim git base-devel
+genfstab -U "$MNT" >> "$MNT/etc/fstab"
+
+mkdir -p "$MNT/root/command-os-src"
+cp -r "$REPO/os" "$MNT/root/command-os-src/os"
+find "$MNT/root/command-os-src/os" -name '*.sh' -exec sed -i 's/\r$//' {} +
+
+arch-chroot "$MNT" /bin/bash -euxc "
+  ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+  echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
+  locale-gen
+  echo 'LANG=en_US.UTF-8' > /etc/locale.conf
+  echo command-os > /etc/hostname
+  passwd -l root
+  COMMAND_OS_VARIANT=${VARIANT} bash /root/command-os-src/os/install.sh
+  sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet splash nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
+  # --removable: EFI/BOOT/BOOTX64.EFI, sin depender de la NVRAM del equipo
+  grub-install --target=x86_64-efi --efi-directory=/boot --removable --no-nvram
+  grub-mkconfig -o /boot/grub/grub.cfg
+"
+
+if [[ -n "${DEV_SSH_PUBKEY:-}" ]]; then
+  install -d -m 700 -o 1000 -g 1000 "$MNT/home/deck/.ssh"
+  install -m 600 -o 1000 -g 1000 "$DEV_SSH_PUBKEY" "$MNT/home/deck/.ssh/authorized_keys"
+fi
+rm -rf "$MNT/root/command-os-src"
+
+sync
+echo "==> Imagen lista: $IMG"

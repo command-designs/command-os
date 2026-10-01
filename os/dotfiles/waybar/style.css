@@ -1,22 +1,60 @@
+/* Command OS — BRAND.md § 4–6. Rojo solo en el indicador activo (la barra del logo). */
+@define-color void #0e0e0e;
+@define-color graphite #151515;
+@define-color steel #2a2a2a;
+@define-color bone #edebe6;
+@define-color ash #a3a09a;
+@define-color smoke #85827c;
+@define-color red #a51500;
+@define-color red-hot #f5482c;
+
 * {
     font-family: "JetBrainsMono Nerd Font";
-    font-size: 13px;
+    font-size: 12px;
+    min-height: 0;
 }
 
 window#waybar {
-    background: rgba(20, 22, 28, 0.9);
-    color: #e5e9f0;
+    background: @void;
+    color: @bone;
+    border-bottom: 1px solid @steel;
 }
 
 #workspaces button {
-    padding: 0 8px;
-    color: #d8dee9;
+    padding: 0 10px;
+    color: @smoke;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+}
+
+#workspaces button:hover {
+    background: @graphite;
+    color: @bone;
 }
 
 #workspaces button.active {
-    color: #88c0d0;
+    color: @bone;
+    border-bottom: 2px solid @red;
 }
 
-#clock, #network, #pulseaudio, #battery, #tray {
+#image.logo {
+    margin: 0 8px 0 14px;
+}
+
+#clock {
+    font-weight: 500;
+    letter-spacing: 0.08em;
+}
+
+#network, #pulseaudio, #battery, #cpu, #memory, #tray {
     padding: 0 10px;
+    color: @ash;
+}
+
+#battery.critical:not(.charging) {
+    color: @red-hot;
+}
+
+#network.disconnected {
+    color: @smoke;
 }

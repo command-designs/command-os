@@ -1,0 +1,21 @@
+# Notificaciones de Command OS (BRAND.md § 4, § 6): superficie Graphite,
+# borde de 1 px Steel, radios de 4 px. Rojo solo para urgencia.
+font=Geist 11
+background-color=#151515
+text-color=#edebe6
+border-color=#2a2a2a
+border-size=1
+border-radius=4
+padding=12
+margin=8
+width=340
+default-timeout=5000
+anchor=top-right
+layer=overlay
+
+[urgency=low]
+text-color=#a3a09a
+
+[urgency=critical]
+border-color=#f5482c
+default-timeout=0

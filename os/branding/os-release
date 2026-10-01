@@ -1,0 +1,11 @@
+NAME="Command OS"
+PRETTY_NAME="Command OS"
+ID=command-os
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;245;72;44"
+HOME_URL="https://commandlab.dev/"
+DOCUMENTATION_URL="https://commandlab.dev/"
+LOGO=command-os
+VARIANT="CMD-OS"
+VARIANT_ID=cmd-os

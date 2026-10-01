@@ -1,0 +1,11 @@
+# Variante "pc-nvidia": PC x86_64 con GPU NVIDIA (Turing o posterior) para
+# probar Command OS en bare metal. NO va en el producto (el Pi 5 usa V3D).
+# Se instala además de os/packages.txt cuando COMMAND_OS_VARIANT=pc-nvidia.
+
+# Driver NVIDIA open (Turing+, ej. GTX 1650 Super) para el kernel `linux`
+nvidia-open
+nvidia-utils
+
+# Microcódigo de CPU (se carga por initramfs vía GRUB)
+intel-ucode
+amd-ucode

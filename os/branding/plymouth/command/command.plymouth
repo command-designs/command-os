@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Command
+Description=Firma de arranque de Command: el wordmark se revela y la barra roja se extiende.
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/command
+ScriptFile=/usr/share/plymouth/themes/command/command.script

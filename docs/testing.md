@@ -157,3 +157,16 @@ qemu-img snapshot -l output-arch/command-os-dev.qcow2              # listar
 - `root` sin password (deshabilitado con `passwd -d`), solo acceso por la
   llave SSH efímera de `build/packer/keys/`, con `PermitRootLogin yes` —
   revisar/cerrar esto antes de considerar cualquier imagen "shippable".
+
+## Imagen x86 (USB / bare metal)
+
+```
+wsl -d archlinux -u root -- bash -c 'DEV_SSH_PUBKEY=/root/vm/devkey.pub \
+  setsid nohup bash /mnt/c/Workspace/command/command-os/build/x86/build-image.sh \
+  > /root/vm/build.log 2>&1 < /dev/null &'
+wsl -d archlinux -u root -- sh /mnt/c/Workspace/command/command-os/build/x86/run-vm.sh
+```
+`DEV_SSH_PUBKEY` (opcional, solo pruebas en VM) instala esa llave en
+`~deck/.ssh`; sin él, la imagen no lleva llaves. SSH: `ssh -i
+/root/vm/packer_build_key -p 2901 deck@127.0.0.1`. La build tarda ~20 min
+(descarga ~800 MB). La imagen resultante se graba con `dd` a un USB.

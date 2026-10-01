@@ -1,35 +1,41 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 32,
-    "modules-left": ["hyprland/workspaces"],
+    "height": 30,
+    "modules-left": ["image#logo", "hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["network", "pulseaudio", "battery", "tray"],
+    "modules-right": ["cpu", "memory", "network", "pulseaudio", "battery", "tray"],
 
+    "image#logo": {
+        "path": "/usr/share/command-os/logo/command-mark-32.png",
+        "size": 16,
+        "tooltip": false
+    },
     "hyprland/workspaces": {
-        "format": "{icon}",
-        "format-icons": {
-            "default": "",
-            "active": ""
-        }
+        "format": "{id}",
+        "persistent-workspaces": { "*": 4 }
     },
     "clock": {
-        "format": "{:%H:%M  %Y-%m-%d}"
+        "format": "{:%H:%M}",
+        "tooltip-format": "{:%A %d %B %Y}"
     },
+    "cpu": { "format": "cpu {usage}%", "interval": 5 },
+    "memory": { "format": "mem {percentage}%", "interval": 5 },
     "network": {
-        "format-wifi": " {essid}",
-        "format-ethernet": " eth",
-        "format-disconnected": "disconnected"
+        "format-wifi": "{essid}",
+        "format-ethernet": "eth",
+        "format-disconnected": "sin red",
+        "tooltip-format": "{ifname} · {ipaddr}"
     },
     "pulseaudio": {
-        "format": "{icon} {volume}%",
-        "format-icons": ["", "", ""]
+        "format": "vol {volume}%",
+        "format-muted": "mute",
+        "on-click": "pavucontrol"
     },
     "battery": {
-        "format": "{icon} {capacity}%",
-        "format-icons": ["", "", "", "", ""]
+        "format": "bat {capacity}%",
+        "format-charging": "bat {capacity}% +",
+        "states": { "critical": 15 }
     },
-    "tray": {
-        "spacing": 8
-    }
+    "tray": { "spacing": 8 }
 }

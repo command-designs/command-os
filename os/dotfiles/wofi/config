@@ -1,5 +1,9 @@
-width=500
-height=340
+width=520
+height=360
 location=center
 show=drun
-prompt=Search...
+prompt=buscar
+allow_images=true
+image_size=24
+no_actions=true
+insensitive=true

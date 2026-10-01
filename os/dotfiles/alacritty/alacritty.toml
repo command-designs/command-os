@@ -1,11 +1,40 @@
+# Command OS — paleta de BRAND.md § 4.
 [window]
-padding = { x = 8, y = 8 }
-opacity = 0.95
+padding = { x = 10, y = 10 }
+opacity = 1.0
 
 [font]
 size = 11.0
 normal = { family = "JetBrainsMono Nerd Font" }
 
 [colors.primary]
-background = "#14161c"
-foreground = "#e5e9f0"
+background = "#0e0e0e"
+foreground = "#edebe6"
+
+[colors.cursor]
+cursor = "#f5482c"
+text = "#0e0e0e"
+
+[colors.selection]
+background = "#2a2a2a"
+text = "#edebe6"
+
+[colors.normal]
+black = "#1a1a1a"
+red = "#f5482c"
+green = "#3ddc84"
+yellow = "#ffb020"
+blue = "#a3a09a"
+magenta = "#85827c"
+cyan = "#a3a09a"
+white = "#edebe6"
+
+[colors.bright]
+black = "#3a3a3a"
+red = "#f5482c"
+green = "#3ddc84"
+yellow = "#ffb020"
+blue = "#edebe6"
+magenta = "#a3a09a"
+cyan = "#edebe6"
+white = "#ffffff"

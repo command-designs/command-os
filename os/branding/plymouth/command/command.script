@@ -1,0 +1,22 @@
+# Command OS — firma de arranque (BRAND.md § 12.1, ancla 2).
+# 28 fotogramas a 2 ticks cada uno (~1,1 s a 50 Hz); se queda en el último.
+Window.SetBackgroundTopColor(0.055, 0.055, 0.055);
+Window.SetBackgroundBottomColor(0.055, 0.055, 0.055);
+
+frame_count = 28;
+for (i = 0; i < frame_count; i++)
+    frame[i] = Image("frame-" + i + ".png");
+
+logo = Sprite();
+logo.SetX(Window.GetX() + (Window.GetWidth() - frame[0].GetWidth()) / 2);
+logo.SetY(Window.GetY() + (Window.GetHeight() - frame[0].GetHeight()) / 2);
+logo.SetImage(frame[0]);
+
+tick = 0;
+fun refresh_callback() {
+    idx = Math.Int(tick / 2);
+    if (idx >= frame_count) idx = frame_count - 1;
+    logo.SetImage(frame[idx]);
+    tick++;
+}
+Plymouth.SetRefreshFunction(refresh_callback);

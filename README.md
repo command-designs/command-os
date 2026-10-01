@@ -16,11 +16,10 @@ modificado para llegar al mismo resultado que Omarchy**: misma idea de capa
 curada (instalador + paquetes + dotfiles) sobre Arch, pero reconstruida por
 nosotros y arquitectura-agnóstica.
 
-**Estado respecto a esa meta**: `os/` hoy es una base Hyprland mínima
-(Waybar, Wofi, Alacritty/Kitty) que valida el pipeline de instalación. Todavía
-no replica la experiencia Omarchy (launcher, notificaciones, bloqueo/idle,
-OSD, sistema de temas, apps y atajos por defecto) — ese es el trabajo de
-producto pendiente una vez que se pueda ver Hyprland renderizado.
+**Estado respecto a esa meta**: `os/` ya tiene tema de marca, notificaciones
+(Mako), bloqueo/idle (Hyprlock/Hypridle), OSD, splash de arranque, atajos y
+apps por defecto, verificado en una VM x86_64. Falta probar varias piezas,
+empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
 
 ## Estructura
 
@@ -44,6 +43,34 @@ verificación visual real de Hyprland (cómo se ve, animaciones, etc.) se hace
 en el Raspberry Pi 5 físico: la GPU virtualizada en una VM de Windows tiene
 problemas de compatibilidad conocidos con compositores Wayland que no vale
 la pena perseguir (ver `docs/testing.md`).
+
+## Identidad y estado del tema
+
+El escritorio sigue la marca de Command (`BRAND.md` de `command-web`): casi monocromo, rojo solo como
+señal. Detalle y estado de cada ancla de marca en [`docs/DISENO.md`](docs/DISENO.md). Los assets están
+en `os/branding/` (logo, fuentes, wallpaper, splash de arranque).
+
+## Siguientes pasos
+
+Por orden de prioridad:
+
+1. **Probar lo configurado pero no verificado** en la VM: notificaciones (Mako; falta reinstalar con
+   `libnotify`), bloqueo (`Super+L`) e inactividad, atajos, lanzador, portapapeles y teclas de
+   volumen/brillo.
+2. **Cerrar la firma de arranque** (`BRAND.md` § 12, ancla 2): que el splash se pueda saltar con una
+   tecla y medir la duración real de la animación.
+3. **Pantalla de información del sistema** con nombre y código `CMD-OS` (ancla 5), visible desde el
+   escritorio.
+4. **Paquete pacman `command-os`** (`PKGBUILD`): dotfiles en `/etc/skel`, assets en
+   `/usr/share/command-os`, `os-release` y temas. Sustituye al `cp -r` de `install.sh`, que hoy borra
+   la config del usuario en cada ejecución. Después, repo propio para actualizaciones.
+5. **Instalador pulido**: pedir usuario, contraseña y nombre del equipo (hoy `deck`/`deck` fijo),
+   detectar variante de hardware (NVIDIA, VM, Pi) y no pisar config existente.
+6. **Bare metal en x86**: grabar `command-os-x86.img` en un USB y probar con la GPU NVIDIA real
+   (pendiente de tener el USB; ver `CLAUDE.md`).
+7. **Raspberry Pi 5 / Arch Linux ARM**: repetir el mismo `os/install.sh` sobre aarch64, primero en
+   `qemu-system-aarch64` y luego en el hardware real. Ajustar los paquetes que no existan en aarch64.
+8. **Sonido** y **diseño del objeto** (anclas 6–8 de la marca): dependen del hardware.
 
 ## Próximos pasos hacia ARM real
 

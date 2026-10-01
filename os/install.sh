@@ -20,6 +20,81 @@ echo "==> Installing package layer from packages.txt"
 mapfile -t PACKAGES < <(grep -vE '^\s*(#|$)' "${REPO_DIR}/packages.txt")
 pacman -S --needed --noconfirm "${PACKAGES[@]}"
 
+# Variante opcional (ej. COMMAND_OS_VARIANT=pc-nvidia para PC x86_64 con GPU
+# NVIDIA): paquetes extra en os/variants/<variante>/packages.txt.
+VARIANT="${COMMAND_OS_VARIANT:-}"
+if [[ -n "${VARIANT}" ]]; then
+  VARIANT_PKGS="${REPO_DIR}/variants/${VARIANT}/packages.txt"
+  [[ -f "${VARIANT_PKGS}" ]] || { echo "Variante desconocida: ${VARIANT}" >&2; exit 1; }
+  echo "==> Installing variant packages: ${VARIANT}"
+  mapfile -t VARIANT_PACKAGES < <(grep -vE '^\s*(#|$)' "${VARIANT_PKGS}")
+  pacman -S --needed --noconfirm "${VARIANT_PACKAGES[@]}"
+  if [[ "${VARIANT}" == "pc-nvidia" ]]; then
+    # Solo se exporta si hay GPU NVIDIA real: en una VM (virtio-gpu) esto
+    # rompería el renderizado.
+    cat > /etc/profile.d/command-os-nvidia.sh <<'EOF'
+if [ -e /proc/driver/nvidia/version ]; then
+  export GBM_BACKEND=nvidia-drm
+  export __GLX_VENDOR_LIBRARY_NAME=nvidia
+  export WLR_NO_HARDWARE_CURSORS=1
+fi
+EOF
+  fi
+fi
+
+echo "==> Installing Command OS branding (logo, wallpaper, fonts)"
+BRANDING="${REPO_DIR}/branding"
+install -d /usr/share/command-os/logo /usr/share/command-os/wallpapers /usr/share/fonts/command-os
+install -m 644 "${BRANDING}"/logo/* /usr/share/command-os/logo/
+install -m 644 "${BRANDING}"/wallpapers/* /usr/share/command-os/wallpapers/
+# Oxanium y Geist (BRAND.md § 5) no están en los repos de Arch: se empaquetan aquí (OFL).
+install -m 644 "${BRANDING}"/fonts/*.ttf /usr/share/fonts/command-os/
+fc-cache -f /usr/share/fonts/command-os
+
+echo "==> Setting system identity (os-release, issue, motd)"
+# /etc/os-release es un symlink a /usr/lib/os-release: se reemplaza por un archivo propio.
+rm -f /etc/os-release
+install -m 644 "${BRANDING}/os-release" /etc/os-release
+install -m 644 "${BRANDING}/issue" /etc/issue
+install -m 644 "${BRANDING}/motd" /etc/motd
+
+echo "==> Installing Plymouth boot splash"
+rm -rf /usr/share/plymouth/themes/command
+install -d /usr/share/plymouth/themes/command
+install -m 644 "${BRANDING}"/plymouth/command/* /usr/share/plymouth/themes/command/
+install -d /etc/plymouth
+printf '[Daemon]\nTheme=command\nShowDelay=0\n' > /etc/plymouth/plymouthd.conf
+if [[ -f /etc/mkinitcpio.conf ]] && ! grep -qE '^HOOKS=.*plymouth' /etc/mkinitcpio.conf; then
+  # plymouth va justo después de systemd (initramfs systemd) o de udev (initramfs busybox).
+  if grep -qE '^HOOKS=.*\bsystemd\b' /etc/mkinitcpio.conf; then
+    sed -i -E '/^HOOKS=/ s/\bsystemd\b/systemd plymouth/' /etc/mkinitcpio.conf
+  else
+    sed -i -E '/^HOOKS=/ s/\budev\b/udev plymouth/' /etc/mkinitcpio.conf
+  fi
+fi
+if command -v mkinitcpio >/dev/null; then mkinitcpio -P; fi
+
+echo "==> Branding GRUB"
+if [[ -f /etc/default/grub ]]; then
+  set_grub() {  # set_grub CLAVE 'valor' — reemplaza o añade, idempotente
+    if grep -qE "^#?${1}=" /etc/default/grub; then
+      sed -i -E "s|^#?${1}=.*|${1}=${2}|" /etc/default/grub
+    else
+      echo "${1}=${2}" >> /etc/default/grub
+    fi
+  }
+  set_grub GRUB_DISTRIBUTOR '"Command OS"'
+  set_grub GRUB_TIMEOUT 2
+  set_grub GRUB_TERMINAL_OUTPUT gfxterm
+  set_grub GRUB_GFXMODE auto
+  set_grub GRUB_BACKGROUND '"/usr/share/command-os/wallpapers/command-void.png"'
+  set_grub GRUB_COLOR_NORMAL '"light-gray/black"'
+  set_grub GRUB_COLOR_HIGHLIGHT '"white/black"'
+  if ! grep -qE '^GRUB_CMDLINE_LINUX_DEFAULT=.*splash' /etc/default/grub; then
+    sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=")(.*)"/\1\2 quiet splash"/' /etc/default/grub
+  fi
+fi
+
 echo "==> Ensuring target user exists: ${TARGET_USER}"
 if ! id "${TARGET_USER}" &>/dev/null; then
   useradd -m -G wheel -s /bin/bash "${TARGET_USER}"
@@ -32,11 +107,14 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 echo "==> Deploying dotfiles to ${TARGET_HOME}"
 mkdir -p "${TARGET_HOME}/.config"
-for dir in hypr waybar alacritty wofi kitty; do
+for dir in hypr waybar alacritty wofi kitty mako; do
   src="${REPO_DIR}/dotfiles/${dir}"
   [[ -d "${src}" ]] || continue
-  rm -rf "${TARGET_HOME}/.config/${dir}"
-  cp -r "${src}" "${TARGET_HOME}/.config/${dir}"
+  # Con la sesión abierta, Hyprland escribe en su carpeta y `rm -rf` puede fallar:
+  # se limpia sin abortar y se copia encima.
+  rm -rf "${TARGET_HOME}/.config/${dir}" 2>/dev/null || true
+  mkdir -p "${TARGET_HOME}/.config/${dir}"
+  cp -rT "${src}" "${TARGET_HOME}/.config/${dir}"
 done
 chown -R "${TARGET_USER}:${TARGET_USER}" "${TARGET_HOME}/.config"
 
@@ -56,6 +134,8 @@ EOF
 BASH_PROFILE="${TARGET_HOME}/.bash_profile"
 touch "${BASH_PROFILE}"
 MARKER="# --- Command OS: autostart Hyprland on tty1 ---"
+# Se reemplaza el bloque entero (hasta el `fi` de nivel 0) para recoger cambios al re-ejecutar.
+sed -i "\|${MARKER}|,/^fi\$/d" "${BASH_PROFILE}"
 if ! grep -qF "${MARKER}" "${BASH_PROFILE}"; then
   cat >> "${BASH_PROFILE}" <<'EOF'
 # --- Command OS: autostart Hyprland on tty1 ---
@@ -67,6 +147,8 @@ if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
     export WLR_NO_HARDWARE_CURSORS=1
     export WLR_RENDERER_ALLOW_SOFTWARE=1
   fi
+  # Hyprland >= 0.55 pide arrancar con start-hyprland (watchdog + entorno de sesión).
+  if command -v start-hyprland >/dev/null; then exec start-hyprland; fi
   exec Hyprland
 fi
 EOF
