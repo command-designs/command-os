@@ -4,6 +4,7 @@
 *.css text eol=lf
 *.jsonc text eol=lf
 os/dotfiles/wofi/config text eol=lf
+os/dotfiles/mako/config text eol=lf
 packages.txt text eol=lf
 # Todo lo que se instala en el sistema Linux va con LF aunque se clone en Windows.
 os/branding/** text eol=lf
