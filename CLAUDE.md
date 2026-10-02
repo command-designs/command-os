@@ -129,6 +129,40 @@ a `/tmp` antes de entrar al chroot. Pendiente: grabar la imagen en el USB
   hacer el splash saltable, hyprlock/hyprpaper en pantallas reales, y el paquete pacman
   `command-os` (segunda pasada).
 
+## Splash con consola de arranque (2026-10-02)
+
+`os/branding/plymouth/command/command.script`: bajo el wordmark animado hay una consola de 6 líneas
+con los servicios que systemd va arrancando (llegan por `Plymouth.SetMessageFunction`, son nombres de
+unidad reales), una barra roja y `transcurrido · ~restante · %`. El progreso y el tiempo salen de
+`Plymouth.SetBootProgressFunction`, que usa la duración guardada en `/var/lib/plymouth/boot-duration`
+(en el primer arranque es una estimación por defecto, luego se ajusta sola). La barra usa
+`px-red.png`/`px-dim.png`, que genera `build/make-plymouth.py`. Fuente `Monospace 10` (la única segura
+dentro del initramfs). **Verificado** en la VM de VirtualBox con captura durante el arranque.
+Plymouth no se puede probar en WSL (el daemon se cuelga sin tty): probar siempre en la VM
+(copiar el tema a `/usr/share/plymouth/themes/command`, `mkinitcpio -P`, reiniciar y
+`VBoxManage controlvm command-os-x86 screenshotpng`). Pendiente: ver el final del arranque.
+
+## Consola de desarrollo, animaciones y sonido (2026-10-01)
+
+- **Paquetes de desarrollo** en `os/packages.txt` (nano, base-devel, man, ripgrep, fd, fzf, bat, eza,
+  zoxide, tmux, jq, python, nodejs/npm…) y pila de audio PipeWire completa. `install.sh` instala
+  `~/.config/command-os/bashrc` (alias, prompt de marca, `EDITOR=nano`) enganchado desde `~/.bashrc`
+  con marcadores, y `~/.config/nano/nanorc`.
+- **Animaciones**: bloque `animations` de `hyprland.conf` rehecho (entradas/salidas de ventanas, capas,
+  espacios de trabajo, fundidos) + transiciones CSS en Waybar. `install.sh` escribe
+  `~/.config/hypr/local.conf` (cargado con `source` al final) con un perfil ligero **solo en VM**.
+- **Sonidos**: `build/make-sounds.py` los genera en `os/branding/sounds/`; `os/bin/command-os-sound`
+  los reproduce (arranque, notificación, urgente, bloqueo, desbloqueo, tecla de volumen).
+- **VirtualBox**: 1 vCPU sigue siendo obligatorio (2 vCPU = cuelgue en `DXE_AP`, reprobado), 6 GB de
+  RAM, paravirt KVM, y **audio AC97** (con HDA `pw-play` se cuelga). Hyprland renderiza por software
+  en la VM, así que la fluidez real de las animaciones solo se juzga en bare metal / Pi. Detalle en
+  `docs/testing.md`.
+- Ojo al iterar: re-ejecutar `install.sh` con Hyprland en marcha lo **cuelga** (recarga automática con
+  `~/.config/hypr` a medias, bloqueado en un futex). Después de re-instalar, reiniciar la sesión con
+  `sudo systemctl restart getty@tty1` en lugar de `hyprctl reload`.
+- Pendiente: oír los sonidos en la VM (solo se verificó que `pw-play` termina a tiempo, no el
+  resultado acústico), validar los paquetes en aarch64 y probar el audio en el Pi.
+
 ## Verificación visual en VM: WSL2 + KVM anidado (2026-09-27)
 
 Hyprland **sí renderiza** en la VM de desarrollo corriendo QEMU dentro de

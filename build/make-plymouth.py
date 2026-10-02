@@ -1,7 +1,8 @@
 """Genera los fotogramas del splash de arranque (BRAND.md § 9, firma 2 / § 12 ancla 2).
 
 El wordmark se revela de izquierda a derecha y después la barra roja se extiende
-desde la izquierda. Salida: os/branding/plymouth/command/frame-N.png
+desde la izquierda. Salida: os/branding/plymouth/command/frame-N.png, px-red.png y px-dim.png
+(estos dos últimos son la barra de progreso de la consola de arranque de command.script).
 """
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -36,3 +37,7 @@ for i in range(REVEAL + BAR):
     f.save(OUT / f"frame-{n}.png")
     n += 1
 print(n, "fotogramas", W, "x", H)
+
+# Píxeles sueltos para la barra de progreso del script (se escalan en Plymouth).
+Image.new("RGBA", (1, 1), RED).save(OUT / "px-red.png")
+Image.new("RGBA", (1, 1), (58, 58, 58, 255)).save(OUT / "px-dim.png")

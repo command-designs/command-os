@@ -1,0 +1,2 @@
+# Extras para la VM de desarrollo en VirtualBox (os/install.sh con COMMAND_OS_VARIANT=vbox).
+virtualbox-guest-utils

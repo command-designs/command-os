@@ -21,6 +21,8 @@ window#waybar {
 }
 
 #workspaces button {
+    transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 250ms cubic-bezier(0.16, 1, 0.3, 1);
     padding: 0 10px;
     color: @smoke;
     border-radius: 0;
@@ -47,8 +49,13 @@ window#waybar {
 }
 
 #network, #pulseaudio, #battery, #cpu, #memory, #tray {
+    transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0 10px;
     color: @ash;
+}
+
+#network:hover, #pulseaudio:hover, #cpu:hover, #memory:hover {
+    color: @bone;
 }
 
 #battery.critical:not(.charging) {

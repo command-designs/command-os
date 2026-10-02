@@ -11,3 +11,7 @@ os/branding/** text eol=lf
 os/variants/** text eol=lf
 os/branding/**/*.png binary
 os/branding/**/*.ttf binary
+os/dotfiles/bash/* text eol=lf
+os/dotfiles/nano/* text eol=lf
+os/bin/* text eol=lf
+os/branding/**/*.wav binary

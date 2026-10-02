@@ -53,8 +53,45 @@ pamixer
 network-manager-applet
 networkmanager
 
+# Audio (PipeWire con puentes ALSA/PulseAudio) y sonidos del sistema
+pipewire
+pipewire-pulse
+pipewire-alsa
+wireplumber
+alsa-utils
+sound-theme-freedesktop
+
 # Base dev/user tooling
 git
 vim
+nano
 sudo
 openssh
+
+# Consola de desarrollo: compilación, documentación y utilidades habituales
+base-devel
+man-db
+man-pages
+which
+less
+bash-completion
+curl
+wget
+rsync
+jq
+unzip
+zip
+tree
+tmux
+htop
+lsof
+strace
+ripgrep
+fd
+fzf
+bat
+eza
+zoxide
+python
+nodejs
+npm

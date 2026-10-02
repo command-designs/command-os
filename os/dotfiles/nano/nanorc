@@ -1,0 +1,13 @@
+# Command OS — nano para desarrollo.
+include "/usr/share/nano/*.nanorc"
+set linenumbers
+set mouse
+set tabsize 4
+set tabstospaces
+set autoindent
+set smarthome
+set softwrap
+set constantshow
+set historylog
+set positionlog
+set indicator

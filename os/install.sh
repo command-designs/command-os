@@ -29,6 +29,9 @@ if [[ -n "${VARIANT}" ]]; then
   echo "==> Installing variant packages: ${VARIANT}"
   mapfile -t VARIANT_PACKAGES < <(grep -vE '^\s*(#|$)' "${VARIANT_PKGS}")
   pacman -S --needed --noconfirm "${VARIANT_PACKAGES[@]}"
+  if [[ "${VARIANT}" == "vbox" ]]; then
+    systemctl enable vboxservice.service
+  fi
   if [[ "${VARIANT}" == "pc-nvidia" ]]; then
     # Solo se exporta si hay GPU NVIDIA real: en una VM (virtio-gpu) esto
     # rompería el renderizado.
@@ -50,6 +53,11 @@ install -m 644 "${BRANDING}"/wallpapers/* /usr/share/command-os/wallpapers/
 # Oxanium y Geist (BRAND.md § 5) no están en los repos de Arch: se empaquetan aquí (OFL).
 install -m 644 "${BRANDING}"/fonts/*.ttf /usr/share/fonts/command-os/
 fc-cache -f /usr/share/fonts/command-os
+
+echo "==> Installing system sounds and helper"
+install -d /usr/share/command-os/sounds
+install -m 644 "${BRANDING}"/sounds/*.wav /usr/share/command-os/sounds/
+install -m 755 "${REPO_DIR}/bin/command-os-sound" /usr/local/bin/command-os-sound
 
 echo "==> Setting system identity (os-release, issue, motd)"
 # /etc/os-release es un symlink a /usr/lib/os-release: se reemplaza por un archivo propio.
@@ -107,7 +115,7 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 echo "==> Deploying dotfiles to ${TARGET_HOME}"
 mkdir -p "${TARGET_HOME}/.config"
-for dir in hypr waybar alacritty wofi kitty mako; do
+for dir in hypr waybar alacritty wofi kitty mako nano; do
   src="${REPO_DIR}/dotfiles/${dir}"
   [[ -d "${src}" ]] || continue
   # Con la sesión abierta, Hyprland escribe en su carpeta y `rm -rf` puede fallar:
@@ -116,12 +124,40 @@ for dir in hypr waybar alacritty wofi kitty mako; do
   mkdir -p "${TARGET_HOME}/.config/${dir}"
   cp -rT "${src}" "${TARGET_HOME}/.config/${dir}"
 done
-chown -R "${TARGET_USER}:${TARGET_USER}" "${TARGET_HOME}/.config"
+# Ajustes locales de Hyprland (se carga con `source` al final de hyprland.conf).
+# En VM el render es por software y el hardware no da para el movimiento completo:
+# se acorta la duración de las animaciones (sin tocar el perfil del producto).
+if systemd-detect-virt --quiet; then
+  cat > "${TARGET_HOME}/.config/hypr/local.conf" <<'LOCAL'
+# Perfil ligero para VM (render por software).
+decoration {
+    dim_inactive = false
+}
+animation = workspacesIn, 1, 3, out, slide
+animation = workspacesOut, 1, 2, emphasized, slide
+animation = border, 0
+LOCAL
+else
+  : > "${TARGET_HOME}/.config/hypr/local.conf"
+fi
+
+echo "==> Configuring developer shell (bashrc, nano)"
+mkdir -p "${TARGET_HOME}/.config/command-os"
+install -m 644 "${REPO_DIR}/dotfiles/bash/command-os.bashrc" "${TARGET_HOME}/.config/command-os/bashrc"
+BASHRC="${TARGET_HOME}/.bashrc"
+touch "${BASHRC}"
+RC_MARKER="# --- Command OS: shell de desarrollo ---"
+# Se reemplaza el bloque entero para recoger cambios al re-ejecutar.
+sed -i "\|${RC_MARKER}|,\|# --- fin Command OS ---|d" "${BASHRC}"
+printf '%s\n[ -r ~/.config/command-os/bashrc ] && . ~/.config/command-os/bashrc\n# --- fin Command OS ---\n' "${RC_MARKER}" >> "${BASHRC}"
+chown -R "${TARGET_USER}:${TARGET_USER}" "${TARGET_HOME}/.config" "${BASHRC}"
 
 echo "==> Enabling core services"
 systemctl enable seatd.service
 systemctl enable NetworkManager.service
 systemctl enable sshd.service
+# Audio: PipeWire por socket para todos los usuarios (sesión de Hyprland incluida).
+systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
 echo "==> Configuring tty1 autologin + auto-start Hyprland for ${TARGET_USER}"
 mkdir -p /etc/systemd/system/getty@tty1.service.d

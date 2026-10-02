@@ -1,17 +1,128 @@
-# Command OS — firma de arranque (BRAND.md § 12.1, ancla 2).
-# 28 fotogramas a 2 ticks cada uno (~1,1 s a 50 Hz); se queda en el último.
+# Command OS — firma de arranque (BRAND.md § 12.1, ancla 2) + consola de arranque.
+#
+# Arriba: el wordmark animado (28 fotogramas a 2 ticks cada uno, ~1,1 s a 50 Hz; se
+# queda en el último). Debajo: una consola con los servicios que arrancan de verdad
+# (los mensajes de systemd llegan por Plymouth.SetMessageFunction), una barra de
+# progreso y el tiempo transcurrido / restante. El progreso y el tiempo los calcula
+# Plymouth a partir de la duración guardada de arranques anteriores; en el primer
+# arranque es una estimación por defecto.
 Window.SetBackgroundTopColor(0.055, 0.055, 0.055);
 Window.SetBackgroundBottomColor(0.055, 0.055, 0.055);
+
+FONT = "Monospace 10";
+LOG_LINES = 6;
+LINE_H = 18;
+BAR_H = 3;
 
 frame_count = 28;
 for (i = 0; i < frame_count; i++)
     frame[i] = Image("frame-" + i + ".png");
 
+# --- Composición: el logo sube un poco para dejar sitio a la consola debajo -------
+block_w = frame[0].GetWidth();
+block_x = Window.GetX() + (Window.GetWidth() - block_w) / 2;
+logo_y  = Window.GetY() + (Window.GetHeight() - frame[0].GetHeight()) / 2 - 70;
+log_y   = logo_y + frame[0].GetHeight() + 48;
+bar_y   = log_y + LOG_LINES * LINE_H + 14;
+stat_y  = bar_y + BAR_H + 10;
+
 logo = Sprite();
-logo.SetX(Window.GetX() + (Window.GetWidth() - frame[0].GetWidth()) / 2);
-logo.SetY(Window.GetY() + (Window.GetHeight() - frame[0].GetHeight()) / 2);
+logo.SetX(block_x);
+logo.SetY(logo_y);
 logo.SetImage(frame[0]);
 
+# --- Barra de progreso (dos píxeles escalados: fondo tenue + relleno rojo) --------
+px_dim = Image("px-dim.png");
+px_red = Image("px-red.png");
+bar_bg = Sprite(px_dim.Scale(block_w, BAR_H));
+bar_bg.SetPosition(block_x, bar_y, 1);
+bar_fg = Sprite();
+bar_fg.SetPosition(block_x, bar_y, 2);
+bar_px = 0;
+
+# --- Consola ----------------------------------------------------------------------
+for (i = 0; i < LOG_LINES; i++) {
+    log_text[i] = "";
+    log_sprite[i] = Sprite();
+    log_sprite[i].SetPosition(block_x, log_y + i * LINE_H, 3);
+}
+
+fun draw_log() {
+    for (i = 0; i < LOG_LINES; i++) {
+        if (log_text[i] == "") {
+            log_sprite[i].SetOpacity(0);
+        } else {
+            # La línea más reciente (abajo) es la más clara.
+            shade = 0.38 + 0.57 * (i + 1) / LOG_LINES;
+            log_sprite[i].SetImage(Image.Text(log_text[i], shade, shade, shade, 1, FONT));
+            log_sprite[i].SetOpacity(1);
+        }
+    }
+}
+
+fun push_line(msg) {
+    if (msg == "") return;
+    if (msg.Length() > 78) msg = msg.SubString(0, 78);
+    for (i = 0; i < LOG_LINES - 1; i++)
+        log_text[i] = log_text[i + 1];
+    log_text[LOG_LINES - 1] = "> " + msg;
+    draw_log();
+}
+
+Plymouth.SetMessageFunction(push_line);
+Plymouth.SetUpdateStatusFunction(push_line);
+
+push_line("command-os: iniciando sistema");
+
+# --- Tiempo transcurrido / restante -----------------------------------------------
+stat_sprite = Sprite();
+stat_sprite.SetPosition(block_x, stat_y, 3);
+last_stat_key = -1;
+
+fun pad2(n) {
+    if (n < 10) return "0" + n;
+    return "" + n;
+}
+
+fun clock(seconds) {
+    s = Math.Int(seconds);
+    if (s < 0) s = 0;
+    return pad2(Math.Int(s / 60)) + ":" + pad2(s - Math.Int(s / 60) * 60);
+}
+
+fun boot_progress_callback(time, progress) {
+    if (progress > 1) progress = 1;
+    if (progress < 0) progress = 0;
+
+    # Barra: solo se reescala cuando cambia de píxel.
+    w = Math.Int(block_w * progress);
+    if (w != bar_px) {
+        bar_px = w;
+        if (w > 0) {
+            bar_fg.SetImage(px_red.Scale(w, BAR_H));
+            bar_fg.SetOpacity(1);
+        }
+    }
+
+    # Texto: solo se regenera cuando cambia el segundo o el porcentaje.
+    pct = Math.Int(progress * 100);
+    key = Math.Int(time) * 1000 + pct;
+    if (key != last_stat_key) {
+        last_stat_key = key;
+        if (progress > 0.03) {
+            remaining = clock(time / progress - time);
+            remaining = "~" + remaining;
+        } else {
+            remaining = "--:--";
+        }
+        text = clock(time) + " transcurrido   ·   " + remaining + " restante   ·   " + pct + "%";
+        stat_sprite.SetImage(Image.Text(text, 0.62, 0.62, 0.62, 1, FONT));
+    }
+}
+
+Plymouth.SetBootProgressFunction(boot_progress_callback);
+
+# --- Animación del wordmark -------------------------------------------------------
 tick = 0;
 fun refresh_callback() {
     idx = Math.Int(tick / 2);

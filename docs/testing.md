@@ -170,3 +170,30 @@ wsl -d archlinux -u root -- sh /mnt/c/Workspace/command/command-os/build/x86/run
 `~deck/.ssh`; sin él, la imagen no lleva llaves. SSH: `ssh -i
 /root/vm/packer_build_key -p 2901 deck@127.0.0.1`. La build tarda ~20 min
 (descarga ~800 MB). La imagen resultante se graba con `dd` a un USB.
+
+## VM de VirtualBox (`command-os-x86`) — ajustes para que vaya fluida
+
+Valores aplicados con `VBoxManage modifyvm command-os-x86` (VM apagada):
+`--cpus 1 --memory 6144 --paravirt-provider kvm --graphicscontroller vboxsvga --vram 128
+--audio-driver default --audio-controller ac97 --audio-codec ad1980 --audio-enabled on --audio-out on`.
+
+- **1 vCPU es obligatorio.** Con 2 vCPU el firmware EFI se cuelga en `DXE_AP` (se volvió a
+  comprobar el 2026-10-01: sin SSH tras 5 min y captura 0x0). `--x2apic off` no lo arregla (VirtualBox
+  no deja desactivar el APIC en invitados de 64 bits).
+- Hyprland renderiza **por software** en esta VM (aquamarine: "Can't create renderer, no matching
+  devices"), a 1024x768. El coste lo pone la CPU, no la GPU: más RAM no acelera nada. Para animaciones
+  a pleno rendimiento hay que usar bare metal o el Pi.
+- `install.sh` detecta la VM (`systemd-detect-virt`) y escribe `~/.config/hypr/local.conf` con un perfil
+  ligero (animaciones de escritorio más cortas, sin transición de borde ni dim).
+- Variante de paquetes `COMMAND_OS_VARIANT=vbox`: añade `virtualbox-guest-utils` y habilita
+  `vboxservice`.
+- Audio: **usar AC97, no HDA**. Con `--audio-controller hda` el reloj del dispositivo no avanza y `pw-play`/`aplay` se cuelgan para siempre. Con AC97 (`snd-intel8x0`) suena bien; sale por el dispositivo de audio por defecto de Windows. PipeWire se
+  activa por socket (`systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service`).
+- SSH sin avisos de huella: `ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR`.
+- Apagado limpio: `ssh ... 'echo deck | sudo -S systemctl poweroff'`.
+
+## Sonidos del sistema
+
+`build/make-sounds.py` genera `os/branding/sounds/*.wav` (síntesis propia, estéreo 48 kHz).
+`os/bin/command-os-sound <nombre>` los reproduce con `pw-play`. Eventos: `boot` (inicio de sesión),
+`notify`/`critical` (Mako), `lock`/`unlock` (Hypridle), `tick` (teclas de volumen).

@@ -12,10 +12,12 @@ width=340
 default-timeout=5000
 anchor=top-right
 layer=overlay
+on-notify=exec command-os-sound notify
 
 [urgency=low]
 text-color=#a3a09a
 
 [urgency=critical]
+on-notify=exec command-os-sound critical
 border-color=#f5482c
 default-timeout=0
