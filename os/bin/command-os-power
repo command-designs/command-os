@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Command OS — menú de energía: bloquear, reiniciar o apagar.
+# Se abre con Super+Escape o con el botón de encendido de la barra. Reiniciar y apagar piden
+# confirmación; las acciones van por systemd-logind (sin contraseña para la sesión activa).
+set -uo pipefail
+
+STYLE="${XDG_CONFIG_HOME:-$HOME/.config}/wofi/power.css"
+TAG="command-os-power"
+
+# Si el menú ya está abierto, el segundo clic lo cierra.
+if pkill -f "^wofi --dmenu --prompt ${TAG}" 2>/dev/null; then exit 0; fi
+
+menu() {  # menu línea…  -> imprime la línea elegida (Esc o clic fuera: nada)
+  printf '%s\n' "$@" | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
+    --define hide_search=true --cache-file /dev/null \
+    --width 280 --height $(( 22 + 40 * $# ))
+}
+
+LOCK="󰌾   bloquear"
+REBOOT="󰜉   reiniciar"
+OFF="󰐥   apagar"
+CANCEL="󰜺   cancelar"
+
+choice=$(menu "${LOCK}" "${REBOOT}" "${OFF}") || exit 0
+
+case "${choice}" in
+  "${LOCK}")
+    loginctl lock-session ;;
+  "${REBOOT}")
+    [[ "$(menu "󰜉   sí, reiniciar" "${CANCEL}")" == "󰜉   sí, reiniciar" ]] && systemctl reboot ;;
+  "${OFF}")
+    [[ "$(menu "󰐥   sí, apagar" "${CANCEL}")" == "󰐥   sí, apagar" ]] && systemctl poweroff ;;
+esac
+exit 0

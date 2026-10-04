@@ -25,15 +25,15 @@ alias update='sudo pacman -Syu'
 alias n='nano'
 alias v='vim'
 
-# Prompt de BRAND.md: usuario y ruta en hueso, rama en gris, rojo solo si el último comando falló.
+# Prompt HUD (docs/DISENO.md): usuario en hueso, ruta en cian, rama en gris y flecha roja.
+# Si el último comando falló, se añade su código en amarillo.
 __cmd_prompt() {
   local rc=$?
   local branch; branch=$(git branch --show-current 2>/dev/null)
-  local arrow='\[\e[38;2;163;160;154m\]›\[\e[0m\]'
-  (( rc != 0 )) && arrow='\[\e[38;2;245;72;44m\]›\[\e[0m\]'
-  PS1='\[\e[38;2;237;235;230m\]\u@\h\[\e[0m\] \[\e[38;2;163;160;154m\]\w'
-  [[ -n $branch ]] && PS1+=" ($branch)"
-  PS1+="\[\e[0m\]\n${arrow} "
+  PS1='\[\e[38;2;237;235;230m\]\u@\h\[\e[0m\] \[\e[38;2;91;191;196m\]\w\[\e[0m\]'
+  [[ -n $branch ]] && PS1+=" \[\e[38;2;111;104;112m\]// $branch\[\e[0m\]"
+  (( rc != 0 )) && PS1+=" \[\e[38;2;226;192;68m\][$rc]\[\e[0m\]"
+  PS1+='\n\[\e[38;2;209;52;73m\]›\[\e[0m\] '
 }
 PROMPT_COMMAND=__cmd_prompt
 

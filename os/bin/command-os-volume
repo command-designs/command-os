@@ -1,0 +1,5 @@
+#!/bin/sh
+# Command OS — mezclador de volumen desplegable (clic en `vol` de la barra).
+# Abre pavucontrol como panel pequeño bajo la barra (regla de hyprland.lua); otro clic lo cierra.
+pkill -x pavucontrol 2>/dev/null && exit 0
+exec pavucontrol --tab=3

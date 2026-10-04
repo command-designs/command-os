@@ -1,4 +1,4 @@
-# Command OS — paleta de BRAND.md § 4.
+# Command OS — paleta HUD de docs/DISENO.md (rojo 2077 primario, cian secundario, tonos apagados).
 [window]
 padding = { x = 10, y = 10 }
 opacity = 1.0
@@ -7,34 +7,37 @@ opacity = 1.0
 size = 11.0
 normal = { family = "JetBrainsMono Nerd Font" }
 
+[cursor]
+style = { shape = "Block", blinking = "On" }
+
 [colors.primary]
-background = "#0e0e0e"
+background = "#0d0b0e"
 foreground = "#edebe6"
 
 [colors.cursor]
-cursor = "#f5482c"
-text = "#0e0e0e"
+cursor = "#d13449"
+text = "#0d0b0e"
 
 [colors.selection]
-background = "#2a2a2a"
+background = "#3a1520"
 text = "#edebe6"
 
 [colors.normal]
-black = "#1a1a1a"
-red = "#f5482c"
-green = "#3ddc84"
-yellow = "#ffb020"
-blue = "#a3a09a"
-magenta = "#85827c"
-cyan = "#a3a09a"
-white = "#edebe6"
+black = "#15121a"
+red = "#d13449"
+green = "#6fbf8e"
+yellow = "#d9b441"
+blue = "#5c7fc9"
+magenta = "#b85c9e"
+cyan = "#5bbfc4"
+white = "#d6d2d4"
 
 [colors.bright]
-black = "#3a3a3a"
-red = "#f5482c"
-green = "#3ddc84"
-yellow = "#ffb020"
-blue = "#edebe6"
-magenta = "#a3a09a"
-cyan = "#edebe6"
-white = "#ffffff"
+black = "#4a4350"
+red = "#e8607a"
+green = "#8fd6a8"
+yellow = "#e2c044"
+blue = "#8aa3e0"
+magenta = "#d184bc"
+cyan = "#8ad6da"
+white = "#edebe6"

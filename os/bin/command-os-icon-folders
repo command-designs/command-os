@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Command OS — color de las carpetas de Papirus (lo que hace papirus-folders, sin AUR).
+# Papirus trae cada carpeta en varios colores y elige el azul con enlaces simbólicos; aquí se
+# reapuntan al color de Command OS. Lo ejecutan install.sh y un hook de pacman después de cada
+# actualización de papirus-icon-theme, que vuelve a dejar las carpetas en azul.
+# Uso: command-os-icon-folders [color]   (por defecto: grey)
+set -euo pipefail
+
+COLOR="${1:-grey}"
+COLORS='adwaita|black|blue|bluegrey|breeze|brown|carmine|cyan|darkcyan|deeporange|green|grey|indigo|magenta|nordic|orange|palebrown|paleorange|pink|red|teal|violet|white|yaru|yellow'
+VARIANT_RE="^(folder|user)-(${COLORS})(-.*)?\.svg$"
+
+for dir in /usr/share/icons/Papirus*/*/places; do
+  # Los tamaños que Papirus-Dark enlaza a Papirus ya se tratan en Papirus.
+  [[ -d "${dir}" && ! -L "${dir%/places}" ]] || continue
+  for link in "${dir}"/*.svg; do
+    [[ -L "${link}" ]] || continue
+    # Las propias variantes de color (folder-blue-…) no se tocan, solo los nombres genéricos.
+    [[ "$(basename "${link}")" =~ ${VARIANT_RE} ]] && continue
+    target=$(readlink "${link}")
+    [[ "${target}" =~ ${VARIANT_RE} ]] || continue
+    new="${BASH_REMATCH[1]}-${COLOR}${BASH_REMATCH[3]}.svg"
+    [[ "${new}" != "${target}" && -e "${dir}/${new}" ]] && ln -sfn "${new}" "${link}"
+  done
+done
+exit 0

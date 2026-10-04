@@ -1,0 +1,167 @@
+/* Command OS — apps GTK 4 y libadwaita (pavucontrol, selector de archivos) con la paleta HUD de
+   docs/DISENO.md. Mismos colores que gtk-3.0/gtk.css: los colores con nombre para adw-gtk3 y las
+   variables CSS (--*) para libadwaita. Rojo para lo activo, cian para la información, esquinas vivas. */
+
+@define-color cmd_void #0d0b0e;
+@define-color cmd_graphite #15121a;
+@define-color cmd_slate #1d1820;
+@define-color cmd_steel #2e2630;
+@define-color cmd_bone #edebe6;
+@define-color cmd_red #d13449;
+@define-color cmd_red_light #e8607a;
+@define-color cmd_cyan #5bbfc4;
+@define-color cmd_yellow #e2c044;
+
+@define-color accent_bg_color @cmd_red;
+@define-color accent_fg_color @cmd_bone;
+@define-color accent_color @cmd_red_light;
+@define-color destructive_bg_color #a8283a;
+@define-color destructive_fg_color @cmd_bone;
+@define-color destructive_color @cmd_red_light;
+@define-color success_bg_color #2f8a8f;
+@define-color success_fg_color @cmd_bone;
+@define-color success_color @cmd_cyan;
+@define-color warning_bg_color @cmd_yellow;
+@define-color warning_fg_color rgba(0, 0, 0, 0.8);
+@define-color warning_color @cmd_yellow;
+@define-color error_bg_color @cmd_red;
+@define-color error_fg_color @cmd_bone;
+@define-color error_color @cmd_red_light;
+
+@define-color window_bg_color @cmd_graphite;
+@define-color window_fg_color @cmd_bone;
+@define-color view_bg_color @cmd_void;
+@define-color view_fg_color @cmd_bone;
+@define-color headerbar_bg_color @cmd_void;
+@define-color headerbar_fg_color @cmd_bone;
+@define-color headerbar_border_color @cmd_bone;
+@define-color headerbar_backdrop_color @cmd_void;
+@define-color headerbar_shade_color rgba(0, 0, 0, 0.5);
+@define-color headerbar_darker_shade_color rgba(0, 0, 0, 0.9);
+@define-color sidebar_bg_color @cmd_graphite;
+@define-color sidebar_fg_color @cmd_bone;
+@define-color sidebar_backdrop_color @cmd_graphite;
+@define-color sidebar_shade_color rgba(0, 0, 0, 0.4);
+@define-color sidebar_border_color @cmd_steel;
+@define-color secondary_sidebar_bg_color @cmd_graphite;
+@define-color secondary_sidebar_fg_color @cmd_bone;
+@define-color secondary_sidebar_backdrop_color @cmd_graphite;
+@define-color secondary_sidebar_shade_color rgba(0, 0, 0, 0.4);
+@define-color secondary_sidebar_border_color @cmd_steel;
+@define-color card_bg_color rgba(237, 235, 230, 0.04);
+@define-color card_fg_color @cmd_bone;
+@define-color card_shade_color rgba(0, 0, 0, 0.5);
+@define-color dialog_bg_color @cmd_slate;
+@define-color dialog_fg_color @cmd_bone;
+@define-color popover_bg_color @cmd_slate;
+@define-color popover_fg_color @cmd_bone;
+@define-color popover_shade_color rgba(0, 0, 0, 0.4);
+@define-color thumbnail_bg_color @cmd_slate;
+@define-color thumbnail_fg_color @cmd_bone;
+@define-color shade_color rgba(0, 0, 0, 0.4);
+@define-color scrollbar_outline_color rgba(0, 0, 0, 0.6);
+
+:root {
+    --accent-bg-color: #d13449;
+    --accent-fg-color: #edebe6;
+    --accent-color: #e8607a;
+    --destructive-bg-color: #a8283a;
+    --destructive-fg-color: #edebe6;
+    --destructive-color: #e8607a;
+    --success-bg-color: #2f8a8f;
+    --success-fg-color: #edebe6;
+    --success-color: #5bbfc4;
+    --warning-bg-color: #e2c044;
+    --warning-fg-color: rgb(0 0 0 / 80%);
+    --warning-color: #e2c044;
+    --error-bg-color: #d13449;
+    --error-fg-color: #edebe6;
+    --error-color: #e8607a;
+    --window-bg-color: #15121a;
+    --window-fg-color: #edebe6;
+    --view-bg-color: #0d0b0e;
+    --view-fg-color: #edebe6;
+    --headerbar-bg-color: #0d0b0e;
+    --headerbar-fg-color: #edebe6;
+    --headerbar-backdrop-color: #0d0b0e;
+    --sidebar-bg-color: #15121a;
+    --sidebar-fg-color: #edebe6;
+    --sidebar-backdrop-color: #15121a;
+    --sidebar-border-color: #2e2630;
+    --secondary-sidebar-bg-color: #15121a;
+    --secondary-sidebar-fg-color: #edebe6;
+    --secondary-sidebar-backdrop-color: #15121a;
+    --card-bg-color: rgb(237 235 230 / 4%);
+    --card-fg-color: #edebe6;
+    --dialog-bg-color: #1d1820;
+    --dialog-fg-color: #edebe6;
+    --popover-bg-color: #1d1820;
+    --popover-fg-color: #edebe6;
+    --thumbnail-bg-color: #1d1820;
+    --thumbnail-fg-color: #edebe6;
+    --overview-bg-color: #15121a;
+    --overview-fg-color: #edebe6;
+    --active-toggle-bg-color: rgb(209 52 73 / 32%);
+    --active-toggle-fg-color: #edebe6;
+}
+
+/* Esquinas vivas; solo los radios y el tirador de los deslizadores siguen redondos. */
+* {
+    border-radius: 0;
+}
+
+radio,
+scale slider {
+    border-radius: 9999px;
+}
+
+/* Hyprland dibuja el marco y el halo: sin sombra de ventana de GTK. */
+window.csd,
+window.solid-csd {
+    box-shadow: none;
+}
+
+headerbar,
+.titlebar {
+    box-shadow: inset 0 -1px rgb(209 52 73 / 35%);
+}
+
+/* Selección: fondo granate con el texto en hueso; en listas, además, un filo rojo a la izquierda. */
+row:selected,
+gridview > child:selected,
+treeview.view:selected,
+text > selection,
+label > selection {
+    background-color: rgb(209 52 73 / 32%);
+    color: #edebe6;
+}
+
+row:selected {
+    box-shadow: inset 2px 0 #d13449;
+}
+
+entry:focus-within,
+spinbutton:focus-within {
+    outline-color: rgb(209 52 73 / 60%);
+}
+
+/* Popovers y tooltips: panel con filo rojo apagado. */
+popover > contents {
+    border: 1px solid rgb(209 52 73 / 45%);
+}
+
+popover modelbutton:hover {
+    background-color: rgb(209 52 73 / 32%);
+}
+
+tooltip {
+    background-color: #1d1820;
+    color: #edebe6;
+    border: 1px solid rgb(209 52 73 / 60%);
+}
+
+/* Enlaces en cian (información). */
+link,
+label > link {
+    color: #5bbfc4;
+}

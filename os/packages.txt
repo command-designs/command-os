@@ -25,6 +25,14 @@ cliphist
 playerctl
 libnotify
 
+# Tema de las apps (GTK 3/4, Qt vía gtk3): adw-gtk3 oscuro recoloreado con la paleta de
+# Command OS, iconos Papirus, ajustes por dconf y portal GTK (modo oscuro para Firefox y GTK 4)
+adw-gtk-theme
+papirus-icon-theme
+dconf
+gsettings-desktop-schemas
+xdg-desktop-portal-gtk
+
 # Arranque con marca (Plymouth)
 plymouth
 

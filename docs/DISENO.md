@@ -6,27 +6,69 @@ Fuente de la marca: <https://github.com/command-designs/command-web> (`BRAND.md`
 
 ## Idea
 
-Un escritorio de terminal: casi monocromo, denso y sin adornos. El rojo es una señal, no decoración;
-solo marca lo que está activo.
+Un HUD de Night City sobre un terminal de Command: la estructura, la densidad y el tono de
+Cyberpunk 2077 (paneles con filos, esquinas vivas, rótulos pequeños, brillo contenido, glitch), con el
+ADN de Command (Red Hot como primario, wordmark con su barra, matriz de puntos, voz en minúsculas,
+curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se queda en la sombra.
 
 ## Pantalla
 
-- **Paleta** (de `tokens.css`): Void `#0E0E0E` fondo · Graphite `#151515` / Slate `#1F1F1F` superficies ·
-  Steel `#2A2A2A` bordes · Bone `#EDEBE6` texto · Ash `#A3A09A` texto secundario · Red Hot `#F5482C`
-  foco y activo · Signal Red `#A51500` barra del logo. Los colores están escritos a mano en cada
-  dotfile (Hyprland, Waybar, Wofi, Mako, Hyprlock, Kitty, Alacritty); si cambia la marca hay que
-  actualizarlos todos.
-- **Tipografía:** JetBrains Mono en barra y terminal; Geist en lanzador y notificaciones; Oxanium en la
-  hora del bloqueo. Oxanium y Geist no están en los repos de Arch y se instalan desde
-  `os/branding/fonts/` (licencia OFL incluida).
-- **Forma:** radios de 4 px, bordes de 1 px en vez de sombras, sin blur ni transparencias.
-- **Fondo:** Void con matriz de puntos de 26 px y el wordmark atenuado (`build/make-wallpaper.py`).
+- **Paleta HUD**, en los tonos apagados de los menús de Cyberpunk 2077 (no neón chillón). Escrita a
+  mano en cada dotfile: Hyprland, Waybar, Wofi, Mako, Hyprlock, Kitty, Alacritty, GTK 3/4, prompt de
+  bash, Plymouth y los scripts de `build/`; si cambia, hay que actualizarlos todos:
+
+  | Token      | Hex                              | Uso                                                                 |
+  | ---------- | -------------------------------- | ------------------------------------------------------------------- |
+  | Void       | `#0D0B0E`                        | fondo (negro con un punto cálido); fondo de listas en las apps      |
+  | Graphite   | `#15121A`                        | superficies (paneles, campos, notificaciones, ventanas de apps)     |
+  | Slate      | `#1D1820`                        | superficies elevadas (menús, popovers, diálogos)                    |
+  | Steel      | `#2E2630`                        | bordes y separadores inactivos                                      |
+  | Bone       | `#EDEBE6`                        | texto (de Command)                                                  |
+  | Ash        | `#A8A2A6` · Smoke `#6F6870`      | texto secundario / apagado                                          |
+  | Red        | `#D13449`                        | **primario**: activo, foco, marco de ventana, cursor, acento de apps (rojo de los menús de 2077) |
+  | Red Light  | `#E8607A`                        | texto o iconos en rojo sobre fondo oscuro (acento suelto en GTK)    |
+  | Red Deep   | `#2B1118`                        | fondo de lo seleccionado (en GTK, el rojo al 32 %)                  |
+  | Signal Red | `#A51500`                        | barra del logo, sin cambios                                         |
+  | Cyan       | `#5BBFC4` · Cyan Dim `#2F6E72`   | **secundario**: datos, etiquetas, rutas, enlaces, info              |
+  | Yellow     | `#E2C044`                        | solo avisos (batería baja, error del último comando, urgente)       |
+
+- **Tipografía:** JetBrains Mono en barra y terminal; Geist en lanzador y notificaciones; Oxanium en
+  el reloj de la barra, la hora del bloqueo y los rótulos del fondo. Oxanium y Geist no están en los
+  repos de Arch y se instalan desde `os/branding/fonts/` (licencia OFL incluida).
+- **Forma:** esquinas vivas (radio 0), bordes de 1–2 px. La ventana activa lleva un marco rojo
+  con un filo cian (degradado a 45°) y un halo rojo (sombra sin desplazamiento); lo inactivo se atenúa.
+  Lo seleccionado se marca con un filo rojo a la izquierda sobre Red Deep y un brillo en el texto.
+- **Apps (GTK 3/4 y Qt):** mismo tema que el escritorio, sin ventanas blancas. Base `adw-gtk3-dark`
+  recoloreada en `~/.config/gtk-3.0/gtk.css` y `gtk-4.0/gtk.css` (colores con nombre y variables
+  de libadwaita): ventana en Graphite, listas en Void, cabeceras en Void con filo rojo, menús en
+  Slate con filo rojo, selección en rojo al 32 % con filo rojo a la izquierda, esquinas vivas. Qt
+  sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). Iconos Papirus-Dark con carpetas grises
+  (`command-os-icon-folders`; el rojo queda para lo activo). `dconf` pone el modo oscuro para todo el
+  sistema (Firefox y portales incluidos).
+- **Paneles del sistema:** el menú de energía (`command-os-power`: bloquear · reiniciar · apagar, con
+  confirmación) es un panel Wofi pequeño sin buscador, con el filo rojo en la opción elegida; se abre
+  con Super+Escape o con el botón 󰐥 al final de la barra. El mezclador de volumen (clic en `vol`) es
+  pavucontrol flotante de 460×340 fijado bajo la barra, arriba a la derecha; otro clic lo cierra.
+- **Sin blur ni transparencias** en el escritorio: la GPU del Pi 5 no da para blur fluido y el HUD
+  se lee mejor opaco. El brillo se hace con sombras y `text-shadow`.
+- **Fondo** (`build/make-wallpaper.py`): Void con la matriz de puntos de 26 px, líneas de escaneo
+  sutiles, halo rojo muy tenue abajo, escuadras rojas en las esquinas y el rótulo `cmd-os // command os`
+  en cian con su regla, arriba a la izquierda y con aire bajo la barra. Sin wordmark ni textos de
+  estado: el logo ya está en la barra, el arranque y el bloqueo.
 
 ## Movimiento
 
-Curva `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`), 300–400 ms, sin rebotes.
-**Firma de arranque:** el wordmark se revela de izquierda a derecha y después la barra roja se extiende
-desde la izquierda, ~1,1 s (`os/branding/plymouth/`, fotogramas con `build/make-plymouth.py`).
+Curva `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`), sin rebotes. Entradas secas (200–300 ms) y el
+degradado del marco gira al cambiar el foco (`borderangle`, una vez, no en bucle).
+**Firma de arranque:** el wordmark se revela de izquierda a derecha con un cursor cian en el borde,
+después la barra roja se extiende desde la izquierda con su halo; ~1,1 s, 28 fotogramas, tres de
+ellos con glitch (franjas desplazadas y aberración roja/cian). El último queda limpio
+(`os/branding/plymouth/`, fotogramas con `build/make-plymouth.py`). Debajo, solo una barra de progreso
+fina en rojo y, bajo ella, una consola de 6 líneas con los servicios que arranca systemd (la más
+reciente en hueso, las anteriores apagándose hacia Smoke). Es el único texto del arranque; Esc pasa
+al modo detalles de Plymouth, para soporte. Al apagar, solo el wordmark.
+Del encendido al escritorio no aparece texto del cargador, del kernel ni de systemd.
+En VM, `install.sh` desactiva halo, giro del marco y atenuado (`~/.config/hypr/local.lua`).
 
 ## Sonido
 
@@ -45,9 +87,9 @@ ni emojis.
 
 | #   | Ancla                      | Cómo se cumple                                                                                                                    | Estado                                       |
 | --- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| 1   | Logotipo con su barra      | Símbolo C en Waybar y bloqueo; wordmark en el splash y en el fondo; siempre con la barra roja.                                    | ✔ verificado en VM                           |
+| 1   | Logotipo con su barra      | Símbolo C en Waybar y bloqueo; wordmark en el splash; siempre con la barra roja.                                    | ✔ verificado en VM                           |
 | 2   | Firma de arranque          | Plymouth: letras de izquierda a derecha y luego la barra. ~1,1 s. **Saltable con una tecla: no implementado.**                    | parcial (splash visto; animación sin medir)  |
-| 3   | Un solo punto rojo         | En pantalla el rojo solo marca lo activo (borde de ventana, espacio de trabajo, foco). El punto rojo físico depende del hardware. | pantalla ✔ · objeto pendiente                |
+| 3   | Un solo punto rojo         | El rojo es el primario del HUD pero sigue marcando lo activo (marco de ventana, espacio de trabajo, foco, selección); los datos van en cian. El punto rojo físico depende del hardware. | pantalla ✔ verificado en VM · objeto pendiente |
 | 4   | Voz                        | Textos de bloqueo, `issue` y `motd` en tono terminal.                                                                             | ✔                                            |
 | 5   | Nombre y código            | `os-release` (`VARIANT="CMD-OS"`), `/etc/issue` y `motd`. Falta una pantalla de información del sistema.                           | parcial                                      |
 | 6   | Principios como requisitos | Base abierta (Arch + dotfiles en el repo). Resto depende del hardware.                                                            | pendiente                                    |
@@ -56,6 +98,10 @@ ni emojis.
 
 ## No hacer
 
-- Recolorear la barra del logo ni ponerlo sobre fondos con ruido.
-- Neones cian o magenta, degradados, blur o glassmorphism.
-- Rojo repartido como decoración.
+- Recolorear la barra del logo (siempre Signal Red) ni poner el wordmark sobre fondos con ruido fuerte.
+- Magenta, morado o degradados arcoíris: la paleta es rojo + cian, con amarillo solo para avisos.
+- Colores neón saturados (`#FF3B2F`, `#3FE0E8`, `#FCEE0A`) o halos fuertes: el tono es el de los
+  menús de 2077, contenido.
+- Blur, glassmorphism o transparencias en el escritorio.
+- Glitch o animaciones en bucle durante el uso: el glitch es solo del arranque.
+- Cian para lo activo o rojo para datos: cada uno tiene su papel.

@@ -1,0 +1,53 @@
+/* Menú de energía de Command OS (command-os-power): panel HUD pequeño sin buscador.
+   Mismos colores que style.css; la opción elegida se marca con el filo rojo. */
+@define-color void #0d0b0e;
+@define-color bone #edebe6;
+@define-color smoke #6f6870;
+@define-color red #d13449;
+@define-color red-deep #2b1118;
+
+* {
+    font-family: "JetBrainsMono Nerd Font";
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    border-radius: 0;
+}
+
+window {
+    background-color: @void;
+    color: @bone;
+    border: 1px solid alpha(@red, 0.6);
+    border-top: 3px solid @red;
+}
+
+#outer-box {
+    margin: 10px;
+}
+
+#input {
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    border: none;
+    opacity: 0;
+}
+
+#entry {
+    padding: 10px 14px;
+    border-left: 2px solid transparent;
+}
+
+#entry:selected {
+    background-color: @red-deep;
+    border-left: 2px solid @red;
+    outline: none;
+}
+
+#text {
+    color: @bone;
+}
+
+#text:selected {
+    color: @red;
+    text-shadow: 0 0 4px alpha(@red, 0.4);
+}

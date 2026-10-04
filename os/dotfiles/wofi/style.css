@@ -1,22 +1,26 @@
-/* Lanzador de Command OS: tokens de BRAND.md § 4. Foco rojo, sin degradados. */
-@define-color void #0e0e0e;
-@define-color graphite #151515;
-@define-color slate #1f1f1f;
-@define-color steel #2a2a2a;
+/* Lanzador de Command OS: terminal HUD (docs/DISENO.md). Marco rojo 2077, esquinas vivas,
+   la entrada seleccionada se marca con un filo rojo y un halo. */
+@define-color void #0d0b0e;
+@define-color graphite #15121a;
+@define-color slate #1d1820;
+@define-color steel #2e2630;
 @define-color bone #edebe6;
-@define-color smoke #85827c;
-@define-color red-hot #f5482c;
+@define-color smoke #6f6870;
+@define-color red #d13449;
+@define-color red-deep #2b1118;
+@define-color cyan #5bbfc4;
 
 * {
     font-family: "Geist", "JetBrainsMono Nerd Font";
     font-size: 14px;
+    border-radius: 0;
 }
 
 window {
     background-color: @void;
     color: @bone;
-    border: 1px solid @steel;
-    border-radius: 8px;
+    border: 1px solid @red;
+    border-top: 3px solid @red;
 }
 
 #outer-box {
@@ -27,24 +31,31 @@ window {
     margin-bottom: 8px;
     padding: 10px 12px;
     background-color: @graphite;
-    color: @bone;
+    color: @cyan;
+    caret-color: @red;
     border: 1px solid @steel;
-    border-radius: 4px;
     font-family: "JetBrainsMono Nerd Font";
+    letter-spacing: 0.04em;
 }
 
 #input:focus {
-    border-color: @red-hot;
+    border-color: alpha(@red, 0.6);
+    box-shadow: 0 0 6px alpha(@red, 0.18);
 }
 
 #entry {
     padding: 8px 10px;
-    border-radius: 4px;
+    border-left: 2px solid transparent;
 }
 
 #entry:selected {
-    background-color: @slate;
-    border-left: 2px solid @red-hot;
+    background-color: @red-deep;
+    border-left: 2px solid @red;
+    outline: none;
+}
+
+#img {
+    margin-right: 10px;
 }
 
 #text {
@@ -52,5 +63,6 @@ window {
 }
 
 #text:selected {
-    color: @bone;
+    color: @red;
+    text-shadow: 0 0 4px alpha(@red, 0.4);
 }

@@ -1,11 +1,12 @@
-# Notificaciones de Command OS (BRAND.md § 4, § 6): superficie Graphite,
-# borde de 1 px Steel, radios de 4 px. Rojo solo para urgencia.
+# Notificaciones de Command OS (docs/DISENO.md): panel HUD con esquinas vivas.
+# Normal: filo cian (dato). Crítica: rojo 2077 sobre fondo granate.
 font=Geist 11
-background-color=#151515
+background-color=#15121a
 text-color=#edebe6
-border-color=#2a2a2a
+border-color=#5bbfc4aa
+progress-color=over #2f6e72
 border-size=1
-border-radius=4
+border-radius=0
 padding=12
 margin=8
 width=340
@@ -15,9 +16,12 @@ layer=overlay
 on-notify=exec command-os-sound notify
 
 [urgency=low]
-text-color=#a3a09a
+text-color=#a8a2a6
+border-color=#2e2630
 
 [urgency=critical]
 on-notify=exec command-os-sound critical
-border-color=#f5482c
+background-color=#1f0c12
+border-color=#d13449
+border-size=2
 default-timeout=0

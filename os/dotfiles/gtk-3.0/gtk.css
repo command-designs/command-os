@@ -1,0 +1,156 @@
+/* Command OS — apps GTK 3 (Thunar, Firefox, diálogos) con la paleta HUD de docs/DISENO.md.
+   Base: adw-gtk3-dark, que pinta todo con estos colores con nombre; aquí se sustituyen por los
+   de Command. Rojo para lo activo y lo seleccionado, cian para la información, esquinas vivas. */
+
+@define-color cmd_void #0d0b0e;
+@define-color cmd_graphite #15121a;
+@define-color cmd_slate #1d1820;
+@define-color cmd_steel #2e2630;
+@define-color cmd_bone #edebe6;
+@define-color cmd_ash #a8a2a6;
+@define-color cmd_red #d13449;
+@define-color cmd_red_light #e8607a;
+@define-color cmd_cyan #5bbfc4;
+@define-color cmd_yellow #e2c044;
+
+@define-color accent_bg_color @cmd_red;
+@define-color accent_fg_color @cmd_bone;
+@define-color accent_color @cmd_red_light;
+@define-color destructive_bg_color #a8283a;
+@define-color destructive_fg_color @cmd_bone;
+@define-color destructive_color @cmd_red_light;
+@define-color success_bg_color #2f8a8f;
+@define-color success_fg_color @cmd_bone;
+@define-color success_color @cmd_cyan;
+@define-color warning_bg_color @cmd_yellow;
+@define-color warning_fg_color rgba(0, 0, 0, 0.8);
+@define-color warning_color @cmd_yellow;
+@define-color error_bg_color @cmd_red;
+@define-color error_fg_color @cmd_bone;
+@define-color error_color @cmd_red_light;
+
+@define-color window_bg_color @cmd_graphite;
+@define-color window_fg_color @cmd_bone;
+@define-color view_bg_color @cmd_void;
+@define-color view_fg_color @cmd_bone;
+@define-color headerbar_bg_color @cmd_void;
+@define-color headerbar_fg_color @cmd_bone;
+@define-color headerbar_border_color @cmd_bone;
+@define-color headerbar_backdrop_color @cmd_void;
+@define-color headerbar_shade_color rgba(0, 0, 0, 0.5);
+@define-color headerbar_darker_shade_color rgba(0, 0, 0, 0.9);
+@define-color sidebar_bg_color @cmd_graphite;
+@define-color sidebar_fg_color @cmd_bone;
+@define-color sidebar_backdrop_color @cmd_graphite;
+@define-color sidebar_shade_color rgba(0, 0, 0, 0.4);
+@define-color sidebar_border_color @cmd_steel;
+@define-color card_bg_color rgba(237, 235, 230, 0.04);
+@define-color card_fg_color @cmd_bone;
+@define-color card_shade_color rgba(0, 0, 0, 0.5);
+@define-color dialog_bg_color @cmd_slate;
+@define-color dialog_fg_color @cmd_bone;
+@define-color popover_bg_color @cmd_slate;
+@define-color popover_fg_color @cmd_bone;
+@define-color popover_shade_color rgba(0, 0, 0, 0.4);
+@define-color thumbnail_bg_color @cmd_slate;
+@define-color thumbnail_fg_color @cmd_bone;
+@define-color shade_color rgba(0, 0, 0, 0.4);
+@define-color scrollbar_outline_color rgba(0, 0, 0, 0.6);
+@define-color panel_bg_color @cmd_void;
+@define-color panel_fg_color @cmd_bone;
+
+/* Nombres antiguos de GTK 3 que leen algunas apps (Firefox entre ellas). */
+@define-color theme_bg_color @window_bg_color;
+@define-color theme_fg_color @window_fg_color;
+@define-color theme_base_color @view_bg_color;
+@define-color theme_text_color @view_fg_color;
+@define-color theme_selected_bg_color @accent_bg_color;
+@define-color theme_selected_fg_color @accent_fg_color;
+@define-color theme_unfocused_bg_color @window_bg_color;
+@define-color theme_unfocused_base_color @window_bg_color;
+@define-color theme_unfocused_selected_bg_color @accent_bg_color;
+@define-color theme_unfocused_selected_fg_color @accent_fg_color;
+@define-color insensitive_base_color @view_bg_color;
+@define-color content_view_bg @view_bg_color;
+@define-color text_view_bg @view_bg_color;
+
+/* Esquinas vivas; solo los radios y el tirador de los deslizadores siguen redondos. */
+* {
+    border-radius: 0;
+    -gtk-outline-radius: 0;
+}
+
+radio,
+scale slider {
+    border-radius: 9999px;
+}
+
+/* Hyprland dibuja el marco y el halo: sin sombra ni margen de ventana de GTK. */
+decoration,
+window.csd decoration,
+window.solid-csd decoration {
+    box-shadow: none;
+    border: none;
+}
+
+headerbar,
+.titlebar {
+    box-shadow: inset 0 -1px alpha(@cmd_red, 0.35);
+}
+
+/* Selección: fondo granate con el texto en hueso; en listas, además, un filo rojo a la izquierda. */
+.view:selected,
+.view text selection,
+iconview:selected,
+treeview.view:selected,
+flowboxchild:selected,
+row:selected,
+entry selection,
+textview text selection,
+label selection {
+    background-color: alpha(@cmd_red, 0.32);
+    color: @cmd_bone;
+}
+
+row:selected {
+    box-shadow: inset 2px 0 @cmd_red;
+}
+
+.view:selected:focus,
+treeview.view:selected:focus,
+iconview:selected:focus {
+    background-color: alpha(@cmd_red, 0.45);
+}
+
+entry:focus,
+spinbutton:focus {
+    box-shadow: inset 0 0 0 1px @cmd_red;
+}
+
+/* Menús, popovers y tooltips: panel con filo rojo apagado. */
+menu,
+.menu,
+.context-menu,
+popover {
+    border: 1px solid alpha(@cmd_red, 0.45);
+}
+
+menu menuitem:hover,
+.menu menuitem:hover,
+popover modelbutton:hover {
+    background-color: alpha(@cmd_red, 0.32);
+    color: @cmd_bone;
+}
+
+tooltip,
+tooltip.background {
+    background-color: @cmd_slate;
+    color: @cmd_bone;
+    border: 1px solid alpha(@cmd_red, 0.6);
+}
+
+/* Enlaces y rutas en cian (información). */
+link,
+*:link {
+    color: @cmd_cyan;
+}

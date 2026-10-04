@@ -54,10 +54,50 @@ install -m 644 "${BRANDING}"/wallpapers/* /usr/share/command-os/wallpapers/
 install -m 644 "${BRANDING}"/fonts/*.ttf /usr/share/fonts/command-os/
 fc-cache -f /usr/share/fonts/command-os
 
-echo "==> Installing system sounds and helper"
+echo "==> Installing system sounds and helpers (sonido, energía, volumen)"
 install -d /usr/share/command-os/sounds
 install -m 644 "${BRANDING}"/sounds/*.wav /usr/share/command-os/sounds/
 install -m 755 "${REPO_DIR}/bin/command-os-sound" /usr/local/bin/command-os-sound
+install -m 755 "${REPO_DIR}/bin/command-os-power" /usr/local/bin/command-os-power
+install -m 755 "${REPO_DIR}/bin/command-os-volume" /usr/local/bin/command-os-volume
+
+echo "==> Theming GTK/Qt apps (adw-gtk3 recoloreado, Papirus, modo oscuro)"
+# Los colores van en ~/.config/gtk-{3,4}.0 (dotfiles); aquí, lo que es de sistema: carpetas de
+# Papirus en el color de Command OS (con hook de pacman, el paquete las devuelve al azul) y
+# valores por defecto de dconf para todos los usuarios (modo oscuro para Firefox, portales, GTK 4).
+install -m 755 "${REPO_DIR}/bin/command-os-icon-folders" /usr/local/bin/command-os-icon-folders
+/usr/local/bin/command-os-icon-folders grey
+install -d /etc/pacman.d/hooks
+cat > /etc/pacman.d/hooks/command-os-icon-folders.hook <<'EOF'
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = papirus-icon-theme
+
+[Action]
+Description = Command OS: color de las carpetas de Papirus
+When = PostTransaction
+Exec = /usr/local/bin/command-os-icon-folders grey
+EOF
+install -d /etc/dconf/profile /etc/dconf/db/local.d
+printf 'user-db:user\nsystem-db:local\n' > /etc/dconf/profile/user
+cat > /etc/dconf/db/local.d/00-command-os <<'EOF'
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'
+gtk-theme='adw-gtk3-dark'
+icon-theme='Papirus-Dark'
+cursor-theme='Adwaita'
+cursor-size=24
+accent-color='red'
+font-name='Geist 10'
+document-font-name='Geist 10'
+monospace-font-name='JetBrainsMono Nerd Font 10'
+
+[org/gnome/desktop/wm/preferences]
+button-layout=':close'
+EOF
+dconf update
 
 echo "==> Setting system identity (os-release, issue, motd)"
 # /etc/os-release es un symlink a /usr/lib/os-release: se reemplaza por un archivo propio.
@@ -82,7 +122,19 @@ if [[ -f /etc/mkinitcpio.conf ]] && ! grep -qE '^HOOKS=.*plymouth' /etc/mkinitcp
 fi
 if command -v mkinitcpio >/dev/null; then mkinitcpio -P; fi
 
-echo "==> Branding GRUB"
+echo "==> Silent boot (x86: GRUB · Raspberry Pi: cmdline.txt/config.txt)"
+# Producto para clientes: del encendido al escritorio solo se ve el splash, sin texto del
+# cargador, del kernel ni de systemd. Soporte técnico: Esc en GRUB muestra el menú y Esc en el
+# splash muestra el arranque detallado.
+SILENT_ARGS="quiet splash loglevel=3 rd.udev.log_level=3 systemd.show_status=auto rd.systemd.show_status=auto vt.global_cursor_default=0"
+add_args() {  # add_args "línea actual" -> añade los SILENT_ARGS que falten
+  local line="$1" arg
+  for arg in ${SILENT_ARGS}; do
+    [[ " ${line} " == *" ${arg} "* ]] || line="${line:+${line} }${arg}"
+  done
+  printf '%s' "${line}"
+}
+
 if [[ -f /etc/default/grub ]]; then
   set_grub() {  # set_grub CLAVE 'valor' — reemplaza o añade, idempotente
     if grep -qE "^#?${1}=" /etc/default/grub; then
@@ -92,16 +144,44 @@ if [[ -f /etc/default/grub ]]; then
     fi
   }
   set_grub GRUB_DISTRIBUTOR '"Command OS"'
-  set_grub GRUB_TIMEOUT 2
+  # Menú oculto: espera 1 s en silencio; Esc lo muestra (recuperación).
+  set_grub GRUB_TIMEOUT 1
+  set_grub GRUB_TIMEOUT_STYLE hidden
   set_grub GRUB_TERMINAL_OUTPUT gfxterm
   set_grub GRUB_GFXMODE auto
+  set_grub GRUB_GFXPAYLOAD_LINUX keep
   set_grub GRUB_BACKGROUND '"/usr/share/command-os/wallpapers/command-void.png"'
   set_grub GRUB_COLOR_NORMAL '"light-gray/black"'
-  set_grub GRUB_COLOR_HIGHLIGHT '"white/black"'
-  if ! grep -qE '^GRUB_CMDLINE_LINUX_DEFAULT=.*splash' /etc/default/grub; then
-    sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=")(.*)"/\1\2 quiet splash"/' /etc/default/grub
+  set_grub GRUB_COLOR_HIGHLIGHT '"light-red/black"'
+  current=$(sed -nE 's/^GRUB_CMDLINE_LINUX_DEFAULT="(.*)"/\1/p' /etc/default/grub)
+  set_grub GRUB_CMDLINE_LINUX_DEFAULT "\"$(add_args "${current}")\""
+  # Sin "Loading Linux ..." / "Loading initial ramdisk ...". Una actualización del paquete grub
+  # restaura 10_linux: install.sh lo vuelve a quitar al re-ejecutarse.
+  [[ -f /etc/grub.d/10_linux ]] && sed -i '/echo.*"\$message"/d' /etc/grub.d/10_linux
+  if [[ -f /boot/grub/grub.cfg ]] && command -v grub-mkconfig >/dev/null; then
+    grub-mkconfig -o /boot/grub/grub.cfg
   fi
 fi
+
+if [[ -f /boot/cmdline.txt ]]; then
+  # Raspberry Pi: el kernel escribe en tty3 en vez de en la pantalla (consola serie intacta).
+  line=$(tr '\n' ' ' < /boot/cmdline.txt | sed -E 's/\bconsole=tty1\b/console=tty3/; s/ +/ /g; s/ $//')
+  printf '%s\n' "$(add_args "${line}")" > /boot/cmdline.txt
+fi
+if [[ -f /boot/config.txt ]]; then
+  # Sin el cuadro arcoíris del firmware al encender.
+  grep -qE '^disable_splash=' /boot/config.txt \
+    && sed -i -E 's/^disable_splash=.*/disable_splash=1/' /boot/config.txt \
+    || echo 'disable_splash=1' >> /boot/config.txt
+fi
+
+# El splash se queda en pantalla hasta que Hyprland toma el control (sin parpadeo de consola).
+install -d /etc/systemd/system/plymouth-quit.service.d
+cat > /etc/systemd/system/plymouth-quit.service.d/retain-splash.conf <<'EOF'
+[Service]
+ExecStart=
+ExecStart=-/usr/bin/plymouth quit --retain-splash
+EOF
 
 echo "==> Ensuring target user exists: ${TARGET_USER}"
 if ! id "${TARGET_USER}" &>/dev/null; then
@@ -115,30 +195,41 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 echo "==> Deploying dotfiles to ${TARGET_HOME}"
 mkdir -p "${TARGET_HOME}/.config"
-for dir in hypr waybar alacritty wofi kitty mako nano; do
+for dir in hypr waybar alacritty wofi kitty mako nano gtk-3.0 gtk-4.0; do
   src="${REPO_DIR}/dotfiles/${dir}"
   [[ -d "${src}" ]] || continue
   # Con la sesión abierta, Hyprland escribe en su carpeta y `rm -rf` puede fallar:
-  # se limpia sin abortar y se copia encima.
-  rm -rf "${TARGET_HOME}/.config/${dir}" 2>/dev/null || true
+  # se limpia sin abortar y se copia encima. Las de GTK no se borran: guardan datos del
+  # usuario (marcadores de Thunar en gtk-3.0/bookmarks).
+  [[ "${dir}" == gtk-* ]] || rm -rf "${TARGET_HOME}/.config/${dir}" 2>/dev/null || true
   mkdir -p "${TARGET_HOME}/.config/${dir}"
   cp -rT "${src}" "${TARGET_HOME}/.config/${dir}"
 done
-# Ajustes locales de Hyprland (se carga con `source` al final de hyprland.conf).
+# Ajustes locales de Hyprland (hyprland.lua los carga con `require("local")` al final).
 # En VM el render es por software y el hardware no da para el movimiento completo:
 # se acorta la duración de las animaciones (sin tocar el perfil del producto).
+LOCAL_LUA="${TARGET_HOME}/.config/hypr/local.lua"
 if systemd-detect-virt --quiet; then
-  cat > "${TARGET_HOME}/.config/hypr/local.conf" <<'LOCAL'
-# Perfil ligero para VM (render por software).
-decoration {
-    dim_inactive = false
-}
-animation = workspacesIn, 1, 3, out, slide
-animation = workspacesOut, 1, 2, emphasized, slide
-animation = border, 0
+  cat > "${LOCAL_LUA}" <<'LOCAL'
+-- Perfil ligero para VM (render por software). Lo genera install.sh.
+hl.config({
+    decoration = {
+        dim_inactive = false,
+        shadow = { enabled = false },
+    },
+})
+hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 3, bezier = "out",        style = "slide" })
+hl.animation({ leaf = "workspacesOut", enabled = true, speed = 2, bezier = "emphasized", style = "slide" })
+hl.animation({ leaf = "border",      enabled = false })
+hl.animation({ leaf = "borderangle", enabled = false })
 LOCAL
+  # VirtualBox: 16:9 fijo desde el arranque. Con render por software a 1080p no pasa de ~5 FPS;
+  # 720p es el mejor equilibrio. No cambiar el modo en caliente: Hyprland se cuelga con vboxvideo.
+  if [[ "$(systemd-detect-virt)" == "oracle" ]]; then
+    echo 'hl.monitor({ output = "", mode = "1280x720@60", position = "0x0", scale = 1 })' >> "${LOCAL_LUA}"
+  fi
 else
-  : > "${TARGET_HOME}/.config/hypr/local.conf"
+  echo '-- Ajustes locales de esta máquina (vacío en el producto).' > "${LOCAL_LUA}"
 fi
 
 echo "==> Configuring developer shell (bashrc, nano)"
@@ -161,11 +252,15 @@ systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.serv
 
 echo "==> Configuring tty1 autologin + auto-start Hyprland for ${TARGET_USER}"
 mkdir -p /etc/systemd/system/getty@tty1.service.d
+# Sin texto en pantalla: ni /etc/issue, ni prompt, ni "login:"; .hushlogin quita motd y último acceso.
 cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<EOF
 [Service]
 ExecStart=
-ExecStart=-/usr/bin/agetty --autologin ${TARGET_USER} --noclear %I \$TERM
+ExecStart=-/usr/bin/agetty --autologin ${TARGET_USER} --noclear --skip-login --nonewline --noissue --nohints %I \$TERM
+TTYVTDisallocate=no
 EOF
+touch "${TARGET_HOME}/.hushlogin"
+chown "${TARGET_USER}:${TARGET_USER}" "${TARGET_HOME}/.hushlogin"
 
 BASH_PROFILE="${TARGET_HOME}/.bash_profile"
 touch "${BASH_PROFILE}"
@@ -184,8 +279,10 @@ if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
     export WLR_RENDERER_ALLOW_SOFTWARE=1
   fi
   # Hyprland >= 0.55 pide arrancar con start-hyprland (watchdog + entorno de sesión).
-  if command -v start-hyprland >/dev/null; then exec start-hyprland; fi
-  exec Hyprland
+  # Su salida va a /dev/null: si no, el logo ASCII y el log salen en tty1 antes del escritorio.
+  # El log completo sigue en $XDG_RUNTIME_DIR/hypr/*/hyprland.log.
+  if command -v start-hyprland >/dev/null; then exec start-hyprland >/dev/null 2>&1; fi
+  exec Hyprland >/dev/null 2>&1
 fi
 EOF
 fi

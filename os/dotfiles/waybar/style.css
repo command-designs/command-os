@@ -1,67 +1,126 @@
-/* Command OS — BRAND.md § 4–6. Rojo solo en el indicador activo (la barra del logo). */
-@define-color void #0e0e0e;
-@define-color graphite #151515;
-@define-color steel #2a2a2a;
+/* Command OS — barra HUD (docs/DISENO.md). Rojo 2077 para lo activo, cian para los datos,
+   amarillo solo para avisos. Sin radios: esquinas vivas. */
+@define-color void #0d0b0e;
+@define-color graphite #15121a;
+@define-color steel #2e2630;
 @define-color bone #edebe6;
-@define-color ash #a3a09a;
-@define-color smoke #85827c;
-@define-color red #a51500;
-@define-color red-hot #f5482c;
+@define-color ash #a8a2a6;
+@define-color smoke #6f6870;
+@define-color red #d13449;
+@define-color red-deep #2b1118;
+@define-color cyan #5bbfc4;
+@define-color yellow #e2c044;
 
 * {
     font-family: "JetBrainsMono Nerd Font";
     font-size: 12px;
     min-height: 0;
+    border-radius: 0;
 }
 
+/* Filo inferior rojo apagado con un brillo de 1 px: la barra se lee como un panel HUD. */
 window#waybar {
     background: @void;
     color: @bone;
-    border-bottom: 1px solid @steel;
+    border-bottom: 1px solid alpha(@red, 0.35);
+    box-shadow: inset 0 -1px alpha(@red, 0.12);
+}
+
+tooltip {
+    background: @graphite;
+    border: 1px solid @red;
+}
+
+tooltip label {
+    color: @bone;
 }
 
 #workspaces button {
     transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms cubic-bezier(0.16, 1, 0.3, 1),
-        border-color 250ms cubic-bezier(0.16, 1, 0.3, 1);
+        border-color 250ms cubic-bezier(0.16, 1, 0.3, 1), text-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
     padding: 0 10px;
     color: @smoke;
-    border-radius: 0;
     border-bottom: 2px solid transparent;
+    letter-spacing: 0.06em;
 }
 
 #workspaces button:hover {
     background: @graphite;
     color: @bone;
+    box-shadow: none;
+    text-shadow: none;
 }
 
 #workspaces button.active {
-    color: @bone;
+    color: @red;
+    background: @red-deep;
     border-bottom: 2px solid @red;
+    text-shadow: 0 0 4px alpha(@red, 0.45);
 }
 
-#image.logo {
-    margin: 0 8px 0 14px;
+#workspaces button.urgent {
+    color: @yellow;
+    border-bottom: 2px solid @yellow;
 }
 
+#custom-logo {
+    background-image: url("/usr/share/command-os/logo/command-mark-32.png");
+    background-size: 15px 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-width: 16px;
+    margin: 0 10px 0 14px;
+}
+
+/* Reloj enmarcado entre dos filos rojos, en Oxanium. */
 #clock {
-    font-weight: 500;
-    letter-spacing: 0.08em;
+    font-family: "Oxanium", "JetBrainsMono Nerd Font";
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    padding: 0 16px;
+    color: @bone;
+    background: alpha(@red, 0.06);
+    border-left: 2px solid @red;
+    border-right: 2px solid @red;
 }
 
 #network, #pulseaudio, #battery, #cpu, #memory, #tray {
-    transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1), background 200ms cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0 10px;
     color: @ash;
+    border-left: 1px solid @steel;
 }
 
 #network:hover, #pulseaudio:hover, #cpu:hover, #memory:hover {
     color: @bone;
+    background: @graphite;
+}
+
+#battery.warning:not(.charging) {
+    color: @yellow;
 }
 
 #battery.critical:not(.charging) {
-    color: @red-hot;
+    color: @red;
+    text-shadow: 0 0 4px alpha(@red, 0.45);
 }
 
-#network.disconnected {
+#network.disconnected, #pulseaudio.muted {
     color: @smoke;
+}
+
+/* Botón de energía: al final de la barra, apagado hasta que se pasa por encima. */
+#custom-power {
+    transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0 14px 0 12px;
+    color: @smoke;
+    font-size: 14px;
+    border-left: 1px solid @steel;
+}
+
+#custom-power:hover {
+    color: @red;
+    background: @red-deep;
+    text-shadow: 0 0 4px alpha(@red, 0.45);
 }

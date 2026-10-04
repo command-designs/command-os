@@ -171,20 +171,33 @@ wsl -d archlinux -u root -- sh /mnt/c/Workspace/command/command-os/build/x86/run
 /root/vm/packer_build_key -p 2901 deck@127.0.0.1`. La build tarda ~20 min
 (descarga ~800 MB). La imagen resultante se graba con `dd` a un USB.
 
-## VM de VirtualBox (`command-os-x86`) — ajustes para que vaya fluida
+## VM de VirtualBox (`command-os-x86`) — ajustes para que vaya lo mejor posible
 
 Valores aplicados con `VBoxManage modifyvm command-os-x86` (VM apagada):
-`--cpus 1 --memory 6144 --paravirt-provider kvm --graphicscontroller vboxsvga --vram 128
---audio-driver default --audio-controller ac97 --audio-codec ad1980 --audio-enabled on --audio-out on`.
+`--cpu-hotplug on --cpus 4 --memory 6144 --paravirt-provider kvm --graphicscontroller vboxsvga
+--vram 128 --accelerate-3d off --audio-driver default --audio-controller ac97 --audio-codec ad1980
+--audio-enabled on --audio-out on`, con las CPU 1-3 enchufadas (`<CpuTree>` del `.vbox` con ids 0-3).
+Cierre de ventana = apagado ACPI limpio: `setextradata GUI/DefaultCloseAction Shutdown` y
+`GUI/RestrictedCloseActions "SaveState,Detach,PowerOffRestoringSnapshot"`.
 
-- **1 vCPU es obligatorio.** Con 2 vCPU el firmware EFI se cuelga en `DXE_AP` (se volvió a
-  comprobar el 2026-10-01: sin SSH tras 5 min y captura 0x0). `--x2apic off` no lo arregla (VirtualBox
-  no deja desactivar el APIC en invitados de 64 bits).
-- Hyprland renderiza **por software** en esta VM (aquamarine: "Can't create renderer, no matching
-  devices"), a 1024x768. El coste lo pone la CPU, no la GPU: más RAM no acelera nada. Para animaciones
-  a pleno rendimiento hay que usar bare metal o el Pi.
-- `install.sh` detecta la VM (`systemd-detect-virt`) y escribe `~/.config/hypr/local.conf` con un perfil
-  ligero (animaciones de escritorio más cortas, sin transición de borde ni dim).
+- **VirtualBox corre sobre Hyper-V (NEM), no sobre VT-x**, porque WSL2 mantiene el hipervisor de
+  Windows activo (`VBox.log`: `HM: HMR3Init: Attempting fall back to NEM: VT-x is not available`).
+  De ahí vienen el cuelgue con varias vCPU y la lentitud del render.
+- **4 vCPU con CPU hotplug (2026-10-04).** Con `--cpus 2` sin hotplug el firmware EFI se cuelga en
+  `DXE_AP`. Con `--cpu-hotplug on` y las CPU enchufadas (`controlvm plugcpu N` o en el `.vbox`) arranca
+  bien con 4 y Linux las pone en línea solo (`nproc` = 4); llvmpipe usa 4 hilos.
+- Hyprland renderiza **por software** (llvmpipe) con `vboxsvga` + driver `vboxvideo`. Medido con
+  `debug:overlay`: ~180 ms por fotograma a 1920x1080 (~5 FPS) y ~77 ms a 1280x720 (~13 FPS). La
+  fluidez real solo se ve en bare metal o en el Pi.
+- **Resolución**: `install.sh` fija `hl.monitor({ mode = "1280x720@60" … })` en `local.lua` solo si
+  `systemd-detect-virt` es `oracle`. **No cambiar el modo en caliente** (`hyprctl keyword monitor`):
+  Hyprland se cuelga con `vboxvideo`. La ventana de VirtualBox está en modo escalado (`GUI/Scale`).
+- **Descartado: `vmsvga` + 3D.** Con `--graphicscontroller vmsvga --accelerate-3d on` carga `vmwgfx`,
+  aparece `renderD128` y Hyprland arranca con GLES 3.0 sobre la GPU del anfitrión, pero los clientes
+  no se muestran: hyprpaper muere con `invalid arguments for wl_surface#N.attach`, Waybar y Kitty no
+  aparecen. Vuelto a `vboxsvga`.
+- `install.sh` detecta la VM (`systemd-detect-virt`) y escribe `~/.config/hypr/local.lua` con un perfil
+  ligero (animaciones de escritorio más cortas, sin halo, sin giro ni transición de borde, sin dim).
 - Variante de paquetes `COMMAND_OS_VARIANT=vbox`: añade `virtualbox-guest-utils` y habilita
   `vboxservice`.
 - Audio: **usar AC97, no HDA**. Con `--audio-controller hda` el reloj del dispositivo no avanza y `pw-play`/`aplay` se cuelgan para siempre. Con AC97 (`snd-intel8x0`) suena bien; sale por el dispositivo de audio por defecto de Windows. PipeWire se
@@ -197,3 +210,12 @@ Valores aplicados con `VBoxManage modifyvm command-os-x86` (VM apagada):
 `build/make-sounds.py` genera `os/branding/sounds/*.wav` (síntesis propia, estéreo 48 kHz).
 `os/bin/command-os-sound <nombre>` los reproduce con `pw-play`. Eventos: `boot` (inicio de sesión),
 `notify`/`critical` (Mako), `lock`/`unlock` (Hypridle), `tick` (teclas de volumen).
+
+## Hyprland con configuración Lua (2026-10-04)
+
+Desde Hyprland 0.56 la configuración es `~/.config/hypr/hyprland.lua` (el `.conf` desaparece en 0.57).
+`hyprctl dispatch` ya no acepta la sintaxis antigua: hay que pasar un dispatcher Lua, por ejemplo
+`hyprctl dispatch 'hl.dsp.focus({ workspace = 2 })'` o `hyprctl dispatch 'hl.dsp.exec_cmd("kitty")'`.
+`hyprctl configerrors` muestra los errores de la configuración. Para simular clics en la VM sirve
+`ydotool` (instalarlo solo para la prueba): mover el puntero con
+`hyprctl dispatch 'hl.dsp.cursor.move({ x = 135, y = 14 })'` y luego `ydotool click 0xC0`.

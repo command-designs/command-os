@@ -57,7 +57,8 @@ arch-chroot "$MNT" /bin/bash -euxc "
   echo command-os > /etc/hostname
   passwd -l root
   COMMAND_OS_VARIANT=${VARIANT} bash /root/command-os-src/os/install.sh
-  sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet splash nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
+  # install.sh ya dejó el arranque silencioso en la línea del kernel: aquí solo se añade NVIDIA.
+  grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
   # --removable: EFI/BOOT/BOOTX64.EFI, sin depender de la NVRAM del equipo
   grub-install --target=x86_64-efi --efi-directory=/boot --removable --no-nvram
   grub-mkconfig -o /boot/grub/grub.cfg

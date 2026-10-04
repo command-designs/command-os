@@ -2,40 +2,53 @@
     "layer": "top",
     "position": "top",
     "height": 30,
-    "modules-left": ["image#logo", "hyprland/workspaces"],
+    "modules-left": ["custom/logo", "ext/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["cpu", "memory", "network", "pulseaudio", "battery", "tray"],
+    "modules-right": ["cpu", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
 
-    "image#logo": {
-        "path": "/usr/share/command-os/logo/command-mark-32.png",
-        "size": 16,
+    // Etiqueta en cian (dato) + valor en hueso. Colores de docs/DISENO.md.
+    // Logo como fondo CSS (#custom-logo en style.css): el módulo `image` de Waybar 0.15 se
+    // bloquea al arrancar y deja la barra invisible (capa con `a: 0`).
+    "custom/logo": {
+        "format": " ",
         "tooltip": false
     },
-    "hyprland/workspaces": {
-        "format": "{id}",
-        "persistent-workspaces": { "*": 4 }
+    // Espacios de trabajo por el protocolo estándar ext-workspace: los clics no dependen de la
+    // sintaxis de hyprctl (Waybar 0.15 aún manda `dispatch workspace N`, que la configuración Lua
+    // de Hyprland ya no acepta). Los cuatro fijos se declaran persistentes en hyprland.lua.
+    "ext/workspaces": {
+        "format": "0{name}",
+        "sort-by-id": true,
+        "on-click": "activate"
     },
     "clock": {
         "format": "{:%H:%M}",
         "tooltip-format": "{:%A %d %B %Y}"
     },
-    "cpu": { "format": "cpu {usage}%", "interval": 5 },
-    "memory": { "format": "mem {percentage}%", "interval": 5 },
+    "cpu": { "format": "<span color='#5bbfc4'>cpu</span> {usage}%", "interval": 5 },
+    "memory": { "format": "<span color='#5bbfc4'>mem</span> {percentage}%", "interval": 5 },
     "network": {
-        "format-wifi": "{essid}",
-        "format-ethernet": "eth",
-        "format-disconnected": "sin red",
+        "format-wifi": "<span color='#5bbfc4'>net</span> {essid}",
+        "format-ethernet": "<span color='#5bbfc4'>net</span> eth",
+        "format-disconnected": "<span color='#d13449'>net</span> sin red",
         "tooltip-format": "{ifname} · {ipaddr}"
     },
     "pulseaudio": {
-        "format": "vol {volume}%",
-        "format-muted": "mute",
-        "on-click": "pavucontrol"
+        "format": "<span color='#5bbfc4'>vol</span> {volume}%",
+        "format-muted": "<span color='#d13449'>vol</span> mute",
+        "on-click": "command-os-volume",
+        "tooltip-format": "{desc} · clic: mezclador"
     },
     "battery": {
-        "format": "bat {capacity}%",
-        "format-charging": "bat {capacity}% +",
-        "states": { "critical": 15 }
+        "format": "<span color='#5bbfc4'>bat</span> {capacity}%",
+        "format-charging": "<span color='#5bbfc4'>bat</span> {capacity}% +",
+        "states": { "warning": 30, "critical": 15 }
     },
-    "tray": { "spacing": 8 }
+    "tray": { "spacing": 8 },
+    // Menú de energía (bloquear · reiniciar · apagar), igual que Super+Escape.
+    "custom/power": {
+        "format": "󰐥",
+        "tooltip-format": "energía",
+        "on-click": "command-os-power"
+    }
 }
