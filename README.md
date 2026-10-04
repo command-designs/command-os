@@ -30,6 +30,8 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
 - `build/packer/` — pipeline de build desatendido para la VM de desarrollo
   (QEMU, x86_64). Particiona disco, instala Arch base y corre
   `os/install.sh` sin intervención manual.
+- `build/x86/` — imagen para USB (`build-image.sh`) e instalador en dual boot junto a Windows
+  (`install-dualboot.sh`, guía en [`docs/dualboot.md`](docs/dualboot.md)).
 - `build/iso/` — ISOs descargadas (no versionadas, ver `.gitignore`).
 
 ## Flujo de desarrollo (VM x86_64 en QEMU)

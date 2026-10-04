@@ -144,9 +144,16 @@ if [[ -f /etc/default/grub ]]; then
     fi
   }
   set_grub GRUB_DISTRIBUTOR '"Command OS"'
-  # Menú oculto: espera 1 s en silencio; Esc lo muestra (recuperación).
-  set_grub GRUB_TIMEOUT 1
-  set_grub GRUB_TIMEOUT_STYLE hidden
+  if [[ -f /etc/command-os/dualboot ]]; then
+    # Dual boot con Windows (build/x86/install-dualboot.sh): menú visible para elegir. La
+    # entrada de Windows la pone /etc/grub.d/35_command-os-windows.
+    set_grub GRUB_TIMEOUT 5
+    set_grub GRUB_TIMEOUT_STYLE menu
+  else
+    # Menú oculto: espera 1 s en silencio; Esc lo muestra (recuperación).
+    set_grub GRUB_TIMEOUT 1
+    set_grub GRUB_TIMEOUT_STYLE hidden
+  fi
   set_grub GRUB_TERMINAL_OUTPUT gfxterm
   set_grub GRUB_GFXMODE auto
   set_grub GRUB_GFXPAYLOAD_LINUX keep
@@ -230,6 +237,10 @@ LOCAL
   fi
 else
   echo '-- Ajustes locales de esta máquina (vacío en el producto).' > "${LOCAL_LUA}"
+fi
+# Distribución de teclado de esta máquina (ej. "es"), si se fijó al instalar.
+if [[ -s /etc/command-os/kb_layout ]]; then
+  printf 'hl.config({ input = { kb_layout = "%s" } })\n' "$(tr -d '[:space:]' < /etc/command-os/kb_layout)" >> "${LOCAL_LUA}"
 fi
 
 echo "==> Configuring developer shell (bashrc, nano)"

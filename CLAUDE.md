@@ -105,6 +105,21 @@ GPU NVIDIA real. Ojo: `arch-chroot` monta un `/tmp` limpio, no copiar nada
 a `/tmp` antes de entrar al chroot. Pendiente: grabar la imagen en el USB
 (`dd`, confirmando el disco con el usuario).
 
+## Dual boot con Windows (2026-10-04)
+
+`build/x86/install-dualboot.sh /dev/<disco>` (desde el USB en vivo de Arch, como root) instala
+Command OS en el mayor hueco libre del disco junto a Windows: partición ext4 nueva (`sgdisk -n
+0:0:0`), reutiliza la ESP de Windows sin formatear (montada en `/efi`; kernel en `/boot` de la
+ext4), GRUB en `EFI/command-os/` sin `--removable` (no pisa `EFI/Boot`), entrada fija de Windows en
+`/etc/grub.d/35_command-os-windows` (chainload de `bootmgfw.efi` por UUID de la ESP; os-prober
+no detectaba Windows sin udev), reloj en hora
+local (`/etc/adjtime`), teclado `es` y variante `pc-nvidia` solo si hay GPU NVIDIA. Deja
+`/etc/command-os/dualboot` → `install.sh` pone el menú de GRUB visible 5 s (sin la marca, menú
+oculto 1 s como antes); `/etc/command-os/kb_layout` → `kb_layout` en `local.lua`.
+Pensado para el portátil del colega; guía paso a paso en `docs/dualboot.md`. **Probado solo en WSL
+sobre un disco loop** con un Windows falso (`NO_NVRAM=1`); falta un portátil real (entrada UEFI,
+BitLocker). No aplica al Pi (sin GRUB); las ramas nuevas de `install.sh` solo se activan con la marca.
+
 ## Identidad de marca y VM en VirtualBox (2026-10-01)
 
 - **Marca:** desde el 2026-10-04 el escritorio es un **HUD estilo Cyberpunk 2077 con ADN Command**
