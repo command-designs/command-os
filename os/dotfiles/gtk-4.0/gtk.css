@@ -115,10 +115,29 @@ scale slider {
     border-radius: 9999px;
 }
 
-/* Hyprland dibuja el marco y el halo: sin sombra de ventana de GTK. */
-window.csd,
-window.solid-csd {
+/* Marco de ventana. Las apps GTK 4 siempre dibujan su propia cabecera, así que llevan aquí el
+   mismo marco que el tema Command de labwc: filo rojo y halo si están activas, Steel y una sombra
+   corta si no. Maximizadas, encajadas o a pantalla completa, sin marco. */
+window.csd {
+    box-shadow: 0 0 0 1px #d13449, 0 0 18px rgb(209 52 73 / 19%);
+}
+
+window.csd:backdrop {
+    box-shadow: 0 0 0 1px #2e2630, 0 0 12px rgb(0 0 0 / 44%);
+}
+
+window.csd.maximized,
+window.csd.fullscreen,
+window.csd.tiled,
+window.csd.tiled-top,
+window.csd.tiled-right,
+window.csd.tiled-bottom,
+window.csd.tiled-left {
     box-shadow: none;
+}
+
+window.solid-csd {
+    box-shadow: inset 0 0 0 1px #d13449;
 }
 
 headerbar,

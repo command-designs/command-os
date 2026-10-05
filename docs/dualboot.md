@@ -53,7 +53,7 @@ Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash ...`):
 
 | Variable | Por defecto | Qué hace |
 |---|---|---|
-| `KB_LAYOUT` | `es` | Teclado en Hyprland y en la consola |
+| `KB_LAYOUT` | `es` | Teclado en el escritorio (labwc) y en la consola |
 | `TIMEZONE` | `Europe/Madrid` | Zona horaria |
 | `HOSTNAME_NEW` | `command-os` | Nombre del equipo |
 | `VARIANT` | auto | `pc-nvidia` si hay GPU NVIDIA; vacío en Intel/AMD |

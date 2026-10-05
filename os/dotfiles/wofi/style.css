@@ -23,8 +23,20 @@ window {
     border-top: 3px solid @red;
 }
 
+/* Entrada del panel: aparece y se asienta, con la curva de Command (sin rebote). labwc no anima
+   ventanas, así que el movimiento del escritorio vive en los paneles. */
+@keyframes cmd-panel-in {
+    from { opacity: 0; margin-top: 20px; }
+    to { opacity: 1; margin-top: 12px; }
+}
+
 #outer-box {
     margin: 12px;
+    animation: cmd-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#entry {
+    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #input {

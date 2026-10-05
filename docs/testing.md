@@ -1,5 +1,10 @@
 # Ciclo de pruebas en la VM de desarrollo (x86_64, QEMU)
 
+> **Desde el 2026-10-05 el escritorio es labwc** (antes Hyprland). Las secciones de QEMU y WSL se
+> escribieron con Hyprland y se dejan como historia; hoy la VM de pruebas del escritorio es la de
+> VirtualBox (más abajo), donde labwc renderiza por software sin problemas. Cómo probar labwc sin
+> ratón: sección "labwc en la VM" al final.
+
 ## Por qué QEMU y no VirtualBox
 
 Se probó primero con VirtualBox, pero Hyprland (vía su backend `aquamarine`)
@@ -61,8 +66,7 @@ Desde WSL, SSH y captura de pantalla del compositor:
 ```
 ssh -i /root/vm/packer_build_key -p 2900 root@127.0.0.1
 # dentro del guest (grim no viene en la imagen, instalarlo si hace falta):
-su deck -c 'XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-1 \
-  HYPRLAND_INSTANCE_SIGNATURE=$(ls -t /run/user/1000/hypr | head -1) grim /tmp/shot.png'
+su deck -c 'XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 grim /tmp/shot.png'
 ```
 
 Para iterar sobre `os/` desde WSL, el repo está en
@@ -133,7 +137,7 @@ ssh -i keys/packer_build_key -p 2900 root@127.0.0.1 '/tmp/command-os/os/install.
 Y para verificar el checkpoint (sin necesitar ver nada renderizado):
 ```
 ssh -i keys/packer_build_key -p 2900 root@127.0.0.1 \
-  'pacman -Q hyprland waybar wofi; systemctl is-enabled seatd NetworkManager sshd; id deck'
+  'pacman -Q labwc waybar wofi; systemctl is-enabled seatd NetworkManager sshd; id deck'
 ```
 
 **Importante**: siempre apagar la VM con `ssh ... "shutdown -h now"` (o
@@ -153,7 +157,7 @@ qemu-img snapshot -l output-arch/command-os-dev.qcow2              # listar
 
 ## Credenciales de desarrollo (no usar en producto final)
 
-- Usuario: `deck` / password: `deck` (autologin en tty1, arranca Hyprland)
+- Usuario: `deck` / password: `deck` (autologin en tty1, arranca labwc)
 - `root` sin password (deshabilitado con `passwd -d`), solo acceso por la
   llave SSH efímera de `build/packer/keys/`, con `PermitRootLogin yes` —
   revisar/cerrar esto antes de considerar cualquier imagen "shippable".
@@ -186,18 +190,18 @@ Cierre de ventana = apagado ACPI limpio: `setextradata GUI/DefaultCloseAction Sh
 - **4 vCPU con CPU hotplug (2026-10-04).** Con `--cpus 2` sin hotplug el firmware EFI se cuelga en
   `DXE_AP`. Con `--cpu-hotplug on` y las CPU enchufadas (`controlvm plugcpu N` o en el `.vbox`) arranca
   bien con 4 y Linux las pone en línea solo (`nproc` = 4); llvmpipe usa 4 hilos.
-- Hyprland renderiza **por software** (llvmpipe) con `vboxsvga` + driver `vboxvideo`. Medido con
-  `debug:overlay`: ~180 ms por fotograma a 1920x1080 (~5 FPS) y ~77 ms a 1280x720 (~13 FPS). La
-  fluidez real solo se ve en bare metal o en el Pi.
-- **Resolución**: `install.sh` fija `hl.monitor({ mode = "1280x720@60" … })` en `local.lua` solo si
-  `systemd-detect-virt` es `oracle`. **No cambiar el modo en caliente** (`hyprctl keyword monitor`):
-  Hyprland se cuelga con `vboxvideo`. La ventana de VirtualBox está en modo escalado (`GUI/Scale`).
-- **Descartado: `vmsvga` + 3D.** Con `--graphicscontroller vmsvga --accelerate-3d on` carga `vmwgfx`,
-  aparece `renderD128` y Hyprland arranca con GLES 3.0 sobre la GPU del anfitrión, pero los clientes
-  no se muestran: hyprpaper muere con `invalid arguments for wl_surface#N.attach`, Waybar y Kitty no
-  aparecen. Vuelto a `vboxsvga`.
-- `install.sh` detecta la VM (`systemd-detect-virt`) y escribe `~/.config/hypr/local.lua` con un perfil
-  ligero (animaciones de escritorio más cortas, sin halo, sin giro ni transición de borde, sin dim).
+- labwc renderiza **por software** (llvmpipe) con `vboxsvga` + driver `vboxvideo`. La fluidez real
+  solo se ve en bare metal o en el Pi. (Con Hyprland: ~5 FPS a 1080p y ~13 FPS a 720p.)
+- **Resolución**: `install.sh` escribe `~/.config/labwc/autostart.local` con
+  `wlr-randr … --mode 1280x720` solo si `systemd-detect-virt` es `oracle`. El splash va a 1024x768,
+  así que al entrar al escritorio hay ~2 s en negro por el cambio de modo; en hardware real labwc
+  reutiliza el modo del splash (`<reuseOutputMode>`). La ventana de VirtualBox está en modo escalado
+  (`GUI/Scale`).
+- **Descartado: `vmsvga` + 3D** (probado con Hyprland). Con `--graphicscontroller vmsvga
+  --accelerate-3d on` carga `vmwgfx` y el compositor arranca sobre la GPU del anfitrión, pero los
+  clientes no se muestran. Vuelto a `vboxsvga`.
+- `install.sh` detecta la VM (`systemd-detect-virt`) y escribe `~/.config/labwc/themerc-override`
+  sin sombras ni halo (cada fotograma cuenta con render por software).
 - Variante de paquetes `COMMAND_OS_VARIANT=vbox`: añade `virtualbox-guest-utils` y habilita
   `vboxservice`.
 - Audio: **usar AC97, no HDA**. Con `--audio-controller hda` el reloj del dispositivo no avanza y `pw-play`/`aplay` se cuelgan para siempre. Con AC97 (`snd-intel8x0`) suena bien; sale por el dispositivo de audio por defecto de Windows. PipeWire se
@@ -211,11 +215,28 @@ Cierre de ventana = apagado ACPI limpio: `setextradata GUI/DefaultCloseAction Sh
 `os/bin/command-os-sound <nombre>` los reproduce con `pw-play`. Eventos: `boot` (inicio de sesión),
 `notify`/`critical` (Mako), `lock`/`unlock` (Hypridle), `tick` (teclas de volumen).
 
-## Hyprland con configuración Lua (2026-10-04)
+## labwc en la VM (2026-10-05)
 
-Desde Hyprland 0.56 la configuración es `~/.config/hypr/hyprland.lua` (el `.conf` desaparece en 0.57).
-`hyprctl dispatch` ya no acepta la sintaxis antigua: hay que pasar un dispatcher Lua, por ejemplo
-`hyprctl dispatch 'hl.dsp.focus({ workspace = 2 })'` o `hyprctl dispatch 'hl.dsp.exec_cmd("kitty")'`.
-`hyprctl configerrors` muestra los errores de la configuración. Para simular clics en la VM sirve
-`ydotool` (instalarlo solo para la prueba): mover el puntero con
-`hyprctl dispatch 'hl.dsp.cursor.move({ x = 135, y = 14 })'` y luego `ydotool click 0xC0`.
+Comandos desde el anfitrión con `S="ssh -i build/packer/keys/packer_build_key -p 2902 deck@127.0.0.1"`
+(más las opciones sin avisos de huella) y `E='export WAYLAND_DISPLAY=wayland-0 XDG_RUNTIME_DIR=/run/user/1000;'`:
+
+- **Iterar**: copiar `os/` (`tar -czf - os | $S 'tar -xzf - -C /tmp/command-os'`) y
+  `echo deck | sudo -S env COMMAND_OS_VARIANT=vbox bash /tmp/command-os/os/install.sh`. Se puede
+  re-ejecutar con la sesión abierta (con Hyprland se colgaba; con labwc no). Para recargar la
+  configuración y el tema: `kill -HUP $(pidof labwc)` (`labwc -r` solo funciona dentro de la sesión,
+  necesita `LABWC_PID`). Waybar no se recarga solo: `pkill -x waybar` y lanzarlo con `setsid`.
+- **Log**: `/run/user/1000/labwc.log` (labwc y todo lo que arranca `autostart`). Son normales el
+  aviso de `seatd.sock` (entra por logind), los `EGL_BAD_ALLOC` del render por software y el
+  `hyprland-lock-notify-v1` de hypridle (solo afecta a `on_lock_cmd`, que no usamos).
+- **Teclado y atajos**: `wtype` (instalarlo solo para la prueba). Super solo:
+  `wtype -P Super_L -p Super_L`; combinaciones: `wtype -M logo -k Down -m logo`; Alt+Tab mantenido
+  para capturarlo: `nohup wtype -M alt -P Tab -s 300 -p Tab -s 8000 -m alt &`.
+- **Bloqueo**: `loginctl lock-session` lanzado por SSH bloquea la sesión SSH; hay que pasar el id de
+  la de tty1: `loginctl lock-session $(loginctl list-sessions --no-legend | awk '/tty1/{print $1}')`.
+  Desbloquear: `wtype deck; wtype -k Return`.
+- **Capturas**: `VBoxManage controlvm command-os-x86 screenshotpng <ruta.png>` (también durante el
+  arranque, para ver splash → escritorio).
+- **Clic derecho en el escritorio**: no se puede simular sin ratón virtual; el menú `client-menu`
+  (Alt+Espacio) usa el mismo tema y sí se puede ver.
+- kitty guardaba la ventana maximizada de la época de Hyprland en `~/.cache/kitty/main.json`; ahora
+  abre siempre a 100x30 celdas (`remember_window_size no`).

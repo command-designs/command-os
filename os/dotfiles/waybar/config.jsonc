@@ -2,24 +2,34 @@
     "layer": "top",
     "position": "top",
     "height": 30,
-    "modules-left": ["custom/logo", "ext/workspaces"],
+    "modules-left": ["custom/logo", "ext/workspaces", "wlr/taskbar"],
     "modules-center": ["clock"],
     "modules-right": ["cpu", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
 
     // Etiqueta en cian (dato) + valor en hueso. Colores de docs/DISENO.md.
     // Logo como fondo CSS (#custom-logo en style.css): el módulo `image` de Waybar 0.15 se
-    // bloquea al arrancar y deja la barra invisible (capa con `a: 0`).
+    // bloquea al arrancar y deja la barra invisible. Clic: lanzador de aplicaciones.
     "custom/logo": {
         "format": " ",
-        "tooltip": false
+        "tooltip-format": "aplicaciones",
+        "on-click": "sh -c 'pkill -x wofi || wofi --show drun'"
     },
-    // Espacios de trabajo por el protocolo estándar ext-workspace: los clics no dependen de la
-    // sintaxis de hyprctl (Waybar 0.15 aún manda `dispatch workspace N`, que la configuración Lua
-    // de Hyprland ya no acepta). Los cuatro fijos se declaran persistentes en hyprland.lua.
+    // Espacios de trabajo por el protocolo estándar ext-workspace (labwc lo implementa). Los
+    // cuatro se definen en ~/.config/labwc/rc.xml (<desktops>), con nombres 01–04.
     "ext/workspaces": {
-        "format": "0{name}",
+        "format": "{name}",
         "sort-by-id": true,
         "on-click": "activate"
+    },
+    // Ventanas abiertas: clic para traerla o minimizarla, clic central para cerrarla.
+    "wlr/taskbar": {
+        "format": "{icon}",
+        "icon-size": 16,
+        "icon-theme": "Papirus-Dark",
+        "tooltip-format": "{title}",
+        "on-click": "minimize-raise",
+        "on-click-middle": "close",
+        "ignore-list": ["org.pulseaudio.pavucontrol"]
     },
     "clock": {
         "format": "{:%H:%M}",
@@ -31,7 +41,8 @@
         "format-wifi": "<span color='#5bbfc4'>net</span> {essid}",
         "format-ethernet": "<span color='#5bbfc4'>net</span> eth",
         "format-disconnected": "<span color='#d13449'>net</span> sin red",
-        "tooltip-format": "{ifname} · {ipaddr}"
+        "tooltip-format": "{ifname} · {ipaddr} · clic: conexiones",
+        "on-click": "nm-connection-editor"
     },
     "pulseaudio": {
         "format": "<span color='#5bbfc4'>vol</span> {volume}%",

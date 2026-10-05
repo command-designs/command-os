@@ -3,19 +3,47 @@
 ## Qué es esto
 
 Distro propia para un cyberdeck comercial, construida como capa de curación
-(Hyprland/Wayland, theming, apps por defecto, instalador) sobre Arch Linux
+(labwc/Wayland, theming, apps por defecto, instalador) sobre Arch Linux
 ARM en el hardware real (Raspberry Pi 5) — modelo Omarchy, pero sobre una
 base aarch64 oficial en vez de x86_64. Un colega hace el hardware, este repo
 es la parte de software/SO. Ver `README.md` para la estructura del repo.
 
-**Estado actual**: el pipeline de instalación (`os/install.sh` + paquetes +
-dotfiles) está probado — ojo: es una base Hyprland mínima, todavía no se
-parece a Omarchy (la meta real, ver "Objetivo" en `README.md`: CachyOS +
-Omarchy en ARM, que no existen para aarch64, así que se replica sobre Arch
-Linux ARM). El pipeline funciona de punta a punta en una VM x86_64 de
-desarrollo (QEMU), y Hyprland se ve renderizado corriendo esa VM dentro de
-WSL2 con KVM + virgl (ver "Verificación visual" más abajo). Falta: todavía
-no se probó nada sobre Arch Linux ARM / hardware real.
+**Estado actual**: escritorio **labwc** desde el 2026-10-05 (antes Hyprland; el último estado
+Hyprland está en la etiqueta `hyprland-final` y en la instantánea `pre-labwc` de la VM de
+VirtualBox). El pipeline de instalación (`os/install.sh` + paquetes + dotfiles) funciona de punta a
+punta en la VM x86_64 de VirtualBox, con el escritorio verificado con capturas. Falta: todavía no se
+probó nada sobre Arch Linux ARM / hardware real. Muchas notas de abajo son de la época Hyprland y se
+dejan como historia; lo vigente del escritorio está en "Escritorio labwc".
+
+## Escritorio labwc (2026-10-05)
+
+- **Por qué**: producto para clientes que tiene que gustar a la mayoría y ser muy ligero. labwc es
+  flotante (barra de título, botones, barra de tareas, Alt+Tab, clic derecho, Super abre el
+  lanzador), sin animaciones de ventana, y es el compositor por defecto de Raspberry Pi OS en el Pi 5.
+  Decisión del usuario tras comparar con Hyprland y con un escritorio tipo GNOME/XFCE.
+- **Archivos**: `os/dotfiles/labwc/` (`rc.xml` atajos/reglas, `menu.xml` menús en castellano,
+  `autostart`, `environment`), tema de ventanas `os/branding/labwc/Command/labwc/` (`themerc` +
+  botones SVG de `build/make-labwc-buttons.py`) instalado en `/usr/share/themes/Command`. Portales en
+  `os/dotfiles/xdg-desktop-portal/labwc-portals.conf` (gtk + wlr). Ayuda de atajos
+  `os/bin/command-os-keys` (Super+F1): si se cambia un atajo en `rc.xml`, cambiarlo también ahí.
+- **Piezas**: swaybg (fondo), Waybar con `ext/workspaces` (labwc implementa ext-workspace) y
+  `wlr/taskbar`, hyprlock/hypridle (no dependen de Hyprland; pantalla con `wlopm`), polkit-gnome,
+  nm-applet en la bandeja, wdisplays, xorg-xwayland (arranca bajo demanda). Fuera: hyprland,
+  xdg-desktop-portal-hyprland, hyprpaper, hyprpolkitagent; `install.sh` los desinstala en máquinas
+  ya instaladas.
+- **Ajustes por máquina** (los genera `install.sh`, no van en los dotfiles): `environment.d/local.env`
+  (teclado de `/etc/command-os/kb_layout`), `themerc-override` (sin sombras en VM) y
+  `autostart.local` (1280x720 en VirtualBox con `wlr-randr`).
+- **GTK**: las apps con cabecera propia (GTK 4, Firefox) no reciben marco de labwc; `gtk-3.0/gtk.css`
+  y `gtk-4.0/gtk.css` les dibujan el mismo filo rojo y halo.
+- **Verificado en VM VirtualBox** (capturas): escritorio, barra con tareas, ventanas activa/inactiva
+  (borde `#D13449` medido), botones, menú de ventana, Alt+Tab, lanzador con Super, ayuda de atajos,
+  mezclador desplegable, bloqueo y desbloqueo, notificaciones, espacios 01–04, re-ejecución de
+  `install.sh` con la sesión abierta y reinicio completo (splash → escritorio). Uso de memoria del
+  sistema: ~616 MB. **No verificado**: clic derecho en el escritorio (sin ratón virtual), inactividad
+  y apagado de pantalla, teclas multimedia, Pi 5 y bare metal.
+- Cómo probar sin ratón (wtype, SIGHUP, bloqueo de la sesión de tty1, capturas): `docs/testing.md`,
+  sección "labwc en la VM".
 
 ## Qué se probó y qué se descartó (no repetir)
 
@@ -61,7 +89,7 @@ saltable, pantalla de info `CMD-OS`, paquete pacman `command-os`, instalador pul
 ## Siguiente paso: bare metal (esto es lo primero a retomar)
 
 **Arrancar Command OS en bare metal desde un USB en la PC de desarrollo**,
-para probar la UX de Hyprland (atajos con Super, waybar, apps, theming) con
+para probar la UX del escritorio (atajos con Super, waybar, apps, theming) con
 fluidez nativa, sin VM. Propuesto al usuario el 2026-09-27; todavía no
 confirmó si tiene un USB ≥32 GB a mano — preguntarle eso primero. No
 reemplaza la prueba en el Raspberry Pi 5 (el hardware real), es el puente
@@ -139,17 +167,12 @@ BitLocker). No aplica al Pi (sin GRUB); las ramas nuevas de `install.sh` solo se
   **vCPU**: sin hotplug, con 2 el firmware EFI se cuelga en `DXE_AP`; con `--cpu-hotplug on` arranca
   con 4 (2026-10-04). VirtualBox corre sobre Hyper-V (NEM) porque WSL2 lo mantiene activo. También
   chipset ICH9 y HPET on. Render por software, 1280x720 fijo (~13 FPS); `vmsvga`+3D descartado.
-  Detalle en `docs/testing.md`. El arranque tarda >1 min. Hyprland renderiza (render por software).
-- **Hyprland 0.56.2**: no existen `dwindle:pseudotile` ni el dispatcher `togglesplit` (usar
-  `layoutmsg, togglesplit`); pide arrancar con `start-hyprland`. Si un módulo de Waybar rompe la
-  barra, la capa queda con `a: 0` en `hyprctl layers`. El módulo `image` de Waybar 0.15 se bloquea
-  (futex) incluso con un PNG pequeño: el logo va como `custom/logo` con `background-image` en CSS.
+  Detalle en `docs/testing.md`. El arranque tarda >1 min. labwc renderiza (render por software).
+- El módulo `image` de Waybar 0.15 se bloquea (futex) incluso con un PNG pequeño: el logo va como
+  `custom/logo` con `background-image` en CSS.
 - La imagen usa initramfs con hook `systemd`: `plymouth` va después de `systemd`, no de `udev`.
-- Re-ejecutar `os/install.sh` sobre la VM en marcha funciona (sin reconstruir la imagen), pero
-  borra `~/.config/hypr` mientras Hyprland corre: sale un banner "autogenerated config" hasta
-  `hyprctl reload`.
 - Pendiente del tema: ver la animación de arranque en movimiento (solo vi el fotograma final),
-  hacer el splash saltable, hyprlock/hyprpaper en pantallas reales, y el paquete pacman
+  hacer el splash saltable, hyprlock y el fondo (swaybg) en pantallas reales, y el paquete pacman
   `command-os` (segunda pasada).
 
 ## Arranque silencioso para clientes (2026-10-04)
@@ -169,17 +192,10 @@ barra (a petición del usuario, el mismo 2026-10-04: los logs solo dentro de la 
   manda a Plymouth aunque el arranque sea silencioso; verificado en VM); al apagar, sin barra. **Esc** pasa al
   modo detalles de Plymouth (soporte técnico; `details.so` va en el initramfs).
 - **Paso al escritorio**: `plymouth quit --retain-splash` (drop-in de `plymouth-quit.service`), agetty
-  con `--skip-login --nonewline --noissue --nohints`, `~/.hushlogin`, y `start-hyprland` con la salida
-  a `/dev/null` (si no, su logo ASCII y su log salen en tty1). Hay ~3 s de negro entre el splash y
-  Hyprland (modeset).
+  con `--skip-login --nonewline --noissue --nohints`, `~/.hushlogin`, y `labwc` con la salida a
+  `$XDG_RUNTIME_DIR/labwc.log` (no a tty1). labwc reutiliza el modo del splash
+  (`<reuseOutputMode>`); en VirtualBox hay ~2 s de negro por el cambio a 1280x720.
 - **Verificado en la VM x86** con capturas cada segundo de arranque y reinicio.
-- **Configuración Lua (resuelto el 2026-10-04)**: `os/dotfiles/hypr/hyprland.lua` sustituye a
-  `hyprland.conf`, así que ya no sale el aviso "support for .conf will be removed in 0.57". API en
-  `/usr/share/hypr/stubs/hl.meta.lua` y wiki (`github.com/hyprwm/hyprland-wiki`, `content/configuring`).
-  Consecuencias: `hyprctl dispatch` solo acepta dispatchers Lua (hypridle ya usa
-  `hl.dsp.dpms(...)`), y **Waybar 0.15 manda `dispatch workspace N` antiguo**, así que la barra usa
-  `ext/workspaces` (protocolo ext-workspace) con los espacios 1-4 persistentes por regla de Hyprland.
-  Waybar master ya traduce a Lua; cuando salga en Arch se puede volver a `hyprland/workspaces`.
 - Plymouth no se puede probar en WSL (el daemon se cuelga sin tty): probar en la VM
   (`VBoxManage controlvm command-os-x86 screenshotpng` durante el arranque).
 
@@ -187,8 +203,8 @@ barra (a petición del usuario, el mismo 2026-10-04: los logs solo dentro de la 
 
 - `os/bin/command-os-power`: Super+Escape o botón 󰐥 de la barra → bloquear / reiniciar / apagar (con
   confirmación), por logind sin contraseña. Verificado en VM: apagado limpio en ~6 s.
-- `os/bin/command-os-volume`: clic en `vol` → pavucontrol flotante 460×340 bajo la barra (regla en
-  `hyprland.lua`); otro clic lo cierra.
+- `os/bin/command-os-volume`: clic en `vol` → pavucontrol 460×340 sin barra de título bajo la barra
+  (regla en `labwc/rc.xml`); otro clic lo cierra.
 - VirtualBox: la X de la ventana pregunta; "Enviar la señal de apagado" es limpio, "Apagar la
   máquina" es desenchufar.
 
@@ -198,22 +214,20 @@ barra (a petición del usuario, el mismo 2026-10-04: los logs solo dentro de la 
   zoxide, tmux, jq, python, nodejs/npm…) y pila de audio PipeWire completa. `install.sh` instala
   `~/.config/command-os/bashrc` (alias, prompt de marca, `EDITOR=nano`) enganchado desde `~/.bashrc`
   con marcadores, y `~/.config/nano/nanorc`.
-- **Animaciones**: animaciones de `hyprland.lua` (antes `hyprland.conf`) rehechas (entradas/salidas de ventanas, capas,
-  espacios de trabajo, fundidos) + transiciones CSS en Waybar. `install.sh` escribe
-  `~/.config/hypr/local.lua` (cargado con `require("local")` al final) con un perfil ligero **solo en VM**.
+- **Animaciones**: con labwc no hay animaciones de ventana; el movimiento está en los paneles
+  (entrada de Wofi con `@keyframes`) y en las transiciones CSS de Waybar (ver `docs/DISENO.md`).
 - **Sonidos**: `build/make-sounds.py` los genera en `os/branding/sounds/`; `os/bin/command-os-sound`
   los reproduce (arranque, notificación, urgente, bloqueo, desbloqueo, tecla de volumen).
 - **VirtualBox**: 4 vCPU solo con CPU hotplug (sin hotplug, 2 vCPU = cuelgue en `DXE_AP`), 6 GB de
-  RAM, paravirt KVM, y **audio AC97** (con HDA `pw-play` se cuelga). Hyprland renderiza por software
+  RAM, paravirt KVM, y **audio AC97** (con HDA `pw-play` se cuelga). El escritorio renderiza por software
   en la VM, así que la fluidez real de las animaciones solo se juzga en bare metal / Pi. Detalle en
   `docs/testing.md`.
-- Ojo al iterar: re-ejecutar `install.sh` con Hyprland en marcha lo **cuelga** (recarga automática con
-  `~/.config/hypr` a medias, bloqueado en un futex). Después de re-instalar, reiniciar la sesión con
-  `sudo systemctl restart getty@tty1` en lugar de `hyprctl reload`.
+- Al iterar con labwc, re-ejecutar `install.sh` con la sesión abierta funciona; para ver los cambios,
+  `kill -HUP $(pidof labwc)` (o `sudo systemctl restart getty@tty1` para una sesión nueva).
 - Pendiente: oír los sonidos en la VM (solo se verificó que `pw-play` termina a tiempo, no el
   resultado acústico), validar los paquetes en aarch64 y probar el audio en el Pi.
 
-## Verificación visual en VM: WSL2 + KVM anidado (2026-09-27)
+## Verificación visual en VM: WSL2 + KVM anidado (2026-09-27, época Hyprland)
 
 Hyprland **sí renderiza** en la VM de desarrollo corriendo QEMU dentro de
 WSL2 (Arch oficial para WSL, `wsl -d archlinux -u root`) con `-accel kvm

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Command OS — chuleta de atajos (Super+F1, o "atajos de teclado" en el menú del escritorio).
+# Solo informa: elegir una línea cierra el panel. Debe coincidir con ~/.config/labwc/rc.xml.
+set -uo pipefail
+
+STYLE="${XDG_CONFIG_HOME:-$HOME/.config}/wofi/power.css"
+TAG="command-os-keys"
+
+# Si ya está abierta, el segundo atajo la cierra.
+if pkill -f "^wofi --dmenu --prompt ${TAG}" 2>/dev/null; then exit 0; fi
+
+KEYS=(
+  "super                  aplicaciones"
+  "super + intro          terminal"
+  "super + e              archivos"
+  "super + b              navegador"
+  "super + v              portapapeles"
+  "super + q · alt + f4   cerrar ventana"
+  "super + ↑              maximizar"
+  "super + ↓              restaurar o minimizar"
+  "super + ← / →          media pantalla"
+  "super + f              pantalla completa"
+  "super + d              ver el escritorio"
+  "super + t              siempre encima"
+  "alt + tab              cambiar de ventana"
+  "super + 1…4            ir al espacio"
+  "super + mayús + 1…4    llevar la ventana al espacio"
+  "super + tab            siguiente espacio"
+  "super + l              bloquear"
+  "super + esc            energía"
+  "super + n              cerrar notificaciones"
+  "impr · super+mayús+s   captura de zona"
+  "mayús + impr           captura de pantalla"
+  "ctrl + mayús + esc     monitor del sistema"
+  "super + arrastrar      mover ventana"
+  "super + clic derecho   redimensionar ventana"
+  "clic derecho           menú del escritorio"
+  "super + f1             esta ayuda"
+)
+
+printf '%s\n' "${KEYS[@]}" | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
+  --define hide_search=true --cache-file /dev/null \
+  --width 520 --height 560 >/dev/null
+exit 0

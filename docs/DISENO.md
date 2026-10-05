@@ -14,8 +14,9 @@ curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se 
 ## Pantalla
 
 - **Paleta HUD**, en los tonos apagados de los menús de Cyberpunk 2077 (no neón chillón). Escrita a
-  mano en cada dotfile: Hyprland, Waybar, Wofi, Mako, Hyprlock, Kitty, Alacritty, GTK 3/4, prompt de
-  bash, Plymouth y los scripts de `build/`; si cambia, hay que actualizarlos todos:
+  mano en cada dotfile: tema de ventanas de labwc (`themerc`), Waybar, Wofi, Mako, Hyprlock, Kitty,
+  Alacritty, GTK 3/4, prompt de bash, Plymouth y los scripts de `build/` (botones de la barra de
+  título incluidos); si cambia, hay que actualizarlos todos:
 
   | Token      | Hex                              | Uso                                                                 |
   | ---------- | -------------------------------- | ------------------------------------------------------------------- |
@@ -35,9 +36,17 @@ curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se 
 - **Tipografía:** JetBrains Mono en barra y terminal; Geist en lanzador y notificaciones; Oxanium en
   el reloj de la barra, la hora del bloqueo y los rótulos del fondo. Oxanium y Geist no están en los
   repos de Arch y se instalan desde `os/branding/fonts/` (licencia OFL incluida).
-- **Forma:** esquinas vivas (radio 0), bordes de 1–2 px. La ventana activa lleva un marco rojo
-  con un filo cian (degradado a 45°) y un halo rojo (sombra sin desplazamiento); lo inactivo se atenúa.
-  Lo seleccionado se marca con un filo rojo a la izquierda sobre Red Deep y un brillo en el texto.
+- **Forma:** esquinas vivas (radio 0), bordes de 1–2 px. Lo seleccionado se marca con un filo rojo
+  a la izquierda sobre Red Deep y un brillo en el texto.
+- **Ventanas (labwc, tema `Command` en `os/branding/labwc/`):** flotantes, con barra de título y
+  botones a la derecha (minimizar · maximizar · cerrar) como en cualquier escritorio. La activa: filo
+  rojo de 1 px, barra en degradado Slate → Graphite con el título en Geist negrita y un halo rojo
+  suave (sombra sin desplazamiento). La inactiva: filo Steel, barra Void, título y botones en Smoke y
+  una sombra oscura corta que la separa del fondo. Botones dibujados a propósito
+  (`build/make-labwc-buttons.py`): maximizar son las escuadras del fondo; al pasar por encima, cian
+  sobre Slate, y cerrar en rojo sobre Red Deep. Las apps que se dibujan su propia cabecera (GTK 4,
+  Firefox) llevan el mismo filo y halo desde `gtk.css`. Arrastrar al borde encaja la ventana (arriba
+  maximiza; lados, media pantalla) con una guía roja translúcida.
 - **Apps (GTK 3/4 y Qt):** mismo tema que el escritorio, sin ventanas blancas. Base `adw-gtk3-dark`
   recoloreada en `~/.config/gtk-3.0/gtk.css` y `gtk-4.0/gtk.css` (colores con nombre y variables
   de libadwaita): ventana en Graphite, listas en Void, cabeceras en Void con filo rojo, menús en
@@ -45,10 +54,18 @@ curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se 
   sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). Iconos Papirus-Dark con carpetas grises
   (`command-os-icon-folders`; el rojo queda para lo activo). `dconf` pone el modo oscuro para todo el
   sistema (Firefox y portales incluidos).
+- **Barra (Waybar):** logo (clic: aplicaciones), espacios 01–04, barra de tareas con un icono por
+  ventana (la enfocada con filo rojo, las minimizadas atenuadas), reloj en Oxanium entre filos rojos,
+  datos con su etiqueta en cian, bandeja (red de nm-applet) y botón de energía.
+- **Menús de labwc** (clic derecho en el escritorio o en la barra de título): Slate con filo rojo,
+  opción activa en Red Deep con el texto en Red Light, rótulos de sección en cian sobre Void y textos
+  en la voz de la marca (`aplicaciones`, `ajustes`, `mover a`…). **Alt+Tab** es el mismo panel: lista
+  con icono y título, selección con filo rojo y el contorno de la ventana elegida en rojo.
 - **Paneles del sistema:** el menú de energía (`command-os-power`: bloquear · reiniciar · apagar, con
   confirmación) es un panel Wofi pequeño sin buscador, con el filo rojo en la opción elegida; se abre
-  con Super+Escape o con el botón 󰐥 al final de la barra. El mezclador de volumen (clic en `vol`) es
-  pavucontrol flotante de 460×340 fijado bajo la barra, arriba a la derecha; otro clic lo cierra.
+  con Super+Escape o con el botón 󰐥 al final de la barra. La ayuda de atajos (`command-os-keys`,
+  Super+F1) usa el mismo panel en dos columnas. El mezclador de volumen (clic en `vol`) es pavucontrol
+  de 460×340 sin barra de título, fijado bajo la barra arriba a la derecha; otro clic lo cierra.
 - **Sin blur ni transparencias** en el escritorio: la GPU del Pi 5 no da para blur fluido y el HUD
   se lee mejor opaco. El brillo se hace con sombras y `text-shadow`.
 - **Fondo** (`build/make-wallpaper.py`): Void con la matriz de puntos de 26 px, líneas de escaneo
@@ -58,8 +75,11 @@ curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se 
 
 ## Movimiento
 
-Curva `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`), sin rebotes. Entradas secas (200–300 ms) y el
-degradado del marco gira al cambiar el foco (`borderangle`, una vez, no en bucle).
+Curva `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`), sin rebotes. Entradas secas (200–300 ms).
+**labwc no anima ventanas** (abrir, cerrar y mover son inmediatos): es parte de su ligereza. El
+movimiento del escritorio vive en los paneles: el lanzador y el menú de energía entran con un fundido
+y un desliz corto de 200–220 ms, y la barra hace transiciones de color en los espacios, la barra de
+tareas y el logo.
 **Firma de arranque:** el wordmark se revela de izquierda a derecha con un cursor cian en el borde,
 después la barra roja se extiende desde la izquierda con su halo; ~1,1 s, 28 fotogramas, tres de
 ellos con glitch (franjas desplazadas y aberración roja/cian). El último queda limpio
@@ -68,7 +88,7 @@ fina en rojo y, bajo ella, una consola de 6 líneas con los servicios que arranc
 reciente en hueso, las anteriores apagándose hacia Smoke). Es el único texto del arranque; Esc pasa
 al modo detalles de Plymouth, para soporte. Al apagar, solo el wordmark.
 Del encendido al escritorio no aparece texto del cargador, del kernel ni de systemd.
-En VM, `install.sh` desactiva halo, giro del marco y atenuado (`~/.config/hypr/local.lua`).
+En VM, `install.sh` quita el halo y las sombras de las ventanas (`~/.config/labwc/themerc-override`).
 
 ## Sonido
 
@@ -87,7 +107,7 @@ ni emojis.
 
 | #   | Ancla                      | Cómo se cumple                                                                                                                    | Estado                                       |
 | --- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| 1   | Logotipo con su barra      | Símbolo C en Waybar y bloqueo; wordmark en el splash; siempre con la barra roja.                                    | ✔ verificado en VM                           |
+| 1   | Logotipo con su barra      | Símbolo C en Waybar y bloqueo; wordmark en el splash; siempre con la barra roja.                                    | ✔ verificado en VM (labwc, 2026-10-05)       |
 | 2   | Firma de arranque          | Plymouth: letras de izquierda a derecha y luego la barra. ~1,1 s. **Saltable con una tecla: no implementado.**                    | parcial (splash visto; animación sin medir)  |
 | 3   | Un solo punto rojo         | El rojo es el primario del HUD pero sigue marcando lo activo (marco de ventana, espacio de trabajo, foco, selección); los datos van en cian. El punto rojo físico depende del hardware. | pantalla ✔ verificado en VM · objeto pendiente |
 | 4   | Voz                        | Textos de bloqueo, `issue` y `motd` en tono terminal.                                                                             | ✔                                            |

@@ -1,0 +1,97 @@
+# Command — tema de ventanas de Command OS para labwc (labwc-theme(5)).
+# HUD estilo Cyberpunk 2077 con ADN Command (docs/DISENO.md): esquinas vivas, rojo para lo activo,
+# cian para datos e interacción secundaria, sin blur ni transparencias.
+# Void #0D0B0E · Graphite #15121A · Slate #1D1820 · Steel #2E2630 · Bone #EDEBE6
+# Ash #A8A2A6 · Smoke #6F6870 · Red #D13449 · Red Deep #2B1118 · Cyan #5BBFC4 · Cyan Dim #2F6E72
+# Botones: SVG de build/make-labwc-buttons.py (mismo directorio). Fuentes y radio 0: rc.xml.
+
+# --- Marco ---
+# Ventana activa: filo rojo y halo rojo suave (sombra sin desplazamiento). Inactiva: Steel y una
+# sombra oscura corta para que las ventanas flotantes se separen del fondo.
+border.width: 1
+window.active.border.color: #d13449
+window.inactive.border.color: #2e2630
+window.active.indicator.toggled-keybind.color: #e2c044
+
+window.active.shadow.size: 18
+window.active.shadow.color: #d1344930
+window.inactive.shadow.size: 12
+window.inactive.shadow.color: #00000070
+
+# --- Barra de título ---
+window.titlebar.padding.width: 4
+window.titlebar.padding.height: 0
+window.active.title.bg: Gradient Vertical
+window.active.title.bg.color: #1d1820
+window.active.title.bg.colorTo: #15121a
+window.inactive.title.bg: Solid
+window.inactive.title.bg.color: #0d0b0e
+window.active.label.text.color: #edebe6
+window.inactive.label.text.color: #6f6870
+window.label.text.justify: Left
+
+window.button.width: 30
+window.button.height: 26
+window.button.spacing: 0
+window.button.hover.bg.color: #1d1820
+window.button.hover.bg.corner-radius: 0
+# Solo aplican a los botones sin SVG propio (menu, shade, desk).
+window.active.button.unpressed.image.color: #a8a2a6
+window.inactive.button.unpressed.image.color: #6f6870
+
+# --- Menús (escritorio, ventana) ---
+menu.border.width: 1
+menu.border.color: #d13449
+menu.overlap.x: 0
+menu.overlap.y: 0
+menu.width.min: 210
+menu.width.max: 320
+menu.items.padding.x: 12
+menu.items.padding.y: 6
+menu.items.bg.color: #1d1820
+menu.items.text.color: #edebe6
+menu.items.active.bg.color: #2b1118
+menu.items.active.text.color: #e8607a
+menu.separator.width: 1
+menu.separator.padding.width: 8
+menu.separator.padding.height: 4
+menu.separator.color: #2e2630
+# Rótulos de sección: dato en cian sobre Void, como las etiquetas de la barra.
+menu.title.bg.color: #0d0b0e
+menu.title.text.color: #5bbfc4
+menu.title.text.justify: Left
+
+# --- OSD: selector de ventanas (Alt+Tab) y de espacios de trabajo ---
+osd.bg.color: #15121a
+osd.border.color: #d13449
+osd.border.width: 1
+osd.label.text.color: #edebe6
+osd.window-switcher.style-classic.width: 560
+osd.window-switcher.style-classic.padding: 6
+osd.window-switcher.style-classic.item.padding.x: 10
+osd.window-switcher.style-classic.item.padding.y: 5
+osd.window-switcher.style-classic.item.active.border.width: 1
+osd.window-switcher.style-classic.item.active.border.color: #d13449
+osd.window-switcher.style-classic.item.active.bg.color: #2b1118
+osd.window-switcher.style-classic.item.icon.size: 20
+# Contorno de la ventana elegida en el selector: rojo entre dos líneas Void.
+osd.window-switcher.preview.border.width: 2
+osd.window-switcher.preview.border.color: #0d0b0e,#d13449,#0d0b0e
+osd.workspace-switcher.boxes.width: 18
+osd.workspace-switcher.boxes.height: 12
+osd.workspace-switcher.boxes.border.width: 1
+
+# --- Guías al encajar ventanas en bordes y regiones ---
+snapping.overlay.region.bg.enabled: yes
+snapping.overlay.edge.bg.enabled: yes
+snapping.overlay.region.border.enabled: yes
+snapping.overlay.edge.border.enabled: yes
+snapping.overlay.region.bg.color: #d134491a
+snapping.overlay.edge.bg.color: #d134491a
+snapping.overlay.region.border.width: 1
+snapping.overlay.edge.border.width: 1
+snapping.overlay.region.border.color: #d13449
+snapping.overlay.edge.border.color: #d13449
+
+magnifier.border.width: 1
+magnifier.border.color: #d13449

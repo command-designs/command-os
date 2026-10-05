@@ -1,26 +1,35 @@
 # Command OS - base package layer installed on top of Arch Linux ARM / Arch Linux.
 # One pacman package name per line. Comments start with #.
 
-# Wayland compositor + session essentials
-hyprland
-xdg-desktop-portal-hyprland
+# Compositor Wayland (labwc: ventanas flotantes, ligero) y lo esencial de la sesión.
+# Portales: wlr para capturas y compartir pantalla; gtk (más abajo) para el resto.
+labwc
 xdg-desktop-portal
+xdg-desktop-portal-wlr
 polkit
+polkit-gnome
 seatd
 qt5-wayland
 qt6-wayland
+# Apps que solo hablan X11 (Steam, algunas de Java, juegos antiguos). labwc lo arranca solo cuando
+# una app lo pide: en reposo no consume.
+xorg-xwayland
 
 # Shell / status bar / launcher
 waybar
 wofi
 
-# Experiencia de escritorio: fondo, notificaciones, bloqueo/idle, OSD, portapapeles
-hyprpaper
+# Experiencia de escritorio: fondo, notificaciones, bloqueo/idle, pantalla, OSD, portapapeles.
+# hyprlock/hypridle no dependen de Hyprland: usan los protocolos estándar ext-session-lock e
+# ext-idle-notify, que labwc implementa.
+swaybg
 mako
 hyprlock
 hypridle
+wlopm
+wlr-randr
+wdisplays
 swayosd
-hyprpolkitagent
 cliphist
 playerctl
 libnotify
@@ -59,6 +68,7 @@ wl-clipboard
 brightnessctl
 pamixer
 network-manager-applet
+nm-connection-editor
 networkmanager
 
 # Audio (PipeWire con puentes ALSA/PulseAudio) y sonidos del sistema

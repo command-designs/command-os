@@ -1,0 +1,17 @@
+# Command OS — arranque de la sesión (labwc-config(5)): labwc lo ejecuta con sh al iniciar.
+# La salida de cada programa va al log de labwc ($XDG_RUNTIME_DIR/labwc.log, ver ~/.bash_profile).
+
+swaybg -m fill -c '#0d0b0e' -i /usr/share/command-os/wallpapers/command-void.png &
+waybar &
+mako &
+hypridle &
+swayosd-server &
+wl-paste --watch cliphist store &
+nm-applet --indicator &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+command-os-sound boot &
+
+# Ajustes de esta máquina que genera install.sh (p. ej. la resolución en VirtualBox).
+if [ -r "${HOME}/.config/labwc/autostart.local" ]; then
+  . "${HOME}/.config/labwc/autostart.local"
+fi

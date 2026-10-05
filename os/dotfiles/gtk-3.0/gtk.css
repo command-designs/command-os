@@ -85,12 +85,40 @@ scale slider {
     border-radius: 9999px;
 }
 
-/* Hyprland dibuja el marco y el halo: sin sombra ni margen de ventana de GTK. */
-decoration,
-window.csd decoration,
-window.solid-csd decoration {
+/* Marco de ventana. labwc enmarca las apps que le ceden la decoración (Thunar, kitty) con el tema
+   Command; las que dibujan su propia cabecera llevan aquí el mismo marco: filo rojo y halo si están
+   activas, Steel y una sombra corta si no. Maximizadas, encajadas o a pantalla completa, sin marco. */
+decoration {
     box-shadow: none;
     border: none;
+}
+
+window.csd decoration {
+    box-shadow: 0 0 0 1px @cmd_red, 0 0 18px alpha(@cmd_red, 0.19);
+}
+
+window.csd decoration:backdrop {
+    box-shadow: 0 0 0 1px @cmd_steel, 0 0 12px rgba(0, 0, 0, 0.44);
+}
+
+window.csd.maximized decoration,
+window.csd.fullscreen decoration,
+window.csd.tiled decoration,
+window.csd.tiled-top decoration,
+window.csd.tiled-right decoration,
+window.csd.tiled-bottom decoration,
+window.csd.tiled-left decoration {
+    box-shadow: none;
+}
+
+/* Menús y desplegables: filo rojo apagado, sin halo. */
+window.csd.popup decoration,
+window.csd.popup decoration:backdrop {
+    box-shadow: 0 0 0 1px alpha(@cmd_red, 0.6), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+window.solid-csd decoration {
+    box-shadow: inset 0 0 0 1px @cmd_red;
 }
 
 headerbar,

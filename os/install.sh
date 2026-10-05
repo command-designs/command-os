@@ -20,6 +20,16 @@ echo "==> Installing package layer from packages.txt"
 mapfile -t PACKAGES < <(grep -vE '^\s*(#|$)' "${REPO_DIR}/packages.txt")
 pacman -S --needed --noconfirm "${PACKAGES[@]}"
 
+# Máquinas instaladas antes del cambio a labwc: fuera el escritorio Hyprland y sus piezas propias
+# (hyprlock e hypridle se quedan: funcionan en labwc). Las dependencias que nadie más use, también.
+OBSOLETE=(hyprland xdg-desktop-portal-hyprland hyprpaper hyprpolkitagent)
+mapfile -t INSTALLED_OBSOLETE < <(pacman -Qq "${OBSOLETE[@]}" 2>/dev/null || true)
+if (( ${#INSTALLED_OBSOLETE[@]} )); then
+  echo "==> Removing obsolete packages: ${INSTALLED_OBSOLETE[*]}"
+  pacman -Rns --noconfirm "${INSTALLED_OBSOLETE[@]}" \
+    || echo "==> Aviso: no se pudieron quitar (¿otro paquete depende de ellos?); se dejan instalados." >&2
+fi
+
 # Variante opcional (ej. COMMAND_OS_VARIANT=pc-nvidia para PC x86_64 con GPU
 # NVIDIA): paquetes extra en os/variants/<variante>/packages.txt.
 VARIANT="${COMMAND_OS_VARIANT:-}"
@@ -54,12 +64,18 @@ install -m 644 "${BRANDING}"/wallpapers/* /usr/share/command-os/wallpapers/
 install -m 644 "${BRANDING}"/fonts/*.ttf /usr/share/fonts/command-os/
 fc-cache -f /usr/share/fonts/command-os
 
-echo "==> Installing system sounds and helpers (sonido, energía, volumen)"
+echo "==> Installing system sounds and helpers (sonido, energía, volumen, atajos)"
 install -d /usr/share/command-os/sounds
 install -m 644 "${BRANDING}"/sounds/*.wav /usr/share/command-os/sounds/
-install -m 755 "${REPO_DIR}/bin/command-os-sound" /usr/local/bin/command-os-sound
-install -m 755 "${REPO_DIR}/bin/command-os-power" /usr/local/bin/command-os-power
-install -m 755 "${REPO_DIR}/bin/command-os-volume" /usr/local/bin/command-os-volume
+for helper in command-os-sound command-os-power command-os-volume command-os-keys; do
+  install -m 755 "${REPO_DIR}/bin/${helper}" "/usr/local/bin/${helper}"
+done
+
+echo "==> Installing labwc window theme (Command)"
+# Marco, barra de título, menús y Alt+Tab. Los botones SVG salen de build/make-labwc-buttons.py.
+rm -rf /usr/share/themes/Command
+install -d /usr/share/themes/Command/labwc
+install -m 644 "${BRANDING}"/labwc/Command/labwc/* /usr/share/themes/Command/labwc/
 
 echo "==> Theming GTK/Qt apps (adw-gtk3 recoloreado, Papirus, modo oscuro)"
 # Los colores van en ~/.config/gtk-{3,4}.0 (dotfiles); aquí, lo que es de sistema: carpetas de
@@ -95,7 +111,7 @@ document-font-name='Geist 10'
 monospace-font-name='JetBrainsMono Nerd Font 10'
 
 [org/gnome/desktop/wm/preferences]
-button-layout=':close'
+button-layout=':minimize,maximize,close'
 EOF
 dconf update
 
@@ -182,7 +198,8 @@ if [[ -f /boot/config.txt ]]; then
     || echo 'disable_splash=1' >> /boot/config.txt
 fi
 
-# El splash se queda en pantalla hasta que Hyprland toma el control (sin parpadeo de consola).
+# El splash se queda en pantalla hasta que labwc toma el control (sin parpadeo de consola). labwc
+# reutiliza además el modo de pantalla del splash (<reuseOutputMode> en rc.xml): sin modeset.
 install -d /etc/systemd/system/plymouth-quit.service.d
 cat > /etc/systemd/system/plymouth-quit.service.d/retain-splash.conf <<'EOF'
 [Service]
@@ -202,45 +219,44 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 echo "==> Deploying dotfiles to ${TARGET_HOME}"
 mkdir -p "${TARGET_HOME}/.config"
-for dir in hypr waybar alacritty wofi kitty mako nano gtk-3.0 gtk-4.0; do
+for dir in labwc hypr waybar alacritty wofi kitty mako nano gtk-3.0 gtk-4.0 xdg-desktop-portal; do
   src="${REPO_DIR}/dotfiles/${dir}"
   [[ -d "${src}" ]] || continue
-  # Con la sesión abierta, Hyprland escribe en su carpeta y `rm -rf` puede fallar:
-  # se limpia sin abortar y se copia encima. Las de GTK no se borran: guardan datos del
+  # Con la sesión abierta, algún programa puede estar escribiendo en su carpeta y `rm -rf`
+  # fallar: se limpia sin abortar y se copia encima. Las de GTK no se borran: guardan datos del
   # usuario (marcadores de Thunar en gtk-3.0/bookmarks).
   [[ "${dir}" == gtk-* ]] || rm -rf "${TARGET_HOME}/.config/${dir}" 2>/dev/null || true
   mkdir -p "${TARGET_HOME}/.config/${dir}"
   cp -rT "${src}" "${TARGET_HOME}/.config/${dir}"
 done
-# Ajustes locales de Hyprland (hyprland.lua los carga con `require("local")` al final).
-# En VM el render es por software y el hardware no da para el movimiento completo:
-# se acorta la duración de las animaciones (sin tocar el perfil del producto).
-LOCAL_LUA="${TARGET_HOME}/.config/hypr/local.lua"
-if systemd-detect-virt --quiet; then
-  cat > "${LOCAL_LUA}" <<'LOCAL'
--- Perfil ligero para VM (render por software). Lo genera install.sh.
-hl.config({
-    decoration = {
-        dim_inactive = false,
-        shadow = { enabled = false },
-    },
-})
-hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 3, bezier = "out",        style = "slide" })
-hl.animation({ leaf = "workspacesOut", enabled = true, speed = 2, bezier = "emphasized", style = "slide" })
-hl.animation({ leaf = "border",      enabled = false })
-hl.animation({ leaf = "borderangle", enabled = false })
-LOCAL
-  # VirtualBox: 16:9 fijo desde el arranque. Con render por software a 1080p no pasa de ~5 FPS;
-  # 720p es el mejor equilibrio. No cambiar el modo en caliente: Hyprland se cuelga con vboxvideo.
-  if [[ "$(systemd-detect-virt)" == "oracle" ]]; then
-    echo 'hl.monitor({ output = "", mode = "1280x720@60", position = "0x0", scale = 1 })' >> "${LOCAL_LUA}"
-  fi
-else
-  echo '-- Ajustes locales de esta máquina (vacío en el producto).' > "${LOCAL_LUA}"
-fi
+chmod 755 "${TARGET_HOME}/.config/labwc/autostart"
+
+# Ajustes de esta máquina, fuera de los dotfiles del producto (labwc-config(5)):
+# environment.d/local.env (se lee después de environment), themerc-override y autostart.local.
+LABWC_DIR="${TARGET_HOME}/.config/labwc"
+mkdir -p "${LABWC_DIR}/environment.d"
+LOCAL_ENV="${LABWC_DIR}/environment.d/local.env"
+echo '# Ajustes de esta máquina. Lo genera install.sh.' > "${LOCAL_ENV}"
 # Distribución de teclado de esta máquina (ej. "es"), si se fijó al instalar.
 if [[ -s /etc/command-os/kb_layout ]]; then
-  printf 'hl.config({ input = { kb_layout = "%s" } })\n' "$(tr -d '[:space:]' < /etc/command-os/kb_layout)" >> "${LOCAL_LUA}"
+  echo "XKB_DEFAULT_LAYOUT=$(tr -d '[:space:]' < /etc/command-os/kb_layout)" >> "${LOCAL_ENV}"
+fi
+if systemd-detect-virt --quiet; then
+  # En VM el render es por software: sin halo ni sombras (cada fotograma cuenta). El producto
+  # conserva el tema completo.
+  cat > "${LABWC_DIR}/themerc-override" <<'EOF'
+# Perfil ligero para VM (render por software). Lo genera install.sh.
+window.active.shadow.size: 0
+window.inactive.shadow.size: 0
+EOF
+  # VirtualBox: 16:9 fijo. Con render por software a 1080p no pasa de ~5 FPS; 720p es el mejor
+  # equilibrio.
+  if [[ "$(systemd-detect-virt)" == "oracle" ]]; then
+    cat > "${LABWC_DIR}/autostart.local" <<'EOF'
+# VirtualBox: 1280x720 en la primera salida. Lo genera install.sh.
+wlr-randr --output "$(wlr-randr | awk 'NR == 1 { print $1 }')" --mode 1280x720
+EOF
+  fi
 fi
 
 echo "==> Configuring developer shell (bashrc, nano)"
@@ -258,10 +274,10 @@ echo "==> Enabling core services"
 systemctl enable seatd.service
 systemctl enable NetworkManager.service
 systemctl enable sshd.service
-# Audio: PipeWire por socket para todos los usuarios (sesión de Hyprland incluida).
+# Audio: PipeWire por socket para todos los usuarios (sesión gráfica incluida).
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
-echo "==> Configuring tty1 autologin + auto-start Hyprland for ${TARGET_USER}"
+echo "==> Configuring tty1 autologin + auto-start labwc for ${TARGET_USER}"
 mkdir -p /etc/systemd/system/getty@tty1.service.d
 # Sin texto en pantalla: ni /etc/issue, ni prompt, ni "login:"; .hushlogin quita motd y último acceso.
 cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<EOF
@@ -275,28 +291,24 @@ chown "${TARGET_USER}:${TARGET_USER}" "${TARGET_HOME}/.hushlogin"
 
 BASH_PROFILE="${TARGET_HOME}/.bash_profile"
 touch "${BASH_PROFILE}"
-MARKER="# --- Command OS: autostart Hyprland on tty1 ---"
 # Se reemplaza el bloque entero (hasta el `fi` de nivel 0) para recoger cambios al re-ejecutar.
-sed -i "\|${MARKER}|,/^fi\$/d" "${BASH_PROFILE}"
-if ! grep -qF "${MARKER}" "${BASH_PROFILE}"; then
-  cat >> "${BASH_PROFILE}" <<'EOF'
-# --- Command OS: autostart Hyprland on tty1 ---
+# También el de instalaciones anteriores, que arrancaba Hyprland.
+for old_marker in "# --- Command OS: autostart Hyprland on tty1 ---" "# --- Command OS: autostart labwc on tty1 ---"; do
+  sed -i "\|${old_marker}|,/^fi\$/d" "${BASH_PROFILE}"
+done
+cat >> "${BASH_PROFILE}" <<'EOF'
+# --- Command OS: autostart labwc on tty1 ---
 if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-  # Virtualized GPUs (e.g. VirtualBox's vmwgfx) don't support real hardware
-  # cursors/GBM the way Hyprland expects; force the software fallback there.
-  # Real hardware (Raspberry Pi 5) hits neither of these and runs natively.
+  # GPU virtual (VirtualBox, QEMU sin 3D): wlroots necesita permiso para el render por software
+  # y cursor por software. En hardware real (Raspberry Pi 5, PC) no se tocan.
   if systemd-detect-virt --quiet; then
     export WLR_NO_HARDWARE_CURSORS=1
     export WLR_RENDERER_ALLOW_SOFTWARE=1
   fi
-  # Hyprland >= 0.55 pide arrancar con start-hyprland (watchdog + entorno de sesión).
-  # Su salida va a /dev/null: si no, el logo ASCII y el log salen en tty1 antes del escritorio.
-  # El log completo sigue en $XDG_RUNTIME_DIR/hypr/*/hyprland.log.
-  if command -v start-hyprland >/dev/null; then exec start-hyprland >/dev/null 2>&1; fi
-  exec Hyprland >/dev/null 2>&1
+  # El log va a un archivo y no a tty1, para que no salga texto entre el splash y el escritorio.
+  exec labwc > "${XDG_RUNTIME_DIR:-/tmp}/labwc.log" 2>&1
 fi
 EOF
-fi
 chown "${TARGET_USER}:${TARGET_USER}" "${BASH_PROFILE}"
 
 echo "==> Command OS layer installed."

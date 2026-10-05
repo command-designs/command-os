@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Command OS — labwc (compositor Wayland de ventanas flotantes). Referencia: labwc-config(5) y
+  labwc-actions(5). Tema de ventanas: /usr/share/themes/Command/labwc/themerc. Lenguaje visual
+  en docs/DISENO.md. Super+F1 (command-os-keys) enseña los atajos; si se cambia uno aquí, hay
+  que cambiarlo también allí.
+-->
+<labwc_config>
+
+  <core>
+    <decoration>server</decoration>
+    <gap>0</gap>
+    <!-- Mantiene la resolución que dejó el splash de arranque: sin pantallazo negro al entrar. -->
+    <reuseOutputMode>yes</reuseOutputMode>
+  </core>
+
+  <placement>
+    <policy>cascade</policy>
+  </placement>
+
+  <theme>
+    <name>Command</name>
+    <icon>Papirus-Dark</icon>
+    <fallbackAppIcon>application-x-executable</fallbackAppIcon>
+    <titlebar>
+      <layout>icon:iconify,max,close</layout>
+      <showTitle>yes</showTitle>
+    </titlebar>
+    <cornerRadius>0</cornerRadius>
+    <keepBorder>yes</keepBorder>
+    <maximizedDecoration>titlebar</maximizedDecoration>
+    <!-- Halo de la ventana activa (window.*.shadow.* en themerc; install.sh lo quita en VM). -->
+    <dropShadows>yes</dropShadows>
+    <dropShadowsOnTiled>no</dropShadowsOnTiled>
+    <font place="ActiveWindow"><name>Geist</name><size>10</size><weight>bold</weight></font>
+    <font place="InactiveWindow"><name>Geist</name><size>10</size><weight>normal</weight></font>
+    <font place="MenuHeader"><name>Oxanium</name><size>10</size><weight>bold</weight></font>
+    <font place="MenuItem"><name>Geist</name><size>10</size><weight>normal</weight></font>
+    <font place="OnScreenDisplay"><name>Geist</name><size>10</size><weight>normal</weight></font>
+  </theme>
+
+  <!-- Alt+Tab: lista HUD con icono y título (más ligera que las miniaturas). -->
+  <windowSwitcher preview="yes" outlines="yes" unshade="yes">
+    <osd show="yes" style="classic" output="all" />
+    <fields>
+      <field content="icon" width="7%" />
+      <field content="title" width="93%" />
+    </fields>
+  </windowSwitcher>
+
+  <resize>
+    <popupShow>Never</popupShow>
+    <drawContents>yes</drawContents>
+  </resize>
+
+  <focus>
+    <followMouse>no</followMouse>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+
+  <!-- Arrastrar una ventana al borde la encaja: arriba maximiza, a los lados ocupa media pantalla. -->
+  <snapping>
+    <range inner="10" outer="10" />
+    <cornerRange>50</cornerRange>
+    <overlay enabled="yes">
+      <delay inner="400" outer="400" />
+    </overlay>
+    <topMaximize>yes</topMaximize>
+    <notifyClient>always</notifyClient>
+  </snapping>
+
+  <!-- Los cuatro espacios de la barra. Los atajos los nombran por índice (1–4). -->
+  <desktops>
+    <popupTime>500</popupTime>
+    <names>
+      <name>01</name>
+      <name>02</name>
+      <name>03</name>
+      <name>04</name>
+    </names>
+  </desktops>
+
+  <keyboard>
+    <!-- Atajos de serie de labwc (Alt+Tab, Alt+F4, Super+flechas…); los de abajo los amplían o sustituyen. -->
+    <default />
+    <numlock>on</numlock>
+    <repeatRate>30</repeatRate>
+    <repeatDelay>400</repeatDelay>
+
+    <!-- Aplicaciones. Super solo abre el lanzador (y lo cierra si ya está abierto). -->
+    <keybind key="Super_L" onRelease="yes">
+      <action name="Execute" command="sh -c 'pkill -x wofi || wofi --show drun'" />
+    </keybind>
+    <keybind key="W-space">
+      <action name="Execute" command="sh -c 'pkill -x wofi || wofi --show drun'" />
+    </keybind>
+    <keybind key="W-Return"><action name="Execute" command="kitty" /></keybind>
+    <keybind key="W-e"><action name="Execute" command="thunar" /></keybind>
+    <keybind key="W-b"><action name="Execute" command="firefox" /></keybind>
+    <keybind key="W-v">
+      <action name="Execute" command="sh -c 'cliphist list | wofi --dmenu --prompt portapapeles | cliphist decode | wl-copy'" />
+    </keybind>
+    <keybind key="W-F1"><action name="Execute" command="command-os-keys" /></keybind>
+    <keybind key="C-S-Escape"><action name="Execute" command="kitty --class btop -e btop" /></keybind>
+
+    <!-- Ventanas. -->
+    <keybind key="W-q"><action name="Close" /></keybind>
+    <keybind key="W-f"><action name="ToggleFullscreen" /></keybind>
+    <keybind key="W-Up"><action name="ToggleMaximize" /></keybind>
+    <!-- Super+Abajo: maximizada o encajada vuelve a su tamaño; si no, se minimiza. -->
+    <keybind key="W-Down">
+      <action name="If">
+        <query maximized="both" />
+        <query tiled="any" />
+        <then><action name="UnSnap" /></then>
+        <else><action name="Iconify" /></else>
+      </action>
+    </keybind>
+    <keybind key="W-d"><action name="ToggleShowDesktop" /></keybind>
+    <keybind key="W-t"><action name="ToggleAlwaysOnTop" /></keybind>
+
+    <!-- Espacios de trabajo: Super+1…4 cambia, Super+Mayús+1…4 lleva la ventana. -->
+    <keybind key="W-1"><action name="GoToDesktop" to="1" /></keybind>
+    <keybind key="W-2"><action name="GoToDesktop" to="2" /></keybind>
+    <keybind key="W-3"><action name="GoToDesktop" to="3" /></keybind>
+    <keybind key="W-4"><action name="GoToDesktop" to="4" /></keybind>
+    <keybind key="W-S-1"><action name="SendToDesktop" to="1" /></keybind>
+    <keybind key="W-S-2"><action name="SendToDesktop" to="2" /></keybind>
+    <keybind key="W-S-3"><action name="SendToDesktop" to="3" /></keybind>
+    <keybind key="W-S-4"><action name="SendToDesktop" to="4" /></keybind>
+    <keybind key="W-Tab"><action name="GoToDesktop" to="right" wrap="yes" /></keybind>
+    <keybind key="W-S-Tab"><action name="GoToDesktop" to="left" wrap="yes" /></keybind>
+    <keybind key="C-W-Right"><action name="GoToDesktop" to="right" wrap="yes" /></keybind>
+    <keybind key="C-W-Left"><action name="GoToDesktop" to="left" wrap="yes" /></keybind>
+
+    <!-- Sistema. -->
+    <keybind key="W-Escape"><action name="Execute" command="command-os-power" /></keybind>
+    <keybind key="W-l"><action name="Execute" command="loginctl lock-session" /></keybind>
+    <keybind key="W-n"><action name="Execute" command="makoctl dismiss --all" /></keybind>
+    <!-- Salida de emergencia: cierra labwc y el inicio automático de tty1 abre una sesión nueva. -->
+    <keybind key="W-S-m"><action name="Exit" /></keybind>
+    <keybind key="Print">
+      <action name="Execute" command="sh -c 'grim -g &quot;$(slurp)&quot; - | wl-copy &amp;&amp; notify-send -a captura &quot;captura de zona copiada&quot;'" />
+    </keybind>
+    <keybind key="W-S-s">
+      <action name="Execute" command="sh -c 'grim -g &quot;$(slurp)&quot; - | wl-copy &amp;&amp; notify-send -a captura &quot;captura de zona copiada&quot;'" />
+    </keybind>
+    <keybind key="S-Print">
+      <action name="Execute" command="sh -c 'grim - | wl-copy &amp;&amp; notify-send -a captura &quot;captura de pantalla copiada&quot;'" />
+    </keybind>
+
+    <!-- Teclas multimedia, con OSD. Funcionan también con la sesión bloqueada. -->
+    <keybind key="XF86AudioRaiseVolume" allowWhenLocked="yes">
+      <action name="Execute" command="sh -c 'swayosd-client --output-volume raise &amp;&amp; command-os-sound tick'" />
+    </keybind>
+    <keybind key="XF86AudioLowerVolume" allowWhenLocked="yes">
+      <action name="Execute" command="sh -c 'swayosd-client --output-volume lower &amp;&amp; command-os-sound tick'" />
+    </keybind>
+    <keybind key="XF86AudioMute" allowWhenLocked="yes">
+      <action name="Execute" command="swayosd-client --output-volume mute-toggle" />
+    </keybind>
+    <keybind key="XF86MonBrightnessUp" allowWhenLocked="yes">
+      <action name="Execute" command="swayosd-client --brightness raise" />
+    </keybind>
+    <keybind key="XF86MonBrightnessDown" allowWhenLocked="yes">
+      <action name="Execute" command="swayosd-client --brightness lower" />
+    </keybind>
+    <keybind key="XF86AudioPlay" allowWhenLocked="yes"><action name="Execute" command="playerctl play-pause" /></keybind>
+    <keybind key="XF86AudioNext" allowWhenLocked="yes"><action name="Execute" command="playerctl next" /></keybind>
+    <keybind key="XF86AudioPrev" allowWhenLocked="yes"><action name="Execute" command="playerctl previous" /></keybind>
+  </keyboard>
+
+  <mouse>
+    <!-- Ratón de serie (barra de título, bordes, Super+arrastrar mueve, Super+clic derecho redimensiona). -->
+    <default />
+    <!-- Escritorio: clic derecho abre el menú; el izquierdo no hace nada, como en cualquier escritorio. -->
+    <context name="Root">
+      <mousebind button="Left" action="Press"><action name="None" /></mousebind>
+      <mousebind button="Middle" action="Press"><action name="ShowMenu" menu="client-list-combined-menu" /></mousebind>
+    </context>
+  </mouse>
+
+  <libinput>
+    <device category="touchpad">
+      <naturalScroll>yes</naturalScroll>
+      <tap>yes</tap>
+      <disableWhileTyping>yes</disableWhileTyping>
+    </device>
+  </libinput>
+
+  <windowRules>
+    <!-- Mezclador de volumen (clic en `vol` de la barra): desplegable fijo arriba a la derecha, bajo la
+         barra, solo con el filo (sin barra de título). -->
+    <windowRule identifier="org.pulseaudio.pavucontrol">
+      <skipTaskbar>yes</skipTaskbar>
+      <action name="SetDecorations" decorations="border" forceSSD="yes" />
+      <skipWindowSwitcher>yes</skipWindowSwitcher>
+      <action name="ResizeTo" width="460" height="340" />
+      <action name="MoveToEdge" direction="right" snapWindows="no" />
+      <action name="MoveToEdge" direction="up" snapWindows="no" />
+      <action name="ToggleAlwaysOnTop" />
+    </windowRule>
+    <!-- Monitor del sistema (Ctrl+Mayús+Esc). -->
+    <windowRule identifier="btop">
+      <action name="ResizeTo" width="960" height="600" />
+      <action name="AutoPlace" policy="center" />
+    </windowRule>
+    <!-- Vídeo flotante de Firefox: siempre encima. -->
+    <windowRule title="Picture-in-Picture"><action name="ToggleAlwaysOnTop" /></windowRule>
+    <windowRule title="Imagen en imagen"><action name="ToggleAlwaysOnTop" /></windowRule>
+  </windowRules>
+
+  <menu>
+    <showIcons>yes</showIcons>
+  </menu>
+
+</labwc_config>

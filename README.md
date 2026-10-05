@@ -11,20 +11,26 @@ infraestructura de paquetes: usamos pacman tal cual.
 La meta original era **CachyOS + Omarchy corriendo en ARM** (Raspberry Pi 5).
 Ninguno de los dos existe para aarch64: CachyOS solo publica x86_64 (su valor
 son los repos y el kernel optimizados para x86-64-v3/v4) y Omarchy se instala
-sobre Arch x86_64. Por eso la decisión fue **Arch Linux ARM + Hyprland,
-modificado para llegar al mismo resultado que Omarchy**: misma idea de capa
-curada (instalador + paquetes + dotfiles) sobre Arch, pero reconstruida por
-nosotros y arquitectura-agnóstica.
+sobre Arch x86_64. Por eso la decisión fue **Arch Linux ARM con una capa curada
+propia**: misma idea que Omarchy (instalador + paquetes + dotfiles) sobre Arch,
+pero reconstruida por nosotros y arquitectura-agnóstica.
 
-**Estado respecto a esa meta**: `os/` ya tiene tema de marca, notificaciones
-(Mako), bloqueo/idle (Hyprlock/Hypridle), OSD, splash de arranque, atajos y
-apps por defecto, verificado en una VM x86_64. Falta probar varias piezas,
+**Escritorio: labwc** (desde el 2026-10-05; antes Hyprland, último estado en la etiqueta
+`hyprland-final`). Es un producto para clientes: ventanas flotantes con barra de título y botones,
+barra de tareas, Alt+Tab, menú con clic derecho y Super para abrir aplicaciones, que cualquiera
+entiende sin explicación; y es ligero (sin animaciones de ventanas ni efectos caros), que en un
+Raspberry Pi 5 importa. Es el mismo compositor que usa Raspberry Pi OS por defecto.
+
+**Estado respecto a esa meta**: `os/` ya tiene escritorio labwc con tema de ventanas propio,
+tema de marca, notificaciones (Mako), bloqueo/idle (Hyprlock/Hypridle), OSD, splash de arranque,
+atajos con su ayuda (Super+F1) y apps por defecto, verificado en una VM x86_64. Falta probar varias piezas,
 empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
 
 ## Estructura
 
 - `os/` — el producto: lista de paquetes (`packages.txt`), instalador
-  (`install.sh`) y dotfiles (`dotfiles/`) para Hyprland/Waybar/Wofi/terminal.
+  (`install.sh`) y dotfiles (`dotfiles/`) para labwc/Waybar/Wofi/terminal. El tema de
+  ventanas de labwc (`Command`) está en `branding/labwc/`.
   Esto es lo que se instala tanto en la VM de pruebas como, más adelante, en
   el Pi real.
 - `build/packer/` — pipeline de build desatendido para la VM de desarrollo
@@ -41,10 +47,8 @@ se usa QEMU en vez de VirtualBox.
 
 Esta VM valida que `os/install.sh` instala todo sin errores (paquetes,
 dotfiles, servicios) — es el ciclo rápido para iterar cambios. La
-verificación visual real de Hyprland (cómo se ve, animaciones, etc.) se hace
-en el Raspberry Pi 5 físico: la GPU virtualizada en una VM de Windows tiene
-problemas de compatibilidad conocidos con compositores Wayland que no vale
-la pena perseguir (ver `docs/testing.md`).
+fluidez real del escritorio se juzga en el Raspberry Pi 5 físico o en bare metal: en la VM el
+render es por software (ver `docs/testing.md`).
 
 ## Identidad y estado del tema
 
@@ -56,9 +60,10 @@ en `os/branding/` (logo, fuentes, wallpaper, splash de arranque).
 
 Por orden de prioridad:
 
-1. **Probar lo configurado pero no verificado** en la VM: notificaciones (Mako; falta reinstalar con
-   `libnotify`), bloqueo (`Super+L`) e inactividad, atajos, lanzador, portapapeles y teclas de
-   volumen/brillo.
+1. **Probar lo configurado pero no verificado** en la VM: inactividad (bloqueo a los 5 min, pantalla
+   apagada a los 10), portapapeles, teclas de volumen/brillo y el clic derecho en el escritorio
+   (no se puede simular sin ratón virtual). Ya verificados con labwc: ventanas, Alt+Tab, menús,
+   lanzador, ayuda de atajos, mezclador, bloqueo, notificaciones y espacios de trabajo.
 2. **Cerrar la firma de arranque** (`BRAND.md` § 12, ancla 2): que el splash se pueda saltar con una
    tecla y medir la duración real de la animación.
 3. **Pantalla de información del sistema** con nombre y código `CMD-OS` (ancla 5), visible desde el
@@ -76,7 +81,7 @@ Por orden de prioridad:
 
 ## Próximos pasos hacia ARM real
 
-Cuando el layer de Hyprland esté estable en x86_64, se repite el mismo
+Cuando la capa de escritorio esté estable en x86_64, se repite el mismo
 `os/install.sh` sobre una imagen de Arch Linux ARM (aarch64), primero bajo
 QEMU (`qemu-system-aarch64`) y luego en el Raspberry Pi 5 físico. El script
 de instalación y los dotfiles son arquitectura-agnósticos: solo cambia la

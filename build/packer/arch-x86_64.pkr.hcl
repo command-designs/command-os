@@ -55,7 +55,7 @@ source "qemu" "arch" {
   efi_firmware_code = var.ovmf_code
   efi_firmware_vars  = var.ovmf_vars
 
-  # virtio-gpu is the well-supported path for wlroots/Hyprland in a VM,
+  # virtio-gpu is the well-supported path for wlroots compositors (labwc) in a VM,
   # unlike VirtualBox's vmwgfx (see docs/testing.md for why we moved here).
   qemuargs = [
     ["-vga", "none"],

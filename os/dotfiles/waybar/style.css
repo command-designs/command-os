@@ -63,13 +63,45 @@ tooltip label {
     border-bottom: 2px solid @yellow;
 }
 
+/* Barra de tareas: un icono por ventana; la enfocada, con el mismo filo rojo que el espacio activo. */
+#taskbar {
+    margin-left: 6px;
+    padding-left: 6px;
+    border-left: 1px solid @steel;
+}
+
+#taskbar button {
+    transition: background 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0 7px;
+    border-bottom: 2px solid transparent;
+}
+
+#taskbar button:hover {
+    background: @graphite;
+    box-shadow: none;
+}
+
+#taskbar button.active {
+    background: @red-deep;
+    border-bottom: 2px solid @red;
+}
+
+#taskbar button.minimized {
+    opacity: 0.45;
+}
+
 #custom-logo {
+    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
     background-image: url("/usr/share/command-os/logo/command-mark-32.png");
     background-size: 15px 16px;
     background-repeat: no-repeat;
     background-position: center;
     min-width: 16px;
-    margin: 0 10px 0 14px;
+    padding: 0 10px 0 14px;
+}
+
+#custom-logo:hover {
+    background-color: @red-deep;
 }
 
 /* Reloj enmarcado entre dos filos rojos, en Oxanium. */
