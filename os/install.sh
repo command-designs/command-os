@@ -57,7 +57,7 @@ fc-cache -f /usr/share/fonts/command-os
 echo "==> Installing system sounds and helpers (sonido, energía, volumen, atajos)"
 install -d /usr/share/command-os/sounds
 install -m 644 "${BRANDING}"/sounds/*.wav /usr/share/command-os/sounds/
-for helper in command-os-sound command-os-power command-os-volume command-os-keys; do
+for helper in command-os-sound command-os-power command-os-volume command-os-keys command-os-desktops; do
   install -m 755 "${REPO_DIR}/bin/${helper}" "/usr/local/bin/${helper}"
 done
 
@@ -105,10 +105,16 @@ button-layout=':minimize,maximize,close'
 EOF
 dconf update
 
-echo "==> Setting system identity (os-release, issue, motd)"
+echo "==> Setting system identity (os-release, issue, motd, logo, fastfetch)"
 # /etc/os-release es un symlink a /usr/lib/os-release: se reemplaza por un archivo propio.
 rm -f /etc/os-release
 install -m 644 "${BRANDING}/os-release" /etc/os-release
+# LOGO=command-os de os-release: el icono que buscan las apps que enseñan el logo del sistema.
+install -Dm 644 "${BRANDING}/logo/command-mark-white.png" /usr/share/pixmaps/command-os.png
+# fastfetch con el logo de la C y la paleta de la marca, para todos los usuarios (/etc/xdg).
+install -d /usr/share/command-os/fastfetch /etc/xdg/fastfetch
+install -m 644 "${BRANDING}/fastfetch/command-logo.txt" /usr/share/command-os/fastfetch/
+install -m 644 "${BRANDING}/fastfetch/config.jsonc" /etc/xdg/fastfetch/config.jsonc
 install -m 644 "${BRANDING}/issue" /etc/issue
 install -m 644 "${BRANDING}/motd" /etc/motd
 

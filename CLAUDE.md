@@ -25,6 +25,16 @@ nada sobre Arch Linux ARM / hardware real.
   botones SVG de `build/make-labwc-buttons.py`) instalado en `/usr/share/themes/Command`. Portales en
   `os/dotfiles/xdg-desktop-portal/labwc-portals.conf` (gtk + wlr). Ayuda de atajos
   `os/bin/command-os-keys` (Super+F1): si se cambia un atajo en `rc.xml`, cambiarlo también ahí.
+- **Escritorios** (petición del usuario: que no se vean si no se crea uno extra): labwc no crea
+  escritorios en caliente, así que `os/bin/command-os-desktops nuevo|quitar` reescribe `<names>` en
+  `~/.config/labwc/rc.xml`, recarga con SIGHUP y, al crear, salta al nuevo pulsando Super+N con
+  `wtype` (labwc no tiene IPC). Quitar solo quita el último; labwc pasa sus ventanas al primero.
+  Waybar los enseña a la derecha y `style.css` oculta el botón cuando es `:only-child`. Re-ejecutar
+  `install.sh` vuelve a dejar uno solo.
+- **fastfetch**: logo de la C generado por `build/make-fastfetch-logo.py` (medios bloques, colores
+  `$1`/`$2`) y configuración en `os/branding/fastfetch/`, instalados en `/usr/share/command-os/` y
+  `/etc/xdg/fastfetch/`. El logo también va como icono del sistema (`/usr/share/pixmaps/command-os.png`,
+  `LOGO=` de `os-release`).
 - **Piezas**: swaybg (fondo), Waybar con `ext/workspaces` (labwc implementa ext-workspace) y
   `wlr/taskbar`, hyprlock/hypridle (bloqueo e inactividad por protocolos estándar; pantalla con
   `wlopm`), polkit-gnome, nm-applet en la bandeja, wdisplays, xorg-xwayland (arranca bajo demanda).
@@ -35,10 +45,16 @@ nada sobre Arch Linux ARM / hardware real.
   y `gtk-4.0/gtk.css` les dibujan el mismo filo rojo y halo.
 - **Verificado en VM VirtualBox** (capturas): escritorio, barra con tareas, ventanas activa/inactiva
   (borde `#D13449` medido), botones, menú de ventana, Alt+Tab, lanzador con Super, ayuda de atajos,
-  mezclador desplegable, bloqueo y desbloqueo, notificaciones, espacios 01–04, re-ejecución de
-  `install.sh` con la sesión abierta y reinicio completo (splash → escritorio). Uso de memoria del
-  sistema: ~616 MB. **No verificado**: clic derecho en el escritorio (sin ratón virtual), inactividad
-  y apagado de pantalla, teclas multimedia, Pi 5 y bare metal.
+  mezclador desplegable, bloqueo y desbloqueo, bloqueo automático a los 5 min, notificaciones, crear,
+  usar y quitar escritorios, fastfetch, re-ejecución de `install.sh` con la sesión abierta y
+  reinicio completo (splash → escritorio). Uso de memoria del sistema: ~616 MB. **No verificado**:
+  clic derecho en el escritorio (sin ratón virtual), apagado de pantalla a los 10 min, teclas
+  multimedia, Pi 5 y bare metal.
+- **VirtualBox y el reposo del PC**: si Windows suspende con la VM encendida, al volver la VM se
+  congela (log: dos SUSPENDING/RESUMING seguidos; el disco tardó 5 s en suspender) y no responde ni
+  a SSH ni al botón ACPI. Solo queda `controlvm poweroff`; ext4 recupera el diario solo y la ESP
+  (FAT) queda marcada sucia: `umount /boot && fsck.fat -a /dev/sda1 && mount /boot`. Apagar la VM
+  antes de dejar el PC en reposo.
 - Cómo probar sin ratón (wtype, SIGHUP, bloqueo de la sesión de tty1, capturas): `docs/testing.md`,
   sección "labwc en la VM".
 

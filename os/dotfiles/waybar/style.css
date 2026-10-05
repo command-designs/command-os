@@ -35,13 +35,19 @@ tooltip label {
     color: @bone;
 }
 
+/* Escritorios, a la derecha junto a los datos. Con uno solo no se enseña nada: el botón se queda
+   sin ancho ni texto. Con dos o más, el primero abre con el mismo filo Steel que los datos. */
 #workspaces button {
     transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms cubic-bezier(0.16, 1, 0.3, 1),
         border-color 250ms cubic-bezier(0.16, 1, 0.3, 1), text-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
-    padding: 0 10px;
+    padding: 0 8px;
     color: @smoke;
     border-bottom: 2px solid transparent;
     letter-spacing: 0.06em;
+}
+
+#workspaces button:first-child {
+    border-left: 1px solid @steel;
 }
 
 #workspaces button:hover {
@@ -61,6 +67,21 @@ tooltip label {
 #workspaces button.urgent {
     color: @yellow;
     border-bottom: 2px solid @yellow;
+}
+
+/* Un solo escritorio: nada a la vista (va al final para ganar a .active y :hover). */
+#workspaces button:only-child,
+#workspaces button.active:only-child,
+#workspaces button:only-child:hover {
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: transparent;
+    text-shadow: none;
+    font-size: 1px;
 }
 
 /* Barra de tareas: un icono por ventana; la enfocada, con el mismo filo rojo que el espacio activo. */

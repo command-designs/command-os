@@ -27,6 +27,8 @@ mako
 hyprlock
 hypridle
 wlopm
+# Teclado virtual: command-os-desktops lo usa para saltar al escritorio recién creado.
+wtype
 wdisplays
 swayosd
 cliphist

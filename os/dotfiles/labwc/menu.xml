@@ -39,6 +39,14 @@
         <action name="Reconfigure" />
       </item>
     </menu>
+    <menu id="escritorios" label="escritorios" icon="preferences-desktop-display">
+      <item label="nuevo escritorio" icon="list-add">
+        <action name="Execute" command="command-os-desktops nuevo" />
+      </item>
+      <item label="quitar el último" icon="list-remove">
+        <action name="Execute" command="command-os-desktops quitar" />
+      </item>
+    </menu>
     <item label="atajos de teclado" icon="preferences-desktop-keyboard-shortcuts">
       <action name="Execute" command="command-os-keys" />
     </item>
@@ -64,14 +72,11 @@
     <item label="siempre encima" icon="go-top-symbolic">
       <action name="ToggleAlwaysOnTop" />
     </item>
-    <menu id="client-mover-a" label="mover a" icon="go-next-symbolic">
-      <item label="espacio 01"><action name="SendToDesktop" to="1" follow="no" /></item>
-      <item label="espacio 02"><action name="SendToDesktop" to="2" follow="no" /></item>
-      <item label="espacio 03"><action name="SendToDesktop" to="3" follow="no" /></item>
-      <item label="espacio 04"><action name="SendToDesktop" to="4" follow="no" /></item>
-      <separator />
-      <item label="todos los espacios"><action name="ToggleOmnipresent" /></item>
-    </menu>
+    <item label="en todos los escritorios" icon="view-pin-symbolic">
+      <action name="ToggleOmnipresent" />
+    </item>
+    <!-- Lista de escritorios que mantiene labwc (cambia al crear o quitar escritorios). -->
+    <menu id="client-send-to-menu" label="mover a escritorio" icon="go-next-symbolic" />
     <separator />
     <item label="cerrar" icon="window-close-symbolic">
       <action name="Close" />

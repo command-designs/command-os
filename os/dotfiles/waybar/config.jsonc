@@ -2,9 +2,9 @@
     "layer": "top",
     "position": "top",
     "height": 30,
-    "modules-left": ["custom/logo", "ext/workspaces", "wlr/taskbar"],
+    "modules-left": ["custom/logo", "wlr/taskbar"],
     "modules-center": ["clock"],
-    "modules-right": ["cpu", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
+    "modules-right": ["ext/workspaces", "cpu", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
 
     // Etiqueta en cian (dato) + valor en hueso. Colores de docs/DISENO.md.
     // Logo como fondo CSS (#custom-logo en style.css): el módulo `image` de Waybar 0.15 se
@@ -14,8 +14,9 @@
         "tooltip-format": "aplicaciones",
         "on-click": "sh -c 'pkill -x wofi || wofi --show drun'"
     },
-    // Espacios de trabajo por el protocolo estándar ext-workspace (labwc lo implementa). Los
-    // cuatro se definen en ~/.config/labwc/rc.xml (<desktops>), con nombres 01–04.
+    // Escritorios por el protocolo estándar ext-workspace (labwc lo implementa). Solo se ven si hay
+    // más de uno (style.css oculta el botón cuando está solo); se crean y quitan con
+    // command-os-desktops, que reescribe <desktops> en ~/.config/labwc/rc.xml.
     "ext/workspaces": {
         "format": "{name}",
         "sort-by-id": true,

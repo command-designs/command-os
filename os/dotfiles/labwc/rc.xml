@@ -69,14 +69,12 @@
     <notifyClient>always</notifyClient>
   </snapping>
 
-  <!-- Los cuatro espacios de la barra. Los atajos los nombran por índice (1–4). -->
+  <!-- Escritorios: uno de serie. command-os-desktops (Super+Ctrl+D / Super+Ctrl+F4) reescribe esta
+       lista para crear o quitar hasta 4, y la barra solo los enseña cuando hay más de uno. -->
   <desktops>
     <popupTime>500</popupTime>
     <names>
       <name>01</name>
-      <name>02</name>
-      <name>03</name>
-      <name>04</name>
     </names>
   </desktops>
 
@@ -119,7 +117,10 @@
     <keybind key="W-d"><action name="ToggleShowDesktop" /></keybind>
     <keybind key="W-t"><action name="ToggleAlwaysOnTop" /></keybind>
 
-    <!-- Espacios de trabajo: Super+1…4 cambia, Super+Mayús+1…4 lleva la ventana. -->
+    <!-- Escritorios: Super+Ctrl+D crea uno y Super+Ctrl+F4 quita el último (como en Windows);
+         Super+1…4 cambia, Super+Mayús+1…4 lleva la ventana. -->
+    <keybind key="C-W-d"><action name="Execute" command="command-os-desktops nuevo" /></keybind>
+    <keybind key="C-W-F4"><action name="Execute" command="command-os-desktops quitar" /></keybind>
     <keybind key="W-1"><action name="GoToDesktop" to="1" /></keybind>
     <keybind key="W-2"><action name="GoToDesktop" to="2" /></keybind>
     <keybind key="W-3"><action name="GoToDesktop" to="3" /></keybind>

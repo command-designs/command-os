@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Command OS — escritorios virtuales. Por defecto hay uno y la barra no enseña nada; con dos o más
+# aparecen sus números en la barra, a la derecha.
+#   command-os-desktops nuevo    crea uno al final y va a él        (Super+Ctrl+D)
+#   command-os-desktops quitar   quita el último; sus ventanas pasan al 01 (Super+Ctrl+F4)
+# labwc no crea escritorios en caliente: se reescribe la lista <names> de su rc.xml y se recarga.
+# install.sh deja un solo escritorio cada vez que se ejecuta.
+set -euo pipefail
+
+RC="${XDG_CONFIG_HOME:-$HOME/.config}/labwc/rc.xml"
+MAX=4  # los atajos Super+1…4 llegan hasta aquí
+
+count=$(sed -n '/<names>/,/<\/names>/p' "${RC}" | grep -c '<name>')
+
+case "${1:-}" in
+  nuevo)
+    if (( count >= MAX )); then
+      notify-send -a escritorios "ya hay ${MAX} escritorios"
+      exit 0
+    fi
+    count=$(( count + 1 )) ;;
+  quitar)
+    (( count > 1 )) || exit 0
+    count=$(( count - 1 )) ;;
+  *)
+    echo "uso: command-os-desktops nuevo|quitar" >&2
+    exit 2 ;;
+esac
+
+tmp=$(mktemp "${RC}.XXXXXX")
+awk -v n="${count}" '
+  /<names>/   { print; for (i = 1; i <= n; i++) printf "      <name>%02d</name>\n", i; skip = 1; next }
+  /<\/names>/ { skip = 0 }
+  !skip
+' "${RC}" > "${tmp}"
+mv "${tmp}" "${RC}"
+
+# Recarga la configuración (labwc --reconfigure necesita LABWC_PID; fuera de la sesión, por pidof).
+kill -HUP "${LABWC_PID:-$(pidof labwc)}"
+
+if [[ "${1}" == "nuevo" ]]; then
+  # labwc no tiene IPC para cambiar de escritorio: se pulsa Super+N (rc.xml) con un teclado virtual,
+  # con margen para que labwc termine de recargar y se suelten las teclas del atajo.
+  sleep 0.4
+  wtype -M logo -k "${count}" -m logo
+fi

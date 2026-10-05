@@ -54,9 +54,17 @@ curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se 
   sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). Iconos Papirus-Dark con carpetas grises
   (`command-os-icon-folders`; el rojo queda para lo activo). `dconf` pone el modo oscuro para todo el
   sistema (Firefox y portales incluidos).
-- **Barra (Waybar):** logo (clic: aplicaciones), espacios 01–04, barra de tareas con un icono por
-  ventana (la enfocada con filo rojo, las minimizadas atenuadas), reloj en Oxanium entre filos rojos,
-  datos con su etiqueta en cian, bandeja (red de nm-applet) y botón de energía.
+- **Barra (Waybar):** a la izquierda, logo (clic: aplicaciones) y barra de tareas con un icono por
+  ventana (la enfocada con filo rojo, las minimizadas atenuadas); en el centro, el reloj en Oxanium
+  entre filos rojos; a la derecha, los escritorios, los datos con su etiqueta en cian, la bandeja (red
+  de nm-applet) y el botón de energía.
+- **Escritorios:** uno de serie, y la barra no enseña nada. Super+Ctrl+D (o clic derecho →
+  `escritorios`) crea otro, hasta 4, y salta a él; entonces aparecen sus números (`01 02…`) a la
+  derecha de la barra, el activo en rojo. Super+Ctrl+F4 quita el último y sus ventanas pasan al 01
+  (`command-os-desktops`).
+- **fastfetch:** la C de Command con su barra en Signal Red (`build/make-fastfetch-logo.py`), claves
+  en castellano y minúsculas en cian, separador `›` rojo, valores en hueso y porcentajes en cian,
+  ámbar o rojo según el nivel. Configuración de sistema en `/etc/xdg/fastfetch/`.
 - **Menús de labwc** (clic derecho en el escritorio o en la barra de título): Slate con filo rojo,
   opción activa en Red Deep con el texto en Red Light, rótulos de sección en cian sobre Void y textos
   en la voz de la marca (`aplicaciones`, `ajustes`, `mover a`…). **Alt+Tab** es el mismo panel: lista
