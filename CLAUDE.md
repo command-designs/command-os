@@ -8,29 +8,26 @@ ARM en el hardware real (Raspberry Pi 5) — modelo Omarchy, pero sobre una
 base aarch64 oficial en vez de x86_64. Un colega hace el hardware, este repo
 es la parte de software/SO. Ver `README.md` para la estructura del repo.
 
-**Estado actual**: escritorio **labwc** desde el 2026-10-05 (antes Hyprland; el último estado
-Hyprland está en la etiqueta `hyprland-final` y en la instantánea `pre-labwc` de la VM de
-VirtualBox). El pipeline de instalación (`os/install.sh` + paquetes + dotfiles) funciona de punta a
-punta en la VM x86_64 de VirtualBox, con el escritorio verificado con capturas. Falta: todavía no se
-probó nada sobre Arch Linux ARM / hardware real. Muchas notas de abajo son de la época Hyprland y se
-dejan como historia; lo vigente del escritorio está en "Escritorio labwc".
+**Estado actual**: escritorio **labwc** (único escritorio de Command OS desde el 2026-10-05). El
+pipeline de instalación (`os/install.sh` + paquetes + dotfiles) funciona de punta a punta en la VM
+x86_64 de VirtualBox, con el escritorio verificado con capturas y vídeo. Falta: todavía no se probó
+nada sobre Arch Linux ARM / hardware real.
 
 ## Escritorio labwc (2026-10-05)
 
 - **Por qué**: producto para clientes que tiene que gustar a la mayoría y ser muy ligero. labwc es
   flotante (barra de título, botones, barra de tareas, Alt+Tab, clic derecho, Super abre el
   lanzador), sin animaciones de ventana, y es el compositor por defecto de Raspberry Pi OS en el Pi 5.
-  Decisión del usuario tras comparar con Hyprland y con un escritorio tipo GNOME/XFCE.
+  Decisión del usuario frente a un tiling compositor y a un escritorio tipo GNOME/XFCE. El usuario
+  no quiere nada de Hyprland en el repo salvo hyprlock/hypridle (le gustan).
 - **Archivos**: `os/dotfiles/labwc/` (`rc.xml` atajos/reglas, `menu.xml` menús en castellano,
   `autostart`, `environment`), tema de ventanas `os/branding/labwc/Command/labwc/` (`themerc` +
   botones SVG de `build/make-labwc-buttons.py`) instalado en `/usr/share/themes/Command`. Portales en
   `os/dotfiles/xdg-desktop-portal/labwc-portals.conf` (gtk + wlr). Ayuda de atajos
   `os/bin/command-os-keys` (Super+F1): si se cambia un atajo en `rc.xml`, cambiarlo también ahí.
 - **Piezas**: swaybg (fondo), Waybar con `ext/workspaces` (labwc implementa ext-workspace) y
-  `wlr/taskbar`, hyprlock/hypridle (no dependen de Hyprland; pantalla con `wlopm`), polkit-gnome,
-  nm-applet en la bandeja, wdisplays, xorg-xwayland (arranca bajo demanda). Fuera: hyprland,
-  xdg-desktop-portal-hyprland, hyprpaper, hyprpolkitagent; `install.sh` los desinstala en máquinas
-  ya instaladas.
+  `wlr/taskbar`, hyprlock/hypridle (bloqueo e inactividad por protocolos estándar; pantalla con
+  `wlopm`), polkit-gnome, nm-applet en la bandeja, wdisplays, xorg-xwayland (arranca bajo demanda).
 - **Ajustes por máquina** (los genera `install.sh`, no van en los dotfiles): `environment.d/local.env`
   (teclado de `/etc/command-os/kb_layout`), `themerc-override` (sin sombras en VM) y
   `autostart.local` (1280x720 en VirtualBox con `wlr-randr`).
@@ -47,18 +44,12 @@ dejan como historia; lo vigente del escritorio está en "Escritorio labwc".
 
 ## Qué se probó y qué se descartó (no repetir)
 
-1. **VirtualBox como VM de desarrollo → descartado.** El driver `vmwgfx`
-   que usa VirtualBox para GPU virtual se autodetecta como "corriendo en
-   hipervisor no soportado" y Hyprland/aquamarine crashea en un loop de
-   asignación de CRTCs (confirmado con issues de GitHub de
-   `hyprwm/aquamarine` y `hyprwm/Hyprland`, no es config nuestra). Se migró
-   todo el pipeline de Packer a QEMU.
+1. **VirtualBox con `vmsvga`/`vmwgfx` → descartado.** El compositor anterior no inicializaba sobre
+   ese driver. Hoy la VM de VirtualBox usa `vboxsvga` con render por software y labwc va bien (ver
+   "Identidad de marca y VM en VirtualBox").
 
-2. **QEMU + `virtio-gpu-pci` sin aceleración 3D → arranca bien, Hyprland
-   crashea.** Sin 3D, `virtio-gpu` no da soporte GBM, mismo tipo de fallo
-   que vmwgfx (`CBackend::create() failed`). Sirve para validar que el
-   instalador corre bien (paquetes/servicios/dotfiles), no para ver
-   Hyprland.
+2. **QEMU + `virtio-gpu-pci` sin aceleración 3D**: sirve para validar que el instalador corre bien
+   (paquetes/servicios/dotfiles); para ver el escritorio, mejor la VM de VirtualBox.
 
 3. **QEMU + `virtio-gpu-gl-pci` con `-display sdl,gl=on` (aceleración 3D)
    → cuelga la VM.** En este host (Windows + WHPX), ambos vCPUs se van al
@@ -125,7 +116,7 @@ ucode Intel/AMD) y GRUB con `--removable --no-nvram`
 (`EFI/BOOT/BOOTX64.EFI`, cmdline `nvidia_drm.modeset=1 nvidia_drm.fbdev=1`).
 `build/x86/run-vm.sh` la arranca en QEMU+KVM con un NVRAM UEFI vacío (SSH en
 `127.0.0.1:2901`). **Verificado en VM**: arranca por la ruta removable, el
-sistema queda `running` y Hyprland renderiza (captura con `grim`). **No
+sistema queda `running` y el escritorio renderiza (captura con `grim`). **No
 verificado**: el driver NVIDIA real (en la VM no hay GPU NVIDIA) ni el
 arranque desde un USB físico — falta el USB.
 `/etc/profile.d/command-os-nvidia.sh` solo exporta variables NVIDIA si hay
@@ -227,21 +218,20 @@ barra (a petición del usuario, el mismo 2026-10-04: los logs solo dentro de la 
 - Pendiente: oír los sonidos en la VM (solo se verificó que `pw-play` termina a tiempo, no el
   resultado acústico), validar los paquetes en aarch64 y probar el audio en el Pi.
 
-## Verificación visual en VM: WSL2 + KVM anidado (2026-09-27, época Hyprland)
+## Verificación visual en VM: WSL2 + KVM anidado (2026-09-27)
 
-Hyprland **sí renderiza** en la VM de desarrollo corriendo QEMU dentro de
+El escritorio **sí renderiza** en la VM de desarrollo corriendo QEMU dentro de
 WSL2 (Arch oficial para WSL, `wsl -d archlinux -u root`) con `-accel kvm
 -cpu host -device virtio-vga-gl -display sdl,gl=on`. Cadena gráfica: virgl
 en el guest → virglrenderer → Mesa d3d12 → GTX 1650 Super; la ventana se ve
 en Windows vía WSLg. Confirmado con captura `grim` dentro del guest
-(wallpaper + waybar, 1280x800) y el log de aquamarine
-(`Renderer: virgl (D3D12 (NVIDIA GeForce GTX 1650 SUPER))`).
+(wallpaper + waybar, 1280x800) y el renderer del log
+(`virgl (D3D12 (NVIDIA GeForce GTX 1650 SUPER))`).
 
 Detalles que importan:
 - **`GALLIUM_DRIVER=d3d12` es obligatorio** en el anfitrión WSL: sin eso
   Mesa cae a `llvmpipe` (software).
-- El `ERR ... eglCreateContext failed with GLES 3.2, retrying GLES 3.0` en
-  el log de Hyprland es benigno (virgl da GLES 3.1).
+- virgl da GLES 3.1: los avisos de contexto GLES 3.2 en el log son benignos.
 - Host: i5-10400F, 16 GB, GTX 1650 Super; `%USERPROFILE%\.wslconfig` con
   `nestedVirtualization=true`, `memory=10GB`, `processors=10`.
 - El anfitrión WSL NO es el producto, solo corre QEMU; el producto es el
@@ -253,21 +243,21 @@ Detalles que importan:
   sigue con mucho lag, se ve chico (1280x800 en monitor 1440p) y los clicks
   no llegaban (no se diagnosticó). `egl-headless`/SPICE-GL de QEMU no
   sirven: WSL no tiene `/dev/dri`. Además Windows se come la tecla Super,
-  que es la base de los atajos de Hyprland. Conclusión: la VM sirve para
-  validar el instalador y ver que Hyprland arranca, no para probar la UX.
+  que es la base de los atajos. Conclusión: la VM sirve para validar el
+  instalador y ver que el escritorio arranca, no para probar la UX (para eso,
+  la VM de VirtualBox).
 - Scripts: `build/wsl/setup.sh` y `build/wsl/run-vm.sh`. Pasos en
   `docs/testing.md`.
 
 ## Cómo retomar la VM de desarrollo
 
 Ver `docs/testing.md` para comandos exactos. Resumen:
-- Forma preferida: dentro de WSL (`build/wsl/run-vm.sh`), disco en
-  `/root/vm/command-os-dev.qcow2`. SSH desde WSL a `127.0.0.1:2900` con
-  `/root/vm/packer_build_key`.
-- Disco original (Windows) en `build/packer/output-arch/command-os-dev.qcow2`
-  (Arch base + capa Hyprland completa, usuario `deck`, servicios
-  habilitados) — no hace falta reinstalar desde cero para seguir iterando
-  dotfiles/paquetes, solo re-correr `os/install.sh` sobre él.
+- Forma preferida para el escritorio: VM de VirtualBox `command-os-x86` (SSH `127.0.0.1:2902` como
+  `deck`), ya con labwc.
+- Los discos QEMU (`/root/vm/command-os-dev.qcow2` en WSL, `build/packer/output-arch/` en Windows)
+  son anteriores a labwc y llevan el escritorio viejo: **reconstruirlos** (Packer o
+  `build/x86/build-image.sh`) en vez de re-correr `os/install.sh` encima, que ya no limpia el
+  escritorio anterior.
 - Llave SSH efímera en `build/packer/keys/packer_build_key` (gitignored,
   regenerar si no existe — ver `docs/testing.md`).
 - Credenciales de desarrollo (no usar en producto final): usuario `deck` /

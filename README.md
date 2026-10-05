@@ -15,8 +15,7 @@ sobre Arch x86_64. Por eso la decisión fue **Arch Linux ARM con una capa curada
 propia**: misma idea que Omarchy (instalador + paquetes + dotfiles) sobre Arch,
 pero reconstruida por nosotros y arquitectura-agnóstica.
 
-**Escritorio: labwc** (desde el 2026-10-05; antes Hyprland, último estado en la etiqueta
-`hyprland-final`). Es un producto para clientes: ventanas flotantes con barra de título y botones,
+**Escritorio: labwc.** Es un producto para clientes: ventanas flotantes con barra de título y botones,
 barra de tareas, Alt+Tab, menú con clic derecho y Super para abrir aplicaciones, que cualquiera
 entiende sin explicación; y es ligero (sin animaciones de ventanas ni efectos caros), que en un
 Raspberry Pi 5 importa. Es el mismo compositor que usa Raspberry Pi OS por defecto.

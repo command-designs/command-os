@@ -1,79 +1,26 @@
 # Ciclo de pruebas en la VM de desarrollo (x86_64, QEMU)
 
-> **Desde el 2026-10-05 el escritorio es labwc** (antes Hyprland). Las secciones de QEMU y WSL se
-> escribieron con Hyprland y se dejan como historia; hoy la VM de pruebas del escritorio es la de
-> VirtualBox (más abajo), donde labwc renderiza por software sin problemas. Cómo probar labwc sin
-> ratón: sección "labwc en la VM" al final.
+> **El escritorio es labwc.** La VM para probarlo es la de VirtualBox (más abajo), donde renderiza
+> por software sin problemas. Cómo probarlo sin ratón: sección "labwc en la VM" al final. QEMU sirve
+> sobre todo para validar el instalador.
 
-## Por qué QEMU y no VirtualBox
+## QEMU: validar el instalador
 
-Se probó primero con VirtualBox, pero Hyprland (vía su backend `aquamarine`)
-no logra inicializar sobre el driver gráfico virtual de VirtualBox
-(`vmwgfx`): el propio kernel lo marca como "corriendo en un hipervisor no
-soportado", y aquamarine entra en un loop intentando asignar CRTCs a los
-conectores fantasma que expone. Es un problema de compatibilidad conocido
-(ver issues de `hyprwm/aquamarine` y `hyprwm/Hyprland` en GitHub), no algo
-que se arregle con configuración. QEMU con `virtio-gpu` es la combinación
-estándar y documentada para correr compositores wlroots en una VM, y además
-es la misma herramienta que ya estaba planeada para validar la arquitectura
-ARM más adelante.
+QEMU con `virtio-gpu` es la herramienta para validar que `os/install.sh` corre sin errores
+(paquetes, usuario, dotfiles, servicios, autologin) y la misma que se usará para la arquitectura ARM
+(`qemu-system-aarch64`). Para ver y usar el escritorio, la VM de VirtualBox.
 
-## Qué SÍ y qué NO se valida en esta VM
-
-- **QEMU nativo de Windows (WHPX)**: sirve para validar que `os/install.sh`
-  corre sin errores — paquetes, usuario, dotfiles, servicios, autologin — pero
-  **no** para ver Hyprland: sin aceleración 3D no hay GBM y Hyprland no
-  arranca; con `virtio-gpu-gl-pci` + `-display sdl,gl=on` la VM cuelga
-  (~100% CPU sin avanzar).
-- **QEMU dentro de WSL2 con KVM anidado**: Hyprland **sí** renderiza (virgl →
-  Mesa d3d12 → GPU del host, ventana vía WSLg). Es la forma preferida. Ver
-  la sección siguiente.
-
-## VM con Hyprland renderizado: QEMU dentro de WSL2 + KVM
-
-Requisitos (una sola vez, ya hecho en la PC de desarrollo): WSL2 instalado,
-`%USERPROFILE%\.wslconfig` con `nestedVirtualization=true` (más
-`memory=10GB`, `processors=10`), y la distro oficial de Arch:
-```
-wsl --install -d archlinux --no-launch
-```
-
-Preparar el anfitrión (instala QEMU/OVMF/virglrenderer/Mesa y copia disco,
-`efivars.fd`, firmware y llave SSH a `/root/vm` dentro de WSL — correr desde
-`/mnt/c` es lento). **Ojo**: re-correrlo sobreescribe la copia de WSL con la
-de Windows.
-```
-wsl -d archlinux -u root -- sh /mnt/c/Workspace/command/command-os/build/wsl/setup.sh
-```
-
-Arrancar la VM y verla con TigerVNC (`winget install TigerVNC.TigerVNC`):
-```
-wsl -d archlinux -u root -- sh /mnt/c/Workspace/command/command-os/build/wsl/run-vm.sh
-"C:\Program Files\TigerVNC\vncviewer.exe" -AutoSelect=0 -PreferredEncoding=Raw -FullColor 127.0.0.1::5901
-```
-Por defecto la ventana de QEMU va a un X virtual (`Xvnc :1`) dentro de WSL y
-no a WSLg: WSLg transporta las ventanas por RDP (`msrdc.exe`) y con un
-compositor animado se ve cortado (tearing) y con lag. `run-vm.sh wslg` usa
-el camino viejo (ventana directa vía WSLg). `RES=1920x1080` cambia la
-resolución del guest. WSL no expone `/dev/dri`, así que `-display
-egl-headless` / `spice gl=on` de QEMU no funcionan acá.
-
-`run-vm.sh` exporta `GALLIUM_DRIVER=d3d12`: sin eso Mesa en WSL usa
-`llvmpipe` (software) y no la GPU real. En el log de Hyprland aparece
-`eglCreateContext failed with GLES 3.2, retrying GLES 3.0` — es benigno.
-
-Desde WSL, SSH y captura de pantalla del compositor:
-```
-ssh -i /root/vm/packer_build_key -p 2900 root@127.0.0.1
-# dentro del guest (grim no viene en la imagen, instalarlo si hace falta):
-su deck -c 'XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 grim /tmp/shot.png'
-```
-
-Para iterar sobre `os/` desde WSL, el repo está en
-`/mnt/c/Workspace/command/command-os`: mismo `scp` + `install.sh` que en la
-sección "Ciclo de iteración" pero con `-i /root/vm/packer_build_key`.
-
-Apagar siempre con `ssh ... 'shutdown -h now'` (nunca matar QEMU).
+- **QEMU nativo de Windows (WHPX)**: valida el instalador. Sin aceleración 3D no hay GBM para el
+  compositor; con `virtio-gpu-gl-pci` + `-display sdl,gl=on` la VM cuelga (~100% CPU sin avanzar).
+- **QEMU dentro de WSL2 con KVM anidado**: el compositor renderiza (virgl → Mesa d3d12 → GPU del
+  host), pero por WSLg o VNC va con lag y Windows se come la tecla Super. Scripts:
+  `build/wsl/setup.sh` y `build/wsl/run-vm.sh`; `run-vm.sh` exporta `GALLIUM_DRIVER=d3d12` (sin
+  eso Mesa usa `llvmpipe`). Requisitos: WSL2, `%USERPROFILE%\.wslconfig` con
+  `nestedVirtualization=true`, `memory=10GB`, `processors=10`, y `wsl --install -d archlinux`.
+  Captura desde el guest:
+  `su deck -c 'XDG_RUNTIME_DIR=/run/user/1000 WAYLAND_DISPLAY=wayland-0 grim /tmp/shot.png'`.
+  Apagar siempre con `ssh ... 'shutdown -h now'` (nunca matar QEMU).
+- Los discos QEMU existentes son anteriores a labwc: reconstruirlos antes de usarlos.
 
 ## Build inicial
 
@@ -191,13 +138,13 @@ Cierre de ventana = apagado ACPI limpio: `setextradata GUI/DefaultCloseAction Sh
   `DXE_AP`. Con `--cpu-hotplug on` y las CPU enchufadas (`controlvm plugcpu N` o en el `.vbox`) arranca
   bien con 4 y Linux las pone en línea solo (`nproc` = 4); llvmpipe usa 4 hilos.
 - labwc renderiza **por software** (llvmpipe) con `vboxsvga` + driver `vboxvideo`. La fluidez real
-  solo se ve en bare metal o en el Pi. (Con Hyprland: ~5 FPS a 1080p y ~13 FPS a 720p.)
+  solo se ve en bare metal o en el Pi; por eso 720p y no 1080p.
 - **Resolución**: `install.sh` escribe `~/.config/labwc/autostart.local` con
   `wlr-randr … --mode 1280x720` solo si `systemd-detect-virt` es `oracle`. El splash va a 1024x768,
   así que al entrar al escritorio hay ~2 s en negro por el cambio de modo; en hardware real labwc
   reutiliza el modo del splash (`<reuseOutputMode>`). La ventana de VirtualBox está en modo escalado
   (`GUI/Scale`).
-- **Descartado: `vmsvga` + 3D** (probado con Hyprland). Con `--graphicscontroller vmsvga
+- **Descartado: `vmsvga` + 3D.** Con `--graphicscontroller vmsvga
   --accelerate-3d on` carga `vmwgfx` y el compositor arranca sobre la GPU del anfitrión, pero los
   clientes no se muestran. Vuelto a `vboxsvga`.
 - `install.sh` detecta la VM (`systemd-detect-virt`) y escribe `~/.config/labwc/themerc-override`
@@ -222,7 +169,7 @@ Comandos desde el anfitrión con `S="ssh -i build/packer/keys/packer_build_key -
 
 - **Iterar**: copiar `os/` (`tar -czf - os | $S 'tar -xzf - -C /tmp/command-os'`) y
   `echo deck | sudo -S env COMMAND_OS_VARIANT=vbox bash /tmp/command-os/os/install.sh`. Se puede
-  re-ejecutar con la sesión abierta (con Hyprland se colgaba; con labwc no). Para recargar la
+  re-ejecutar con la sesión abierta. Para recargar la
   configuración y el tema: `kill -HUP $(pidof labwc)` (`labwc -r` solo funciona dentro de la sesión,
   necesita `LABWC_PID`). Waybar no se recarga solo: `pkill -x waybar` y lanzarlo con `setsid`.
 - **Log**: `/run/user/1000/labwc.log` (labwc y todo lo que arranca `autostart`). Son normales el
@@ -238,5 +185,4 @@ Comandos desde el anfitrión con `S="ssh -i build/packer/keys/packer_build_key -
   arranque, para ver splash → escritorio).
 - **Clic derecho en el escritorio**: no se puede simular sin ratón virtual; el menú `client-menu`
   (Alt+Espacio) usa el mismo tema y sí se puede ver.
-- kitty guardaba la ventana maximizada de la época de Hyprland en `~/.cache/kitty/main.json`; ahora
-  abre siempre a 100x30 celdas (`remember_window_size no`).
+- kitty abre siempre a 100x30 celdas (`remember_window_size no`), no con el tamaño de la última.

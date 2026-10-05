@@ -20,8 +20,8 @@ waybar
 wofi
 
 # Experiencia de escritorio: fondo, notificaciones, bloqueo/idle, pantalla, OSD, portapapeles.
-# hyprlock/hypridle no dependen de Hyprland: usan los protocolos estándar ext-session-lock e
-# ext-idle-notify, que labwc implementa.
+# Bloqueo e inactividad: hyprlock/hypridle, programas sueltos que usan los protocolos estándar
+# ext-session-lock e ext-idle-notify (labwc los implementa).
 swaybg
 mako
 hyprlock

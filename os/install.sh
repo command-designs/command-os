@@ -20,16 +20,6 @@ echo "==> Installing package layer from packages.txt"
 mapfile -t PACKAGES < <(grep -vE '^\s*(#|$)' "${REPO_DIR}/packages.txt")
 pacman -S --needed --noconfirm "${PACKAGES[@]}"
 
-# Máquinas instaladas antes del cambio a labwc: fuera el escritorio Hyprland y sus piezas propias
-# (hyprlock e hypridle se quedan: funcionan en labwc). Las dependencias que nadie más use, también.
-OBSOLETE=(hyprland xdg-desktop-portal-hyprland hyprpaper hyprpolkitagent)
-mapfile -t INSTALLED_OBSOLETE < <(pacman -Qq "${OBSOLETE[@]}" 2>/dev/null || true)
-if (( ${#INSTALLED_OBSOLETE[@]} )); then
-  echo "==> Removing obsolete packages: ${INSTALLED_OBSOLETE[*]}"
-  pacman -Rns --noconfirm "${INSTALLED_OBSOLETE[@]}" \
-    || echo "==> Aviso: no se pudieron quitar (¿otro paquete depende de ellos?); se dejan instalados." >&2
-fi
-
 # Variante opcional (ej. COMMAND_OS_VARIANT=pc-nvidia para PC x86_64 con GPU
 # NVIDIA): paquetes extra en os/variants/<variante>/packages.txt.
 VARIANT="${COMMAND_OS_VARIANT:-}"
@@ -291,11 +281,9 @@ chown "${TARGET_USER}:${TARGET_USER}" "${TARGET_HOME}/.hushlogin"
 
 BASH_PROFILE="${TARGET_HOME}/.bash_profile"
 touch "${BASH_PROFILE}"
+MARKER="# --- Command OS: autostart labwc on tty1 ---"
 # Se reemplaza el bloque entero (hasta el `fi` de nivel 0) para recoger cambios al re-ejecutar.
-# También el de instalaciones anteriores, que arrancaba Hyprland.
-for old_marker in "# --- Command OS: autostart Hyprland on tty1 ---" "# --- Command OS: autostart labwc on tty1 ---"; do
-  sed -i "\|${old_marker}|,/^fi\$/d" "${BASH_PROFILE}"
-done
+sed -i "\|${MARKER}|,/^fi\$/d" "${BASH_PROFILE}"
 cat >> "${BASH_PROFILE}" <<'EOF'
 # --- Command OS: autostart labwc on tty1 ---
 if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
