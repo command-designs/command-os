@@ -6,17 +6,23 @@ Fuente de la marca: <https://github.com/command-designs/command-web> (`BRAND.md`
 
 ## Idea
 
-Un HUD de Night City sobre un terminal de Command: la estructura, la densidad y el tono de
-Cyberpunk 2077 (paneles con filos, esquinas vivas, rótulos pequeños, brillo contenido, glitch), con el
-ADN de Command (Red Hot como primario, wordmark con su barra, matriz de puntos, voz en minúsculas,
-curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se queda en la sombra.
+Un ordenador de verdad fabricado en el mundo de Cyberpunk: un aparato de trabajo, no un póster. La
+estructura, la densidad y el tono de Cyberpunk 2077 (paneles con filos, esquinas vivas, rótulos
+pequeños, brillo contenido, glitch), con el ADN de Command (Red Hot como primario, wordmark con su
+barra, matriz de puntos, voz en minúsculas, curva de movimiento sin rebotes). El rojo manda; el cian
+acompaña; el resto se queda en la sombra.
+
+**Criterio para cada elemento** (decisión del usuario, 2026-10-05): se queda lo que **sirve** (da
+información o se puede usar) y lo que **crea ambiente y queda bien** (fondos, brillos sutiles,
+animaciones, sonidos); fuera lo que ni sirve ni aporta ambiente, lo que daría igual si no estuviera
+(pegatinas en el fondo, degradados que no se ven, marcos alrededor del reloj).
 
 ## Pantalla
 
 - **Paleta HUD**, en los tonos apagados de los menús de Cyberpunk 2077 (no neón chillón). Escrita a
   mano en cada dotfile: tema de ventanas de labwc (`themerc`), Waybar, Wofi, Mako, Hyprlock, Kitty,
-  Alacritty, GTK 3/4, prompt de bash, Plymouth y los scripts de `build/` (botones de la barra de
-  título incluidos); si cambia, hay que actualizarlos todos:
+  GTK 3/4, prompt de bash, fastfetch, Plymouth y los scripts de `build/` (fondos y botones de la barra
+  de título incluidos); si cambia, hay que actualizarlos todos:
 
   | Token      | Hex                              | Uso                                                                 |
   | ---------- | -------------------------------- | ------------------------------------------------------------------- |
@@ -33,15 +39,15 @@ curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se 
   | Cyan       | `#5BBFC4` · Cyan Dim `#2F6E72`   | **secundario**: datos, etiquetas, rutas, enlaces, info              |
   | Yellow     | `#E2C044`                        | solo avisos (batería baja, error del último comando, urgente)       |
 
-- **Tipografía:** JetBrains Mono en barra y terminal; Geist en lanzador y notificaciones; Oxanium en
-  el reloj de la barra, la hora del bloqueo y los rótulos del fondo. Oxanium y Geist no están en los
+- **Tipografía:** JetBrains Mono en barra, terminal, títulos de ventana y Alt+Tab; Geist en lanzador,
+  menús y notificaciones; Oxanium en el reloj de la barra y la hora del bloqueo. Oxanium y Geist no están en los
   repos de Arch y se instalan desde `os/branding/fonts/` (licencia OFL incluida).
 - **Forma:** esquinas vivas (radio 0), bordes de 1–2 px. Lo seleccionado se marca con un filo rojo
   a la izquierda sobre Red Deep y un brillo en el texto.
 - **Ventanas (labwc, tema `Command` en `os/branding/labwc/`):** flotantes, con barra de título y
   botones a la derecha (minimizar · maximizar · cerrar) como en cualquier escritorio. La activa: filo
-  rojo de 1 px, barra en degradado Slate → Graphite con el título en Geist negrita y un halo rojo
-  suave (sombra sin desplazamiento). La inactiva: filo Steel, barra Void, título y botones en Smoke y
+  rojo de 1 px, barra plana en Slate con el título en JetBrains Mono negrita y un halo rojo fino
+  (sombra de 12 px sin desplazamiento). La inactiva: filo Steel, barra Void, título y botones en Smoke y
   una sombra oscura corta que la separa del fondo. Botones dibujados a propósito
   (`build/make-labwc-buttons.py`): maximizar son las escuadras del fondo; al pasar por encima, cian
   sobre Slate, y cerrar en rojo sobre Red Deep. Las apps que se dibujan su propia cabecera (GTK 4,
@@ -55,16 +61,18 @@ curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se 
   (`command-os-icon-folders`; el rojo queda para lo activo). `dconf` pone el modo oscuro para todo el
   sistema (Firefox y portales incluidos).
 - **Barra (Waybar):** a la izquierda, logo (clic: aplicaciones) y barra de tareas con un icono por
-  ventana (la enfocada con filo rojo, las minimizadas atenuadas); en el centro, el reloj en Oxanium
-  entre filos rojos; a la derecha, los escritorios, los datos con su etiqueta en cian, la bandeja (red
-  de nm-applet) y el botón de energía.
+  ventana (la enfocada con filo rojo, las minimizadas atenuadas); en el centro, fecha apagada y hora
+  en Oxanium; a la derecha, los escritorios, la telemetría con su etiqueta en cian (cpu, temperatura,
+  memoria, red con la señal wifi, volumen, batería con el tiempo que queda), la bandeja (red de
+  nm-applet) y el botón de energía. Ámbar al pasar el umbral de aviso, rojo al crítico.
 - **Escritorios:** uno de serie, y la barra no enseña nada. Super+Ctrl+D (o clic derecho →
   `escritorios`) crea otro, hasta 4, y salta a él; entonces aparecen sus números (`01 02…`) a la
   derecha de la barra, el activo en rojo. Super+Ctrl+F4 quita el último y sus ventanas pasan al 01
   (`command-os-desktops`).
 - **fastfetch:** la C de Command con su barra en Signal Red (`build/make-fastfetch-logo.py`), claves
   en castellano y minúsculas en cian, separador `›` rojo, valores en hueso y porcentajes en cian,
-  ámbar o rojo según el nivel. Configuración de sistema en `/etc/xdg/fastfetch/`.
+  ámbar o rojo según el nivel; sin la tira de colores del final. Configuración de sistema en
+  `/etc/xdg/fastfetch/`.
 - **Menús de labwc** (clic derecho en el escritorio o en la barra de título): Slate con filo rojo,
   opción activa en Red Deep con el texto en Red Light, rótulos de sección en cian sobre Void y textos
   en la voz de la marca (`aplicaciones`, `ajustes`, `mover a`…). **Alt+Tab** es el mismo panel: lista
@@ -76,10 +84,20 @@ curva de movimiento sin rebotes). El rojo manda; el cian acompaña; el resto se 
   de 460×340 sin barra de título, fijado bajo la barra arriba a la derecha; otro clic lo cierra.
 - **Sin blur ni transparencias** en el escritorio: la GPU del Pi 5 no da para blur fluido y el HUD
   se lee mejor opaco. El brillo se hace con sombras y `text-shadow`.
-- **Fondo** (`build/make-wallpaper.py`): Void con la matriz de puntos de 26 px, líneas de escaneo
-  sutiles, halo rojo muy tenue abajo, escuadras rojas en las esquinas y el rótulo `cmd-os // command os`
-  en cian con su regla, arriba a la izquierda y con aire bajo la barra. Sin wordmark ni textos de
-  estado: el logo ya está en la barra, el arranque y el bloqueo.
+- **Fondos** (`build/make-wallpaper.py`): gráfica de producto, como la que traería de serie un
+  ordenador de ese mundo; nada de paisajes. Tres para elegir (`command-os-wallpaper elegir`, o
+  ajustes → fondo de pantalla en el menú del escritorio):
+  - **interfaz** (de serie): corte diagonal con filo rojo, trama de semitono roja, wordmark gigante
+    en contorno, la C con microtipografía de fabricante (`SYS.INTEGRITY … OK`, número de serie,
+    código de barras) y dos cortes con glitch.
+  - **núcleo**: la C como pieza de hardware oscura con filo de luz roja, la barra encendida y
+    reflejada, pistas de circuito con señales rojas y cianes y un aro técnico.
+  - **placa**: macro de la placa del cyberdeck con el chip serigrafiado (`CMD-OS C2077-A`) y
+    desenfoque de cámara hacia los bordes.
+  - **void**: Void con la matriz de puntos tenue y un resplandor rojo bajo; solo para el bloqueo y
+    GRUB, que ya llevan el logo encima.
+  La barra del símbolo es siempre Signal Red; su resplandor, el rojo de la marca. Los de escritorio
+  van en JPEG q93 (el grano no comprime en PNG).
 
 ## Movimiento
 
@@ -87,7 +105,9 @@ Curva `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`), sin rebotes. Entradas seca
 **labwc no anima ventanas** (abrir, cerrar y mover son inmediatos): es parte de su ligereza. El
 movimiento del escritorio vive en los paneles: el lanzador y el menú de energía entran con un fundido
 y un desliz corto de 200–220 ms, y la barra hace transiciones de color en los espacios, la barra de
-tareas y el logo.
+tareas y el logo. El bloqueo entra con un fundido de 0,4 s y su campo de contraseña cambia de color
+con la misma curva (cian comprobando, ámbar si falla o si las mayúsculas están activadas, con el
+número de intentos).
 **Firma de arranque:** el wordmark se revela de izquierda a derecha con un cursor cian en el borde,
 después la barra roja se extiende desde la izquierda con su halo; ~1,1 s, 28 fotogramas, tres de
 ellos con glitch (franjas desplazadas y aberración roja/cian). El último queda limpio
@@ -100,7 +120,14 @@ En VM, `install.sh` quita el halo y las sombras de las ventanas (`~/.config/labw
 
 ## Sonido
 
-Pendiente.
+Un aparato real, no un móvil ni un videojuego (`build/make-sounds.py`, síntesis propia): pitidos
+digitales cortos, clics de transitorio como relés o botones, barridos de encendido y apagado y una sala
+pequeña y seca, sin ecos largos.
+- **boot** (inicio de sesión): golpe grave de encendido, ventiladores que arrancan (ruido con el
+  filtro abriéndose), ráfaga de pitidos de datos y confirmación en dos tonos. ~2,5 s.
+- **notify**: clic y dos tonos digitales cortos. **critical**: tres pulsos de alarma saturados.
+- **lock**: barrido hacia abajo y cerrojo. **unlock**: cerrojo y barrido hacia arriba.
+- **tick** (teclas de volumen): clic seco de botón.
 
 ## Objeto
 

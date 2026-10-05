@@ -4,4 +4,5 @@
 set -euxo pipefail
 
 chmod +x /tmp/command-os/os/install.sh
-/tmp/command-os/os/install.sh
+# VM de desarrollo: se entra por SSH, así que install.sh no debe apagarlo.
+COMMAND_OS_SSH=1 /tmp/command-os/os/install.sh

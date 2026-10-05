@@ -125,20 +125,17 @@ tooltip label {
     background-color: @red-deep;
 }
 
-/* Reloj enmarcado entre dos filos rojos, en Oxanium. */
+/* Reloj en Oxanium: fecha apagada y hora en hueso. */
 #clock {
     font-family: "Oxanium", "JetBrainsMono Nerd Font";
     font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     padding: 0 16px;
     color: @bone;
-    background: alpha(@red, 0.06);
-    border-left: 2px solid @red;
-    border-right: 2px solid @red;
 }
 
-#network, #pulseaudio, #battery, #cpu, #memory, #tray {
+#network, #pulseaudio, #battery, #cpu, #temperature, #memory, #tray {
     transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1), background 200ms cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0 10px;
     color: @ash;
@@ -148,6 +145,16 @@ tooltip label {
 #network:hover, #pulseaudio:hover, #cpu:hover, #memory:hover {
     color: @bone;
     background: @graphite;
+}
+
+/* Umbrales: ámbar de aviso, rojo crítico. */
+#cpu.warning, #memory.warning {
+    color: @yellow;
+}
+
+#cpu.critical, #memory.critical, #temperature.critical {
+    color: @red;
+    text-shadow: 0 0 4px alpha(@red, 0.45);
 }
 
 #battery.warning:not(.charging) {

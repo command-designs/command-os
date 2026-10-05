@@ -32,11 +32,11 @@
     <!-- Halo de la ventana activa (window.*.shadow.* en themerc; install.sh lo quita en VM). -->
     <dropShadows>yes</dropShadows>
     <dropShadowsOnTiled>no</dropShadowsOnTiled>
-    <font place="ActiveWindow"><name>Geist</name><size>10</size><weight>bold</weight></font>
-    <font place="InactiveWindow"><name>Geist</name><size>10</size><weight>normal</weight></font>
+    <font place="ActiveWindow"><name>JetBrainsMono Nerd Font</name><size>10</size><weight>bold</weight></font>
+    <font place="InactiveWindow"><name>JetBrainsMono Nerd Font</name><size>10</size><weight>normal</weight></font>
     <font place="MenuHeader"><name>Oxanium</name><size>10</size><weight>bold</weight></font>
     <font place="MenuItem"><name>Geist</name><size>10</size><weight>normal</weight></font>
-    <font place="OnScreenDisplay"><name>Geist</name><size>10</size><weight>normal</weight></font>
+    <font place="OnScreenDisplay"><name>JetBrainsMono Nerd Font</name><size>10</size><weight>normal</weight></font>
   </theme>
 
   <!-- Alt+Tab: lista HUD con icono y título (más ligera que las miniaturas). -->

@@ -119,7 +119,7 @@ scale slider {
    mismo marco que el tema Command de labwc: filo rojo y halo si están activas, Steel y una sombra
    corta si no. Maximizadas, encajadas o a pantalla completa, sin marco. */
 window.csd {
-    box-shadow: 0 0 0 1px #d13449, 0 0 18px rgb(209 52 73 / 19%);
+    box-shadow: 0 0 0 1px #d13449, 0 0 12px rgb(209 52 73 / 16%);
 }
 
 window.csd:backdrop {

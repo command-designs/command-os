@@ -22,6 +22,9 @@
     </item>
     <separator />
     <menu id="ajustes" label="ajustes" icon="preferences-system">
+      <item label="fondo de pantalla" icon="preferences-desktop-wallpaper">
+        <action name="Execute" command="command-os-wallpaper elegir" />
+      </item>
       <item label="pantallas" icon="preferences-desktop-display">
         <action name="Execute" command="wdisplays" />
       </item>

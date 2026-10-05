@@ -1,5 +1,5 @@
 #!/bin/sh
-# Reproduce un sonido de marca: command-os-sound <boot|login|notify|critical|lock|unlock|tick>
+# Reproduce un sonido de marca: command-os-sound <boot|notify|critical|lock|unlock|tick>
 # No bloquea ni falla si no hay audio (VM sin dispositivo, PipeWire aún arrancando).
 f="/usr/share/command-os/sounds/${1:?uso: command-os-sound <nombre>}.wav"
 [ -r "$f" ] || exit 0

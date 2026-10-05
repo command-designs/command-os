@@ -68,8 +68,6 @@
         { "type": "memory", "key": "memoria" },
         { "type": "disk", "key": "disco", "folders": "/" },
         { "type": "battery", "key": "batería" },
-        { "type": "localip", "key": "red" },
-        "break",
-        { "type": "colors", "symbol": "block" }
+        { "type": "localip", "key": "red" }
     ]
 }

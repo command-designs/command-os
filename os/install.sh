@@ -49,6 +49,8 @@ echo "==> Installing Command OS branding (logo, wallpaper, fonts)"
 BRANDING="${REPO_DIR}/branding"
 install -d /usr/share/command-os/logo /usr/share/command-os/wallpapers /usr/share/fonts/command-os
 install -m 644 "${BRANDING}"/logo/* /usr/share/command-os/logo/
+# Fondos de build/make-wallpaper.py; se borran los anteriores para no dejar restos de otras versiones.
+rm -f /usr/share/command-os/wallpapers/*
 install -m 644 "${BRANDING}"/wallpapers/* /usr/share/command-os/wallpapers/
 # Oxanium y Geist (BRAND.md § 5) no están en los repos de Arch: se empaquetan aquí (OFL).
 install -m 644 "${BRANDING}"/fonts/*.ttf /usr/share/fonts/command-os/
@@ -57,7 +59,8 @@ fc-cache -f /usr/share/fonts/command-os
 echo "==> Installing system sounds and helpers (sonido, energía, volumen, atajos)"
 install -d /usr/share/command-os/sounds
 install -m 644 "${BRANDING}"/sounds/*.wav /usr/share/command-os/sounds/
-for helper in command-os-sound command-os-power command-os-volume command-os-keys command-os-desktops; do
+for helper in command-os-sound command-os-power command-os-volume command-os-keys command-os-desktops \
+  command-os-wallpaper command-os-status; do
   install -m 755 "${REPO_DIR}/bin/${helper}" "/usr/local/bin/${helper}"
 done
 
@@ -221,7 +224,7 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 echo "==> Deploying dotfiles to ${TARGET_HOME}"
 mkdir -p "${TARGET_HOME}/.config"
-for dir in labwc hypr waybar alacritty wofi kitty mako nano gtk-3.0 gtk-4.0 xdg-desktop-portal; do
+for dir in labwc hypr waybar wofi kitty mako nano gtk-3.0 gtk-4.0 xdg-desktop-portal; do
   src="${REPO_DIR}/dotfiles/${dir}"
   [[ -d "${src}" ]] || continue
   # Con la sesión abierta, algún programa puede estar escribiendo en su carpeta y `rm -rf`
@@ -267,7 +270,13 @@ chown -R "${TARGET_USER}:${TARGET_USER}" "${TARGET_HOME}/.config" "${BASHRC}"
 echo "==> Enabling core services"
 systemctl enable seatd.service
 systemctl enable NetworkManager.service
-systemctl enable sshd.service
+# Acceso remoto: apagado en el producto (un aparato de cliente no debe exponer SSH). Solo en la VM
+# de pruebas (variante vbox) o si se pide con COMMAND_OS_SSH=1 (imágenes de desarrollo).
+if [[ "${VARIANT}" == "vbox" || "${COMMAND_OS_SSH:-0}" == "1" ]]; then
+  systemctl enable sshd.service
+else
+  systemctl disable sshd.service 2>/dev/null || true
+fi
 # Audio: PipeWire por socket para todos los usuarios (sesión gráfica incluida).
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 

@@ -55,7 +55,6 @@ pavucontrol
 
 # Terminal
 kitty
-alacritty
 
 # Fonts (needed for waybar icons / general UI)
 ttf-jetbrains-mono-nerd
@@ -80,14 +79,13 @@ wireplumber
 alsa-utils
 sound-theme-freedesktop
 
-# Base dev/user tooling
-git
-vim
+# Consola: lo imprescindible. Editor (nano), manuales, descargas, comprimidos y lo necesario para
+# instalar programas, incluidos los del AUR (base-devel + git). El servidor SSH viene en openssh pero
+# está apagado salvo en la VM de pruebas (install.sh).
 nano
 sudo
 openssh
-
-# Consola de desarrollo: compilación, documentación y utilidades habituales
+git
 base-devel
 man-db
 man-pages
@@ -95,22 +93,5 @@ which
 less
 bash-completion
 curl
-wget
-rsync
-jq
 unzip
 zip
-tree
-tmux
-htop
-lsof
-strace
-ripgrep
-fd
-fzf
-bat
-eza
-zoxide
-python
-nodejs
-npm

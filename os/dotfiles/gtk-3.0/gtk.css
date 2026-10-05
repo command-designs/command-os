@@ -94,7 +94,7 @@ decoration {
 }
 
 window.csd decoration {
-    box-shadow: 0 0 0 1px @cmd_red, 0 0 18px alpha(@cmd_red, 0.19);
+    box-shadow: 0 0 0 1px @cmd_red, 0 0 12px alpha(@cmd_red, 0.16);
 }
 
 window.csd decoration:backdrop {

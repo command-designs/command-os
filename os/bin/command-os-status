@@ -1,0 +1,15 @@
+#!/bin/sh
+# Command OS — línea de estado de una sola línea (la usa la pantalla de bloqueo):
+#   bat 76% · net casa · deck@command-os
+# La batería solo aparece si el equipo tiene; la red es la conexión activa de NetworkManager.
+out=""
+for bat in /sys/class/power_supply/BAT*; do
+  [ -r "${bat}/capacity" ] || continue
+  cap=$(cat "${bat}/capacity")
+  case "$(cat "${bat}/status" 2>/dev/null)" in Charging) cap="${cap}% +" ;; *) cap="${cap}%" ;; esac
+  out="bat ${cap}  ·  "
+  break
+done
+net=$(nmcli -t -f NAME connection show --active 2>/dev/null | grep -v '^lo$' | head -n 1)
+out="${out}net ${net:-sin red}  ·  $(id -un)@$(cat /etc/hostname 2>/dev/null || uname -n)"
+printf '%s\n' "${out}"

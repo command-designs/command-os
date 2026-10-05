@@ -1,7 +1,7 @@
 # Command OS — arranque de la sesión (labwc-config(5)): labwc lo ejecuta con sh al iniciar.
 # La salida de cada programa va al log de labwc ($XDG_RUNTIME_DIR/labwc.log, ver ~/.bash_profile).
 
-swaybg -m fill -c '#0d0b0e' -i /usr/share/command-os/wallpapers/command-void.png &
+command-os-wallpaper
 waybar &
 mako &
 hypridle &

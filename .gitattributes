@@ -9,6 +9,7 @@ packages.txt text eol=lf
 os/branding/** text eol=lf
 os/variants/** text eol=lf
 os/branding/**/*.png binary
+os/branding/**/*.jpg binary
 os/branding/**/*.ttf binary
 os/dotfiles/** text eol=lf
 os/bin/* text eol=lf

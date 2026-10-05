@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Command OS — fondo de pantalla (build/make-wallpaper.py).
+#   command-os-wallpaper           aplica el elegido (o el de serie, interfaz); lo llama autostart
+#   command-os-wallpaper elegir    menú para cambiarlo (ajustes → fondo de pantalla)
+# La elección se guarda en ~/.config/command-os/wallpaper.
+set -uo pipefail
+
+DIR=/usr/share/command-os/wallpapers
+STATE="${XDG_CONFIG_HOME:-$HOME/.config}/command-os/wallpaper"
+STYLE="${XDG_CONFIG_HOME:-$HOME/.config}/wofi/power.css"
+TAG="command-os-wallpaper"
+NAMES=(interfaz nucleo placa)
+declare -A LABEL=([interfaz]="interfaz" [nucleo]="núcleo" [placa]="placa")
+
+current() {
+  local name
+  name=$(cat "${STATE}" 2>/dev/null)
+  [[ -f "${DIR}/command-${name}.jpg" ]] || name=interfaz
+  printf '%s' "${name}"
+}
+
+apply() {  # arranca el nuevo swaybg y después cierra el anterior: sin parpadeo
+  local old
+  old=$(pgrep -x swaybg)
+  swaybg -m fill -c '#0d0b0e' -i "${DIR}/command-$1.jpg" >/dev/null 2>&1 &
+  disown
+  if [[ -n "${old}" ]]; then
+    sleep 0.5
+    kill ${old} 2>/dev/null
+  fi
+}
+
+case "${1:-}" in
+  "")
+    apply "$(current)" ;;
+  elegir)
+    if pkill -f "^wofi --dmenu --prompt ${TAG}" 2>/dev/null; then exit 0; fi
+    now=$(current)
+    menu=()
+    for n in "${NAMES[@]}"; do
+      if [[ "${n}" == "${now}" ]]; then menu+=("󰄬   ${LABEL[$n]}"); else menu+=("     ${LABEL[$n]}"); fi
+    done
+    choice=$(printf '%s\n' "${menu[@]}" | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
+      --define hide_search=true --cache-file /dev/null \
+      --width 280 --height $(( 22 + 40 * ${#NAMES[@]} ))) || exit 0
+    for n in "${NAMES[@]}"; do
+      if [[ "${choice}" == *"${LABEL[$n]}" ]]; then
+        mkdir -p "$(dirname "${STATE}")"
+        printf '%s\n' "${n}" > "${STATE}"
+        apply "${n}"
+      fi
+    done ;;
+  *)
+    echo "uso: command-os-wallpaper [elegir]" >&2
+    exit 2 ;;
+esac

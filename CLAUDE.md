@@ -58,6 +58,38 @@ nada sobre Arch Linux ARM / hardware real.
 - Cómo probar sin ratón (wtype, SIGHUP, bloqueo de la sesión de tty1, capturas): `docs/testing.md`,
   sección "labwc en la VM".
 
+## Rediseño "ordenador real de Cyberpunk" (2026-10-05, rama `rediseno`)
+
+Criterio del usuario: se queda lo que **sirve** y lo que **crea ambiente y queda bien**; fuera lo que
+ni sirve ni aporta ambiente. Detalle visual en `docs/DISENO.md`. El usuario pidió que se le pregunte
+antes de cada cambio y que se le notifique (PushNotification) cuando haga falta su decisión.
+- **Fondos** (`build/make-wallpaper.py`, numpy): gráfica de producto, **no paisajes** (el usuario
+  rechazó skyline y mapa). `interfaz` (de serie), `nucleo`, `placa` en JPEG q93 y `void` en PNG sin
+  grano para bloqueo y GRUB. Microtexto con JetBrains Mono de `build/fonts/` (OFL, solo para
+  generar). Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`),
+  lo llama `autostart` y el menú ajustes → fondo de pantalla. `.gitattributes`: `*.jpg binary`
+  en `os/branding/` (si no, la regla de texto los corrompería).
+- **Barra**: reloj con fecha (Waybar pasa **un** argumento de fecha: con dos `{:...}` el módulo no
+  arranca; usar `{0:%d.%m}  {0:%H:%M}`), temperatura (en la VM no hay `thermal_zone0` y el módulo
+  se desactiva solo, es normal), batería con tiempo restante, señal wifi, umbrales ámbar/rojo.
+- **Ventanas**: barra de título plana, títulos y Alt+Tab en JetBrains Mono, halo de 12 px.
+- **Bloqueo**: `immediate_render` (sin él, hyprlock espera hasta 2 s a sus recursos antes de
+  bloquear) y el sonido de bloqueo en segundo plano en `hypridle.conf` (antes bloqueaba al terminar
+  el sonido). Medido: Super+L → sesión bloqueada en ~350 ms. Línea de estado real
+  (`os/bin/command-os-status`), intentos fallidos y aviso de mayúsculas en ámbar.
+- **Sonidos** (`build/make-sounds.py`, numpy): de aparato real (clics, pitidos, barridos, golpe de
+  encendido), sala seca. `login.wav` eliminado (no se usaba). **No se han escuchado**: verificado
+  solo que no saturan; que el usuario los oiga.
+- **Paquetes**: fuera las herramientas personales de desarrollo (alacritty, vim, tmux, htop, ripgrep,
+  fd, fzf, bat, eza, zoxide, jq, tree, rsync, wget, nodejs, npm…) y sus alias del `bashrc`. python
+  ya no está en la lista pero sigue instalado porque kitty depende de él. Se quedan base-devel + git
+  (AUR). En máquinas ya instaladas `install.sh` no desinstala nada: en la VM se quitó a mano.
+- **SSH**: apagado en el producto; `install.sh` lo enciende solo con la variante `vbox` o
+  `COMMAND_OS_SSH=1` (lo pasan `build-image.sh` si hay `DEV_SSH_PUBKEY` y el script de Packer).
+- Al probar: reiniciar hypridle por SSH lo deja escuchando la sesión SSH, no la de tty1 (Super+L deja
+  de bloquear). Para aplicar cambios de la sesión, `sudo systemctl restart getty@tty1` y comprobar
+  que no queden dos hypridle.
+
 ## Qué se probó y qué se descartó (no repetir)
 
 1. **VirtualBox con `vmsvga`/`vmwgfx` → descartado.** El compositor anterior no inicializaba sobre

@@ -13,17 +13,16 @@ window.active.border.color: #d13449
 window.inactive.border.color: #2e2630
 window.active.indicator.toggled-keybind.color: #e2c044
 
-window.active.shadow.size: 18
-window.active.shadow.color: #d1344930
+window.active.shadow.size: 12
+window.active.shadow.color: #d1344928
 window.inactive.shadow.size: 12
 window.inactive.shadow.color: #00000070
 
 # --- Barra de título ---
 window.titlebar.padding.width: 4
 window.titlebar.padding.height: 0
-window.active.title.bg: Gradient Vertical
+window.active.title.bg: Solid
 window.active.title.bg.color: #1d1820
-window.active.title.bg.colorTo: #15121a
 window.inactive.title.bg: Solid
 window.inactive.title.bg.color: #0d0b0e
 window.active.label.text.color: #edebe6
