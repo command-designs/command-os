@@ -163,6 +163,12 @@ if [[ -f /etc/default/grub ]]; then
   set_grub GRUB_TERMINAL_OUTPUT gfxterm
   set_grub GRUB_GFXMODE auto
   set_grub GRUB_GFXPAYLOAD_LINUX keep
+  # VirtualBox: todo el arranque a 1280x720 (el driver vboxvideo pondría 1024x768). Con render por
+  # software, 1080p no pasa de ~5 FPS y 720p es el mejor equilibrio; labwc reutiliza ese modo
+  # (<reuseOutputMode>), así que no hay cambio de resolución ni pantallazo negro al entrar.
+  if [[ "$(systemd-detect-virt)" == "oracle" ]]; then
+    SILENT_ARGS="${SILENT_ARGS} video=1280x720"
+  fi
   set_grub GRUB_BACKGROUND '"/usr/share/command-os/wallpapers/command-void.png"'
   set_grub GRUB_COLOR_NORMAL '"light-gray/black"'
   set_grub GRUB_COLOR_HIGHLIGHT '"light-red/black"'
@@ -222,7 +228,7 @@ done
 chmod 755 "${TARGET_HOME}/.config/labwc/autostart"
 
 # Ajustes de esta máquina, fuera de los dotfiles del producto (labwc-config(5)):
-# environment.d/local.env (se lee después de environment), themerc-override y autostart.local.
+# environment.d/local.env (se lee después de environment) y themerc-override.
 LABWC_DIR="${TARGET_HOME}/.config/labwc"
 mkdir -p "${LABWC_DIR}/environment.d"
 LOCAL_ENV="${LABWC_DIR}/environment.d/local.env"
@@ -239,14 +245,6 @@ if systemd-detect-virt --quiet; then
 window.active.shadow.size: 0
 window.inactive.shadow.size: 0
 EOF
-  # VirtualBox: 16:9 fijo. Con render por software a 1080p no pasa de ~5 FPS; 720p es el mejor
-  # equilibrio.
-  if [[ "$(systemd-detect-virt)" == "oracle" ]]; then
-    cat > "${LABWC_DIR}/autostart.local" <<'EOF'
-# VirtualBox: 1280x720 en la primera salida. Lo genera install.sh.
-wlr-randr --output "$(wlr-randr | awk 'NR == 1 { print $1 }')" --mode 1280x720
-EOF
-  fi
 fi
 
 echo "==> Configuring developer shell (bashrc, nano)"

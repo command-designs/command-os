@@ -10,8 +10,3 @@ wl-paste --watch cliphist store &
 nm-applet --indicator &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 command-os-sound boot &
-
-# Ajustes de esta máquina que genera install.sh (p. ej. la resolución en VirtualBox).
-if [ -r "${HOME}/.config/labwc/autostart.local" ]; then
-  . "${HOME}/.config/labwc/autostart.local"
-fi

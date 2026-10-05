@@ -27,7 +27,6 @@ mako
 hyprlock
 hypridle
 wlopm
-wlr-randr
 wdisplays
 swayosd
 cliphist

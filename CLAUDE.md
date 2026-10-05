@@ -29,8 +29,8 @@ nada sobre Arch Linux ARM / hardware real.
   `wlr/taskbar`, hyprlock/hypridle (bloqueo e inactividad por protocolos estándar; pantalla con
   `wlopm`), polkit-gnome, nm-applet en la bandeja, wdisplays, xorg-xwayland (arranca bajo demanda).
 - **Ajustes por máquina** (los genera `install.sh`, no van en los dotfiles): `environment.d/local.env`
-  (teclado de `/etc/command-os/kb_layout`), `themerc-override` (sin sombras en VM) y
-  `autostart.local` (1280x720 en VirtualBox con `wlr-randr`).
+  (teclado de `/etc/command-os/kb_layout`) y `themerc-override` (sin sombras en VM). En VirtualBox,
+  `video=1280x720` en la línea del kernel: todo el arranque y el escritorio a esa resolución.
 - **GTK**: las apps con cabecera propia (GTK 4, Firefox) no reciben marco de labwc; `gtk-3.0/gtk.css`
   y `gtk-4.0/gtk.css` les dibujan el mismo filo rojo y halo.
 - **Verificado en VM VirtualBox** (capturas): escritorio, barra con tareas, ventanas activa/inactiva

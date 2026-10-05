@@ -139,11 +139,14 @@ Cierre de ventana = apagado ACPI limpio: `setextradata GUI/DefaultCloseAction Sh
   bien con 4 y Linux las pone en línea solo (`nproc` = 4); llvmpipe usa 4 hilos.
 - labwc renderiza **por software** (llvmpipe) con `vboxsvga` + driver `vboxvideo`. La fluidez real
   solo se ve en bare metal o en el Pi; por eso 720p y no 1080p.
-- **Resolución**: `install.sh` escribe `~/.config/labwc/autostart.local` con
-  `wlr-randr … --mode 1280x720` solo si `systemd-detect-virt` es `oracle`. El splash va a 1024x768,
-  así que al entrar al escritorio hay ~2 s en negro por el cambio de modo; en hardware real labwc
-  reutiliza el modo del splash (`<reuseOutputMode>`). La ventana de VirtualBox está en modo escalado
-  (`GUI/Scale`).
+- **Resolución**: si `systemd-detect-virt` es `oracle`, `install.sh` añade `video=1280x720` a la
+  línea del kernel (sin eso, `vboxvideo` pone 1024x768). Splash y escritorio van a 1280x720 y labwc
+  reutiliza el modo (`<reuseOutputMode>`): sin pantallazo negro al entrar. La ventana de VirtualBox
+  está en modo escalado (`GUI/Scale`).
+- **Grabar vídeo**: `VBoxManage modifyvm command-os-x86 --recording=on --recording-screens=0
+  --recording-file=<ruta.webm> --recording-video-res=1280x720 --recording-video-fps=25` con la VM
+  apagada; graba desde el encendido hasta el apagado. Solo capta lo que va a la resolución de la
+  grabación (por eso importa el `video=1280x720`). No graba el audio.
 - **Descartado: `vmsvga` + 3D.** Con `--graphicscontroller vmsvga
   --accelerate-3d on` carga `vmwgfx` y el compositor arranca sobre la GPU del anfitrión, pero los
   clientes no se muestran. Vuelto a `vboxsvga`.
