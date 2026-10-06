@@ -1,6 +1,6 @@
 # Command OS — hoja de ruta
 
-Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle queda en `CLAUDE.md`,
+Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle queda en `AGENTS.md`,
 `docs/` y el historial de git). Todo cambio vale a la vez para x86 (GRUB) y ARM/Pi 5 (`cmdline.txt`).
 
 0. **Primera publicación del paquete.** La Release `repo` de `command-designs/command-os-versions`
