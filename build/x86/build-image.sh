@@ -4,10 +4,13 @@
 #   wsl -d archlinux -u root -- bash /mnt/c/<repo>/build/x86/build-image.sh
 # Variables: IMG (ruta de salida), SIZE (tamaño sparse), VARIANT (variante de
 # os/variants/, default pc-nvidia), DEV_SSH_PUBKEY (fichero .pub opcional: se
-# instala en ~deck/.ssh/authorized_keys, solo para pruebas en VM).
+# instala en ~deck/.ssh/authorized_keys y enciende SSH, solo para pruebas en VM),
+# ROLLING=1 (Arch del día en vez de la fecha validada).
+# Raíz en btrfs con instantáneas (build/x86/lib.sh) y partición EFI en /efi.
 set -euo pipefail
 
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
+source "${REPO}/build/x86/lib.sh"
 IMG=${IMG:-/root/vm/command-os-x86.img}
 SIZE=${SIZE:-14G}
 VARIANT=${VARIANT:-pc-nvidia}
@@ -22,7 +25,7 @@ cleanup() {
 trap cleanup EXIT
 
 [[ $(id -u) -eq 0 ]] || { echo "correr como root" >&2; exit 1; }
-pacman -S --needed --noconfirm arch-install-scripts parted dosfstools e2fsprogs >/dev/null
+pacman -S --needed --noconfirm arch-install-scripts parted dosfstools btrfs-progs >/dev/null
 
 mkdir -p "$(dirname "$IMG")" "$MNT"
 rm -f "$IMG"
@@ -32,18 +35,17 @@ LOOP=$(losetup --find --show --partscan "$IMG")
 parted -s "$LOOP" mklabel gpt
 parted -s "$LOOP" mkpart ESP fat32 1MiB 1025MiB
 parted -s "$LOOP" set 1 esp on
-parted -s "$LOOP" mkpart root ext4 1025MiB 100%
+parted -s "$LOOP" mkpart root btrfs 1025MiB 100%
 partprobe "$LOOP"; udevadm settle 2>/dev/null || sleep 2
 
 mkfs.fat -F32 "${LOOP}p1"
-mkfs.ext4 -F -L command-os "${LOOP}p2"
-mount "${LOOP}p2" "$MNT"
-mkdir -p "$MNT/boot"
-mount "${LOOP}p1" "$MNT/boot"
+btrfs_root "${LOOP}p2" "$MNT"
+mkdir -p "$MNT/efi"
+mount "${LOOP}p1" "$MNT/efi"
 
-pacstrap -cK "$MNT" base linux linux-firmware intel-ucode amd-ucode sudo \
-  networkmanager openssh grub efibootmgr vim git base-devel
-genfstab -U "$MNT" >> "$MNT/etc/fstab"
+pacstrap -cK -C "$(pinned_pacman_conf "$REPO")" "$MNT" base linux linux-firmware intel-ucode \
+  amd-ucode sudo networkmanager openssh grub efibootmgr btrfs-progs git base-devel
+fstab "$MNT"
 
 mkdir -p "$MNT/root/command-os-src"
 cp -r "$REPO/os" "$MNT/root/command-os-src/os"
@@ -59,8 +61,9 @@ arch-chroot "$MNT" /bin/bash -euxc "
   COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${DEV_SSH_PUBKEY:+1} bash /root/command-os-src/os/install.sh
   # install.sh ya dejó el arranque silencioso en la línea del kernel: aquí solo se añade NVIDIA.
   grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
-  # --removable: EFI/BOOT/BOOTX64.EFI, sin depender de la NVRAM del equipo
-  grub-install --target=x86_64-efi --efi-directory=/boot --removable --no-nvram
+  # --removable: EFI/BOOT/BOOTX64.EFI, sin depender de la NVRAM del equipo. El kernel y la
+  # configuración de GRUB van en /boot dentro de btrfs (entran en las instantáneas).
+  grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot --removable --no-nvram
   grub-mkconfig -o /boot/grub/grub.cfg
 "
 

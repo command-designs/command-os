@@ -1,0 +1,56 @@
+# Command OS — prueba del escritorio sin pantalla contra un Arch concreto (tests/escritorio.sh).
+# La usan pruebas.yml (cada día y en cada cambio) y fecha.yml (antes de validar una fecha nueva).
+name: escritorio
+
+on:
+  workflow_call:
+    inputs:
+      arch:
+        description: '"validada" (os/pacman/snapshot-date), "hoy" (Arch del día) o una fecha AAAA/MM/DD'
+        type: string
+        default: validada
+      ref:
+        description: Rama o commit que se prueba (por defecto, el del evento)
+        type: string
+        default: ''
+
+jobs:
+  escritorio:
+    name: escritorio (${{ inputs.arch }})
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Arch de la fecha pedida
+        run: |
+          case "${{ inputs.arch }}" in
+            hoy) fecha= ;;
+            validada) fecha=$(grep -oE '^[0-9]{4}/[0-9]{2}/[0-9]{2}' os/pacman/snapshot-date) ;;
+            *) fecha="${{ inputs.arch }}" ;;
+          esac
+          if [ -n "$fecha" ]; then
+            echo "Server = https://archive.archlinux.org/repos/$fecha/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist
+          fi
+          echo "Arch: ${fecha:-del día}"
+          pacman -Syu --noconfirm base-devel git libxml2 grim
+
+      - name: Paquete command-os
+        run: |
+          useradd -m constructor
+          cp -r os /home/constructor/os
+          chown -R constructor: /home/constructor/os
+          runuser -u constructor -- bash -c 'cd ~/os/pkg && makepkg -d --noconfirm'
+          pacman -U --noconfirm /home/constructor/os/pkg/command-os-*.pkg.tar.zst
+
+      - name: Escritorio sin pantalla
+        run: SALIDA="$PWD/resultados" bash tests/escritorio.sh
+
+      - name: Resultados (registros y captura)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: escritorio-${{ inputs.arch == 'validada' && 'validada' || inputs.arch == 'hoy' && 'hoy' || 'fecha' }}
+          path: resultados

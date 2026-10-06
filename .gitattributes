@@ -13,4 +13,10 @@ os/branding/**/*.jpg binary
 os/branding/**/*.ttf binary
 os/dotfiles/** text eol=lf
 os/bin/* text eol=lf
+os/lib/* text eol=lf
+os/pkg/* text eol=lf
+os/hooks/* text eol=lf
+os/system/** text eol=lf
+os/pacman/* text eol=lf
+.github/** text eol=lf
 os/branding/**/*.wav binary

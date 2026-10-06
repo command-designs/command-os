@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Command OS — repositorios de pacman. Lo ejecutan install.sh, el paquete en cada actualización y
+# command-os-update. Idempotente.
+#
+# 1. x86_64: Arch "de una fecha" ya probada. core/extra/multilib se descargan del Arch Linux Archive
+#    en la fecha de /usr/share/command-os/pacman/snapshot-date, no del Arch del día: un equipo solo
+#    recibe lo que se ha validado. La fecha avanza con cada versión del paquete command-os.
+#    - /etc/command-os/archive-url cambia el servidor (p. ej. un espejo propio del archivo).
+#    - /etc/command-os/rolling desactiva la fecha fija (Arch del día, para desarrollo).
+#    Arch Linux ARM (aarch64) no publica fotos fechadas: ahí se usan sus espejos normales.
+# 2. Repositorio de Command OS (paquetes firmados) y su clave, en cuanto el servidor responde.
+set -uo pipefail
+
+# install.sh lo ejecuta antes de instalar el paquete: entonces lee la fecha y la clave del árbol.
+SHARE=${COMMAND_OS_PACMAN_DIR:-/usr/share/command-os/pacman}
+CONF=/etc/pacman.conf
+REPO_URL=$(cat /etc/command-os/repo-url 2>/dev/null \
+  || echo "https://github.com/command-designs/command-os-repo/releases/download/repo")
+warn() { echo "command-os: aviso: $*" >&2; }
+
+# --- 1. Fecha validada de Arch (solo x86_64) ---
+MIRRORLIST=/etc/pacman.d/command-os-mirrorlist
+if [[ "$(uname -m)" == x86_64 && -s "${SHARE}/snapshot-date" && ! -e /etc/command-os/rolling ]]; then
+  date=$(grep -oE '^[0-9]{4}/[0-9]{2}/[0-9]{2}' "${SHARE}/snapshot-date" | head -1)
+  base=$(cat /etc/command-os/archive-url 2>/dev/null || echo "https://archive.archlinux.org/repos")
+  if [[ -n "${date}" ]]; then
+    printf '%s\n%s\n' \
+      "# Command OS: Arch del ${date} (validado). Lo genera /usr/lib/command-os/apply-repos." \
+      "Server = ${base}/${date}/\$repo/os/\$arch" > "${MIRRORLIST}"
+    # core/extra/multilib leen solo esta lista: mezclar el archivo con espejos del día no es seguro.
+    tmp=$(mktemp)
+    awk '/^\[/ { sec = $0 }
+         (sec == "[core]" || sec == "[extra]" || sec == "[multilib]") &&
+           $0 == "Include = /etc/pacman.d/mirrorlist" { $0 = "Include = /etc/pacman.d/command-os-mirrorlist" }
+         { print }' "${CONF}" > "${tmp}" && cat "${tmp}" > "${CONF}"
+    rm -f "${tmp}"
+  fi
+elif grep -q '^Include = /etc/pacman.d/command-os-mirrorlist$' "${CONF}"; then
+  # Fecha fija desactivada (o equipo ARM): vuelta a los espejos normales.
+  sed -i 's|^Include = /etc/pacman.d/command-os-mirrorlist$|Include = /etc/pacman.d/mirrorlist|' "${CONF}"
+fi
+
+# --- 2. Repositorio de Command OS ---
+if ! grep -q '^\[command-os\]$' "${CONF}"; then
+  if curl -fsIL --max-time 15 "${REPO_URL}/command-os.db" >/dev/null 2>&1; then
+    printf '\n[command-os]\nSigLevel = Required\nServer = %s\n' "${REPO_URL}" >> "${CONF}"
+  fi
+fi
+if grep -q '^\[command-os\]$' "${CONF}" && [[ -s "${SHARE}/command-os.fingerprint" ]]; then
+  fpr=$(tr -d '[:space:]' < "${SHARE}/command-os.fingerprint")
+  if ! pacman-key --list-keys "${fpr}" >/dev/null 2>&1; then
+    pacman-key --add "${SHARE}/command-os.gpg" >/dev/null 2>&1 && pacman-key --lsign-key "${fpr}" >/dev/null 2>&1 \
+      || warn "no se pudo instalar la clave de firma de Command OS"
+  fi
+fi
+exit 0

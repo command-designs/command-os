@@ -1,0 +1,12 @@
+# Command OS: el tema del splash va dentro del initramfs; si cambia, hay que regenerarlo.
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Path
+Target = usr/share/plymouth/themes/command/*
+
+[Action]
+Description = Command OS: splash de arranque en el initramfs
+When = PostTransaction
+Exec = /usr/bin/mkinitcpio -P
+Depends = mkinitcpio

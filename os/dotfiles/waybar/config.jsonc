@@ -12,7 +12,7 @@
     "custom/logo": {
         "format": " ",
         "tooltip-format": "aplicaciones",
-        "on-click": "sh -c 'pkill -x wofi || wofi --show drun'"
+        "on-click": "command-os-launcher"
     },
     // Escritorios por el protocolo estándar ext-workspace (labwc lo implementa). Solo se ven si hay
     // más de uno (style.css oculta el botón cuando está solo); se crean y quitan con

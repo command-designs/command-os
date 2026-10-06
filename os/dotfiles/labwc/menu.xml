@@ -9,7 +9,7 @@
   <menu id="root-menu">
     <separator label="cmd-os" />
     <item label="aplicaciones" icon="view-app-grid-symbolic">
-      <action name="Execute" command="sh -c 'pkill -x wofi || wofi --show drun'" />
+      <action name="Execute" command="command-os-launcher" />
     </item>
     <item label="terminal" icon="utilities-terminal">
       <action name="Execute" command="kitty" />
@@ -78,8 +78,9 @@
     <item label="en todos los escritorios" icon="view-pin-symbolic">
       <action name="ToggleOmnipresent" />
     </item>
-    <!-- Lista de escritorios que mantiene labwc (cambia al crear o quitar escritorios). -->
-    <menu id="client-send-to-menu" label="mover a escritorio" icon="go-next-symbolic" />
+    <!-- Los escritorios que existan en ese momento (command-os-desktops menu). -->
+    <menu id="mover-a-escritorio" label="mover a escritorio" icon="go-next-symbolic"
+          execute="command-os-desktops menu" />
     <separator />
     <item label="cerrar" icon="window-close-symbolic">
       <action name="Close" />

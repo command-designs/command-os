@@ -7,7 +7,7 @@ set -uo pipefail
 
 DIR=/usr/share/command-os/wallpapers
 STATE="${XDG_CONFIG_HOME:-$HOME/.config}/command-os/wallpaper"
-STYLE="${XDG_CONFIG_HOME:-$HOME/.config}/wofi/power.css"
+STYLE="$(command-os-config wofi/power.css)"
 TAG="command-os-wallpaper"
 NAMES=(interfaz nucleo placa)
 declare -A LABEL=([interfaz]="interfaz" [nucleo]="núcleo" [placa]="placa")

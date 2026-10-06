@@ -1,10 +1,13 @@
 # Command OS — arranque de la sesión (labwc-config(5)): labwc lo ejecuta con sh al iniciar.
 # La salida de cada programa va al log de labwc ($XDG_RUNTIME_DIR/labwc.log, ver ~/.bash_profile).
+# Waybar, mako e hypridle no toman la nuestra de /etc/xdg: command-os-config les da la del usuario
+# (si existe) o la de serie del paquete.
 
+command-os-user-setup
 command-os-wallpaper
-waybar &
-mako &
-hypridle &
+waybar --config "$(command-os-config waybar/config.jsonc)" --style "$(command-os-config waybar/style.css)" &
+mako --config "$(command-os-config mako/config)" &
+hypridle --config "$(command-os-config hypr/hypridle.conf)" &
 swayosd-server &
 wl-paste --watch cliphist store &
 nm-applet --indicator &

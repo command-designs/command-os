@@ -1,0 +1,14 @@
+# Command OS — valores por defecto de todo el sistema (dconf). Cada usuario puede cambiarlos.
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'
+gtk-theme='adw-gtk3-dark'
+icon-theme='Papirus-Dark'
+cursor-theme='Adwaita'
+cursor-size=24
+accent-color='red'
+font-name='Geist 10'
+document-font-name='Geist 10'
+monospace-font-name='JetBrainsMono Nerd Font 10'
+
+[org/gnome/desktop/wm/preferences]
+button-layout=':minimize,maximize,close'

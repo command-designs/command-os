@@ -1,0 +1,9 @@
+# Command OS — al instalar o actualizar el paquete se aplica lo de sistema (lib/apply-system).
+
+post_install() {
+  /usr/lib/command-os/apply-system
+}
+
+post_upgrade() {
+  /usr/lib/command-os/apply-system
+}

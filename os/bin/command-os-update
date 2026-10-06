@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Command OS — actualiza el sistema de forma segura (en la terminal: `update`).
+#   1. Repositorios al día (fecha validada de Arch, repositorio y clave de Command OS).
+#   2. Primero solo el paquete command-os: puede traer una nueva fecha validada de Arch.
+#   3. Después, todo el sistema contra esa fecha (nunca se mezclan paquetes de días distintos).
+# Con la raíz en btrfs, snap-pac hace una instantánea antes y otra después: si algo sale mal, se
+# vuelve atrás desde el menú de arranque o con command-os-rollback.
+set -euo pipefail
+[[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
+
+/usr/lib/command-os/apply-repos
+pacman -Sy
+if pacman -Si command-os >/dev/null 2>&1; then
+  pacman -S --needed --noconfirm command-os
+fi
+/usr/lib/command-os/apply-repos
+pacman -Syu "$@"

@@ -1,0 +1,10 @@
+#!/bin/sh
+# Command OS — ruta de la configuración de un programa que no busca en /etc/xdg (mako, hypridle,
+# wofi): la del usuario si existe en ~/.config, y si no la de serie del paquete.
+#   command-os-config mako/config   ->  ~/.config/mako/config  o  /usr/share/command-os/config/mako/config
+user="${XDG_CONFIG_HOME:-$HOME/.config}/${1:?uso: command-os-config <programa/archivo>}"
+if [ -e "${user}" ]; then
+  printf '%s\n' "${user}"
+else
+  printf '%s\n' "/usr/share/command-os/config/$1"
+fi

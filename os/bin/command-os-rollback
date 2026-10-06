@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Command OS — vuelve el sistema a una instantánea (raíz en btrfs con snapper).
+#
+#   command-os-rollback            si se ha arrancado una instantánea desde el menú de GRUB
+#                                  (Esc al encender → instantáneas), la deja como sistema
+#   command-os-rollback N          vuelve a la instantánea N (ver: snapper -c root list)
+#   command-os-rollback --lista    lista las instantáneas
+#
+# Qué hace: guarda el sistema actual como @antes-de-volver-<fecha> (por si acaso), crea un @ nuevo a
+# partir de la instantánea y pide reiniciar. /home no se toca: los archivos del usuario se quedan.
+set -euo pipefail
+
+die() { echo "error: $*" >&2; exit 1; }
+[[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
+
+[[ "${1:-}" == "--lista" ]] && exec snapper -c root list
+mountpoint -q /.snapshots || die "no hay instantáneas: la raíz no es btrfs con snapper"
+
+if [[ -n "${1:-}" ]]; then
+  [[ "$1" =~ ^[0-9]+$ ]] || die "uso: command-os-rollback [N | --lista]"
+  target="@snapshots/$1/snapshot"
+else
+  target=$(sed -nE 's/.*rootflags=subvol=\/?([^ ,]+).*/\1/p' /proc/cmdline)
+  [[ "${target}" == @snapshots/*/snapshot ]] \
+    || die "no se ha arrancado una instantánea; indica el número (command-os-rollback --lista)"
+fi
+
+dev=$(findmnt -nvo SOURCE /.snapshots)
+top=$(mktemp -d /run/command-os-top.XXXX)
+mount -o subvolid=5 "${dev}" "${top}"
+trap 'umount "${top}"; rmdir "${top}"' EXIT
+[[ -d "${top}/${target}" ]] || die "no existe la instantánea ${target}"
+
+echo "Se va a volver a la instantánea ${target}."
+echo "El sistema actual se guarda como @antes-de-volver-$(date +%Y%m%d-%H%M) y /home no se toca."
+if [[ "$(uname -m)" != x86_64 ]]; then
+  echo "Aviso: en la Raspberry Pi el kernel está fuera de la instantánea (partición de arranque);"
+  echo "si se actualizó después, sus módulos no coincidirán hasta reinstalarlo."
+fi
+read -rp "Escribe SI para continuar: " ok
+[[ "${ok}" == SI ]] || die "cancelado"
+
+old="@antes-de-volver-$(date +%Y%m%d-%H%M%S)"
+mv "${top}/@" "${top}/${old}"
+btrfs subvolume snapshot "${top}/${target}" "${top}/@" >/dev/null
+echo "Hecho. Reinicia para entrar en el sistema recuperado."
+echo "Cuando todo funcione, puedes borrar la copia anterior con:"
+echo "  sudo mount -o subvolid=5 ${dev} /mnt && sudo btrfs subvolume delete /mnt/${old} && sudo umount /mnt"

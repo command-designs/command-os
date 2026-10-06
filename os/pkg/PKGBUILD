@@ -1,0 +1,95 @@
+# Command OS — la capa del sistema como paquete de pacman (arquitectura `any`: solo scripts, datos y
+# configuración; vale igual para x86_64 y aarch64).
+#
+# La configuración de serie va en carpetas del sistema (/etc/xdg, /usr/share/command-os) y el
+# usuario solo guarda lo que cambie en ~/.config: las actualizaciones llegan a todos los equipos sin
+# pisar nada personal (docs/actualizaciones.md).
+#
+# Se construye desde el propio árbol del repositorio, sin descargas:
+#   cd os/pkg && makepkg -d        (lo hacen install.sh y la publicación en GitHub Actions)
+# La versión la fija quien construye: COMMAND_OS_PKGVER (por defecto, la fecha y hora de hoy).
+
+pkgname=command-os
+pkgver=${COMMAND_OS_PKGVER:-$(date -u +%Y.%m.%d.%H%M)}
+pkgrel=1
+pkgdesc="Command OS: escritorio, marca y configuración del sistema"
+arch=('any')
+url="https://commandlab.dev/"
+license=('custom')
+install=command-os.install
+backup=()
+
+_os=$(cd "${startdir}/.." && pwd)
+# Todo el escritorio: lo que antes instalaba install.sh a mano.
+mapfile -t depends < <(grep -vE '^\s*(#|$)' "${_os}/packages.txt")
+
+package() {
+  local s="${_os}" d="${pkgdir}" f
+
+  # --- Programas (todos los command-os-*) y piezas internas ---
+  install -d "${d}/usr/bin" "${d}/usr/lib/command-os"
+  for f in "${s}"/bin/command-os-*; do
+    install -m 755 "${f}" "${d}/usr/bin/"
+  done
+  for f in "${s}"/lib/*; do
+    install -m 755 "${f}" "${d}/usr/lib/command-os/"
+  done
+  install -Dm 644 "${s}/pacman/snapshot-date" "${d}/usr/share/command-os/pacman/snapshot-date"
+  install -Dm 644 "${s}/pacman/command-os.gpg" "${d}/usr/share/command-os/pacman/command-os.gpg"
+  install -Dm 644 "${s}/pacman/command-os.fingerprint" "${d}/usr/share/command-os/pacman/command-os.fingerprint"
+
+  # --- Ganchos de pacman: lo que una actualización de Arch podría deshacer, se vuelve a aplicar ---
+  install -d "${d}/usr/share/libalpm/hooks"
+  install -m 644 "${s}"/hooks/*.hook "${d}/usr/share/libalpm/hooks/"
+
+  # --- Marca: logo, fondos, sonidos, fuentes, identidad del sistema ---
+  install -d "${d}/usr/share/command-os/"{logo,wallpapers,sounds,fastfetch,identity}
+  install -m 644 "${s}"/branding/logo/* "${d}/usr/share/command-os/logo/"
+  install -m 644 "${s}"/branding/wallpapers/* "${d}/usr/share/command-os/wallpapers/"
+  install -m 644 "${s}"/branding/sounds/*.wav "${d}/usr/share/command-os/sounds/"
+  install -m 644 "${s}"/branding/fastfetch/command-logo.txt "${d}/usr/share/command-os/fastfetch/"
+  install -m 644 "${s}"/branding/{os-release,issue,motd} "${d}/usr/share/command-os/identity/"
+  install -Dm 644 "${s}/branding/logo/command-mark-white.png" "${d}/usr/share/pixmaps/command-os.png"
+  # Oxanium y Geist (BRAND.md § 5) no están en los repos de Arch (licencia OFL incluida).
+  install -d "${d}/usr/share/fonts/command-os" "${d}/usr/share/licenses/${pkgname}"
+  install -m 644 "${s}"/branding/fonts/*.ttf "${d}/usr/share/fonts/command-os/"
+  install -m 644 "${s}"/branding/fonts/OFL-*.txt "${d}/usr/share/licenses/${pkgname}/"
+
+  # --- Temas: ventanas de labwc y splash de arranque ---
+  install -d "${d}/usr/share/themes/Command/labwc" "${d}/usr/share/plymouth/themes/command"
+  install -m 644 "${s}"/branding/labwc/Command/labwc/* "${d}/usr/share/themes/Command/labwc/"
+  install -m 644 "${s}"/branding/plymouth/command/* "${d}/usr/share/plymouth/themes/command/"
+
+  # --- Configuración de serie que los programas leen solos de /etc/xdg ---
+  # (el usuario la amplía o la sustituye con su propia copia en ~/.config)
+  install -d "${d}/etc/xdg/"{labwc,kitty,hypr,fastfetch,xdg-desktop-portal}
+  install -m 644 "${s}"/dotfiles/labwc/{rc.xml,menu.xml,environment} "${d}/etc/xdg/labwc/"
+  install -m 755 "${s}/dotfiles/labwc/autostart" "${d}/etc/xdg/labwc/"
+  install -m 644 "${s}/dotfiles/kitty/kitty.conf" "${d}/etc/xdg/kitty/"
+  install -m 644 "${s}/dotfiles/hypr/hyprlock.conf" "${d}/etc/xdg/hypr/"
+  install -m 644 "${s}/branding/fastfetch/config.jsonc" "${d}/etc/xdg/fastfetch/"
+  install -m 644 "${s}/dotfiles/xdg-desktop-portal/labwc-portals.conf" "${d}/etc/xdg/xdg-desktop-portal/"
+
+  # --- Configuración de serie de los programas que no miran /etc/xdg ---
+  # command-os-config elige la copia del usuario si existe; si no, esta.
+  local c="${d}/usr/share/command-os/config"
+  install -d "${c}/"{waybar,mako,hypr,wofi,gtk-3.0,gtk-4.0,nano,bash}
+  # Waybar trae su propia configuración de ejemplo en /etc/xdg/waybar: la nuestra va aquí.
+  install -m 644 "${s}"/dotfiles/waybar/{config.jsonc,style.css} "${c}/waybar/"
+  install -m 644 "${s}/dotfiles/mako/config" "${c}/mako/"
+  install -m 644 "${s}/dotfiles/hypr/hypridle.conf" "${c}/hypr/"
+  install -m 644 "${s}/dotfiles/hypr/hyprlock-emergencia.conf" "${c}/hypr/"
+  install -m 644 "${s}"/dotfiles/wofi/{config,style.css,power.css} "${c}/wofi/"
+  install -m 644 "${s}"/dotfiles/gtk-3.0/{gtk.css,settings.ini} "${c}/gtk-3.0/"
+  install -m 644 "${s}"/dotfiles/gtk-4.0/{gtk.css,settings.ini} "${c}/gtk-4.0/"
+  install -m 644 "${s}/dotfiles/nano/nanorc" "${c}/nano/"
+  install -m 644 "${s}/dotfiles/bash/command-os.bashrc" "${c}/bash/bashrc"
+
+  # --- Ajustes de sistema: dconf (modo oscuro, tema GTK, iconos, fuentes) y splash hasta labwc ---
+  install -Dm 644 "${s}/system/dconf/profile/user" "${d}/etc/dconf/profile/user"
+  install -Dm 644 "${s}/system/dconf/db/local.d/00-command-os" "${d}/etc/dconf/db/local.d/00-command-os"
+  install -Dm 644 "${s}/system/plymouth-quit-retain-splash.conf" \
+    "${d}/usr/lib/systemd/system/plymouth-quit.service.d/command-os-retain-splash.conf"
+
+  echo "${pkgver}" > "${d}/usr/share/command-os/version"
+}

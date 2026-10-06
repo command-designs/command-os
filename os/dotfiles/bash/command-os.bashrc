@@ -1,4 +1,4 @@
-# Command OS — shell de la terminal. Se carga desde ~/.bashrc (lo gestiona install.sh).
+# Command OS — shell de la terminal. Se carga desde ~/.bashrc (lo añade command-os-user-setup).
 [[ $- != *i* ]] && return
 
 export EDITOR=nano VISUAL=nano PAGER=less
@@ -12,7 +12,8 @@ alias ls='ls --color=auto --group-directories-first'
 alias ll='ls -lah'
 alias grep='grep --color=auto'
 alias ..='cd ..'
-alias update='sudo pacman -Syu'
+# Actualización segura: fecha validada de Arch e instantánea antes y después (command-os-update).
+alias update='command-os-update'
 
 # Prompt HUD (docs/DISENO.md): usuario en hueso, ruta en cian, rama en gris y flecha roja.
 # Si el último comando falló, se añade su código en amarillo.

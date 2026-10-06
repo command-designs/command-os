@@ -4,7 +4,7 @@
 # confirmación; las acciones van por systemd-logind (sin contraseña para la sesión activa).
 set -uo pipefail
 
-STYLE="${XDG_CONFIG_HOME:-$HOME/.config}/wofi/power.css"
+STYLE="$(command-os-config wofi/power.css)"
 TAG="command-os-power"
 
 # Si el menú ya está abierto, el segundo clic lo cierra.

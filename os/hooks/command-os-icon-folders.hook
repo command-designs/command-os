@@ -1,0 +1,11 @@
+# Command OS: papirus-icon-theme vuelve a poner las carpetas en azul al actualizarse.
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = papirus-icon-theme
+
+[Action]
+Description = Command OS: color de las carpetas de Papirus
+When = PostTransaction
+Exec = /usr/bin/command-os-icon-folders grey

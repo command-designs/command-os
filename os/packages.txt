@@ -26,6 +26,12 @@ swaybg
 mako
 hyprlock
 hypridle
+# Bloqueo de reserva si hyprlock se rompe tras una actualización (command-os-lock).
+swaylock
+# Instantáneas del sistema (solo actúan si la raíz es btrfs; install.sh las configura).
+btrfs-progs
+snapper
+snap-pac
 wlopm
 # Teclado virtual: command-os-desktops lo usa para saltar al escritorio recién creado.
 wtype

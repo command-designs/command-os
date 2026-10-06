@@ -3,7 +3,7 @@
 # Solo informa: elegir una línea cierra el panel. Debe coincidir con ~/.config/labwc/rc.xml.
 set -uo pipefail
 
-STYLE="${XDG_CONFIG_HOME:-$HOME/.config}/wofi/power.css"
+STYLE="$(command-os-config wofi/power.css)"
 TAG="command-os-keys"
 
 # Si ya está abierta, el segundo atajo la cierra.

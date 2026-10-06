@@ -1,0 +1,90 @@
+# Command OS — construye, firma y publica el paquete command-os en el repositorio público
+# command-designs/command-os-repo (Release "repo"), de donde se actualizan los equipos.
+#
+# Necesita dos secretos en este repositorio (Settings → Secrets and variables → Actions):
+#   COMMAND_OS_GPG_KEY     clave privada de firma (ASCII armor). La pública está en
+#                          os/pacman/command-os.gpg y los equipos solo aceptan lo firmado con ella.
+#   COMMAND_OS_REPO_TOKEN  token con permiso de escritura (Contents: Read and write) en
+#                          command-designs/command-os-repo.
+name: publicar
+
+on:
+  push:
+    branches: [main]
+    paths: ['os/**']
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      COMMAND_OS_GPG_KEY:
+        required: true
+      COMMAND_OS_REPO_TOKEN:
+        required: true
+
+concurrency: publicar
+
+env:
+  REPO_PUBLICO: command-designs/command-os-repo
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Herramientas
+        run: pacman -Syu --noconfirm base-devel git github-cli gnupg
+
+      - name: Clave de firma
+        env:
+          CLAVE: ${{ secrets.COMMAND_OS_GPG_KEY }}
+        run: |
+          if [ -z "$CLAVE" ]; then echo "::error::Falta el secreto COMMAND_OS_GPG_KEY"; exit 1; fi
+          printf '%s\n' "$CLAVE" | gpg --batch --import
+          huella=$(tr -d '[:space:]' < os/pacman/command-os.fingerprint)
+          gpg --batch --list-secret-keys "$huella" >/dev/null \
+            || { echo "::error::La clave del secreto no es la de os/pacman/command-os.fingerprint"; exit 1; }
+          echo "GPGKEY=$huella" >> "$GITHUB_ENV"
+
+      - name: Paquete
+        run: |
+          useradd -m constructor
+          cp -r os /home/constructor/os
+          chown -R constructor: /home/constructor/os
+          version="$(date -u +%Y.%m.%d.%H%M)"
+          runuser -u constructor -- env COMMAND_OS_PKGVER="$version" \
+            bash -c 'cd ~/os/pkg && makepkg -d --noconfirm'
+          mkdir repo
+          cp /home/constructor/os/pkg/command-os-*.pkg.tar.zst repo/
+          cd repo
+          for p in command-os-*.pkg.tar.zst; do gpg --batch --yes --detach-sign "$p"; done
+
+      - name: Repositorio
+        env:
+          GH_TOKEN: ${{ secrets.COMMAND_OS_REPO_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "::error::Falta el secreto COMMAND_OS_REPO_TOKEN"; exit 1; fi
+          cd repo
+          gh release view repo -R "$REPO_PUBLICO" >/dev/null 2>&1 || gh release create repo -R "$REPO_PUBLICO" \
+            --title "Repositorio de paquetes de Command OS" \
+            --notes "Repositorio de pacman de Command OS. Los equipos lo configuran solos (command-os-update)."
+          # Base de datos actual (si existe) y nuevo paquete; repo-add firma la base de datos.
+          gh release download repo -R "$REPO_PUBLICO" -p 'command-os.db.tar.gz' -p 'command-os.files.tar.gz' || true
+          repo-add --sign --key "$GPGKEY" -R command-os.db.tar.gz command-os-*.pkg.tar.zst
+          # Los enlaces simbólicos no se pueden subir a una Release: copias con el nombre que busca pacman.
+          for f in db files; do
+            cp -L "command-os.$f" "command-os.$f.real" && mv "command-os.$f.real" "command-os.$f"
+            cp -L "command-os.$f.sig" "command-os.$f.sig.real" && mv "command-os.$f.sig.real" "command-os.$f.sig"
+          done
+          gh release upload repo -R "$REPO_PUBLICO" --clobber \
+            command-os.db command-os.db.sig command-os.db.tar.gz command-os.db.tar.gz.sig \
+            command-os.files command-os.files.sig command-os.files.tar.gz command-os.files.tar.gz.sig \
+            command-os-*.pkg.tar.zst command-os-*.pkg.tar.zst.sig
+          # Fuera las versiones anteriores del paquete.
+          nuevo=$(ls command-os-*.pkg.tar.zst)
+          gh release view repo -R "$REPO_PUBLICO" --json assets -q '.assets[].name' \
+            | grep -E '^command-os-.*\.pkg\.tar\.zst(\.sig)?$' | grep -vxF -e "$nuevo" -e "$nuevo.sig" \
+            | while read -r viejo; do gh release delete-asset repo "$viejo" -R "$REPO_PUBLICO" -y; done
+          echo "Publicado: $nuevo"

@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Command OS — prepara la cuenta del usuario que inicia sesión. Lo ejecuta labwc al arrancar
+# (autostart) e install.sh. Idempotente y rápido: solo crea lo que falta y nunca pisa un cambio
+# hecho por el usuario.
+#
+# La configuración de serie vive en el sistema (/etc/xdg y /usr/share/command-os/config) y se
+# actualiza con el paquete. En ~/.config solo hay:
+#   - enlaces a la de serie para los programas que no saben leerla del sistema (GTK, nano); si el
+#     usuario los sustituye por un archivo propio, se respeta;
+#   - lo que el propio usuario cambie (copias completas o, en labwc, solo lo que añade).
+set -uo pipefail
+
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
+SYS=/usr/share/command-os/config
+STATE="${CFG}/command-os"
+mkdir -p "${STATE}"
+
+# --- Migración: cuentas preparadas por el install.sh anterior al paquete ---
+# Aquel install.sh copiaba la configuración entera en ~/.config y la sobrescribía en cada
+# ejecución, así que esas copias nunca fueron del usuario. Se quitan para que mande la de serie
+# (si no, taparían las actualizaciones). Se conservan los datos del usuario (marcadores de GTK) y
+# los ajustes de la máquina (teclado y perfil de VM de labwc).
+if [[ ! -e "${STATE}/layout-2" ]]; then
+  rm -rf "${CFG}"/{waybar,wofi,kitty,mako,alacritty,xdg-desktop-portal}
+  rm -f "${CFG}"/labwc/{rc.xml,menu.xml,autostart,environment}
+  rm -f "${CFG}"/hypr/{hyprlock.conf,hypridle.conf}
+  rm -f "${CFG}"/gtk-3.0/{gtk.css,settings.ini} "${CFG}"/gtk-4.0/{gtk.css,settings.ini}
+  rm -f "${CFG}/nano/nanorc" "${STATE}/bashrc"
+  touch "${STATE}/layout-2"
+fi
+
+# --- Enlaces a la configuración de serie (solo si el usuario no tiene la suya) ---
+link() {  # link destino-en-~/.config origen-en-sistema
+  local dst="${CFG}/$1" src="$2"
+  if [[ -L "${dst}" || ! -e "${dst}" ]]; then
+    mkdir -p "$(dirname "${dst}")"
+    ln -sfn "${src}" "${dst}"
+  fi
+}
+link gtk-3.0/gtk.css "${SYS}/gtk-3.0/gtk.css"
+link gtk-3.0/settings.ini "${SYS}/gtk-3.0/settings.ini"
+link gtk-4.0/gtk.css "${SYS}/gtk-4.0/gtk.css"
+link gtk-4.0/settings.ini "${SYS}/gtk-4.0/settings.ini"
+link nano/nanorc "${SYS}/nano/nanorc"
+
+# --- labwc: escritorios del usuario (command-os-desktops); de serie, uno ---
+if [[ ! -e "${CFG}/labwc/rc.xml" ]]; then
+  mkdir -p "${CFG}/labwc"
+  cat > "${CFG}/labwc/rc.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Ajustes de labwc de este usuario: se suman a los de serie (/etc/xdg/labwc/rc.xml).
+     command-os-desktops reescribe la lista de escritorios. -->
+<labwc_config>
+  <desktops>
+    <names>
+      <name>01</name>
+    </names>
+  </desktops>
+</labwc_config>
+EOF
+fi
+
+# --- Terminal: prompt y alias de Command OS en ~/.bashrc ---
+BASHRC="${HOME}/.bashrc"
+MARK="# --- Command OS: shell ---"
+touch "${BASHRC}"
+if ! grep -qF "${MARK}" "${BASHRC}"; then
+  # Bloques de versiones anteriores, que apuntaban a una copia en ~/.config.
+  sed -i "\|# --- Command OS: shell de desarrollo ---|,\|# --- fin Command OS ---|d" "${BASHRC}"
+  printf '%s\n[ -r %s ] && . %s\n# --- fin Command OS ---\n' \
+    "${MARK}" "${SYS}/bash/bashrc" "${SYS}/bash/bashrc" >> "${BASHRC}"
+fi
+
+# Sin el aviso de último acceso ni el motd al entrar en tty1 (arranque sin texto).
+[[ -e "${HOME}/.hushlogin" ]] || touch "${HOME}/.hushlogin"
+exit 0

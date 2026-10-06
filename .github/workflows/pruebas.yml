@@ -1,0 +1,36 @@
+# Command OS — pruebas en cada cambio y cada día.
+#   - scripts: sintaxis y errores graves (shellcheck) de todos los scripts.
+#   - escritorio con el Arch de la fecha validada: lo que tienen los equipos.
+#   - escritorio con el Arch del día: avisa antes de que una actualización de Arch rompa algo; si
+#     falla, no se valida una fecha nueva hasta arreglarlo (docs/actualizaciones.md).
+name: pruebas
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sintaxis
+        run: |
+          for f in os/install.sh os/lib/* os/bin/* os/pkg/PKGBUILD build/x86/*.sh tests/*.sh; do
+            bash -n "$f" || exit 1
+          done
+      - name: shellcheck (solo errores)
+        run: shellcheck -S error -e SC1090,SC1091 os/install.sh os/lib/* os/bin/* build/x86/*.sh tests/*.sh
+
+  escritorio-validada:
+    uses: ./.github/workflows/escritorio.yml
+    with:
+      arch: validada
+
+  escritorio-hoy:
+    uses: ./.github/workflows/escritorio.yml
+    with:
+      arch: hoy

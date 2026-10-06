@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Command OS — arranque silencioso (x86: GRUB · Raspberry Pi: cmdline.txt/config.txt).
+# Producto para clientes: del encendido al escritorio solo se ve el splash, sin texto del cargador,
+# del kernel ni de systemd. Soporte técnico: Esc en GRUB muestra el menú y Esc en el splash muestra
+# el arranque detallado.
+# Lo ejecutan install.sh, el paquete al instalarse o actualizarse y el gancho de pacman de GRUB
+# (cada actualización de GRUB devuelve los textos "Loading Linux…"). Idempotente.
+set -euo pipefail
+
+SILENT_ARGS="quiet splash loglevel=3 rd.udev.log_level=3 systemd.show_status=auto rd.systemd.show_status=auto vt.global_cursor_default=0"
+# VirtualBox: todo el arranque a 1280x720 (vboxvideo pondría 1024x768). Con render por software,
+# 720p es el mejor equilibrio; labwc reutiliza ese modo (<reuseOutputMode>): sin pantallazo negro.
+if [[ "$(systemd-detect-virt 2>/dev/null || true)" == "oracle" ]]; then
+  SILENT_ARGS="${SILENT_ARGS} video=1280x720"
+fi
+
+add_args() {  # add_args "línea actual" -> añade los SILENT_ARGS que falten (no quita nada)
+  local line="$1" arg
+  for arg in ${SILENT_ARGS}; do
+    [[ " ${line} " == *" ${arg} "* ]] || line="${line:+${line} }${arg}"
+  done
+  printf '%s' "${line}"
+}
+
+if [[ -f /etc/default/grub ]]; then
+  set_grub() {  # set_grub CLAVE 'valor' — reemplaza o añade
+    if grep -qE "^#?${1}=" /etc/default/grub; then
+      sed -i -E "s|^#?${1}=.*|${1}=${2}|" /etc/default/grub
+    else
+      echo "${1}=${2}" >> /etc/default/grub
+    fi
+  }
+  set_grub GRUB_DISTRIBUTOR '"Command OS"'
+  if [[ -f /etc/command-os/dualboot ]]; then
+    # Dual boot con Windows (build/x86/install-dualboot.sh): menú visible para elegir. La entrada
+    # de Windows la pone /etc/grub.d/35_command-os-windows.
+    set_grub GRUB_TIMEOUT 5
+    set_grub GRUB_TIMEOUT_STYLE menu
+  else
+    # Menú oculto: espera 1 s en silencio; Esc lo muestra (recuperación e instantáneas).
+    set_grub GRUB_TIMEOUT 1
+    set_grub GRUB_TIMEOUT_STYLE hidden
+  fi
+  set_grub GRUB_TERMINAL_OUTPUT gfxterm
+  set_grub GRUB_GFXMODE auto
+  set_grub GRUB_GFXPAYLOAD_LINUX keep
+  set_grub GRUB_BACKGROUND '"/usr/share/command-os/wallpapers/command-void.png"'
+  set_grub GRUB_COLOR_NORMAL '"light-gray/black"'
+  set_grub GRUB_COLOR_HIGHLIGHT '"light-red/black"'
+  current=$(sed -nE 's/^GRUB_CMDLINE_LINUX_DEFAULT="(.*)"/\1/p' /etc/default/grub)
+  set_grub GRUB_CMDLINE_LINUX_DEFAULT "\"$(add_args "${current}")\""
+  # Sin "Loading Linux ..." / "Loading initial ramdisk ...".
+  if [[ -f /etc/grub.d/10_linux ]]; then
+    sed -i '/echo.*"\$message"/d' /etc/grub.d/10_linux
+  fi
+  if [[ -f /boot/grub/grub.cfg ]] && command -v grub-mkconfig >/dev/null; then
+    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1 \
+      || echo "command-os: aviso: grub-mkconfig falló; el menú de arranque no se ha regenerado" >&2
+  fi
+fi
+
+if [[ -f /boot/cmdline.txt ]]; then
+  # Raspberry Pi: el kernel escribe en tty3 en vez de en la pantalla (consola serie intacta).
+  line=$(tr '\n' ' ' < /boot/cmdline.txt | sed -E 's/\bconsole=tty1\b/console=tty3/; s/ +/ /g; s/ $//')
+  printf '%s\n' "$(add_args "${line}")" > /boot/cmdline.txt
+fi
+if [[ -f /boot/config.txt ]]; then
+  # Sin el cuadro arcoíris del firmware al encender.
+  if grep -qE '^disable_splash=' /boot/config.txt; then
+    sed -i -E 's/^disable_splash=.*/disable_splash=1/' /boot/config.txt
+  else
+    echo 'disable_splash=1' >> /boot/config.txt
+  fi
+fi
+exit 0

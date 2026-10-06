@@ -2,8 +2,10 @@
 <!--
   Command OS — labwc (compositor Wayland de ventanas flotantes). Referencia: labwc-config(5) y
   labwc-actions(5). Tema de ventanas: /usr/share/themes/Command/labwc/themerc. Lenguaje visual
-  en docs/DISENO.md. Super+F1 (command-os-keys) enseña los atajos; si se cambia uno aquí, hay
-  que cambiarlo también allí.
+  en docs/DISENO.md. Es la configuración de serie (/etc/xdg/labwc); labwc arranca con la
+  opción merge-config, así que ~/.config/labwc/rc.xml solo añade o cambia lo que el usuario
+  quiera. Super+F1 (command-os-keys) enseña los atajos; si se cambia uno aquí, hay que
+  cambiarlo también allí. En los comentarios no puede haber dos guiones seguidos (XML).
 -->
 <labwc_config>
 
@@ -69,13 +71,11 @@
     <notifyClient>always</notifyClient>
   </snapping>
 
-  <!-- Escritorios: uno de serie. command-os-desktops (Super+Ctrl+D / Super+Ctrl+F4) reescribe esta
-       lista para crear o quitar hasta 4, y la barra solo los enseña cuando hay más de uno. -->
+  <!-- Escritorios: la lista de nombres (01, 02…) va en el rc.xml del usuario, que labwc suma a este
+       (opción merge-config); command-os-desktops la reescribe al crear o quitar escritorios. Aquí no se
+       ponen nombres: labwc los sumaría a los del usuario. -->
   <desktops>
     <popupTime>500</popupTime>
-    <names>
-      <name>01</name>
-    </names>
   </desktops>
 
   <keyboard>
@@ -87,16 +87,16 @@
 
     <!-- Aplicaciones. Super solo abre el lanzador (y lo cierra si ya está abierto). -->
     <keybind key="Super_L" onRelease="yes">
-      <action name="Execute" command="sh -c 'pkill -x wofi || wofi --show drun'" />
+      <action name="Execute" command="command-os-launcher" />
     </keybind>
     <keybind key="W-space">
-      <action name="Execute" command="sh -c 'pkill -x wofi || wofi --show drun'" />
+      <action name="Execute" command="command-os-launcher" />
     </keybind>
     <keybind key="W-Return"><action name="Execute" command="kitty" /></keybind>
     <keybind key="W-e"><action name="Execute" command="thunar" /></keybind>
     <keybind key="W-b"><action name="Execute" command="firefox" /></keybind>
     <keybind key="W-v">
-      <action name="Execute" command="sh -c 'cliphist list | wofi --dmenu --prompt portapapeles | cliphist decode | wl-copy'" />
+      <action name="Execute" command="command-os-clipboard" />
     </keybind>
     <keybind key="W-F1"><action name="Execute" command="command-os-keys" /></keybind>
     <keybind key="C-S-Escape"><action name="Execute" command="kitty --class btop -e btop" /></keybind>

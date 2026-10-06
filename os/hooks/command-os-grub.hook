@@ -1,0 +1,12 @@
+# Command OS: una actualización de GRUB devuelve los textos "Loading Linux…" al arranque y puede
+# cambiar la plantilla de su configuración. Se vuelve a dejar el arranque silencioso.
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = grub
+
+[Action]
+Description = Command OS: arranque silencioso en GRUB
+When = PostTransaction
+Exec = /usr/lib/command-os/apply-boot

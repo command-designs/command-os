@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Command OS — aplica todo lo de sistema que no se resuelve copiando ficheros: base de dconf,
+# carpetas de iconos, identidad, splash en el initramfs y arranque silencioso. Lo ejecuta el
+# paquete command-os al instalarse y en cada actualización (command-os.install). Idempotente.
+set -uo pipefail
+
+warn() { echo "command-os: aviso: $*" >&2; }
+
+# Restos de la instalación anterior a paquete (install.sh copiaba a mano): fuera, para que no
+# tapen a los del paquete (/usr/local/bin va antes que /usr/bin en el PATH).
+rm -f /usr/local/bin/command-os-* /etc/pacman.d/hooks/command-os-icon-folders.hook \
+  /etc/systemd/system/plymouth-quit.service.d/retain-splash.conf
+rmdir /etc/systemd/system/plymouth-quit.service.d 2>/dev/null || true
+
+dconf update || warn "dconf update falló"
+/usr/bin/command-os-icon-folders grey || warn "no se pudo cambiar el color de las carpetas"
+/usr/lib/command-os/apply-identity || warn "no se pudo aplicar la identidad del sistema"
+
+# Splash: tema de Command y gancho de plymouth en el initramfs (justo después de systemd, en el
+# initramfs de systemd, o de udev, en el clásico). Solo se regenera el initramfs si algo cambia.
+regen=0
+if ! grep -qs '^Theme=command$' /etc/plymouth/plymouthd.conf; then
+  install -d /etc/plymouth
+  printf '[Daemon]\nTheme=command\nShowDelay=0\n' > /etc/plymouth/plymouthd.conf
+  regen=1
+fi
+if [[ -f /etc/mkinitcpio.conf ]] && ! grep -qE '^HOOKS=.*\bplymouth\b' /etc/mkinitcpio.conf; then
+  if grep -qE '^HOOKS=.*\bsystemd\b' /etc/mkinitcpio.conf; then
+    sed -i -E '/^HOOKS=/ s/\bsystemd\b/systemd plymouth/' /etc/mkinitcpio.conf
+  else
+    sed -i -E '/^HOOKS=/ s/\budev\b/udev plymouth/' /etc/mkinitcpio.conf
+  fi
+  regen=1
+fi
+if (( regen )) && command -v mkinitcpio >/dev/null; then
+  mkinitcpio -P >/dev/null 2>&1 || warn "mkinitcpio falló; revisar con 'mkinitcpio -P'"
+fi
+
+/usr/lib/command-os/apply-boot || warn "no se pudo aplicar el arranque silencioso"
+# Fecha validada de Arch y repositorio de Command OS (la fecha puede venir nueva con el paquete).
+/usr/lib/command-os/apply-repos || warn "no se pudieron ajustar los repositorios"
+exit 0

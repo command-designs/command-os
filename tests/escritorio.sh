@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Command OS — prueba del escritorio sin pantalla. Arranca una sesión real (labwc sin pantalla, con
+# render por software) con el paquete command-os instalado y comprueba que todo arranca bien: es lo
+# que detecta que una actualización de Arch (labwc, Waybar, mako, hyprlock…) ha roto algo.
+#
+# Se ejecuta como root en un Arch con el paquete instalado (GitHub Actions, ver
+# .github/workflows/pruebas.yml). Deja en $SALIDA (por defecto ./resultados) los registros y una
+# captura de pantalla. Sale con 1 si algo falla.
+set -uo pipefail
+
+SALIDA=${SALIDA:-$PWD/resultados}
+USUARIO=prueba
+mkdir -p "${SALIDA}"
+fallos=0
+ok() { echo "  ok   $*"; }
+mal() { echo "  MAL  $*"; fallos=$((fallos + 1)); }
+
+echo "==> Preparación"
+id "${USUARIO}" >/dev/null 2>&1 || useradd -m -s /bin/bash "${USUARIO}"
+uid=$(id -u "${USUARIO}")
+run="/tmp/prueba-runtime"
+rm -rf "${run}"; install -d -m 700 -o "${USUARIO}" "${run}"
+como() { runuser -u "${USUARIO}" -- env HOME="/home/${USUARIO}" XDG_RUNTIME_DIR="${run}" "$@"; }
+
+echo "==> Configuración de serie"
+# Configuraciones de hyprlock: hyprlock las lee antes de conectarse a una pantalla.
+for cfg in /etc/xdg/hypr/hyprlock.conf /usr/share/command-os/config/hypr/hyprlock-emergencia.conf; do
+  if (ulimit -c 0; exec 2>&1; WAYLAND_DISPLAY=sin-pantalla exec hyprlock --config "${cfg}") | grep 'Config error' \
+      > "${SALIDA}/hyprlock-$(basename "${cfg}").txt"; then
+    mal "hyprlock: errores en ${cfg} (ver resultados)"
+  else
+    ok "hyprlock: ${cfg}"
+  fi
+done
+for f in /etc/xdg/labwc/rc.xml /etc/xdg/labwc/menu.xml; do
+  if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
+done
+
+echo "==> Sesión de labwc sin pantalla"
+como command-os-user-setup || mal "command-os-user-setup"
+# Sesión de prueba: render por software, sin dispositivos de entrada.
+como dbus-run-session -- env WLR_BACKENDS=headless WLR_RENDERER=pixman WLR_LIBINPUT_NO_DEVICES=1 \
+  WLR_HEADLESS_OUTPUTS=1 labwc --merge-config > "${SALIDA}/labwc.log" 2>&1 &
+sleep 12
+
+for p in labwc waybar mako hypridle swaybg; do
+  if pgrep -u "${uid}" -x "${p}" >/dev/null; then ok "en marcha: ${p}"; else mal "no arrancó: ${p}"; fi
+done
+if grep -aqiE 'error parsing config|parser error|no menu with id|already exists' "${SALIDA}/labwc.log"; then
+  mal "labwc: errores en su configuración (ver labwc.log)"
+else
+  ok "labwc: configuración sin errores"
+fi
+if grep -aqiE '\[error\]|critical' "${SALIDA}/labwc.log"; then
+  # nm-applet suelta avisos internos de GTK sin consecuencias; la temperatura y la batería no
+  # existen en una máquina sin hardware.
+  grep -aiE '\[error\]|critical' "${SALIDA}/labwc.log" \
+    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet' \
+    | head -5 > "${SALIDA}/errores-programas.txt"
+  if [[ -s "${SALIDA}/errores-programas.txt" ]]; then mal "errores de programas (ver errores-programas.txt)"; fi
+fi
+
+# Captura de la sesión para revisarla a ojo en los artefactos de GitHub Actions.
+display=$(basename "$(ls "${run}"/wayland-* 2>/dev/null | grep -v '\.lock$' | head -1)")
+if [[ -n "${display}" ]] && como env WAYLAND_DISPLAY="${display}" grim "${run}/escritorio.png" \
+    && cp "${run}/escritorio.png" "${SALIDA}/"; then
+  ok "captura: escritorio.png"
+else
+  mal "no se pudo hacer la captura"
+fi
+
+pkill -u "${uid}" -x labwc
+sleep 1
+echo
+if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi
+echo "==> Todo correcto"

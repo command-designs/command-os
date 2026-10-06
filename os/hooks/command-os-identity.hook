@@ -1,0 +1,12 @@
+# Command OS: el paquete filesystem de Arch es el dueño de /etc/os-release, /etc/issue y /etc/motd
+# y al actualizarse los devuelve a "Arch Linux". Se vuelve a poner la identidad de Command OS.
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = filesystem
+
+[Action]
+Description = Command OS: identidad del sistema
+When = PostTransaction
+Exec = /usr/lib/command-os/apply-identity

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Command OS — identidad del sistema: os-release, issue y motd. El paquete filesystem de Arch es su
+# dueño y al actualizarse los devuelve a "Arch Linux"; el gancho command-os-identity los repone.
+set -eu
+src=/usr/share/command-os/identity
+[ -d "${src}" ] || exit 0
+# /etc/os-release es un enlace a /usr/lib/os-release: se sustituye por un archivo propio.
+rm -f /etc/os-release
+install -m 644 "${src}/os-release" /etc/os-release
+install -m 644 "${src}/issue" /etc/issue
+install -m 644 "${src}/motd" /etc/motd
