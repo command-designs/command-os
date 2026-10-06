@@ -7,6 +7,8 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
    todavía no existe: revisar el error de la ejecución de `publicar` en Actions (o lanzarla a mano
    con Run workflow). Cuando salga, comprobar en la VM que `update` (`command-os-update`) añade el
    repositorio `[command-os]`, importa la clave y actualiza el paquete desde ahí.
+   También: **autorizar Context7** (hoy `claude mcp list` lo marca «Needs authentication»): abrir `claude` en una
+   terminal, `/mcp`, elegir `context7` y autenticar. Se hace una sola vez y vale para todos los proyectos.
    _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo bajo (es revisar un error de Actions; sube a medio si hay que tocar el flujo).
 1. **Lista de instantáneas de GRUB al día tras un retroceso.** Tras `command-os-rollback`, el
    `grub-btrfs.cfg` del sistema recuperado está desfasado hasta la siguiente instantánea:
