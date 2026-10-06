@@ -8,10 +8,46 @@ ARM en el hardware real (Raspberry Pi 5) — modelo Omarchy, pero sobre una
 base aarch64 oficial en vez de x86_64. Un colega hace el hardware, este repo
 es la parte de software/SO. Ver `README.md` para la estructura del repo.
 
-**Estado actual**: escritorio **labwc** (único escritorio de Command OS desde el 2026-10-05). El
-pipeline de instalación (`os/install.sh` + paquetes + dotfiles) funciona de punta a punta en la VM
-x86_64 de VirtualBox, con el escritorio verificado con capturas y vídeo. Falta: todavía no se probó
-nada sobre Arch Linux ARM / hardware real.
+**Estado actual**: escritorio **labwc**. Desde el 2026-10-06 Command OS es un **paquete de pacman**
+(`os/pkg`) con configuración de serie en el sistema, ganchos de pacman, bloqueo a prueba de
+roturas, Arch de una fecha validada (x86), btrfs con instantáneas y pruebas automáticas en GitHub
+Actions. **Cómo funciona y por qué: `docs/actualizaciones.md` (leerlo antes de tocar la
+instalación).** Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+usuario) y Arch Linux ARM.
+
+## Estabilidad (2026-10-06, rama `estabilidad`)
+
+- Pendiente de quien administre la organización `command-designs` (la cuenta `daniih03` no puede
+  crear repos ahí): crear `command-designs/command-os-repo` público y los secretos
+  `COMMAND_OS_GPG_KEY` (contenido de `C:\Users\danie\command-os-firma\command-os-firma-PRIVADA.asc`;
+  después guardarlo fuera del PC y borrarlo) y `COMMAND_OS_REPO_TOKEN`. Hasta entonces los equipos no
+  añaden el repositorio (lib/apply-repos solo lo añade si responde).
+- XML de labwc: **ningún comentario puede contener `--`** (p. ej. `--merge-config`): labwc deja de
+  leer el archivo entero y arranca sin configuración. Pasó y lo detectó el log.
+- labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.
+- Waybar ya trae `/etc/xdg/waybar/`: nuestra configuración de serie va en
+  `/usr/share/command-os/config/waybar/` y se pasa con `--config/--style` (command-os-config).
+- hyprlock con errores de configuración **no sale**: bloquea con la pantalla en negro y sin campo.
+  `command-os-lock` revisa la configuración antes (hyprlock contra una pantalla inexistente lee la
+  configuración y aborta; resultado guardado por huella para no generar un volcado en cada bloqueo).
+- El reposo del PC congela la VM de VirtualBox (pasó dos veces): apagarla antes. Recuperación en la
+  sección de VirtualBox más abajo.
+- `runuser` conserva el entorno de root: `as_user` en install.sh fija HOME. Dentro de un chroot
+  `systemd-detect-virt` ve el anfitrión (WSL): `is_vm` lo descarta.
+- WSL cierra los procesos lanzados con `setsid nohup` al terminar `wsl.exe`: para construir
+  imágenes, dejar `wsl.exe` en primer plano (en segundo plano desde la herramienta).
+- **VM `command-os-btrfs`** (VirtualBox, SSH `127.0.0.1:2903`, disco
+  `build/x86/vbox/command-os-btrfs.vdi`): imagen de `build-image.sh` con btrfs (VARIANT=vbox,
+  DEV_SSH_PUBKEY). Convertir: `qemu-img convert -O vdi` dentro de WSL (VBoxManage no abre rutas
+  `\\wsl.localhost`). Verificado en ella: subvolúmenes y fstab sin subvolid, snapper con pares
+  antes/después de pacman, `command-os-rollback N` (el paquete instalado desaparece, `/home` se
+  conserva, arranca del @ nuevo) y arrancar una instantánea desde GRUB (raíz `overlay` sobre
+  `@snapshots/N/snapshot`, escritorio completo). Para llegar al menú de GRUB por teclado:
+  `controlvm keyboardputscancode 01 81` (Esc) **después** de que pase el firmware (si no, abre el
+  setup UEFI: elegir Continue).
+- Pendiente: tras un retroceso, la lista de instantáneas de GRUB (`grub-btrfs.cfg` dentro del @
+  recuperado) no se regenera hasta la siguiente instantánea. `shellcheck` no se ha ejecutado en
+  local (lo hace `pruebas.yml`).
 
 ## Escritorio labwc (2026-10-05)
 

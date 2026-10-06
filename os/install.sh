@@ -42,6 +42,21 @@ if ! id "${TARGET_USER}" &>/dev/null; then
 fi
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
+echo "==> Paquete command-os (construido desde este árbol)"
+BUILD=$(mktemp -d)
+trap 'rm -rf "${BUILD}"' EXIT
+cp -r "${REPO_DIR}" "${BUILD}/os"
+chown -R "${TARGET_USER}:" "${BUILD}"
+as_user bash -c "cd '${BUILD}/os/pkg' && makepkg -df --noconfirm >/dev/null"
+PKG=$(ls "${BUILD}"/os/pkg/command-os-*.pkg.tar.*)
+# --overwrite: rutas que el install.sh anterior al paquete copiaba a mano (máquinas ya instaladas).
+pacman -U --noconfirm \
+  --overwrite '/usr/share/command-os/*' --overwrite '/usr/share/themes/Command/*' \
+  --overwrite '/usr/share/plymouth/themes/command/*' --overwrite '/usr/share/fonts/command-os/*' \
+  --overwrite '/usr/share/pixmaps/command-os.png' --overwrite '/etc/xdg/fastfetch/*' \
+  --overwrite '/etc/dconf/profile/user' --overwrite '/etc/dconf/db/local.d/00-command-os' \
+  "${PKG}"
+
 # --- Instantáneas (raíz en btrfs: lo que crean build/x86/build-image.sh y install-dualboot.sh) ---
 # snapper guarda el estado del sistema y snap-pac hace una instantánea antes y otra después de cada
 # operación de pacman. Con GRUB, grub-btrfs las añade al menú de arranque (Esc al encender) y el
@@ -73,9 +88,15 @@ setup_snapshots() {
   if [[ -f /etc/default/grub ]]; then
     pacman -S --needed --noconfirm grub-btrfs inotify-tools
     systemctl enable grub-btrfsd.service
+    # Nombre de la entrada del menú de GRUB (Esc al encender).
+    if [[ -f /etc/default/grub-btrfs/config ]]; then
+      sed -i -E 's|^#?GRUB_BTRFS_SUBMENUNAME=.*|GRUB_BTRFS_SUBMENUNAME="Command OS: instantáneas (volver atrás)"|' \
+        /etc/default/grub-btrfs/config
+    fi
     # Arrancar una instantánea de solo lectura necesita el gancho grub-btrfs-overlayfs, que solo
-    # funciona en el initramfs clásico (udev), no en el de systemd. plymouth va después de udev.
-    local hooks="HOOKS=(base udev plymouth autodetect microcode modconf kms keyboard keymap consolefont block filesystems fsck grub-btrfs-overlayfs)"
+    # funciona en el initramfs clásico (udev), no en el de systemd. plymouth va después de udev
+    # (por eso esto va después de instalar el paquete, que trae plymouth).
+    local hooks="HOOKS=(base udev plymouth autodetect microcode modconf kms keyboard keymap block filesystems fsck grub-btrfs-overlayfs)"
     if ! grep -qxF "${hooks}" /etc/mkinitcpio.conf; then
       sed -i -E "s/^HOOKS=.*/${hooks}/" /etc/mkinitcpio.conf
       mkinitcpio -P
@@ -88,21 +109,6 @@ if [[ "$(findmnt -no FSTYPE /)" == btrfs ]]; then
 else
   echo "==> Instantáneas: la raíz no es btrfs; sin instantáneas (solo en instalaciones nuevas)."
 fi
-
-echo "==> Paquete command-os (construido desde este árbol)"
-BUILD=$(mktemp -d)
-trap 'rm -rf "${BUILD}"' EXIT
-cp -r "${REPO_DIR}" "${BUILD}/os"
-chown -R "${TARGET_USER}:" "${BUILD}"
-as_user bash -c "cd '${BUILD}/os/pkg' && makepkg -df --noconfirm >/dev/null"
-PKG=$(ls "${BUILD}"/os/pkg/command-os-*.pkg.tar.*)
-# --overwrite: rutas que el install.sh anterior al paquete copiaba a mano (máquinas ya instaladas).
-pacman -U --noconfirm \
-  --overwrite '/usr/share/command-os/*' --overwrite '/usr/share/themes/Command/*' \
-  --overwrite '/usr/share/plymouth/themes/command/*' --overwrite '/usr/share/fonts/command-os/*' \
-  --overwrite '/usr/share/pixmaps/command-os.png' --overwrite '/etc/xdg/fastfetch/*' \
-  --overwrite '/etc/dconf/profile/user' --overwrite '/etc/dconf/db/local.d/00-command-os' \
-  "${PKG}"
 
 # Variante de hardware (p. ej. COMMAND_OS_VARIANT=pc-nvidia): paquetes extra de os/variants/.
 if [[ -n "${VARIANT}" ]]; then

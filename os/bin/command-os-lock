@@ -7,27 +7,39 @@
 #      una de emergencia que solo usa opciones básicas. Con errores, hyprlock no sale: bloquea con
 #      la pantalla en negro y sin campo. Por eso se revisa antes de bloquear;
 #   3. si hyprlock no funciona (librería rota tras una actualización), swaylock.
-pidof hyprlock swaylock >/dev/null 2>&1 && exit 0
+# Si fallan los tres, la sesión no se puede bloquear: se registra como crítico, se avisa en pantalla
+# y se sale con error.
+
+run="${XDG_RUNTIME_DIR:-}"
+# Una sola instancia: la que está bloqueando guarda el cerrojo hasta que se desbloquea. (pidof no
+# sirve: la revisión de abajo también es un proceso hyprlock.)
+if [ -n "${run}" ] && [ -d "${run}" ] && [ -O "${run}" ]; then
+  exec 9>"${run}/command-os-lock.cerrojo"
+  flock -n 9 || exit 0
+fi
+pidof swaylock >/dev/null 2>&1 && exit 0
 
 cfg="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprlock.conf"
 [ -e "${cfg}" ] || cfg=/etc/xdg/hypr/hyprlock.conf
 emergencia=/usr/share/command-os/config/hypr/hyprlock-emergencia.conf
 
 # Revisión sin bloquear: hyprlock lee la configuración antes de conectarse a la pantalla; contra una
-# pantalla que no existe, informa de los errores y aborta (sin volcado: ulimit -c 0). Solo se revisa
-# cuando cambian la configuración o hyprlock; el resultado se guarda hasta el próximo cambio.
-huella=$(cat "${cfg}" 2>/dev/null; stat -c %Y /usr/bin/hyprlock 2>/dev/null)
-huella=$(printf '%s' "${huella}" | cksum | cut -d' ' -f1)
-revision="${XDG_RUNTIME_DIR:-/tmp}/command-os-lock.${huella}"
-if [ ! -e "${revision}" ]; then
+# pantalla que no existe, informa de los errores y aborta (sin volcado: ulimit -c 0). El resultado
+# se guarda en la carpeta privada del usuario hasta que cambian la configuración o hyprlock (así no
+# se repite en cada bloqueo); sin carpeta privada, se revisa siempre.
+revisar() {
   if (ulimit -c 0; exec 2>&1; WAYLAND_DISPLAY=command-os-revision-sin-pantalla exec hyprlock --config "${cfg}") \
-      | grep -q 'Config error'; then
-    echo mal > "${revision}"
-  else
-    echo bien > "${revision}"
-  fi
+      | grep -q 'Config error'; then echo mal; else echo bien; fi
+}
+if [ -n "${run}" ] && [ -d "${run}" ] && [ -O "${run}" ]; then
+  huella=$( { cat "${cfg}" 2>/dev/null; stat -c %Y /usr/bin/hyprlock 2>/dev/null; } | cksum | cut -d' ' -f1)
+  revision="${run}/command-os-lock.${huella}"
+  [ -f "${revision}" ] && [ ! -L "${revision}" ] || revisar > "${revision}"
+  estado=$(cat "${revision}")
+else
+  estado=$(revisar)
 fi
-if [ "$(cat "${revision}")" = mal ]; then
+if [ "${estado}" = mal ]; then
   logger -t command-os-lock "la configuración de hyprlock (${cfg}) tiene errores; se usa la de emergencia"
   cfg="${emergencia}"
 fi
@@ -38,5 +50,10 @@ if [ "${cfg}" != "${emergencia}" ]; then
   hyprlock --config "${emergencia}" && exit 0
 fi
 logger -t command-os-lock "hyprlock no funciona; se usa swaylock"
-exec swaylock --color 0d0b0e --inside-color 15121a --ring-color d13449 \
-  --key-hl-color 5bbfc4 --text-color edebe6 --indicator-radius 80 --show-failed-attempts
+swaylock --color 0d0b0e --inside-color 15121a --ring-color d13449 \
+  --key-hl-color 5bbfc4 --text-color edebe6 --indicator-radius 80 --show-failed-attempts && exit 0
+
+logger -p auth.crit -t command-os-lock "NO SE HA PODIDO BLOQUEAR LA SESIÓN: fallan hyprlock y swaylock"
+notify-send -u critical "› la sesión no se ha podido bloquear" \
+  "fallan hyprlock y swaylock; revisar con: journalctl -t command-os-lock" 2>/dev/null
+exit 1

@@ -130,6 +130,9 @@ arch-chroot "$MNT" /bin/bash -euxc "
   grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot --bootloader-id=command-os ${NVRAM_FLAG}
   grub-mkconfig -o /boot/grub/grub.cfg
 "
+# Comprobación explícita: una instalación a medias no debe darse por buena.
+[[ -f "$MNT/usr/share/command-os/version" && -f "$MNT/boot/grub/grub.cfg" ]] \
+  || die "la instalación no se completó (ver el registro de arriba)"
 rm -rf "$MNT/root/command-os-src"
 
 if grep -q "menuentry 'Windows" "$MNT/boot/grub/grub.cfg"; then

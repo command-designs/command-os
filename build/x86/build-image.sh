@@ -66,6 +66,11 @@ arch-chroot "$MNT" /bin/bash -euxc "
   grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot --removable --no-nvram
   grub-mkconfig -o /boot/grub/grub.cfg
 "
+# Comprobación explícita: una imagen a medias no debe darse por buena aunque algún paso no
+# propague su error.
+[[ -f "$MNT/usr/share/command-os/version" && -f "$MNT/boot/grub/grub.cfg" \
+  && -f "$MNT/efi/EFI/BOOT/BOOTX64.EFI" ]] \
+  || { echo "error: la instalación no se completó (ver el registro de arriba)" >&2; exit 1; }
 
 if [[ -n "${DEV_SSH_PUBKEY:-}" ]]; then
   install -d -m 700 -o 1000 -g 1000 "$MNT/home/deck/.ssh"
