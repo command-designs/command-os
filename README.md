@@ -70,9 +70,8 @@ Por orden de prioridad:
    tecla y medir la duración real de la animación.
 3. **Pantalla de información del sistema** con nombre y código `CMD-OS` (ancla 5), visible desde el
    escritorio.
-4. **Publicar el repositorio de paquetes** (hecho el paquete, la firma y el flujo de publicación;
-   ver `docs/actualizaciones.md`): crear `command-designs/command-os-repo` (público) y los secretos
-   `COMMAND_OS_GPG_KEY` y `COMMAND_OS_REPO_TOKEN` en este repositorio.
+4. **Repositorio de paquetes** (`command-designs/command-os-versions`, público): comprobar que la
+   primera publicación de GitHub Actions sale bien (ver `docs/actualizaciones.md`).
 5. **Instalador pulido**: pedir usuario, contraseña y nombre del equipo (hoy `deck`/`deck` fijo),
    detectar variante de hardware (NVIDIA, VM, Pi) y no pisar config existente.
 6. **Bare metal en x86**: grabar `command-os-x86.img` en un USB y probar con la GPU NVIDIA real

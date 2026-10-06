@@ -17,11 +17,11 @@ usuario) y Arch Linux ARM.
 
 ## Estabilidad (2026-10-06, rama `estabilidad`)
 
-- Pendiente de quien administre la organización `command-designs` (la cuenta `daniih03` no puede
-  crear repos ahí): crear `command-designs/command-os-repo` público y los secretos
-  `COMMAND_OS_GPG_KEY` (contenido de `C:\Users\danie\command-os-firma\command-os-firma-PRIVADA.asc`;
-  después guardarlo fuera del PC y borrarlo) y `COMMAND_OS_REPO_TOKEN`. Hasta entonces los equipos no
-  añaden el repositorio (lib/apply-repos solo lo añade si responde).
+- Repositorio público de paquetes: `command-designs/command-os-versions` (creado por el usuario el
+  2026-10-06). Secretos de repositorio en `command-os`: `COMMAND_OS_GPG_KEY` y `VERSIONS_TOKEN`
+  (creados por el usuario; la clave privada salió de `C:\Users\danie\command-os-firma\`, que el
+  usuario debe guardar fuera del PC y borrar). Los equipos añaden el repositorio en cuanto existe
+  su base de datos (lib/apply-repos solo lo añade si responde).
 - XML de labwc: **ningún comentario puede contener `--`** (p. ej. `--merge-config`): labwc deja de
   leer el archivo entero y arranca sin configuración. Pasó y lo detectó el log.
 - labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.

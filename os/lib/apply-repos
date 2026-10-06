@@ -15,7 +15,7 @@ set -uo pipefail
 SHARE=${COMMAND_OS_PACMAN_DIR:-/usr/share/command-os/pacman}
 CONF=/etc/pacman.conf
 REPO_URL=$(cat /etc/command-os/repo-url 2>/dev/null \
-  || echo "https://github.com/command-designs/command-os-repo/releases/download/repo")
+  || echo "https://github.com/command-designs/command-os-versions/releases/download/repo")
 warn() { echo "command-os: aviso: $*" >&2; }
 
 # --- 1. Fecha validada de Arch (solo x86_64) ---
