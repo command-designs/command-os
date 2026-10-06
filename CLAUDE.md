@@ -18,7 +18,7 @@ usuario) y Arch Linux ARM.
 ## Estabilidad (2026-10-06, rama `estabilidad`)
 
 - Repositorio público de paquetes: `command-designs/command-os-versions` (creado por el usuario el
-  2026-10-06). Secretos de repositorio en `command-os`: `COMMAND_OS_GPG_KEY` y `VERSIONS_TOKEN`
+  2026-10-06). Secretos de repositorio en `command-os`: `COMMAND_OS_GPG_KEY` y `COMMAND_OS_VERSIONS_TOKEN`
   (creados por el usuario; la clave privada salió de `C:\Users\danie\command-os-firma\`, que el
   usuario debe guardar fuera del PC y borrar). Los equipos añaden el repositorio en cuanto existe
   su base de datos (lib/apply-repos solo lo añade si responde).

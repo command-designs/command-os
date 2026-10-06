@@ -93,7 +93,7 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
   la copia de seguridad fuera de línea del responsable. Si se pierde, hay que generar otra y
   publicar un paquete que traiga la nueva pública firmado con la antigua.
 - Publicación: `.github/workflows/publicar.yml`, en cada cambio de `os/` en `main`. Secretos:
-  `COMMAND_OS_GPG_KEY` y `VERSIONS_TOKEN` (token con escritura en el repositorio público).
+  `COMMAND_OS_GPG_KEY` y `COMMAND_OS_VERSIONS_TOKEN` (token con escritura en el repositorio público).
 
 ## 7. Pruebas automáticas (`tests/escritorio.sh`, `.github/workflows/pruebas.yml`)
 

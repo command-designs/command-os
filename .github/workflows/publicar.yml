@@ -4,7 +4,7 @@
 # Necesita dos secretos en este repositorio (Settings → Secrets and variables → Actions):
 #   COMMAND_OS_GPG_KEY     clave privada de firma (ASCII armor). La pública está en
 #                          os/pacman/command-os.gpg y los equipos solo aceptan lo firmado con ella.
-#   VERSIONS_TOKEN  token con permiso de escritura (Contents: Read and write) en
+#   COMMAND_OS_VERSIONS_TOKEN  token con permiso de escritura (Contents: Read and write) en
 #                          command-designs/command-os-versions.
 name: publicar
 
@@ -17,7 +17,7 @@ on:
     secrets:
       COMMAND_OS_GPG_KEY:
         required: true
-      VERSIONS_TOKEN:
+      COMMAND_OS_VERSIONS_TOKEN:
         required: true
 
 concurrency: publicar
@@ -63,9 +63,9 @@ jobs:
 
       - name: Repositorio
         env:
-          GH_TOKEN: ${{ secrets.VERSIONS_TOKEN }}
+          GH_TOKEN: ${{ secrets.COMMAND_OS_VERSIONS_TOKEN }}
         run: |
-          if [ -z "$GH_TOKEN" ]; then echo "::error::Falta el secreto VERSIONS_TOKEN"; exit 1; fi
+          if [ -z "$GH_TOKEN" ]; then echo "::error::Falta el secreto COMMAND_OS_VERSIONS_TOKEN"; exit 1; fi
           cd repo
           gh release view repo -R "$REPO_PUBLICO" >/dev/null 2>&1 || gh release create repo -R "$REPO_PUBLICO" \
             --title "Repositorio de paquetes de Command OS" \
