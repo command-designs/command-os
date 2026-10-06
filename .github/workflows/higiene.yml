@@ -1,0 +1,63 @@
+# Higiene del repositorio: bloquea archivos de basura, archivos demasiado grandes y posibles secretos
+# en lo que añade cada push o pull request. Reglas compartidas del equipo (docs/claude/CLAUDE.global.md
+# en command-web). Excepciones de tamaño: .github/higiene-permitidos.txt (una ruta por línea).
+name: higiene
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  higiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Comprobar archivos y secretos
+        shell: bash {0}
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # Higiene del repositorio: revisa solo lo que añade o cambia este push o pull request.
+          # Falla si hay archivos de basura, archivos demasiado grandes o algo con pinta de secreto.
+          # Excepciones: una ruta por línea en .github/higiene-permitidos.txt (solo para el tamaño).
+          set -u
+          base="${BASE:-}"; head="${HEAD:-HEAD}"; limit_kb="${LIMIT_KB:-2048}"
+          zeros=0000000000000000000000000000000000000000
+          if [ -n "$base" ] && [ "$base" != "$zeros" ] && git cat-file -e "$base^{commit}" 2>/dev/null; then
+            range="$base...$head"
+            files() { git diff --name-only -z --diff-filter=AM "$range"; }
+            added() { git diff -U0 "$range" -- "$1"; }
+          else
+            files() { git show --name-only -z --diff-filter=AM --format= "$head"; }
+            added() { git show -U0 --format= "$head" -- "$1"; }
+          fi
+          allow=.github/higiene-permitidos.txt
+          fail=0
+          err() { echo "::error file=$1::$2"; fail=1; }
+          secret_re='gh[pousr]_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{40,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|sk-[A-Za-z0-9_-]{32,}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|sb_secret_[A-Za-z0-9_-]{20,}'
+          while IFS= read -r -d '' f; do
+            case "$f" in
+              .env.example|*/.env.example) ;;
+              .env|*/.env|.env.*|*/.env.*|NUL|*/NUL|*.log|*.bak|*.orig|*.swp|*.tmp|*.pem|*.key|*.pfx|*.p12|id_rsa*|*/id_rsa*|.DS_Store|*/.DS_Store|Thumbs.db|*/Thumbs.db|node_modules/*|*/node_modules/*|.claude/settings.local.json|*/.claude/settings.local.json)
+                err "$f" "Archivo de basura o sensible: no debe subirse" ;;
+            esac
+            if [ -f "$f" ]; then
+              kb=$(( ($(wc -c < "$f") + 1023) / 1024 ))
+              if [ "$kb" -gt "$limit_kb" ] && ! { [ -f "$allow" ] && grep -qxF "$f" "$allow"; }; then
+                err "$f" "Pesa ${kb} KB (límite ${limit_kb} KB). Si es legítimo, añade su ruta a $allow"
+              fi
+              case "$f" in .github/workflows/higiene.yml|"$allow") continue ;; esac
+              if added "$f" | grep '^+' | grep -v '^+++' | grep -qE "$secret_re"; then
+                err "$f" "Contiene algo con pinta de clave o secreto (no se muestra el valor)"
+              fi
+            fi
+          done < <(files)
+          [ "$fail" -eq 0 ] && echo "Higiene OK" || echo "Higiene: hay problemas (ver arriba)"
+          exit "$fail"
