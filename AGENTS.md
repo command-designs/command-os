@@ -8,6 +8,10 @@ ARM en el hardware real (Raspberry Pi 5) — modelo Omarchy, pero sobre una
 base aarch64 oficial en vez de x86_64. Un colega hace el hardware, este repo
 es la parte de software/SO. Ver `README.md` para la estructura del repo.
 
+Ecosistema Command: sigue `ESTANDAR.md` de `command-web`
+(https://github.com/command-designs/command-web/blob/main/ESTANDAR.md) en lo que aplique a un proyecto
+que no es web (§ 12 para dispositivos).
+
 **Estado actual**: escritorio **labwc**. Desde el 2026-10-06 Command OS es un **paquete de pacman**
 (`os/pkg`) con configuración de serie en el sistema, ganchos de pacman, bloqueo a prueba de
 roturas, Arch de una fecha validada (x86), btrfs con instantáneas y pruebas automáticas en GitHub
