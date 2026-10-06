@@ -158,8 +158,8 @@ antes de cada cambio y que se le notifique (PushNotification) cuando haga falta 
 
 ## Siguientes pasos de producto
 
-Lista priorizada en `README.md` → "Siguientes pasos" (probar notificaciones/bloqueo/atajos, splash
-saltable, pantalla de info `CMD-OS`, paquete pacman `command-os`, instalador pulido, bare metal, Pi 5).
+Lista priorizada en `ROADMAP.md`: se trabaja en ese orden y se quita cada punto al terminarlo y
+verificarlo.
 
 ## Siguiente paso: bare metal (esto es lo primero a retomar)
 

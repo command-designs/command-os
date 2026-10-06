@@ -60,25 +60,7 @@ en `os/branding/` (logo, fuentes, wallpaper, splash de arranque).
 
 ## Siguientes pasos
 
-Por orden de prioridad:
-
-1. **Probar lo configurado pero no verificado** en la VM: inactividad (bloqueo a los 5 min, pantalla
-   apagada a los 10), portapapeles, teclas de volumen/brillo y el clic derecho en el escritorio
-   (no se puede simular sin ratón virtual). Ya verificados con labwc: ventanas, Alt+Tab, menús,
-   lanzador, ayuda de atajos, mezclador, bloqueo, notificaciones y espacios de trabajo.
-2. **Cerrar la firma de arranque** (`BRAND.md` § 12, ancla 2): que el splash se pueda saltar con una
-   tecla y medir la duración real de la animación.
-3. **Pantalla de información del sistema** con nombre y código `CMD-OS` (ancla 5), visible desde el
-   escritorio.
-4. **Repositorio de paquetes** (`command-designs/command-os-versions`, público): comprobar que la
-   primera publicación de GitHub Actions sale bien (ver `docs/actualizaciones.md`).
-5. **Instalador pulido**: pedir usuario, contraseña y nombre del equipo (hoy `deck`/`deck` fijo),
-   detectar variante de hardware (NVIDIA, VM, Pi) y no pisar config existente.
-6. **Bare metal en x86**: grabar `command-os-x86.img` en un USB y probar con la GPU NVIDIA real
-   (pendiente de tener el USB; ver `CLAUDE.md`).
-7. **Raspberry Pi 5 / Arch Linux ARM**: repetir el mismo `os/install.sh` sobre aarch64, primero en
-   `qemu-system-aarch64` y luego en el hardware real. Ajustar los paquetes que no existan en aarch64.
-8. **Sonido** y **diseño del objeto** (anclas 6–8 de la marca): dependen del hardware.
+En [`ROADMAP.md`](ROADMAP.md), por orden.
 
 ## Próximos pasos hacia ARM real
 
