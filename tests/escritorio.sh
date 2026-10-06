@@ -53,9 +53,10 @@ else
 fi
 if grep -aqiE '\[error\]|critical' "${SALIDA}/labwc.log"; then
   # nm-applet suelta avisos internos de GTK sin consecuencias; la temperatura y la batería no
-  # existen en una máquina sin hardware.
+  # existen en una máquina sin hardware; tampoco rfkill ni el bus del sistema (hypridle lo busca
+  # para logind y en el contenedor de CI no hay systemd).
   grep -aiE '\[error\]|critical' "${SALIDA}/labwc.log" \
-    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet' \
+    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet|RFKILL|Couldn.t create the dbus connection' \
     | head -5 > "${SALIDA}/errores-programas.txt"
   if [[ -s "${SALIDA}/errores-programas.txt" ]]; then mal "errores de programas (ver errores-programas.txt)"; fi
 fi
