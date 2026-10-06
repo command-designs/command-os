@@ -6,3 +6,15 @@ build/packer/crash.log
 *.log
 .vagrant/
 build/x86/vbox/
+# Basura habitual (reglas de higiene de Command)
+NUL
+*.bak
+*.orig
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
