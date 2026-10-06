@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Command OS — funciones comunes de los instaladores x86 (build-image.sh, install-dualboot.sh).
 # Se cargan con `source`.
 
