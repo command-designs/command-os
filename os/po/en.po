@@ -281,6 +281,39 @@ msgstr "desktops"
 msgid "ya hay %d escritorios"
 msgstr "there are already %d desktops"
 
+#, python-format
+msgid "no se pudo generar %s (locale-gen)"
+msgstr "could not generate %s (locale-gen)"
+
+#, python-format
+msgid "no se pudo generar %s: falta su definición en /usr/share/i18n/locales"
+msgstr "could not generate %s: its definition is missing in /usr/share/i18n/locales"
+
+#, python-format
+msgid "idioma: %s (%s)"
+msgstr "language: %s (%s)"
+
+msgid "sin definir"
+msgstr "not set"
+
+msgid "uso: command-os-idioma [lista | IDIOMA]"
+msgstr "usage: command-os-idioma [lista | LANGUAGE]"
+
+#, python-format
+msgid "idioma no disponible: %s (los que hay: command-os-idioma lista)"
+msgstr "language not available: %s (the ones there are: command-os-idioma lista)"
+
+#, python-format
+msgid "el idioma ya es %s"
+msgstr "the language is already %s"
+
+msgid "aviso: no se pudo rehacer el menú de arranque"
+msgstr "warning: could not rebuild the boot menu"
+
+#, python-format
+msgid "hecho: el idioma del sistema es %s. Se aplica del todo al reiniciar."
+msgstr "done: the system language is %s. It applies fully after a restart."
+
 msgid "aplicaciones"
 msgstr "applications"
 
@@ -384,7 +417,38 @@ msgid "la sesión no se ha podido bloquear"
 msgstr "the session could not be locked"
 
 msgid "fallan hyprlock y swaylock; revisar con: journalctl -t command-os-lock"
-msgstr "hyprlock and swaylock both failed; check with: journalctl -t command-os-lock"
+msgstr ""
+"hyprlock and swaylock both failed; check with: journalctl -t command-os-lock"
+
+#, python-format
+msgid "al encender: entra solo como %s"
+msgstr "at power on: signs in automatically as %s"
+
+msgid "al encender: pide usuario y contraseña"
+msgstr "at power on: asks for user and password"
+
+msgid "uso: command-os-login [auto [usuario] | pedir]"
+msgstr "usage: command-os-login [auto [user] | pedir]"
+
+msgid "indica el usuario: command-os-login auto USUARIO"
+msgstr "give the user: command-os-login auto USER"
+
+#, python-format
+msgid "no existe el usuario %s"
+msgstr "user %s does not exist"
+
+#, python-format
+msgid "%s no es una cuenta de persona"
+msgstr "%s is not a person's account"
+
+#, python-format
+msgid ""
+"hecho: al encender entrará solo como %s (la pantalla se sigue bloqueando con "
+"contraseña)"
+msgstr "done: at power on it will sign in automatically as %s (the screen still locks with a password)"
+
+msgid "hecho: al encender pedirá usuario y contraseña"
+msgstr "done: at power on it will ask for user and password"
 
 msgid "cancelar"
 msgstr "cancel"
@@ -395,8 +459,82 @@ msgstr "yes, restart"
 msgid "sí, apagar"
 msgstr "yes, shut down"
 
+msgid "no hay instantáneas: la raíz no es btrfs con snapper"
+msgstr "no snapshots: the root is not btrfs with snapper"
+
+msgid "uso: command-os-rollback [N | --lista]"
+msgstr "usage: command-os-rollback [N | --lista]"
+
+msgid ""
+"no se ha arrancado una instantánea; indica el número (command-os-rollback --"
+"lista)"
+msgstr "no snapshot was booted; give its number (command-os-rollback --lista)"
+
+#, python-format
+msgid "no existe la instantánea %s"
+msgstr "snapshot %s does not exist"
+
+#, python-format
+msgid "Se va a volver a la instantánea %s."
+msgstr "The system will go back to snapshot %s."
+
+#, python-format
+msgid "El sistema actual se guarda como %s y /home no se toca."
+msgstr "The current system is kept as %s and /home is not touched."
+
+msgid ""
+"Aviso: en la Raspberry Pi el kernel está fuera de la instantánea (partición "
+"de arranque);"
+msgstr "Warning: on the Raspberry Pi the kernel is outside the snapshot (boot partition);"
+
+msgid "si se actualizó después, sus módulos no coincidirán hasta reinstalarlo."
+msgstr "if it was updated afterwards, its modules will not match until it is reinstalled."
+
+msgid "SI"
+msgstr "YES"
+
+#, python-format
+msgid "Escribe %s para continuar:"
+msgstr "Type %s to continue:"
+
+msgid "cancelado"
+msgstr "cancelled"
+
+#, python-format
+msgid "error: %s; se deja el sistema como estaba"
+msgstr "error: %s; the system is left as it was"
+
+#, python-format
+msgid "error: la instantánea tiene dos kernels %s"
+msgstr "error: the snapshot has two %s kernels"
+
+#, python-format
+msgid "Kernel %s %s: es el mismo que hay en /boot."
+msgstr "Kernel %s %s: it is the same as the one in /boot."
+
+#, python-format
+msgid "Kernel %s %s del sistema recuperado: rehaciendo su initramfs…"
+msgstr "Kernel %s %s of the recovered system: rebuilding its initramfs…"
+
+msgid "aviso: la instantánea no tiene ningún kernel; se queda el de /boot"
+msgstr "warning: the snapshot has no kernel; the one in /boot stays"
+
+msgid "no se pudo poner el kernel de la instantánea en /boot"
+msgstr "could not put the snapshot's kernel in /boot"
+
+msgid "Hecho. Reinicia para entrar en el sistema recuperado."
+msgstr "Done. Restart to enter the recovered system."
+
+msgid "Cuando todo funcione, puedes borrar la copia anterior con:"
+msgstr "When everything works, you can delete the previous copy with:"
+
 msgid "sin red"
 msgstr "no network"
+
+msgid ""
+"command-os: el kernel se ha actualizado; reinicia para terminar (systemctl "
+"reboot)."
+msgstr "command-os: the kernel was updated; restart to finish (systemctl reboot)."
 
 msgid "hace un momento"
 msgstr "just now"

@@ -7,6 +7,7 @@
 # vuelve atrás desde el menú de arranque o con command-os-rollback.
 set -euo pipefail
 [[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
+source /usr/lib/command-os/textos.sh
 
 /usr/lib/command-os/apply-repos
 pacman -Sy
@@ -20,5 +21,5 @@ pacman -Syu "$@"
 # borra): hay que reiniciar para estrenar el nuevo.
 if [[ ! -d "/usr/lib/modules/$(uname -r)" ]]; then
   echo
-  echo "command-os: el kernel se ha actualizado; reinicia para terminar (systemctl reboot)."
+  echo "$(t 'command-os: el kernel se ha actualizado; reinicia para terminar (systemctl reboot).')"
 fi

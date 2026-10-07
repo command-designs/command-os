@@ -16,7 +16,7 @@ PO="${REPO}/os/po"
 PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py)
 SHELL_=(
   os/lib/crear-cuenta os/lib/apply-boot
-  os/bin/command-os-{about,captura,desktops,keys,lock,power,status,updates,wallpaper}
+  os/bin/command-os-{about,captura,desktops,idioma,keys,lock,login,power,rollback,status,update,updates,wallpaper}
 )
 # Archivos de configuración que no pueden llamar a gettext (lib/traducir.py, docs/idioma.md): los
 # textos entre {{ }}, y las etiquetas label="…" de los menús de labwc.

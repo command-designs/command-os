@@ -16,10 +16,14 @@ asistente de primer arranque o cualquier texto que se traduzca.
 - **Qué cambia:** el asistente, la pantalla de inicio de sesión, el menú y el tema de GRUB, los
   mensajes de `crear-cuenta`, **el escritorio entero** (barra y su aviso de actualizaciones, menús de
   labwc, paneles «atajos», «acerca de» y energía, fondos, pantalla de bloqueo, notificaciones de
-  capturas, escritorios y bloqueo fallido) y los programas que traen su propia traducción (GTK,
-  Firefox…). Sigue en castellano lo que está en `ROADMAP.md`: las órdenes de terminal
-  (`command-os-update`, `-rollback`, `-login`, `-idioma`), el texto del splash y el instalador. Los
-  registros y diagnósticos de administración (`logger`, avisos de `apply-*`) se quedan en castellano.
+  capturas, escritorios y bloqueo fallido), **las órdenes de terminal** (`command-os-update`,
+  `-rollback`, `-login`, `-idioma`: sus mensajes salen en el idioma de la sesión que las lanza) y los
+  programas que traen su propia traducción (GTK, Firefox…). Sigue en castellano lo que está en
+  `ROADMAP.md` (el texto del splash y el instalador), el `motd` (no se ve: las cuentas llevan
+  `.hushlogin`) y los registros y diagnósticos de administración (`logger`, avisos de `apply-*`, uso de
+  las órdenes internas).
+- **Confirmar un `command-os-rollback`:** se escribe la palabra que dice el aviso: `SI` en castellano,
+  `YES` en inglés.
 - **Cuándo se nota:** barra, menús y bloqueo leen el idioma al abrir la sesión: tras
   `command-os-idioma en`, al cerrar sesión y volver a entrar (o reiniciar).
 - El teclado es aparte: elegir inglés no cambia la distribución del teclado.
@@ -78,7 +82,9 @@ en los archivos de configuración, `{{texto}}` (Waybar, hyprlock) o la propia et
   escritorio y atajos, «acerca de», bloqueo («session locked»), avisos de capturas y de escritorios,
   y la barra con su configuración traducida; sin avisos «already exists» de labwc. `tests/idioma.sh`
   comprueba Waybar (JSON válido), hyprlock, el menú (XML válido y mismo número de etiquetas),
-  `lib/menus-labwc`, `t`/`tn` en los dos idiomas y el aviso de actualizaciones.
+  `lib/menus-labwc`, `t`/`tn` en los dos idiomas y el aviso de actualizaciones. Las órdenes de
+  terminal, con `LANG` en cada idioma: errores y estado de `command-os-idioma`, modo de
+  `command-os-login`, error de `command-os-rollback` (sin instantáneas) y su palabra de confirmación.
 - Sin probar: verlo en un PC real (lo mismo que la VM salvo la pantalla).
 
 **Decisiones** (con lo descartado, en `docs/decisiones.md`): gettext y no un diccionario propio;
