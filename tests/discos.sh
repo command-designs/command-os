@@ -121,7 +121,11 @@ cat "${NVRAM_FALSA}"
 FAKE
 chmod +x "${FALSO}/efibootmgr"
 : > "${NVRAM_BORRADAS}"
-PATH="${FALSO}:${PATH}" forget_nvram_entries "${LIMPIO}"
+# Con set -e, como en los instaladores: una entrada que apunta a una partición que no existe no
+# puede cerrar el instalador (blkid sale con 2).
+( set -e; PATH="${FALSO}:${PATH}" forget_nvram_entries "${LIMPIO}"; touch "${T}/nvram-acabo" )
+[[ -f "${T}/nvram-acabo" ]] && ok "con set -e, termina aunque una entrada apunte a una partición que no existe" \
+  || mal "forget_nvram_entries cierra el instalador con set -e"
 grep -q -- '-b 0003 ' "${NVRAM_BORRADAS}" && ok "borra la entrada que apunta a una partición que ya no existe" \
   || mal "no borra la entrada muerta"
 grep -q -- '-b 0002 ' "${NVRAM_BORRADAS}" && mal "borra el Command OS de otro disco" || ok "respeta el Command OS de otro disco"

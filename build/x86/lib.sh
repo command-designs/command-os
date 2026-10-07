@@ -98,7 +98,9 @@ forget_nvram_entries() {
   local disk=$1 n guid dev d borrar
   while read -r n guid; do
     borrar=1
-    dev=$(blkid -t "PARTUUID=${guid}" -o device 2>/dev/null | head -1)
+    # blkid sale con 2 si la partición no existe (justo el caso que se busca): con set -e y
+    # pipefail cerraría el instalador sin decir nada.
+    dev=$(blkid -t "PARTUUID=${guid}" -o device 2>/dev/null | head -1 || true)
     if [[ -n "${dev}" ]]; then
       for d in $(disk_of "${dev}"); do [[ "${d}" != "${disk}" ]] && borrar=0; done
     fi
