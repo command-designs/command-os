@@ -5,5 +5,8 @@
 # avisar y `systemctl` hablaría con el sistema del anfitrión. No espera y nunca falla.
 [ -d /run/systemd/system ] || exit 0
 systemd-detect-virt --chroot --quiet && exit 0
-systemctl --no-block start command-os-check-updates@auto.service >/dev/null 2>&1
+# `restart`, no `start`: si ya hay una comprobación en marcha (dos operaciones de pacman seguidas, como
+# hace command-os-update), `start` no haría nada y esa comprobación, empezada antes de la última
+# operación, quedaría anterior al cambio de pacman y la barra la ocultaría hasta dentro de 6 horas.
+systemctl --no-block restart command-os-check-updates@auto.service >/dev/null 2>&1
 exit 0
