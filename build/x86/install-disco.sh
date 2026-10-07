@@ -11,7 +11,8 @@
 # disco del sistema en marcha, uno con particiones montadas, swap o volúmenes en uso, ni uno de solo
 # lectura; enseña lo que hay y pide escribir el nombre exacto del disco (y BORRAR WINDOWS si lo tiene).
 #
-# Variables: KB_LAYOUT (teclado, default es), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
+# Variables: COMMAND_OS_IDIOMA (es|en, mensajes e idioma del sistema; default es), KB_LAYOUT
+# (teclado; default es, o us en inglés), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
 # (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (disco mínimo, 30),
 # CIFRADO=si|no (no pregunta si cifrar; la contraseña y la clave de recuperación se piden siempre),
 # ROLLING=1 (Arch del día en vez de la fecha validada). Solo para pruebas en una VM: NO_NVRAM=1
@@ -21,8 +22,9 @@ set -euo pipefail
 
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
 source "${REPO}/build/x86/lib.sh"
+cargar_idioma
 DISK=${1:-}
-KB_LAYOUT=${KB_LAYOUT:-es}
+KB_LAYOUT=${KB_LAYOUT:-${KB_DEFECTO}}
 TIMEZONE=${TIMEZONE:-Europe/Madrid}
 HOSTNAME_NEW=${HOSTNAME_NEW:-command-os}
 MNT=/mnt/command-os
@@ -31,15 +33,15 @@ die() { echo "error: $*" >&2; exit 1; }
 cleanup() { set +e; mountpoint -q "$MNT" && umount -R "$MNT"; close_luks; }
 trap cleanup EXIT
 
-[[ $(id -u) -eq 0 ]] || die "ejecutar como root"
+[[ $(id -u) -eq 0 ]] || die "$(t 'ejecutar como root')"
 require_live_usb
-[[ -n "$DISK" ]] || die "uso: $0 /dev/<disco>   (ver discos con: lsblk -do NAME,SIZE,MODEL)"
+[[ -n "$DISK" ]] || die "$(t 'uso: %s /dev/<disco>   (ver discos con: lsblk -do NAME,SIZE,MODEL)' "$0")"
 [[ -n "${NO_NVRAM:-}" || -d /sys/firmware/efi ]] \
-  || die "el USB no arrancó en modo UEFI (desactiva CSM/Legacy en la BIOS)"
+  || die "$(t 'el USB no arrancó en modo UEFI (desactiva CSM/Legacy en la BIOS)')"
 
 problems=$(disk_problems "$DISK")
 if [[ -n "$problems" ]]; then
-  echo "No se puede instalar en $DISK:" >&2
+  echo "$(t 'No se puede instalar en %s:' "$DISK")" >&2
   sed 's/^/  - /' <<< "$problems" >&2
   exit 1
 fi
@@ -50,15 +52,15 @@ prepare_encryption
 echo
 lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,MODEL,SERIAL "$DISK"
 echo
-echo "SE VA A BORRAR TODO EL DISCO $DISK ($(lsblk -dno SIZE "$DISK" | tr -d ' '), $(lsblk -dno MODEL "$DISK" | xargs))."
-echo "Todo lo que contiene (sistemas, particiones y archivos) se pierde y no se puede recuperar."
+echo "$(t 'SE VA A BORRAR TODO EL DISCO %s (%s, %s).' "$DISK" "$(lsblk -dno SIZE "$DISK" | tr -d ' ')" "$(lsblk -dno MODEL "$DISK" | xargs)")"
+echo "$(t 'Todo lo que contiene (sistemas, particiones y archivos) se pierde y no se puede recuperar.')"
 if disk_has_windows "$DISK"; then
-  echo "Este disco tiene WINDOWS. Si quieres conservarlo, cancela y usa el dual boot (docs/dualboot.md)."
+  echo "$(t 'Este disco tiene WINDOWS. Si quieres conservarlo, cancela y usa el dual boot (docs/dualboot.md).')"
 fi
-confirm_erase "$DISK" || die "cancelado: no se ha tocado nada"
+confirm_erase "$DISK" || die "$(t 'cancelado: no se ha tocado nada')"
 
 pacman -Sy --needed --noconfirm arch-install-scripts gptfdisk dosfstools btrfs-progs cryptsetup >/dev/null
-echo "==> Particiones"
+echo "==> $(t 'Particiones')"
 ESP=$(part_path "$DISK" 1)
 mkdir -p "$MNT"
 if [[ "$CIFRADO" == si ]]; then
@@ -66,7 +68,7 @@ if [[ "$CIFRADO" == si ]]; then
   BOOT=$(part_path "$DISK" 2)
   ROOT=$(part_path "$DISK" 3)
   mkfs.fat -F32 -n EFI "$ESP" >/dev/null
-  echo "==> Cifrando el disco (LUKS2)"
+  echo "==> $(t 'Cifrando el disco (LUKS2)')"
   luks_root "$ROOT"
   btrfs_root "/dev/mapper/$LUKS_NAME" "$MNT"
   boot_partition "$BOOT" "$MNT"
@@ -85,6 +87,6 @@ configure_system "$MNT" propia "$DISK"
 
 sync
 echo
-echo "==> Command OS instalado en $DISK."
-[[ "$CIFRADO" == si ]] && echo "    Disco cifrado: al encender, escribe su contraseña en la pantalla de arranque."
-echo "    Quita el USB y reinicia (reboot): el asistente de primer arranque te pide crear tu cuenta."
+echo "==> $(t 'Command OS instalado en %s.' "$DISK")"
+[[ "$CIFRADO" == si ]] && echo "    $(t 'Disco cifrado: al encender, escribe su contraseña en la pantalla de arranque.')"
+echo "    $(t 'Quita el USB y reinicia (reboot): el asistente de primer arranque te pide crear tu cuenta.')"

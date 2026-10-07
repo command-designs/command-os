@@ -17,6 +17,7 @@ PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py build/make-plymouth-textos.p
 SHELL_=(
   os/lib/crear-cuenta os/lib/apply-boot
   os/bin/command-os-{about,captura,desktops,idioma,keys,lock,login,power,rollback,status,update,updates,wallpaper}
+  build/x86/{instalar,lib,install-disco,install-dualboot}.sh
 )
 # Archivos de configuración que no pueden llamar a gettext (lib/traducir.py, docs/idioma.md): los
 # textos entre {{ }}, y las etiquetas label="…" de los menús de labwc.

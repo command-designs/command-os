@@ -19,7 +19,8 @@ asistente de primer arranque o cualquier texto que se traduzca.
   capturas, escritorios y bloqueo fallido), **las órdenes de terminal** (`command-os-update`,
   `-rollback`, `-login`, `-idioma`: sus mensajes salen en el idioma de la sesión que las lanza), **la
   contraseña del disco cifrado en el splash** y los programas que traen su propia traducción (GTK,
-  Firefox…). Sigue en castellano lo que está en `ROADMAP.md` (el instalador), el `motd` (no se ve: las cuentas llevan
+  Firefox…). También **el instalador** (`instalar-command-os.sh` y `build/x86/`): pregunta el idioma
+  antes que nada e instala el sistema en ese idioma. Siguen en castellano el `motd` (no se ve: las cuentas llevan
   `.hushlogin`) y los registros y diagnósticos de administración (`logger`, avisos de `apply-*`, uso de
   las órdenes internas).
 - **Confirmar un `command-os-rollback`:** se escribe la palabra que dice el aviso: `SI` en castellano,
@@ -62,13 +63,26 @@ en los archivos de configuración, `{{texto}}` (Waybar, hyprlock) o la propia et
    quedan vacíos y los cambiados, marcados `fuzzy`. Traducirlos y quitar la marca.
 4. `tests/idioma.sh` (CI) falla si falta alguna traducción, hay alguna `fuzzy` o sobra algún texto.
 
+## El instalador
+
+Corre en el USB de Arch, que solo trae el locale `C.UTF-8` (con él gettext no traduce) y no tiene
+Command OS. `instalar-command-os.sh` pregunta el idioma antes de descargar nada (sus pocos mensajes
+van escritos en los dos idiomas, porque aún no tiene el catálogo) y lo pasa como `COMMAND_OS_IDIOMA`.
+`cargar_idioma` (`build/x86/lib.sh`) genera el locale (`localedef`, un segundo), compila
+`os/po/<idioma>.po` del mismo árbol (`msgfmt`) y deja `IDIOMA` (el `LANG` del sistema instalado) y el
+teclado de serie (`us` en inglés). Las traducciones salen siempre del árbol del instalador, nunca de un
+Command OS instalado; en castellano no se traduce aunque el entorno esté en otro idioma. Las
+confirmaciones que se teclean (`BORRAR WINDOWS`, `SI`) son las del idioma elegido, y solo esas
+(`tests/discos.sh`).
+
 ## Añadir un idioma
 
 1. Su línea en `IDIOMAS` de `os/bin/command-os-idioma` (locale y nombre en su idioma). El asistente
    saca la lista de ahí.
 2. `os/po/<código>.po` (copiar `en.po`, cambiar `Language:` y traducir).
 3. Generar su locale en los instaladores (`build/x86/lib.sh`, `build/x86/build-image.sh`) para que
-   elegirlo en el asistente no tarde. Si no, `command-os-idioma` lo genera al elegirlo (unos segundos).
+   elegirlo en el asistente no tarde, y añadirlo a `elegir_idioma`/`cargar_idioma` (`build/x86/lib.sh`)
+   y a la pregunta de `instalar-command-os.sh`. Si no, `command-os-idioma` lo genera al elegirlo (unos segundos).
 4. Splash del disco cifrado: `python build/make-plymouth-textos.py` (sus imágenes) y los textos del
    idioma en `textos_cifrado` de `os/initcpio/hooks/command-os-cifrado`, con una palabra que
    `command.script` reconozca (`display_password_callback`). `tests/idioma.sh` lo comprueba.

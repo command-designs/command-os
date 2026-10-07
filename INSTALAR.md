@@ -54,16 +54,19 @@ bash instalar-command-os.sh
 `instalar-command-os.sh` descarga el instalador y **comprueba que está firmado con la clave de Command
 OS** antes de ejecutar nada (si no, no hace nada). Después pregunta:
 
-1. **Cómo instalar:** `1` junto a Windows, `2` disco entero.
-2. **En qué disco:** enseña los discos con tamaño y modelo. El USB no aparece y, en disco entero, los
+1. **Idioma / Language:** `1` castellano (por defecto) o `2` inglés. Es el de las preguntas y el del
+   sistema que se instala (después se cambia en el asistente de primer arranque o con
+   `command-os-idioma`).
+2. **Cómo instalar:** `1` junto a Windows, `2` disco entero.
+3. **En qué disco:** enseña los discos con tamaño y modelo. El USB no aparece y, en disco entero, los
    que no se pueden usar salen sin número y con el motivo.
-3. **Cifrar el disco** (recomendado, sí por defecto): la contraseña del disco (al menos 8 caracteres,
+4. **Cifrar el disco** (recomendado, sí por defecto): la contraseña del disco (al menos 8 caracteres,
    sin ñ ni tildes) y una **clave de recuperación** de 48 cifras que **tienes que apuntar**: te pide
    dos de sus grupos para comprobarlo. Sin contraseña ni clave, los datos no se recuperan
    ([`docs/cifrado.md`](docs/cifrado.md)).
-4. **Confirmación:** enseña el disco y lo que contiene. En disco entero hay que **escribir el nombre
-   del disco** (por ejemplo `/dev/nvme0n1`) y, si tiene Windows, `BORRAR WINDOWS`. Hasta aquí no se
-   ha tocado nada.
+5. **Confirmación:** enseña el disco y lo que contiene. En disco entero hay que **escribir el nombre
+   del disco** (por ejemplo `/dev/nvme0n1`) y, si tiene Windows, `BORRAR WINDOWS` (en inglés,
+   `ERASE WINDOWS`); junto a Windows, `SI` (`YES`). Hasta aquí no se ha tocado nada.
 
 Tarda 10–20 min (descarga unos 2 GB). Al terminar: `reboot` y quita el USB.
 
@@ -71,7 +74,8 @@ Tarda 10–20 min (descarga unos 2 GB). Al terminar: `reboot` y quita el USB.
 
 | Variable | Qué cambia | Por defecto |
 | --- | --- | --- |
-| `KB_LAYOUT` | Teclado de la consola y de la contraseña del disco | `es` |
+| `COMMAND_OS_IDIOMA` | Idioma (`es` o `en`) sin preguntarlo | se pregunta |
+| `KB_LAYOUT` | Teclado de la consola y de la contraseña del disco | `es` (`us` en inglés) |
 | `TIMEZONE` | Zona horaria | `Europe/Madrid` |
 | `HOSTNAME_NEW` | Nombre del equipo en la red | `command-os` |
 | `VARIANT` | `pc-nvidia` (drivers NVIDIA), `vbox` (VirtualBox) o vacío (Intel/AMD) | `pc-nvidia` si detecta GPU NVIDIA |
@@ -143,7 +147,7 @@ argumento. Siguen comprobando el disco y pidiendo la misma confirmación.
 
 ```sh
 curl -fLO https://github.com/command-designs/command-os-versions/releases/download/instalador/instalar-command-os.sh
-bash instalar-command-os.sh            # descarga y comprueba; en la primera pregunta, cualquier otra tecla cancela
+bash instalar-command-os.sh            # descarga y comprueba; en «cómo instalar», cualquier otra tecla cancela
 cd /root/command-os-instalador/command-os
 lsblk -o NAME,SIZE,MODEL               # identificar el disco
 bash build/x86/install-disco.sh /dev/nvme0n1       # disco entero (lo borra)

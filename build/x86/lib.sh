@@ -4,9 +4,71 @@
 
 # Opciones de montaje de btrfs: compresión ligera (menos escritura en USB/SSD) y sin atime.
 BTRFS_OPTS=noatime,compress=zstd:1
-# Idioma de serie (docs/idioma.md): locale.conf y el menú de GRUB del instalador. Se cambia en el
-# asistente de primer arranque o con command-os-idioma.
+# Idioma del sistema instalado (docs/idioma.md): locale.conf y el menú de GRUB. Castellano, o el que
+# se eligió al empezar a instalar (cargar_idioma). Se cambia después en el asistente de primer
+# arranque o con command-os-idioma.
 IDIOMA=es_ES.UTF-8
+
+# --- Idioma del instalador (docs/idioma.md) ---
+# Los mensajes van con t/tn (os/lib/textos.sh). Sus traducciones salen de os/po/ de este mismo árbol,
+# nunca de las de un Command OS instalado: así un instalador nunca habla con textos de otra versión.
+LIB_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../../os/lib/textos.sh
+source "${LIB_DIR}/../../os/lib/textos.sh"
+LOCALE_DIR=${COMMAND_OS_LOCALE_DIR:-/tmp/command-os-locale}
+# En castellano (el texto original), una carpeta sin catálogos: aunque el entorno tenga LANG en otro
+# idioma y haya un catálogo compilado de otra vez, sale el original. cargar_idioma la cambia.
+export TEXTDOMAINDIR=${LOCALE_DIR}/original
+
+# elegir_idioma — pregunta el idioma (en los dos idiomas) si COMMAND_OS_IDIOMA no viene en el entorno.
+# instalar-command-os.sh tiene su propia copia: corre antes de descargar este árbol.
+elegir_idioma() {
+  local r
+  [[ -n "${COMMAND_OS_IDIOMA:-}" ]] && return 0
+  printf '\n  Idioma / Language\n    1) Español\n    2) English\n\n'
+  while :; do
+    read -rp "Elige / Choose [1]: " r || return 1
+    case "${r}" in
+      ""|1) COMMAND_OS_IDIOMA=es; break ;;
+      2) COMMAND_OS_IDIOMA=en; break ;;
+    esac
+  done
+  export COMMAND_OS_IDIOMA
+}
+
+# cargar_idioma — aplica COMMAND_OS_IDIOMA (es por defecto): IDIOMA del sistema instalado, teclado de
+# serie (KB_DEFECTO) y los mensajes. El USB de Arch solo trae el locale C.UTF-8, con el que gettext no
+# traduce: se genera el del idioma (localedef, un segundo) y se compila su catálogo (msgfmt).
+cargar_idioma() {
+  local codigo=${COMMAND_OS_IDIOMA:-es}
+  case "${codigo}" in
+    es) IDIOMA=es_ES.UTF-8 KB_DEFECTO=es ;;
+    en) IDIOMA=en_US.UTF-8 KB_DEFECTO=us ;;
+    *) die "COMMAND_OS_IDIOMA: es o en (no ${codigo})" ;;
+  esac
+  export COMMAND_OS_IDIOMA=${codigo}
+  [[ "${codigo}" == es ]] && return 0
+  if ! locale -a 2>/dev/null | grep -qix "${IDIOMA%%.*}.utf-\?8"; then
+    localedef -i "${IDIOMA%%.*}" -f UTF-8 "${IDIOMA}" 2>/dev/null \
+      || { echo "warning: could not generate ${IDIOMA}; messages stay in Spanish" >&2; return 0; }
+  fi
+  mkdir -p "${LOCALE_DIR}/${codigo}/LC_MESSAGES"
+  msgfmt -o "${LOCALE_DIR}/${codigo}/LC_MESSAGES/command-os.mo" "${LIB_DIR}/../../os/po/${codigo}.po" 2>/dev/null \
+    || { echo "warning: no translations for ${codigo}; messages stay in Spanish" >&2; return 0; }
+  export TEXTDOMAINDIR=${LOCALE_DIR}
+  # Solo para gettext: el resto del instalador (pacstrap, arch-chroot) sigue con el locale del USB.
+  # Con env y no con una asignación delante: así bash no intenta cambiar su propio locale.
+  gettext() { env -u LC_ALL LC_MESSAGES="${IDIOMA}" gettext "$@"; }
+  ngettext() { env -u LC_ALL LC_MESSAGES="${IDIOMA}" ngettext "$@"; }
+}
+
+# parrafo "$(t '…')" [SANGRÍA] — un párrafo ya traducido, ajustado a 98 columnas contando la sangría
+# (dos espacios si no se da). Los párrafos van
+# enteros en una línea: así se traducen enteros, sin cortes que dependan del idioma.
+parrafo() {
+  local sangria=${2:-  }
+  printf '%s\n' "$1" | fold -s -w $(( 98 - ${#sangria} )) | sed "s/^/${sangria}/"
+}
 
 # btrfs_root DISPOSITIVO PUNTO_DE_MONTAJE — formatea en btrfs y monta los subvolúmenes:
 #   @           /                      el sistema: lo que guardan las instantáneas
@@ -74,7 +136,7 @@ declare -F die >/dev/null || die() { echo "error: $*" >&2; exit 1; }
 # COMMAND_OS_FUERA_DEL_USB=1 lo salta (solo para pruebas en una VM).
 require_live_usb() {
   [[ -d /run/archiso || -n "${COMMAND_OS_FUERA_DEL_USB:-}" ]] \
-    || die "esto se ejecuta desde el USB en vivo de Arch Linux, no desde un sistema instalado"
+    || die "$(t 'esto se ejecuta desde el USB en vivo de Arch Linux, no desde un sistema instalado')"
 }
 
 # detect_variant — si no se eligió variante (VARIANT sin definir), pc-nvidia con GPU NVIDIA.
@@ -83,7 +145,7 @@ detect_variant() {
     VARIANT=
     if lspci 2>/dev/null | grep -qiE '(vga|3d|display).*nvidia'; then VARIANT=pc-nvidia; fi
   fi
-  echo "==> Variante: ${VARIANT:-ninguna (GPU Intel/AMD)}"
+  echo "==> $(t 'Variante: %s' "${VARIANT:-$(t 'ninguna (GPU Intel/AMD)')}")"
 }
 
 # install_base MONTAJE REPO [PAQUETES...] — sistema base con el Arch de la fecha validada, fstab y
@@ -118,7 +180,7 @@ forget_nvram_entries() {
       for d in $(disk_of "${dev}"); do [[ "${d}" != "${disk}" ]] && borrar=0; done
     fi
     if (( borrar )); then
-      efibootmgr -q -b "${n}" -B || echo "aviso: no se pudo borrar la entrada UEFI vieja Boot${n}" >&2
+      efibootmgr -q -b "${n}" -B || echo "$(t 'aviso: no se pudo borrar la entrada UEFI vieja Boot%s' "${n}")" >&2
     fi
   done < <(efibootmgr -v 2>/dev/null \
     | sed -nE 's/^Boot([0-9A-Fa-f]{4})\*? command-os\t.*HD\([0-9]+,GPT,([0-9A-Fa-f-]+),.*/\1 \2/p')
@@ -152,7 +214,7 @@ configure_system() {
   if [[ -z "${NO_NVRAM:-}" ]]; then forget_nvram_entries "${disk}"; fi
   arch-chroot "${mnt}" /bin/bash -euxc "
     ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
-    # Castellano de serie; inglés generado para poder elegirlo en el asistente (command-os-idioma).
+    # Los dos idiomas generados: el elegido al instalar y el otro, para poder cambiarlo en el asistente.
     echo 'es_ES.UTF-8 UTF-8' >> /etc/locale.gen
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
     locale-gen
@@ -160,29 +222,31 @@ configure_system() {
     echo 'KEYMAP=${KB_LAYOUT}' > /etc/vconsole.conf
     echo ${HOSTNAME_NEW} > /etc/hostname
     passwd -l root
-    COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${COMMAND_OS_SSH:-0} COMMAND_OS_PAQUETE=${paquete} bash /root/command-os-src/os/install.sh
-    if [[ '${VARIANT}' == pc-nvidia ]]; then
-      grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
-    fi
+    # cryptdevice= antes de install.sh: apply-boot añade a GRUB_CMDLINE_LINUX lo suyo (command-os.idioma=)
+    # y conserva lo que haya.
     if [[ -n '${cmdline}' ]]; then
       sed -i -E '/^#?GRUB_CMDLINE_LINUX=/d' /etc/default/grub
       echo 'GRUB_CMDLINE_LINUX=\"${cmdline}\"' >> /etc/default/grub
+    fi
+    COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${COMMAND_OS_SSH:-0} COMMAND_OS_PAQUETE=${paquete} bash /root/command-os-src/os/install.sh
+    if [[ '${VARIANT}' == pc-nvidia ]]; then
+      grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
     fi
     ${boot}
     LANG=${IDIOMA} grub-mkconfig -o /boot/grub/grub.cfg
   "
   # Comprobación explícita: una instalación a medias no debe darse por buena.
   [[ -f "${mnt}/usr/share/command-os/version" && -f "${mnt}/boot/grub/grub.cfg" ]] \
-    || die "la instalación no se completó (ver el registro de arriba)"
+    || die "$(t 'la instalación no se completó (ver el registro de arriba)')"
   if [[ "${efi}" == propia && ! -f "${mnt}/efi/EFI/BOOT/BOOTX64.EFI" ]]; then
-    die "falta el arranque de reserva EFI/BOOT/BOOTX64.EFI"
+    die "$(t 'falta el arranque de reserva EFI/BOOT/BOOTX64.EFI')"
   fi
   # Cifrado: sin cryptdevice= en el menú o sin los ganchos en el initramfs, el equipo no arrancaría.
   if [[ -n "${luks}" ]]; then
     grep -q "cryptdevice=UUID=${luks}:${LUKS_NAME}" "${mnt}/boot/grub/grub.cfg" \
-      || die "el menú de GRUB no abre el disco cifrado (falta cryptdevice=)"
+      || die "$(t 'el menú de GRUB no abre el disco cifrado (falta cryptdevice=)')"
     grep -qE '^HOOKS=.*\bcommand-os-cifrado encrypt\b' "${mnt}/etc/mkinitcpio.conf" \
-      || die "el initramfs no tiene los ganchos del disco cifrado"
+      || die "$(t 'el initramfs no tiene los ganchos del disco cifrado')"
   fi
   rm -rf "${mnt}/root/command-os-src"
 }
@@ -199,36 +263,46 @@ disk_of() {
   lsblk -nrpso NAME,TYPE "$1" 2>/dev/null | awk '$2 == "disk" || $2 == "loop" { print $1 }'
 }
 
+# disk_is_live_usb DISCO — 0 si es el USB en vivo (aunque se haya copiado a la RAM, su etiqueta sigue
+# ahí: ARCH_AAAAMM, o Ventoy).
+disk_is_live_usb() { lsblk -nro LABEL "$1" 2>/dev/null | grep -qE '^(ARCH_|Ventoy$|VTOYEFI$)'; }
+
+# disk_runs_system DISCO — 0 si tiene el sistema en marcha (la raíz, o el medio del USB en vivo).
+disk_runs_system() {
+  local src d
+  for src in $(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null) $(findmnt -nro SOURCE / 2>/dev/null); do
+    for d in $(disk_of "${src}"); do
+      [[ "${d}" == "$1" ]] && return 0
+    done
+  done
+  return 1
+}
+
 # disk_problems DISCO — por qué NO se puede borrar este disco, una razón por línea (nada = se puede).
+# Las razones son para leerlas (van traducidas): quien necesite saber cuál es, que pregunte con las
+# funciones de arriba (disk_is_live_usb, disk_runs_system), no buscando palabras en el texto.
 # COMMAND_OS_DISCOS_LOOP=1 admite discos loop (pruebas). MIN_GB: tamaño mínimo (30 por defecto).
 disk_problems() {
   local disk=$1 type src d name size target montajes
-  if [[ ! -b "${disk}" ]]; then echo "${disk} no existe o no es un disco"; return 0; fi
+  if [[ ! -b "${disk}" ]]; then echo "$(t '%s no existe o no es un disco' "${disk}")"; return 0; fi
   type=$(lsblk -dno TYPE "${disk}")
   if [[ "${type}" != disk && ! ( "${type}" == loop && -n "${COMMAND_OS_DISCOS_LOOP:-}" ) ]]; then
     case "${type}" in
-      part) type="una partición" ;;
-      rom) type="un lector de CD/DVD" ;;
-      *) type="un dispositivo de tipo ${type:-desconocido}" ;;
+      part) echo "$(t '%s es una partición, no un disco entero (ejemplo: /dev/nvme0n1, no /dev/nvme0n1p2)' "${disk}")" ;;
+      rom) echo "$(t '%s es un lector de CD/DVD, no un disco entero' "${disk}")" ;;
+      *) echo "$(t '%s es un dispositivo de tipo %s, no un disco entero' "${disk}" "${type:-?}")" ;;
     esac
-    echo "${disk} es ${type}, no un disco entero (ejemplo: /dev/nvme0n1, no /dev/nvme0n1p2)"
     return 0
   fi
-  [[ "$(lsblk -dno RO "${disk}" | tr -d ' ')" == 1 ]] && echo "${disk} es de solo lectura"
+  [[ "$(lsblk -dno RO "${disk}" | tr -d ' ')" == 1 ]] && echo "$(t '%s es de solo lectura' "${disk}")"
   # Si lsblk no da el tamaño, cuenta como 0: ante la duda, no se borra.
   size=$(lsblk -dbno SIZE "${disk}" 2>/dev/null | tr -d ' ')
   [[ "${size}" =~ ^[0-9]+$ ]] || size=0
   if (( size < ${MIN_GB:-30} * 1024 * 1024 * 1024 )); then
-    echo "${disk} es demasiado pequeño (mínimo ${MIN_GB:-30} GB)"
+    echo "$(t '%s es demasiado pequeño (mínimo %s GB)' "${disk}" "${MIN_GB:-30}")"
   fi
-  # El USB en vivo (aunque se haya copiado a la RAM, su etiqueta sigue ahí: ARCH_AAAAMM, o Ventoy) y
-  # el disco del sistema en marcha.
-  lsblk -nro LABEL "${disk}" | grep -qE '^(ARCH_|Ventoy$|VTOYEFI$)' && echo "${disk} es el USB de instalación de Arch"
-  for src in $(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null) $(findmnt -nro SOURCE / 2>/dev/null); do
-    for d in $(disk_of "${src}"); do
-      [[ "${d}" == "${disk}" ]] && echo "${disk} tiene el sistema que está en marcha"
-    done
-  done
+  disk_is_live_usb "${disk}" && echo "$(t '%s es el USB de instalación de Arch' "${disk}")"
+  disk_runs_system "${disk}" && echo "$(t '%s tiene el sistema que está en marcha' "${disk}")"
   # Montajes desde la tabla del núcleo (findmnt), no desde una columna de lsblk que puede faltar.
   # Un subvolumen de btrfs sale como /dev/sdb2[/@]: se quita lo de los corchetes.
   montajes=""
@@ -239,16 +313,16 @@ disk_problems() {
       [[ "${d}" == "${disk}" ]] && montajes+=" ${target}"
     done
   done < <(findmnt -rno SOURCE,TARGET)
-  [[ -n "${montajes}" ]] && echo "${disk} tiene particiones montadas:${montajes}"
+  [[ -n "${montajes}" ]] && echo "$(t '%s tiene particiones montadas:%s' "${disk}" "${montajes}")"
   for src in $(swapon --show=NAME --noheadings 2>/dev/null); do
     for d in $(disk_of "${src}"); do
-      [[ "${d}" == "${disk}" ]] && echo "${disk} tiene swap en uso (${src})"
+      [[ "${d}" == "${disk}" ]] && echo "$(t '%s tiene swap en uso (%s)' "${disk}" "${src}")"
     done
   done
   # Algo encima de alguna de sus particiones: LVM, RAID o un volumen cifrado abierto.
   for name in $(lsblk -nro NAME "${disk}"); do
     if [[ -n "$(ls -A "/sys/class/block/${name}/holders" 2>/dev/null)" ]]; then
-      echo "${disk} está en uso (LVM, RAID o un volumen cifrado abierto en ${name})"
+      echo "$(t '%s está en uso (LVM, RAID o un volumen cifrado abierto en %s)' "${disk}" "${name}")"
       break
     fi
   done
@@ -263,16 +337,28 @@ disk_has_windows() {
 }
 
 # confirm_erase DISCO — pide escribir el nombre exacto del disco (y, si tiene Windows, BORRAR
-# WINDOWS). Sale con 0 solo si coincide todo: un Intro o un «sí» no borran nada.
+# WINDOWS, o la frase de su idioma: ERASE WINDOWS). Sale con 0 solo si coincide todo: un Intro o un
+# «sí» no borran nada. La frase es la que se enseña en el mismo aviso, y solo esa: la de otro idioma
+# no vale (tests/discos.sh).
 confirm_erase() {
-  local disk=$1 ok
-  read -rp "Para borrarlo, escribe el nombre del disco (${disk}): " ok || return 1
+  local disk=$1 ok frase
+  read -rp "$(t 'Para borrarlo, escribe el nombre del disco (%s):' "${disk}") " ok || return 1
   [[ "${ok}" == "${disk}" ]] || return 1
   if disk_has_windows "${disk}"; then
-    read -rp "Este disco tiene Windows y se perderá. Escribe BORRAR WINDOWS para seguir: " ok || return 1
-    [[ "${ok}" == "BORRAR WINDOWS" ]] || return 1
+    frase=$(t 'BORRAR WINDOWS')
+    read -rp "$(t 'Este disco tiene Windows y se perderá. Escribe %s para seguir:' "${frase}") " ok || return 1
+    [[ -n "${frase}" && "${ok}" == "${frase}" ]] || return 1
   fi
   return 0
+}
+
+# confirmar_si — pide escribir la palabra de confirmación (SI, o la de su idioma: YES), la que se
+# enseña. Sale con 0 solo si coincide exacta.
+confirmar_si() {
+  local ok palabra
+  palabra=$(t 'SI')
+  read -rp "$(t 'Escribe %s para continuar:' "${palabra}") " ok || return 1
+  [[ -n "${palabra}" && "${ok}" == "${palabra}" ]]
 }
 
 # partition_whole_disk DISCO [cifrado] — borra la tabla y las firmas del disco y crea GPT con EFI de
@@ -294,7 +380,7 @@ partition_whole_disk() {
   udevadm settle 2>/dev/null || sleep 2
   local i
   for (( i = 1; i <= n; i++ )); do
-    [[ -b "$(part_path "${disk}" "${i}")" ]] || die "no aparecieron las particiones nuevas de ${disk}"
+    [[ -b "$(part_path "${disk}" "${i}")" ]] || die "$(t 'no aparecieron las particiones nuevas de %s' "${disk}")"
   done
 }
 
@@ -309,18 +395,17 @@ RECOVERY_DIGITS=48     # 8 grupos de 6 cifras, ~159 bits; solo cifras: se teclea
 # ask_encryption — deja CIFRADO=si|no. Si ya viene en el entorno, no pregunta. Por defecto, sí.
 ask_encryption() {
   local r
-  case "${CIFRADO:-}" in si|no) return 0 ;; "") ;; *) die "CIFRADO debe ser si o no" ;; esac
-  cat <<'EOF'
-
-  Cifrado del disco (recomendado)
-  Sin la contraseña nadie puede leer lo que hay en Command OS, aunque se lleve el equipo o saque
-  el disco. Se escribe al encender, en la pantalla de arranque.
-
-EOF
+  case "${CIFRADO:-}" in si|no) return 0 ;; "") ;; *) die "$(t 'CIFRADO debe ser si o no')" ;; esac
+  echo
+  echo "  $(t 'Cifrado del disco (recomendado)')"
+  parrafo "$(t 'Sin la contraseña nadie puede leer lo que hay en Command OS, aunque se lleve el equipo o saque el disco. Se escribe al encender, en la pantalla de arranque.')"
+  echo
+  # Sí y no en los dos idiomas: aquí no se confirma nada que no tenga vuelta atrás (el borrado se
+  # confirma después, aparte).
   while :; do
-    read -rp "¿Cifrar el disco? [S/n]: " r || return 1
+    read -rp "$(t '¿Cifrar el disco? [S/n]:') " r || return 1
     case "${r,,}" in
-      ""|s|si|sí) CIFRADO=si; return 0 ;;
+      ""|s|si|sí|y|yes) CIFRADO=si; return 0 ;;
       n|no) CIFRADO=no; return 0 ;;
     esac
   done
@@ -330,23 +415,23 @@ EOF
 # se teclea antes de que arranque el sistema y, si el teclado no las diera, no se podría entrar.
 password_problem() {
   local LC_ALL=C   # byte a byte: una ñ o una tilde no entran en el rango ASCII de abajo
-  if (( ${#1} < 8 )); then echo "tiene que tener al menos 8 caracteres"; return 0; fi
-  if [[ ! "$1" =~ ^[\ -~]+$ ]]; then echo "solo letras sin tilde, cifras, espacios y símbolos (sin ñ ni tildes)"; fi
+  if (( ${#1} < 8 )); then t 'tiene que tener al menos 8 caracteres'; return 0; fi
+  if [[ ! "$1" =~ ^[\ -~]+$ ]]; then t 'solo letras sin tilde, cifras, espacios y símbolos (sin ñ ni tildes)'; fi
   return 0
 }
 
 # ask_disk_password — pide la contraseña dos veces hasta que valga y coincida; la deja en CLAVE_DISCO.
 ask_disk_password() {
   local a b p
-  echo "La contraseña del disco: al menos 8 caracteres, sin ñ ni tildes. No se muestra al escribirla."
+  echo "$(t 'La contraseña del disco: al menos 8 caracteres, sin ñ ni tildes. No se muestra al escribirla.')"
   while :; do
-    read -rsp "Contraseña del disco: " a || { echo; return 1; }
+    read -rsp "$(t 'Contraseña del disco:') " a || { echo; return 1; }
     echo
     p=$(password_problem "${a}")
-    if [[ -n "${p}" ]]; then echo "No vale: ${p}."; continue; fi
-    read -rsp "Repítela: " b || { echo; return 1; }
+    if [[ -n "${p}" ]]; then echo "$(t 'No vale: %s.' "${p}")"; continue; fi
+    read -rsp "$(t 'Repítela:') " b || { echo; return 1; }
     echo
-    if [[ "${a}" != "${b}" ]]; then echo "No coinciden. Otra vez."; continue; fi
+    if [[ "${a}" != "${b}" ]]; then echo "$(t 'No coinciden. Otra vez.')"; continue; fi
     CLAVE_DISCO=${a}
     return 0
   done
@@ -371,33 +456,27 @@ recovery_group() { echo "${1:$(( ($2 - 1) * 6 )):6}"; }
 show_recovery_key() {
   local k g1 g2 a b i shown=""
   k=$(new_recovery_key)
-  [[ ${#k} == "${RECOVERY_DIGITS}" ]] || die "no se pudo generar la clave de recuperación"
+  [[ ${#k} == "${RECOVERY_DIGITS}" ]] || die "$(t 'no se pudo generar la clave de recuperación')"
   for i in 1 2 3 4 5 6 7 8; do
     shown+="$(recovery_group "${k}" "${i}")"
     if (( i == 4 )); then shown+=$'\n      '; elif (( i < 8 )); then shown+="-"; fi
   done
   while :; do
     g1=$(( RANDOM % 4 + 1 )) g2=$(( RANDOM % 4 + 5 ))
-    cat <<EOF
-
-  Clave de recuperación
-  Si olvidas la contraseña del disco, esta clave es la ÚNICA forma de entrar: Command OS no guarda
-  ninguna copia y nadie puede recuperarla. Apúntala en papel (o en un gestor de contraseñas de otro
-  aparato) y guárdala lejos del equipo. Se escribe al encender, en lugar de la contraseña.
-
-      ${shown}
-
-EOF
-    read -rp "Para comprobarla, escribe el grupo ${g1}: " a || return 1
-    read -rp "Y el grupo ${g2}: " b || return 1
+    echo
+    echo "  $(t 'Clave de recuperación')"
+    parrafo "$(t 'Si olvidas la contraseña del disco, esta clave es la ÚNICA forma de entrar: Command OS no guarda ninguna copia y nadie puede recuperarla. Apúntala en papel (o en un gestor de contraseñas de otro aparato) y guárdala lejos del equipo. Se escribe al encender, en lugar de la contraseña.')"
+    printf '\n      %s\n\n' "${shown}"
+    read -rp "$(t 'Para comprobarla, escribe el grupo %s:' "${g1}") " a || return 1
+    read -rp "$(t 'Y el grupo %s:' "${g2}") " b || return 1
     if [[ "${a}" == "$(recovery_group "${k}" "${g1}")" && "${b}" == "$(recovery_group "${k}" "${g2}")" ]]; then
       break
     fi
-    echo "No coincide: revisa lo que has apuntado."
+    echo "$(t 'No coincide: revisa lo que has apuntado.')"
   done
   # Fuera de la pantalla y del historial de la terminal (sin depender de TERM, como clear).
   [[ -t 1 ]] && printf '\033[H\033[2J\033[3J'
-  echo "Clave de recuperación comprobada."
+  echo "$(t 'Clave de recuperación comprobada.')"
   CLAVE_RECUPERACION=${k}
 }
 
@@ -406,15 +485,15 @@ EOF
 # (keymap de /etc/vconsole.conf): si la consola en vivo tuviera otra, una contraseña con símbolos
 # no se podría volver a escribir.
 prepare_encryption() {
-  ask_encryption || die "cancelado: no se ha tocado nada"
+  ask_encryption || die "$(t 'cancelado: no se ha tocado nada')"
   [[ "${CIFRADO}" == si ]] || return 0
   if [[ -t 0 ]] && command -v loadkeys >/dev/null; then
     loadkeys "${KB_LAYOUT}" >/dev/null 2>&1 \
-      || die "no se pudo poner el teclado ${KB_LAYOUT} (KB_LAYOUT) para escribir la contraseña"
+      || die "$(t 'no se pudo poner el teclado %s (KB_LAYOUT) para escribir la contraseña' "${KB_LAYOUT}")"
   fi
-  echo "Teclado: ${KB_LAYOUT} (el mismo con el que se escribirá la contraseña al encender)."
-  ask_disk_password || die "cancelado: no se ha tocado nada"
-  show_recovery_key || die "cancelado: no se ha tocado nada"
+  echo "$(t 'Teclado: %s (el mismo con el que se escribirá la contraseña al encender).' "${KB_LAYOUT}")"
+  ask_disk_password || die "$(t 'cancelado: no se ha tocado nada')"
+  show_recovery_key || die "$(t 'cancelado: no se ha tocado nada')"
 }
 
 # luks_root PARTICIÓN — la cifra (LUKS2, argon2id) con CLAVE_DISCO y, en otra ranura, la clave de
@@ -425,13 +504,13 @@ luks_root() {
   local part=$1
   [[ -n "${CLAVE_DISCO:-}" && -n "${CLAVE_RECUPERACION:-}" ]] || die "luks_root: faltan las claves"
   [[ ! -e "/dev/mapper/${LUKS_NAME}" ]] \
-    || die "ya hay un volumen abierto como ${LUKS_NAME}: ciérralo (cryptsetup close ${LUKS_NAME}) y vuelve a empezar"
+    || die "$(t 'ya hay un volumen abierto como %s: ciérralo (cryptsetup close %s) y vuelve a empezar' "${LUKS_NAME}" "${LUKS_NAME}")"
   printf '%s' "${CLAVE_DISCO}" | cryptsetup luksFormat --batch-mode --type luks2 --pbkdf argon2id \
-    --label command-os --key-file=- "${part}" || die "no se pudo cifrar ${part}"
+    --label command-os --key-file=- "${part}" || die "$(t 'no se pudo cifrar %s' "${part}")"
   printf '%s' "${CLAVE_DISCO}" | cryptsetup luksAddKey --batch-mode --pbkdf argon2id --key-file=- \
-    "${part}" <(printf '%s' "${CLAVE_RECUPERACION}") || die "no se pudo añadir la clave de recuperación"
+    "${part}" <(printf '%s' "${CLAVE_RECUPERACION}") || die "$(t 'no se pudo añadir la clave de recuperación')"
   printf '%s' "${CLAVE_DISCO}" | cryptsetup open --allow-discards --persistent --key-file=- \
-    "${part}" "${LUKS_NAME}" || die "no se pudo abrir ${part}"
+    "${part}" "${LUKS_NAME}" || die "$(t 'no se pudo abrir %s' "${part}")"
   LUKS_ABIERTO=1
   unset CLAVE_DISCO CLAVE_RECUPERACION
 }

@@ -94,6 +94,27 @@ confirm_erase "${LIMPIO}" <<< "${LIMPIO}" >/dev/null 2>&1 && ok "el nombre exact
 confirm_erase "${WINDOWS}" <<< "${WINDOWS}" >/dev/null 2>&1 && mal "con Windows basta el nombre" || ok "con Windows no basta el nombre"
 printf '%s\nBORRAR WINDOWS\n' "${WINDOWS}" | confirm_erase "${WINDOWS}" >/dev/null 2>&1 \
   && ok "con Windows: nombre y BORRAR WINDOWS" || mal "con Windows no acepta la frase"
+printf '%s\nERASE WINDOWS\n' "${WINDOWS}" | confirm_erase "${WINDOWS}" >/dev/null 2>&1 \
+  && mal "en castellano acepta ERASE WINDOWS" || ok "en castellano, ERASE WINDOWS no confirma"
+confirmar_si <<< "SI" >/dev/null 2>&1 && ok "dual boot: SI confirma" || mal "dual boot: SI no confirma"
+for r in "" si YES sí Si; do
+  confirmar_si <<< "${r}" >/dev/null 2>&1 && mal "dual boot: «${r}» confirma" || ok "dual boot: «${r}» no confirma"
+done
+# En inglés (cargar_idioma), la frase y la palabra son las traducidas, y solo esas: las del otro
+# idioma no borran. En un subproceso: el resto de pruebas sigue en castellano.
+(
+  fallos=0   # los de dentro: se suman fuera
+  COMMAND_OS_IDIOMA=en cargar_idioma
+  printf '%s\nERASE WINDOWS\n' "${WINDOWS}" | confirm_erase "${WINDOWS}" >/dev/null 2>&1 \
+    && ok "en inglés: nombre y ERASE WINDOWS" || mal "en inglés no acepta ERASE WINDOWS"
+  printf '%s\nBORRAR WINDOWS\n' "${WINDOWS}" | confirm_erase "${WINDOWS}" >/dev/null 2>&1 \
+    && mal "en inglés acepta BORRAR WINDOWS" || ok "en inglés, BORRAR WINDOWS no confirma"
+  confirm_erase "${WINDOWS}" <<< "${WINDOWS}" >/dev/null 2>&1 && mal "en inglés, con Windows basta el nombre" \
+    || ok "en inglés, con Windows no basta el nombre"
+  confirmar_si <<< "YES" >/dev/null 2>&1 && ok "en inglés, YES confirma el dual boot" || mal "en inglés, YES no confirma"
+  confirmar_si <<< "SI" >/dev/null 2>&1 && mal "en inglés, SI confirma el dual boot" || ok "en inglés, SI no confirma"
+  exit "${fallos}"
+) || fallos=$((fallos + $?))
 
 echo "==> Rutas de las particiones"
 for par in /dev/sda:/dev/sda1 /dev/nvme0n1:/dev/nvme0n1p1 /dev/mmcblk0:/dev/mmcblk0p1 /dev/loop7:/dev/loop7p1; do
