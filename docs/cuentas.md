@@ -6,8 +6,9 @@ pantalla de inicio de sesión, `greetd` o la creación de cuentas.
 ## Para quien usa el equipo
 
 - **Primer arranque.** Un equipo nuevo no trae ninguna cuenta. Al encenderlo por primera vez, el
-  asistente pide teclado, tu nombre (opcional), usuario y contraseña (al menos 8 caracteres, dos
-  veces) y si quieres entrar sin contraseña al encender.
+  asistente pide idioma (castellano o inglés; [`idioma.md`](idioma.md)), teclado, tu nombre
+  (opcional), usuario y contraseña (al menos 8 caracteres, dos veces) y si quieres entrar sin
+  contraseña al encender.
 - **Tu cuenta administra el equipo.** La primera cuenta está en el grupo `wheel`: instala programas,
   actualiza y cambia el sistema con `sudo` y **su propia contraseña**. La cuenta `root` está
   bloqueada; toda la administración pasa por `sudo`. Lo dice el asistente y «acerca de cmd-os»
@@ -42,9 +43,9 @@ el cifrado del disco, que el instalador propone de serie ([`cifrado.md`](cifrado
 | `greetd` (tty1) | Gestor de inicio de sesión. Lee `/etc/command-os/greetd.toml` (drop-in `greetd.service.d/command-os.conf`). |
 | `lib/apply-login` | Genera ese `greetd.toml` desde el estado y activa greetd. Lo ejecutan el paquete en cada actualización, `crear-cuenta` y `command-os-login`. |
 | `command-os-primer-arranque` + `lib/primer-arranque.py` | Asistente (GTK 4 en `cage`, como root) mientras no existe `/var/lib/command-os/configurado`. Código 3 = cambio de teclado: se reabre `cage` con la distribución nueva. |
-| `lib/crear-cuenta` | Crea la cuenta (wheel), fija la contraseña por stdin, bloquea root, guarda teclado y marca el equipo como configurado. Si falla, no deja nada a medias. |
+| `lib/crear-cuenta` | Crea la cuenta (wheel), fija la contraseña por stdin, aplica el idioma (`command-os-idioma`), bloquea root, guarda teclado y marca el equipo como configurado. Si falla, no deja nada a medias. |
 | `command-os-greeter` + `lib/greeter.py` | Pantalla de inicio de sesión (GTK 4 en `cage`, usuario `greeter`). Habla con greetd por `$GREETD_SOCK`; PAM lo hace greetd. |
-| `lib/comun.py`, `lib/entorno-grafico` | Lo común de las dos ventanas (tema, logo, filas) y de los tres lanzadores (VM, teclado). |
+| `lib/comun.py`, `lib/entorno-grafico` | Lo común de las dos ventanas (tema, logo, filas, traducciones) y de los tres lanzadores (VM, teclado, idioma). |
 | `command-os-session` | La sesión: prepara la cuenta (`command-os-user-setup`) y lanza labwc. Vale para cualquier cuenta. |
 | `command-os-login` | Inicio automático (`initial_session`) o pedir contraseña. |
 

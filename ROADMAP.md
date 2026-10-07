@@ -4,17 +4,17 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 `docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
 de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
-10. **Sistema en castellano y elección de idioma en el asistente** (decisión del usuario, 2026-10-07).
-   Hoy se instala con `LANG=en_US.UTF-8` (`build/x86/lib.sh`, `build/x86/build-image.sh`): el menú de
-   GRUB y los programas sin traducción propia salen en inglés. Instalar con `es_ES.UTF-8` de serie
-   (locale generado) y añadir al asistente de primer arranque la elección de idioma (castellano por
-   defecto; al menos inglés), que cambia `/etc/locale.conf` y regenera el menú de GRUB (`apply-boot`
-   ya usa el idioma del sistema). Probar en la VM `command-os-instalador`.
-   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo medio (instalador, asistente y arranque).
 11. **Instalar sin clonar el repositorio privado.** Hoy hace falta un token de GitHub en el USB. Publicar
    el instalador firmado junto al paquete (`command-os-versions`) para bajarlo con `curl` y verificar su
    firma. **Decide el usuario antes:** hace públicos los scripts de instalación.
    _Modelo y esfuerzo recomendados:_ Opus, esfuerzo medio (publicación y firma).
+12. **Command OS entero en inglés.** Con el idioma en inglés (`docs/idioma.md`), hoy solo se traducen
+   el asistente, la pantalla de inicio de sesión y el menú de GRUB. Pasar a gettext el resto de textos
+   propios: barra y sus avisos, menús de labwc, «acerca de», ayuda de atajos, notificaciones,
+   `command-os-update`/`-rollback`/`-login`/`-idioma`, los textos del splash (son imágenes: una por
+   idioma) y, si se decide, el instalador.
+   _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (muchos archivos, pero mecánico y con
+   `tests/idioma.sh` vigilando).
 
 ## Lo prueba el usuario
 
@@ -48,7 +48,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   tras volver atrás con `command-os-rollback`.
 - Probar el asistente de primer arranque en varias resoluciones (VM `command-os-instalador`).
 - Cuentas (fuera del punto del primer arranque, `docs/cuentas.md`): añadir y gestionar más cuentas
-  desde el escritorio, zona horaria en el asistente y un panel para cambiar la contraseña.
+  desde el escritorio (con idioma propio de cada cuenta), zona horaria en el asistente y un panel para
+  cambiar la contraseña y el idioma.
 - Prueba automática de `command-os-rollback` (sin y con `/boot` aparte, y que deshace todo si falla):
   hoy solo se prueba a mano en la VM, porque el script actúa sobre la raíz del sistema en marcha.
 - Disco cifrado (`docs/cifrado.md`): un panel para cambiar la contraseña del disco y la clave de
