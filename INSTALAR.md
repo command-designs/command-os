@@ -105,7 +105,9 @@ gpg --verify instalar-command-os.sh.sig instalar-command-os.sh
 ```
 
 Tiene que decir «Good signature» de la clave con huella
-`B2A6 80DD 66E4 2CF2 95DC  40BA 33FF 77E2 4580 D984` (la misma de los paquetes de Command OS).
+`B2A6 80DD 66E4 2CF2 95DC  40BA 33FF 77E2 4580 D984` (la misma de los paquetes de Command OS). El
+aviso de gpg «This key is not certified with a trusted signature» es normal: lo que cuenta es que la
+huella coincida.
 
 ---
 
