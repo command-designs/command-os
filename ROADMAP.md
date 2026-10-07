@@ -8,6 +8,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
    llevar los `.mo` dentro del paquete firmado y elegir el idioma a partir del de la ISO. La
    confirmación de borrado se teclea («Escribe SI…»): traducirla exige una prueba nueva en
    `tests/discos.sh` (`AGENTS.md`: no se relaja sin ella).
+   Además, `configure_system` (`build/x86/lib.sh`) reescribe `GRUB_CMDLINE_LINUX` con solo
+   `cryptdevice=`: tendrá que conservar `command-os.idioma=` (hoy da igual: instala en castellano).
    _Modelo y esfuerzo recomendados:_ Opus, esfuerzo alto (borrado de discos).
 
 ## Lo prueba el usuario
