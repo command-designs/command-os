@@ -3,6 +3,14 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-07 — Prioridad x86
+
+- **Se trabaja y se prueba en x86; nada específico de hardware ARM por ahora.** No se sabe qué placa
+  ARM llevará el cyberdeck (la Raspberry Pi 5 era una suposición). Command OS sigue siendo para las dos
+  arquitecturas (paquete `any`), pero la imagen ARM, el arranque de la placa y las pruebas en ARM se
+  aparcan hasta tener el hardware. Descartado: seguir con la Pi 5 a ciegas (trabajo que puede no
+  servir con otra placa).
+
 ## 2026-10-07 — Entrada al equipo (`docs/cuentas.md`)
 
 - **Asistente de primer arranque, no pregunta al instalar.** La misma imagen vale para cualquier

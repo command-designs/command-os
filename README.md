@@ -63,9 +63,10 @@ en `os/branding/` (logo, fuentes, wallpaper, splash de arranque).
 
 En [`ROADMAP.md`](ROADMAP.md), por orden.
 
-## Próximos pasos hacia ARM real
+## ARM: cuando haya hardware
 
-Cuando la capa de escritorio esté estable en x86_64, se repite el mismo
+**Por ahora la prioridad es x86** (PC y VM): todavía no se sabe qué hardware ARM llevará el cyberdeck,
+así que no se hace nada específico de ARM hasta tenerlo. Entonces se repite el mismo
 `os/install.sh` sobre una imagen de Arch Linux ARM (aarch64), primero bajo
 QEMU (`qemu-system-aarch64`) y luego en el Raspberry Pi 5 físico. El script
 de instalación y los dotfiles son arquitectura-agnósticos: solo cambia la
