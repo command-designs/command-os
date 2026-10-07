@@ -74,7 +74,7 @@ if [[ "${COMMAND_OS_PAQUETE:-}" == repo ]]; then
   echo "==> Paquete command-os (del repositorio firmado)"
   grep -q '^\[command-os\]$' /etc/pacman.conf \
     || { echo "No se pudo configurar el repositorio de Command OS (¿sin internet?)." >&2; exit 1; }
-  pacman -Sy --noconfirm "${OVERWRITE[@]}" command-os
+  pacman -S --noconfirm "${OVERWRITE[@]}" command-os   # bases de datos ya al día (-Syu de arriba)
 else
   echo "==> Paquete command-os (construido desde este árbol)"
   BUILD=$(mktemp -d)
