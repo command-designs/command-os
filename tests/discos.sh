@@ -43,6 +43,9 @@ WINDOWS=$(nuevo_loop windows 40G); LOOPS+=("${WINDOWS}")
 MONTADO=$(nuevo_loop montado 40G); LOOPS+=("${MONTADO}")
 USB=$(nuevo_loop usb 40G); LOOPS+=("${USB}")
 SENUELO=$(nuevo_loop senuelo 2G); LOOPS+=("${SENUELO}")
+VENTOY=$(nuevo_loop ventoy 40G); LOOPS+=("${VENTOY}")
+sgdisk -n 1:0:0 -t 1:0700 "${VENTOY}" >/dev/null && asentar "${VENTOY}"
+mkfs.fat -F32 -n Ventoy "$(part_path "${VENTOY}" 1)" >/dev/null
 
 sgdisk -n 1:0:+2G -t 1:0c01 -n 2:0:0 -t 2:0700 "${WINDOWS}" >/dev/null && asentar "${WINDOWS}"
 mkntfs -Q -F "$(part_path "${WINDOWS}" 2)" >/dev/null 2>&1
@@ -62,6 +65,7 @@ echo "==> Qué discos se rechazan"
 tiene "$(problemas "${PEQUENO}")" "pequeño" && ok "rechaza un disco de 10 GB" || mal "acepta un disco pequeño"
 tiene "$(problemas "${MONTADO}")" "montadas" && ok "rechaza un disco con particiones montadas" || mal "acepta un disco montado"
 tiene "$(problemas "${USB}")" "USB de instalación" && ok "rechaza el USB en vivo (etiqueta ARCH_)" || mal "acepta el USB en vivo"
+tiene "$(problemas "${VENTOY}")" "USB de instalación" && ok "rechaza un USB de Ventoy" || mal "acepta un USB de Ventoy"
 tiene "$(problemas "$(part_path "${WINDOWS}" 2)")" "no un disco entero" && ok "rechaza una partición" || mal "acepta una partición"
 tiene "$(problemas /dev/no-existe)" "no existe" && ok "rechaza un disco que no existe" || mal "acepta un disco que no existe"
 tiene "$(COMMAND_OS_DISCOS_LOOP='' problemas "${LIMPIO}")" "no un disco entero" \
@@ -97,6 +101,31 @@ tabla=$(sgdisk -p "${LIMPIO}" 2>/dev/null)
 [[ "$(grep -cE '^ +[0-9]+ ' <<< "${tabla}")" == 2 ]] && ok "dos particiones" || mal "no hay dos particiones"
 grep -qE '^ +1 .*1024\.0 MiB +EF00' <<< "${tabla}" && ok "1: EFI de 1 GiB (EF00)" || mal "la 1 no es la EFI de 1 GiB"
 grep -qE '^ +2 .*8304 +command-os' <<< "${tabla}" && ok "2: raíz Linux x86-64 (8304) para el resto" || mal "la 2 no es la raíz"
+
+echo "==> Entradas viejas de la NVRAM (efibootmgr de mentira)"
+FALSO="${T}/falso"
+mkdir -p "${FALSO}"
+export NVRAM_FALSA="${T}/nvram" NVRAM_BORRADAS="${T}/borradas"
+otra=$(blkid -s PARTUUID -o value "$(part_path "${WINDOWS}" 2)")
+{
+  printf 'BootCurrent: 0001\n'
+  printf 'Boot0001* Windows Boot Manager\tHD(1,GPT,%s,0x800,0x82000)/\\EFI\\Microsoft\\Boot\\bootmgfw.efi\n' "${otra}"
+  printf 'Boot0002* command-os\tHD(1,GPT,%s,0x800,0x82000)/\\EFI\\command-os\\grubx64.efi\n' "${otra}"
+  printf 'Boot0003* command-os\tHD(1,GPT,0badc0de-0000-4000-8000-000000000000,0x800,0x82000)/\\EFI\\command-os\\grubx64.efi\n'
+  printf 'Boot0004* command-os-rescate\tHD(1,GPT,0badc0de-0000-4000-8000-000000000001,0x800,0x82000)/\\EFI\\x.efi\n'
+} > "${NVRAM_FALSA}"
+cat > "${FALSO}/efibootmgr" <<'FAKE'
+#!/bin/sh
+case " $* " in *" -B "*) echo "$*" >> "${NVRAM_BORRADAS}"; exit 0 ;; esac
+cat "${NVRAM_FALSA}"
+FAKE
+chmod +x "${FALSO}/efibootmgr"
+: > "${NVRAM_BORRADAS}"
+PATH="${FALSO}:${PATH}" forget_nvram_entries "${LIMPIO}"
+grep -q -- '-b 0003 ' "${NVRAM_BORRADAS}" && ok "borra la entrada que apunta a una partición que ya no existe" \
+  || mal "no borra la entrada muerta"
+grep -q -- '-b 0002 ' "${NVRAM_BORRADAS}" && mal "borra el Command OS de otro disco" || ok "respeta el Command OS de otro disco"
+grep -qE -- '-b 000[14] ' "${NVRAM_BORRADAS}" && mal "borra entradas que no son command-os" || ok "no toca Windows ni otras etiquetas"
 
 echo "==> El instalador entero (se para antes de tocar nada)"
 inst() { COMMAND_OS_FUERA_DEL_USB=1 NO_NVRAM=1 bash "${REPO}/build/x86/install-disco.sh" "$@" 2>&1; }

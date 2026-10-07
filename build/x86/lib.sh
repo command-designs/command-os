@@ -89,25 +89,35 @@ install_base() {
   echo "${KB_LAYOUT}" > "${mnt}/etc/command-os/kb_layout"
 }
 
-# forget_nvram_entries — borra de la NVRAM las entradas «command-os» de instalaciones anteriores.
-# grub-install no actualiza una entrada que ya tiene su misma ruta (\EFI\command-os\grubx64.efi)
-# aunque apunte a otra partición: al reinstalar (de dual boot a disco entero, u otro disco) la BIOS
-# seguiría una entrada muerta y, en un dual boot, acabaría arrancando Windows sin menú.
+# forget_nvram_entries DISCO — borra de la NVRAM las entradas «command-os» que ya no sirven: las que
+# apuntan a una partición que no existe o a DISCO (el que se está instalando; grub-install pone la
+# suya). grub-install no actualiza una entrada que ya tiene su misma ruta (\EFI\command-os\grubx64.efi)
+# aunque apunte a otra partición: al reinstalar, la BIOS seguiría una entrada muerta y, en un dual
+# boot, acabaría arrancando Windows sin menú. Se respeta la de otro Command OS en otro disco.
 forget_nvram_entries() {
-  local n
-  for n in $(efibootmgr 2>/dev/null | sed -nE 's/^Boot([0-9A-Fa-f]{4})\*? command-os([[:space:]].*)?$/\1/p'); do
-    efibootmgr -q -b "${n}" -B || echo "aviso: no se pudo borrar la entrada UEFI vieja Boot${n}" >&2
-  done
+  local disk=$1 n guid dev d borrar
+  while read -r n guid; do
+    borrar=1
+    dev=$(blkid -t "PARTUUID=${guid}" -o device 2>/dev/null | head -1)
+    if [[ -n "${dev}" ]]; then
+      for d in $(disk_of "${dev}"); do [[ "${d}" != "${disk}" ]] && borrar=0; done
+    fi
+    if (( borrar )); then
+      efibootmgr -q -b "${n}" -B || echo "aviso: no se pudo borrar la entrada UEFI vieja Boot${n}" >&2
+    fi
+  done < <(efibootmgr -v 2>/dev/null \
+    | sed -nE 's/^Boot([0-9A-Fa-f]{4})\*? command-os\t.*HD\([0-9]+,GPT,([0-9A-Fa-f-]+),.*/\1 \2/p')
 }
 
-# configure_system MONTAJE EFI — idioma, teclado, zona, nombre, Command OS (os/install.sh) y GRUB.
+# configure_system MONTAJE EFI DISCO — idioma, teclado, zona, nombre, Command OS (os/install.sh) y GRUB.
 #   EFI=compartida  la partición EFI es de Windows: GRUB en EFI/command-os, sin --removable (no se
 #                   pisa EFI/BOOT/BOOTX64.EFI, el arranque de reserva de Windows).
 #   EFI=propia      el disco es solo de Command OS: entrada en la NVRAM del equipo y, además, la
 #                   copia de reserva EFI/BOOT/BOOTX64.EFI (arranca aunque el firmware pierda la entrada).
-# NO_NVRAM=1 no toca la NVRAM (pruebas sobre un disco loop). Falla si la instalación no se completó.
+# DISCO es el disco donde se instala (forget_nvram_entries). NO_NVRAM=1 no toca la NVRAM (pruebas
+# sobre un disco loop). Falla si la instalación no se completó.
 configure_system() {
-  local mnt=$1 efi=$2 grub="grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot"
+  local mnt=$1 efi=$2 disk=$3 grub="grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot"
   local boot
   case "${efi}" in
     compartida) boot="${grub} --bootloader-id=command-os${NO_NVRAM:+ --no-nvram}" ;;
@@ -117,7 +127,7 @@ configure_system() {
       ;;
     *) die "configure_system: EFI desconocida: ${efi}" ;;
   esac
-  if [[ -z "${NO_NVRAM:-}" ]]; then forget_nvram_entries; fi
+  if [[ -z "${NO_NVRAM:-}" ]]; then forget_nvram_entries "${disk}"; fi
   arch-chroot "${mnt}" /bin/bash -euxc "
     ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
@@ -158,7 +168,7 @@ disk_of() {
 # disk_problems DISCO — por qué NO se puede borrar este disco, una razón por línea (nada = se puede).
 # COMMAND_OS_DISCOS_LOOP=1 admite discos loop (pruebas). MIN_GB: tamaño mínimo (30 por defecto).
 disk_problems() {
-  local disk=$1 type src d name
+  local disk=$1 type src d name size target montajes
   if [[ ! -b "${disk}" ]]; then echo "${disk} no existe o no es un disco"; return 0; fi
   type=$(lsblk -dno TYPE "${disk}")
   if [[ "${type}" != disk && ! ( "${type}" == loop && -n "${COMMAND_OS_DISCOS_LOOP:-}" ) ]]; then
@@ -171,19 +181,31 @@ disk_problems() {
     return 0
   fi
   [[ "$(lsblk -dno RO "${disk}" | tr -d ' ')" == 1 ]] && echo "${disk} es de solo lectura"
-  if (( $(lsblk -dbno SIZE "${disk}") < ${MIN_GB:-30} * 1024 * 1024 * 1024 )); then
+  # Si lsblk no da el tamaño, cuenta como 0: ante la duda, no se borra.
+  size=$(lsblk -dbno SIZE "${disk}" 2>/dev/null | tr -d ' ')
+  [[ "${size}" =~ ^[0-9]+$ ]] || size=0
+  if (( size < ${MIN_GB:-30} * 1024 * 1024 * 1024 )); then
     echo "${disk} es demasiado pequeño (mínimo ${MIN_GB:-30} GB)"
   fi
-  # El USB en vivo (aunque se haya copiado a la RAM, su etiqueta ARCH_AAAAMM sigue ahí) y el
-  # disco del sistema en marcha.
-  lsblk -nro LABEL "${disk}" | grep -q '^ARCH_' && echo "${disk} es el USB de instalación de Arch"
+  # El USB en vivo (aunque se haya copiado a la RAM, su etiqueta sigue ahí: ARCH_AAAAMM, o Ventoy) y
+  # el disco del sistema en marcha.
+  lsblk -nro LABEL "${disk}" | grep -qE '^(ARCH_|Ventoy$|VTOYEFI$)' && echo "${disk} es el USB de instalación de Arch"
   for src in $(findmnt -nro SOURCE /run/archiso/bootmnt 2>/dev/null) $(findmnt -nro SOURCE / 2>/dev/null); do
     for d in $(disk_of "${src}"); do
       [[ "${d}" == "${disk}" ]] && echo "${disk} tiene el sistema que está en marcha"
     done
   done
-  lsblk -nro MOUNTPOINTS "${disk}" | grep -q . \
-    && echo "${disk} tiene particiones montadas: $(lsblk -nro MOUNTPOINTS "${disk}" | grep . | paste -sd ' ')"
+  # Montajes desde la tabla del núcleo (findmnt), no desde una columna de lsblk que puede faltar.
+  # Un subvolumen de btrfs sale como /dev/sdb2[/@]: se quita lo de los corchetes.
+  montajes=""
+  while read -r src target; do
+    src=${src%%\[*}
+    [[ "${src}" == /dev/* ]] || continue
+    for d in $(disk_of "${src}"); do
+      [[ "${d}" == "${disk}" ]] && montajes+=" ${target}"
+    done
+  done < <(findmnt -rno SOURCE,TARGET)
+  [[ -n "${montajes}" ]] && echo "${disk} tiene particiones montadas:${montajes}"
   for src in $(swapon --show=NAME --noheadings 2>/dev/null); do
     for d in $(disk_of "${src}"); do
       [[ "${d}" == "${disk}" ]] && echo "${disk} tiene swap en uso (${src})"

@@ -8,7 +8,8 @@
 # (Command OS / Windows). No toca ninguna partición existente.
 # Variables: KB_LAYOUT (teclado, default es), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
 # (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (hueco mínimo, 30),
-# NO_NVRAM=1 (no registra la entrada UEFI; solo para pruebas sobre un disco loop),
+# NO_NVRAM=1 (no registra la entrada UEFI; solo para pruebas sobre un disco loop, junto con
+# COMMAND_OS_FUERA_DEL_USB=1, que deja ejecutarlo fuera del USB en vivo),
 # ROLLING=1 (Arch del día en vez de la fecha validada).
 set -euo pipefail
 
@@ -101,7 +102,7 @@ else
 fi
 
 # Sin --removable: no se pisa EFI/BOOT/BOOTX64.EFI (el arranque de reserva de Windows).
-configure_system "$MNT" compartida
+configure_system "$MNT" compartida "$DISK"
 
 if grep -q "menuentry 'Windows" "$MNT/boot/grub/grub.cfg"; then
   echo "==> GRUB tiene entrada para Windows"

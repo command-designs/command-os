@@ -16,7 +16,8 @@ die() { echo "error: $*" >&2; exit 1; }
 [[ $(id -u) -eq 0 ]] || die "ejecutar como root"
 require_live_usb
 [[ -d /sys/firmware/efi ]] || die "el USB no arrancó en modo UEFI (desactiva CSM/Legacy en la BIOS)"
-ping -c 1 -W 5 archlinux.org >/dev/null 2>&1 \
+# ping, y si la red bloquea ICMP, una petición HTTPS (lo que de verdad usa la instalación).
+ping -c 1 -W 5 archlinux.org >/dev/null 2>&1 || curl -fsI --max-time 15 https://archlinux.org >/dev/null 2>&1 \
   || die "sin internet: conecta el cable o el wifi (iwctl) y vuelve a empezar"
 
 cat <<'EOF'

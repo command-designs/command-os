@@ -13,7 +13,8 @@
 # Variables: KB_LAYOUT (teclado, default es), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
 # (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (disco mínimo, 30),
 # ROLLING=1 (Arch del día en vez de la fecha validada). Solo para pruebas en una VM: NO_NVRAM=1
-# (no registra la entrada UEFI), COMMAND_OS_SSH=1 (servidor SSH encendido).
+# (no registra la entrada UEFI), COMMAND_OS_SSH=1 (servidor SSH encendido), COMMAND_OS_FUERA_DEL_USB=1
+# (deja ejecutarlo fuera del USB en vivo; tests/discos.sh).
 set -euo pipefail
 
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
@@ -64,7 +65,7 @@ mount "$ESP" "$MNT/efi"
 
 detect_variant
 install_base "$MNT" "$REPO"
-configure_system "$MNT" propia
+configure_system "$MNT" propia "$DISK"
 
 sync
 echo
