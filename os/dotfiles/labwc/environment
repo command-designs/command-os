@@ -1,6 +1,6 @@
 # Command OS — variables de la sesión de labwc (labwc-config(5)).
 # Lo propio de cada máquina (distribución de teclado, VM) va en environment.d/local.env, que genera
-# install.sh y labwc lee después de este archivo.
+# command-os-user-setup en cada inicio de sesión; labwc lo lee después de este archivo.
 
 # Apps GTK y Qt con el tema de Command OS (gtk-3.0/gtk-4.0 en ~/.config y dconf de install.sh).
 XCURSOR_THEME=Adwaita

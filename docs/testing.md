@@ -104,7 +104,8 @@ qemu-img snapshot -l output-arch/command-os-dev.qcow2              # listar
 
 ## Credenciales de desarrollo (no usar en producto final)
 
-- Usuario: `deck` / password: `deck` (autologin en tty1, arranca labwc)
+- Usuario: `deck` / password: `deck` (inicio automático con greetd, sin asistente: lo crea
+  `COMMAND_OS_DEV_USER=deck`; ver `docs/cuentas.md`)
 - `root` sin password (deshabilitado con `passwd -d`), solo acceso por la
   llave SSH efímera de `build/packer/keys/`, con `PermitRootLogin yes` —
   revisar/cerrar esto antes de considerar cualquier imagen "shippable".

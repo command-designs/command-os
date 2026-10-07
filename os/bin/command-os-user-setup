@@ -60,6 +60,21 @@ if [[ ! -e "${CFG}/labwc/rc.xml" ]]; then
 EOF
 fi
 
+# --- labwc: ajustes de este equipo (no de la cuenta): se regeneran siempre ---
+# Teclado del equipo (/etc/command-os/kb_layout; labwc lee environment.d después de la de serie) y,
+# en una VM, el perfil ligero sin sombras (render por software: cada fotograma cuenta).
+mkdir -p "${CFG}/labwc/environment.d"
+{
+  echo '# Ajustes de este equipo. Lo genera command-os-user-setup en cada inicio de sesión.'
+  if [[ -s /etc/command-os/kb_layout ]]; then
+    echo "XKB_DEFAULT_LAYOUT=$(tr -d '[:space:]' < /etc/command-os/kb_layout)"
+  fi
+} > "${CFG}/labwc/environment.d/local.env"
+if systemd-detect-virt --quiet --vm 2>/dev/null && [[ ! -e "${CFG}/labwc/themerc-override" ]]; then
+  printf '%s\n' '# Perfil ligero para VM (render por software). Lo genera command-os-user-setup.' \
+    'window.active.shadow.size: 0' 'window.inactive.shadow.size: 0' > "${CFG}/labwc/themerc-override"
+fi
+
 # --- Terminal: prompt y alias de Command OS en ~/.bashrc ---
 BASHRC="${HOME}/.bashrc"
 MARK="# --- Command OS: shell ---"

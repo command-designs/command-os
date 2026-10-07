@@ -144,5 +144,5 @@ fi
 sync
 echo
 echo "==> Command OS instalado en $ROOT."
-echo "    Usuario deck / contraseña deck: cámbiala con 'passwd' al entrar."
+echo "    Al encender, el asistente de primer arranque te pide crear tu cuenta."
 echo "    Quita el USB y reinicia: sale el menú de GRUB (Command OS / Windows)."

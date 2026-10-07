@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Command OS — crea la cuenta principal del equipo. Lo usa el asistente de primer arranque
+# (command-os-primer-arranque) y, en las imágenes de desarrollo, install.sh. Solo root.
+#
+#   crear-cuenta --usuario NOMBRE [--nombre "Nombre completo"] [--teclado es] [--inicio-auto]
+#
+# La contraseña llega por la entrada estándar (una línea), nunca como argumento ni variable: así
+# no queda en la lista de procesos, en el historial ni en ningún registro. Se guarda solo como
+# hash (yescrypt) en /etc/shadow; Command OS no la ve ni la envía a ningún sitio.
+#
+# La cuenta es la administradora del equipo (grupo wheel: sudo con su propia contraseña) y root
+# queda bloqueado: toda la administración pasa por sudo. Si algo falla, no queda nada a medias.
+set -uo pipefail
+
+ESTADO=/var/lib/command-os
+CONF=/etc/command-os
+MIN_CONTRASENA=8
+
+die() { echo "crear-cuenta: $*" >&2; exit 1; }
+[[ "$(id -u)" -eq 0 ]] || die "hay que ejecutarlo como root"
+
+usuario="" nombre="" teclado="" auto=0
+while (( $# )); do
+  case "$1" in
+    --usuario) usuario=${2:-}; shift 2 ;;
+    --nombre) nombre=${2:-}; shift 2 ;;
+    --teclado) teclado=${2:-}; shift 2 ;;
+    --inicio-auto) auto=1; shift ;;
+    *) die "opción desconocida: $1" ;;
+  esac
+done
+
+[[ -e "${ESTADO}/configurado" ]] && die "el equipo ya está configurado"
+# Nombres de usuario de Linux: minúsculas, números, - y _, empezando por letra (máx. 32).
+[[ "${usuario}" =~ ^[a-z][a-z0-9_-]{0,31}$ ]] \
+  || die "nombre de usuario no válido: minúsculas, números, - o _, empezando por una letra"
+getent passwd "${usuario}" >/dev/null && die "ya existe un usuario llamado ${usuario}"
+[[ "${nombre}" != *:* && "${nombre}" != *$'\n'* ]] || die "el nombre completo no puede llevar ':'"
+if [[ -n "${teclado}" ]]; then
+  [[ "${teclado}" =~ ^[a-z]{2,8}$ ]] || die "distribución de teclado no válida"
+fi
+
+IFS= read -r contrasena || true
+[[ ${#contrasena} -ge ${MIN_CONTRASENA} ]] \
+  || die "la contraseña tiene que tener al menos ${MIN_CONTRASENA} caracteres"
+
+deshacer() { userdel -r "${usuario}" >/dev/null 2>&1; die "$1"; }
+useradd -m -G wheel -s /bin/bash -c "${nombre}" "${usuario}" || die "no se pudo crear la cuenta"
+printf '%s:%s\n' "${usuario}" "${contrasena}" | chpasswd || deshacer "no se pudo fijar la contraseña"
+unset contrasena
+
+# root sin contraseña ni acceso: se administra con sudo (cuenta de wheel).
+passwd -l root >/dev/null 2>&1 || true
+
+if [[ -n "${teclado}" ]]; then
+  install -d "${CONF}"
+  echo "${teclado}" > "${CONF}/kb_layout"
+  # Consola (tty2 de emergencia): el mapa equivalente, si existe (los nombres no coinciden con xkb).
+  case "${teclado}" in
+    gb) mapa=uk ;; latam) mapa=la-latin1 ;; br) mapa=br-abnt2 ;; pt) mapa=pt-latin1 ;; *) mapa=${teclado} ;;
+  esac
+  if [[ -n "$(find /usr/share/kbd/keymaps -name "${mapa}.map.gz" -print -quit 2>/dev/null)" ]]; then
+    touch /etc/vconsole.conf
+    sed -i '/^KEYMAP=/d' /etc/vconsole.conf
+    echo "KEYMAP=${mapa}" >> /etc/vconsole.conf
+  fi
+fi
+
+install -d "${CONF}" "${ESTADO}"
+echo "${usuario}" > "${CONF}/cuenta-principal"
+if (( auto )); then echo "${usuario}" > "${CONF}/inicio-automatico"; else rm -f "${CONF}/inicio-automatico"; fi
+touch "${ESTADO}/configurado"
+/usr/lib/command-os/apply-login
+echo "cuenta ${usuario} creada (administradora)"

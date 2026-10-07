@@ -1,0 +1,3 @@
+# Command OS: las cuentas administradoras (grupo wheel, la primera cuenta del equipo) usan sudo con
+# su propia contraseña. root está bloqueado: toda la administración pasa por aquí.
+%wheel ALL=(ALL:ALL) ALL

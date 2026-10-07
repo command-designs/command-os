@@ -48,6 +48,9 @@ jobs:
       - name: Escritorio sin pantalla
         run: SALIDA="$PWD/resultados" bash tests/escritorio.sh
 
+      - name: Entrada al equipo (cuentas, greetd, migración)
+        run: bash tests/cuentas.sh
+
       - name: Resultados (registros y captura)
         if: always()
         uses: actions/upload-artifact@v4

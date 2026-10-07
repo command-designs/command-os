@@ -81,7 +81,7 @@ antes de cada cambio y que se le notifique (PushNotification) cuando haga falta 
 - **SSH**: apagado en el producto; `install.sh` lo enciende solo con la variante `vbox` o
   `COMMAND_OS_SSH=1` (lo pasan `build-image.sh` si hay `DEV_SSH_PUBKEY` y el script de Packer).
 - Al probar: reiniciar hypridle por SSH lo deja escuchando la sesión SSH, no la de tty1 (Super+L deja
-  de bloquear). Para aplicar cambios de la sesión, `sudo systemctl restart getty@tty1` y comprobar
+  de bloquear). Para aplicar cambios de la sesión, `sudo systemctl restart greetd` (tty1 es de greetd desde el 2026-10-07) y comprobar
   que no queden dos hypridle.
 
 
@@ -110,6 +110,6 @@ antes de cada cambio y que se le notifique (PushNotification) cuando haga falta 
   en la VM, así que la fluidez real de las animaciones solo se juzga en bare metal / Pi. Detalle en
   `docs/testing.md`.
 - Al iterar con labwc, re-ejecutar `install.sh` con la sesión abierta funciona; para ver los cambios,
-  `kill -HUP $(pidof labwc)` (o `sudo systemctl restart getty@tty1` para una sesión nueva).
+  `kill -HUP $(pidof labwc)` (o `sudo systemctl restart greetd` para una sesión nueva).
 - Pendiente: oír los sonidos en la VM (solo se verificó que `pw-play` termina a tiempo, no el
   resultado acústico), validar los paquetes en aarch64 y probar el audio en el Pi.

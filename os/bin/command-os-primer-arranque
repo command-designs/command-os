@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Command OS — lanza el asistente de primer arranque (lib/primer-arranque.py) a pantalla completa
+# dentro de cage. Lo ejecuta greetd como root mientras el equipo no tiene cuenta principal
+# (/etc/command-os/greetd.toml, lib/apply-login). Al terminar, greetd se reinicia y aparece el
+# escritorio (inicio automático) o la pantalla de inicio de sesión.
+set -uo pipefail
+
+[[ "$(id -u)" -eq 0 ]] || { echo "command-os-primer-arranque: solo lo lanza greetd (root)" >&2; exit 1; }
+if [[ -e /var/lib/command-os/configurado ]]; then
+  systemctl --no-block restart greetd.service
+  exit 0
+fi
+
+if systemd-detect-virt --quiet --vm; then
+  export WLR_NO_HARDWARE_CURSORS=1 WLR_RENDERER_ALLOW_SOFTWARE=1
+fi
+export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/command-os-primer-arranque}
+install -d -m 700 "${XDG_RUNTIME_DIR}"
+export GTK_THEME=adw-gtk3:dark XCURSOR_THEME=Adwaita XCURSOR_SIZE=24
+
+# Código 3: se ha cambiado el teclado; cage se vuelve a abrir con la distribución nueva.
+while :; do
+  XKB_DEFAULT_LAYOUT=$(tr -d '[:space:]' < /etc/command-os/kb_layout 2>/dev/null || echo es)
+  export XKB_DEFAULT_LAYOUT
+  cage -s -d -- python3 /usr/lib/command-os/primer-arranque.py
+  codigo=$?
+  [[ ${codigo} -eq 3 ]] || break
+done
+
+if [[ -e /var/lib/command-os/configurado ]]; then
+  # apply-login ya ha cambiado greetd.toml: al reiniciar, greetd abre la sesión o el inicio de sesión.
+  systemctl --no-block restart greetd.service
+fi
+exit 0

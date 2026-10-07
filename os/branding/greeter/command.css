@@ -1,0 +1,95 @@
+/* Command OS — pantalla de inicio de sesión (lib/greeter.py) y asistente de primer arranque.
+   Parte del tema GTK 4 de serie (paleta HUD de docs/DISENO.md) y añade el panel central:
+   fondo Void, filo rojo arriba, esquinas vivas; etiquetas en cian, voz en minúsculas. */
+@import url("file:///usr/share/command-os/config/gtk-4.0/gtk.css");
+
+window {
+    background-color: #0d0b0e;
+    color: #edebe6;
+}
+
+/* Asistente: fondo con el wallpaper Void y panel centrado. */
+.fondo {
+    background-image: url("file:///usr/share/command-os/wallpapers/command-void.png");
+    background-size: cover;
+    background-position: center;
+}
+
+.panel {
+    background-color: rgba(13, 11, 14, 0.94);
+    border: 1px solid rgba(209, 52, 73, 0.6);
+    border-top: 3px solid #d13449;
+    border-radius: 0;
+    padding: 28px 32px;
+    box-shadow: 0 0 24px rgba(209, 52, 73, 0.18);
+}
+
+.titulo {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 18px;
+    font-weight: bold;
+    color: #edebe6;
+}
+
+.hora {
+    font-family: "Oxanium", "JetBrains Mono", monospace;
+    font-size: 56px;
+    font-weight: bold;
+    color: #edebe6;
+    text-shadow: 0 0 18px rgba(209, 52, 73, 0.55);
+}
+
+button.flat {
+    color: #a8a2a6;
+}
+
+button.flat:hover {
+    color: #e8607a;
+    background-color: #2b1118;
+}
+
+.tenue {
+    color: #a8a2a6;
+}
+
+.etiqueta {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: #5bbfc4;
+}
+
+.dato {
+    color: #5bbfc4;
+}
+
+.error {
+    color: #e8607a;
+}
+
+entry,
+dropdown > button,
+button {
+    border-radius: 0;
+}
+
+entry {
+    background-color: #15121a;
+    border: 1px solid #2e2630;
+    min-height: 34px;
+}
+
+entry:focus-within {
+    border-color: #d13449;
+    box-shadow: inset 3px 0 0 #d13449;
+}
+
+button.suggested-action {
+    background-color: #d13449;
+    color: #edebe6;
+    font-weight: bold;
+    min-height: 38px;
+}
+
+button.suggested-action:hover {
+    background-color: #e8607a;
+}

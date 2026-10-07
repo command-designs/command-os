@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Command OS — pantalla de inicio de sesión (lib/greeter.py) a pantalla completa dentro de cage. La
+# ejecuta greetd como el usuario greeter (/etc/command-os/greetd.toml, lib/apply-login).
+set -uo pipefail
+
+if systemd-detect-virt --quiet --vm; then
+  export WLR_NO_HARDWARE_CURSORS=1 WLR_RENDERER_ALLOW_SOFTWARE=1
+fi
+if [[ -s /etc/command-os/kb_layout ]]; then
+  XKB_DEFAULT_LAYOUT=$(tr -d '[:space:]' < /etc/command-os/kb_layout)
+  export XKB_DEFAULT_LAYOUT
+fi
+export GTK_THEME=adw-gtk3:dark XCURSOR_THEME=Adwaita XCURSOR_SIZE=24
+exec cage -s -d -- python3 /usr/lib/command-os/greeter.py

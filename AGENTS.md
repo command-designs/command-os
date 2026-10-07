@@ -16,7 +16,8 @@ que no es web (§ 12 para dispositivos).
 (`os/pkg`) con configuración de serie en el sistema, ganchos de pacman, bloqueo a prueba de
 roturas, Arch de una fecha validada (x86), btrfs con instantáneas y pruebas automáticas en GitHub
 Actions. **Cómo funciona y por qué: `docs/actualizaciones.md` (leerlo antes de tocar la
-instalación).** Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+instalación).** Desde el 2026-10-07 no hay cuenta de serie: greetd con asistente de primer arranque,
+pantalla de inicio de sesión propia e inicio automático opcional (`docs/cuentas.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario) y Arch Linux ARM.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -24,6 +25,7 @@ usuario) y Arch Linux ARM.
 | Si vas a tocar… | Lee |
 | --- | --- |
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
+| cuentas, contraseñas, primer arranque, inicio de sesión, greetd | `docs/cuentas.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
@@ -44,6 +46,10 @@ usuario) y Arch Linux ARM.
 - Plymouth no se puede probar en WSL: probar en la VM. Al iterar con labwc, `kill -HUP $(pidof labwc)`;
   reiniciar hypridle por SSH lo deja escuchando la sesión SSH, no la de tty1.
 - Cada cambio vale a la vez para x86 (GRUB, `/etc/default/grub`) y ARM/Pi 5 (`cmdline.txt`).
+- tty1 es de greetd: para una sesión nueva, `systemctl restart greetd` (no `getty@tty1`). Si la entrada
+  falla, tty2 es la consola de emergencia. `deck`/`deck` es solo de desarrollo (`COMMAND_OS_DEV_USER`).
+- VirtualBox: **nunca `snapshot take --live`** con la VM encendida: la deja congelada (pasó con
+  `command-os-x86`). Instantáneas con la VM apagada.
 
 ## Qué se probó y qué se descartó (no repetir)
 
@@ -91,7 +97,7 @@ Ver `docs/testing.md` para comandos exactos. Resumen:
 - Llave SSH efímera en `build/packer/keys/packer_build_key` (gitignored,
   regenerar si no existe — ver `docs/testing.md`).
 - Credenciales de desarrollo (no usar en producto final): usuario `deck` /
-  password `deck`; `root` sin password, solo por la llave SSH.
+  password `deck` (solo imágenes con `DEV_SSH_PUBKEY`/`COMMAND_OS_DEV_USER`); `root` bloqueado.
 
 ## Convenciones del repo
 
