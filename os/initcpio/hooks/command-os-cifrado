@@ -34,19 +34,19 @@ cifrado_abrir() {
     printf '%s' "${solo}" | cryptsetup open --type luks --key-file=- "$1" "$2" >/dev/null 2>&1
 }
 
-# idioma_arranque [LÍNEA] — «en» o «es», del parámetro command-os.idioma= de la línea del kernel (lo
-# pone lib/apply-boot con el idioma del sistema); castellano si no está. Sin LÍNEA, /proc/cmdline.
+# idioma_arranque [LÍNEA] — el código del parámetro command-os.idioma= de la línea del kernel (lo pone
+# lib/apply-boot con el idioma del sistema: es, en…); «es» si no está. Sin LÍNEA, /proc/cmdline.
 idioma_arranque() {
     local linea=$1 p
-    [ $# -gt 0 ] || read -r linea < /proc/cmdline 2>/dev/null || linea=""
+    [ $# -gt 0 ] || { read -r linea < /proc/cmdline || linea=""; } 2>/dev/null
     for p in ${linea}; do
-        case "${p}" in command-os.idioma=en) echo en; return 0 ;; esac
+        case "${p}" in command-os.idioma=?*) echo "${p#command-os.idioma=}"; return 0 ;; esac
     done
     echo es
 }
 
-# textos_cifrado IDIOMA — los textos del gancho: TEXTO_PEDIR, TEXTO_MALA y TEXTO_ABRIENDO. Aquí no hay
-# gettext: van escritos en cada idioma. command.script reconoce los dos primeros por su contenido y
+# textos_cifrado IDIOMA — los textos del gancho: TEXTO_PEDIR, TEXTO_MALA y TEXTO_ABRIENDO (castellano
+# si el idioma no está aquí). En el initramfs no hay gettext: van escritos en cada idioma. command.script reconoce los dos primeros por su contenido y
 # los enseña como imagen (build/make-plymouth-textos.py): si cambian, cambiarlos también allí.
 textos_cifrado() {
     case "$1" in

@@ -216,8 +216,9 @@ command -v busybox >/dev/null && conchas+=("busybox ash")
 for concha in "${conchas[@]}"; do
   # shellcheck disable=SC2086
   idiomas=$(${concha} -c '. "$1"; idioma_arranque "quiet command-os.idioma=en splash"; idioma_arranque "quiet splash"
-    idioma_arranque "command-os.idioma=fr"; textos_cifrado en; echo "${TEXTO_PEDIR}"' _ "${REPO}/os/initcpio/hooks/command-os-cifrado")
-  [[ "${idiomas}" == $'en\nes\nes\nDisk password (or recovery key)' ]] \
+    idioma_arranque "command-os.idioma=fr"; textos_cifrado en; echo "${TEXTO_PEDIR}"; textos_cifrado fr
+    echo "${TEXTO_PEDIR}"' _ "${REPO}/os/initcpio/hooks/command-os-cifrado")
+  [[ "${idiomas}" == $'en\nes\nfr\nDisk password (or recovery key)\nContraseña del disco (o clave de recuperación)' ]] \
     && ok "${concha}: idioma del gancho por la línea del kernel" || mal "${concha}: idioma del gancho: ${idiomas//$'\n'/ | }"
 done
 for concha in "${conchas[@]}"; do
