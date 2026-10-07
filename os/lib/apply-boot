@@ -239,7 +239,7 @@ fi
 if [[ -f /boot/cmdline.txt ]]; then
   # Raspberry Pi: el kernel escribe en tty3 en vez de en la pantalla (consola serie intacta).
   line=$(tr '\n' ' ' < /boot/cmdline.txt | sed -E 's/\bconsole=tty1\b/console=tty3/; s/ +/ /g; s/ $//')
-  printf '%s\n' "$(con_idioma "$(add_args "${line}")")" > /boot/cmdline.txt
+  printf '%s\n' "$(add_args "${line}")" > /boot/cmdline.txt
 fi
 if [[ -f /boot/config.txt ]]; then
   # Sin el cuadro arcoíris del firmware al encender.
