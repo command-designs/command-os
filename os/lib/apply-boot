@@ -41,6 +41,10 @@ if [[ -f /etc/default/grub ]]; then
     set_grub GRUB_TIMEOUT 1
     set_grub GRUB_TIMEOUT_STYLE hidden
   fi
+  # GRUB 2.16 (/etc/grub.d/31_efi_bootnext) copia en el menú todas las entradas de la NVRAM tal como
+  # estaban al generarlo: USB de instalación, discos sueltos y Windows repetido. Sobran: Windows ya
+  # tiene su entrada y el resto está en el menú de arranque de la BIOS.
+  set_grub GRUB_DISABLE_BOOTNEXT true
   set_grub GRUB_TERMINAL_OUTPUT gfxterm
   set_grub GRUB_GFXMODE auto
   set_grub GRUB_GFXPAYLOAD_LINUX keep
