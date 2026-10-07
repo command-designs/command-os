@@ -4,6 +4,9 @@
 
 # Opciones de montaje de btrfs: compresión ligera (menos escritura en USB/SSD) y sin atime.
 BTRFS_OPTS=noatime,compress=zstd:1
+# Idioma de serie (docs/idioma.md): locale.conf y el menú de GRUB del instalador. Se cambia en el
+# asistente de primer arranque o con command-os-idioma.
+IDIOMA=es_ES.UTF-8
 
 # btrfs_root DISPOSITIVO PUNTO_DE_MONTAJE — formatea en btrfs y monta los subvolúmenes:
 #   @           /                      el sistema: lo que guardan las instantáneas
@@ -150,7 +153,7 @@ configure_system() {
     echo 'es_ES.UTF-8 UTF-8' >> /etc/locale.gen
     echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
     locale-gen
-    echo 'LANG=es_ES.UTF-8' > /etc/locale.conf
+    echo 'LANG=${IDIOMA}' > /etc/locale.conf
     echo 'KEYMAP=${KB_LAYOUT}' > /etc/vconsole.conf
     echo ${HOSTNAME_NEW} > /etc/hostname
     passwd -l root
@@ -163,7 +166,7 @@ configure_system() {
       echo 'GRUB_CMDLINE_LINUX=\"${cmdline}\"' >> /etc/default/grub
     fi
     ${boot}
-    grub-mkconfig -o /boot/grub/grub.cfg
+    LANG=${IDIOMA} grub-mkconfig -o /boot/grub/grub.cfg
   "
   # Comprobación explícita: una instalación a medias no debe darse por buena.
   [[ -f "${mnt}/usr/share/command-os/version" && -f "${mnt}/boot/grub/grub.cfg" ]] \

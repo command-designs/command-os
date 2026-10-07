@@ -58,7 +58,7 @@ arch-chroot "$MNT" /bin/bash -euxc "
   echo 'es_ES.UTF-8 UTF-8' >> /etc/locale.gen
   echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
   locale-gen
-  echo 'LANG=es_ES.UTF-8' > /etc/locale.conf
+  echo 'LANG=${IDIOMA}' > /etc/locale.conf
   echo command-os > /etc/hostname
   passwd -l root
   # Imagen para cualquier equipo: GRUB sin la resolución de la máquina que la construye.
@@ -68,7 +68,7 @@ arch-chroot "$MNT" /bin/bash -euxc "
   # --removable: EFI/BOOT/BOOTX64.EFI, sin depender de la NVRAM del equipo. El kernel y la
   # configuración de GRUB van en /boot dentro de btrfs (entran en las instantáneas).
   grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot --removable --no-nvram
-  grub-mkconfig -o /boot/grub/grub.cfg
+  LANG=${IDIOMA} grub-mkconfig -o /boot/grub/grub.cfg
 "
 # Comprobación explícita: una imagen a medias no debe darse por buena aunque algún paso no
 # propague su error.

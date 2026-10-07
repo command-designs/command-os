@@ -212,3 +212,6 @@ msgstr "starting in %d s"
 
 msgid "↑ ↓  elegir      intro  arrancar      e  editar      c  consola"
 msgstr "↑ ↓  choose      enter  boot      e  edit      c  console"
+
+msgid "Command OS: instantáneas (volver atrás)"
+msgstr "Command OS: snapshots (go back)"

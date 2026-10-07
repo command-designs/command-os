@@ -204,6 +204,12 @@ if [[ -f /etc/default/grub ]]; then
     sed -i '/echo.*"\$message"/d' /etc/grub.d/10_linux
   fi
   if [[ -f /boot/grub/grub.cfg ]] && command -v grub-mkconfig >/dev/null; then
+    # Submenú de las instantáneas (grub-btrfs; install.sh pone el nombre al instalarlo).
+    if [[ -f /etc/default/grub-btrfs/config ]]; then
+      submenu=$(t 'Command OS: instantáneas (volver atrás)')
+      sed -i -E "s|^#?GRUB_BTRFS_SUBMENUNAME=.*|GRUB_BTRFS_SUBMENUNAME=\"${submenu//|/-}\"|" \
+        /etc/default/grub-btrfs/config
+    fi
     # En el idioma del sistema («Opciones avanzadas…»).
     LANG=${LANG_SISTEMA:-C} grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1 \
       || echo "command-os: aviso: grub-mkconfig falló; el menú de arranque no se ha regenerado" >&2
