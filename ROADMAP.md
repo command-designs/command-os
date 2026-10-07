@@ -7,7 +7,14 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 9. **Cifrado de disco** (LUKS) al instalar en disco entero y en dual boot, con la contraseña dentro del
    splash y compatible con las instantáneas (grub-btrfs).
    _Modelo y esfuerzo recomendados:_ Opus, esfuerzo alto (arranque e initramfs; un fallo deja el equipo sin arrancar).
-10. **Instalar sin clonar el repositorio privado.** Hoy hace falta un token de GitHub en el USB. Publicar
+10. **Sistema en castellano y elección de idioma en el asistente** (decisión del usuario, 2026-10-07).
+   Hoy se instala con `LANG=en_US.UTF-8` (`build/x86/lib.sh`, `build/x86/build-image.sh`): el menú de
+   GRUB y los programas sin traducción propia salen en inglés. Instalar con `es_ES.UTF-8` de serie
+   (locale generado) y añadir al asistente de primer arranque la elección de idioma (castellano por
+   defecto; al menos inglés), que cambia `/etc/locale.conf` y regenera el menú de GRUB (`apply-boot`
+   ya usa el idioma del sistema). Probar en la VM `command-os-instalador`.
+   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo medio (instalador, asistente y arranque).
+11. **Instalar sin clonar el repositorio privado.** Hoy hace falta un token de GitHub en el USB. Publicar
    el instalador firmado junto al paquete (`command-os-versions`) para bajarlo con `curl` y verificar su
    firma. **Decide el usuario antes:** hace públicos los scripts de instalación.
    _Modelo y esfuerzo recomendados:_ Opus, esfuerzo medio (publicación y firma).
@@ -39,9 +46,6 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - Aviso de actualizaciones: un panel gráfico de actualización (hoy se abre `command-os-update` en una
   terminal; ver `docs/decisiones.md`) y comprobar en un equipo con instantáneas que el aviso cuenta bien
   tras volver atrás con `command-os-rollback`.
-- **Idioma del sistema**: los equipos se instalan con `LANG=en_US.UTF-8` (`build/x86/lib.sh`), así
-  que el menú de GRUB y los programas sin traducción propia salen en inglés. Decidir si se instala en
-  castellano o se elige en el asistente (GRUB ya sigue el idioma del sistema).
 - Probar el asistente de primer arranque en varias resoluciones (VM `command-os-instalador`).
 - Cuentas (fuera del punto del primer arranque, `docs/cuentas.md`): cifrado de disco, añadir y
   gestionar más cuentas desde el escritorio, zona horaria en el asistente y un panel para cambiar la
