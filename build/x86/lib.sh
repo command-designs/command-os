@@ -15,7 +15,9 @@ IDIOMA=es_ES.UTF-8
 LIB_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # shellcheck source=../../os/lib/textos.sh
 source "${LIB_DIR}/../../os/lib/textos.sh"
-LOCALE_DIR=${COMMAND_OS_LOCALE_DIR:-/tmp/command-os-locale}
+# Carpeta propia de cada ejecución (no una ruta fija de /tmp que otro pueda preparar antes: de ahí
+# salen los textos de las confirmaciones del borrado).
+LOCALE_DIR=${COMMAND_OS_LOCALE_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/command-os-locale.XXXXXX")}
 # En castellano (el texto original), una carpeta sin catálogos: aunque el entorno tenga LANG en otro
 # idioma y haya un catálogo compilado de otra vez, sale el original. cargar_idioma la cambia.
 export TEXTDOMAINDIR=${LOCALE_DIR}/original
@@ -57,14 +59,15 @@ cargar_idioma() {
     || { echo "warning: no translations for ${codigo}; messages stay in Spanish" >&2; return 0; }
   export TEXTDOMAINDIR=${LOCALE_DIR}
   # Solo para gettext: el resto del instalador (pacstrap, arch-chroot) sigue con el locale del USB.
-  # Con env y no con una asignación delante: así bash no intenta cambiar su propio locale.
-  gettext() { env -u LC_ALL LC_MESSAGES="${IDIOMA}" gettext "$@"; }
-  ngettext() { env -u LC_ALL LC_MESSAGES="${IDIOMA}" ngettext "$@"; }
+  # Con env y no con una asignación delante: así bash no intenta cambiar su propio locale. Sin
+  # LC_ALL ni LANGUAGE, que mandarían sobre LC_MESSAGES.
+  gettext() { env -u LC_ALL -u LANGUAGE LC_MESSAGES="${IDIOMA}" gettext "$@"; }
+  ngettext() { env -u LC_ALL -u LANGUAGE LC_MESSAGES="${IDIOMA}" ngettext "$@"; }
 }
 
 # parrafo "$(t '…')" [SANGRÍA] — un párrafo ya traducido, ajustado a 98 columnas contando la sangría
-# (dos espacios si no se da). Los párrafos van
-# enteros en una línea: así se traducen enteros, sin cortes que dependan del idioma.
+# (dos espacios si no se da). Los párrafos van enteros en una línea: así se traducen enteros, sin
+# cortes que dependan del idioma. (fold cuenta bytes: con tildes, la línea sale algo más corta.)
 parrafo() {
   local sangria=${2:-  }
   printf '%s\n' "$1" | fold -s -w $(( 98 - ${#sangria} )) | sed "s/^/${sangria}/"

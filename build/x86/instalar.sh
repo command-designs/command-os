@@ -15,7 +15,7 @@ REPO=$(cd "$(dirname "$0")/../.." && pwd)
 source "${REPO}/build/x86/lib.sh"
 die() { echo "error: $*" >&2; exit 1; }
 
-elegir_idioma || exit 1
+elegir_idioma || die "no se pudo leer la respuesta / could not read the answer (COMMAND_OS_IDIOMA=es|en)"
 cargar_idioma
 
 [[ $(id -u) -eq 0 ]] || die "$(t 'ejecutar como root')"

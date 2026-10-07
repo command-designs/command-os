@@ -98,6 +98,9 @@ grep -q 'Downloading the Command OS installer' <<< "${salida}" && grep -q 'INSTA
 salida=$(probar "${tmp}/p1" <<< "")
 grep -q 'Descargando el instalador' <<< "${salida}" && grep -q 'idioma=es' <<< "${salida}" \
   && ok "idioma por defecto (Intro): castellano" || mal "idioma por defecto: ${salida}"
+salida=$(probar "${tmp}/p1" </dev/null)
+grep -q 'could not read the answer' <<< "${salida}" && ! grep -q 'INSTALADOR EJECUTADO' <<< "${salida}" \
+  && ok "sin poder leer la respuesta: lo dice y no sigue" || mal "sin entrada: ${salida}"
 salida=$(probar "${tmp}/p1" fr </dev/null)
 grep -q 'INSTALADOR EJECUTADO' <<< "${salida}" && mal "acepta COMMAND_OS_IDIOMA=fr" || ok "rechaza COMMAND_OS_IDIOMA=fr"
 
@@ -118,7 +121,8 @@ done
 echo "==> Mensajes del instalador en inglés"
 # Como en el USB de Arch: solo el locale C.UTF-8 (con él gettext no traduce) y sin el catálogo de un
 # Command OS instalado. cargar_idioma genera el locale y compila el de os/po/ de este árbol.
-salida=$(env -i PATH="${PATH}" LANG=C.UTF-8 COMMAND_OS_LOCALE_DIR="${tmp}/locale" bash -c '
+# LANGUAGE=es (un entorno en castellano) no puede tapar el idioma elegido.
+salida=$(env -i PATH="${PATH}" LANG=C.UTF-8 LANGUAGE=es COMMAND_OS_LOCALE_DIR="${tmp}/locale" bash -c '
   source "$1/build/x86/lib.sh"
   COMMAND_OS_IDIOMA=en cargar_idioma
   echo "$(t "cancelado: no se ha tocado nada")|$(t "SI")|${IDIOMA}|${KB_DEFECTO}"' _ "${REPO}" 2>&1)

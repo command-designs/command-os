@@ -24,7 +24,8 @@ die() { echo "error: $*" >&2; exit 1; }
 if [[ -z "${COMMAND_OS_IDIOMA:-}" ]]; then
   printf '\n  Idioma / Language\n    1) Español\n    2) English\n\n'
   while :; do
-    read -rp "Elige / Choose [1]: " r || exit 1
+    read -rp "Elige / Choose [1]: " r \
+      || die "no se pudo leer la respuesta / could not read the answer (COMMAND_OS_IDIOMA=es|en)"
     case "${r}" in ""|1) COMMAND_OS_IDIOMA=es; break ;; 2) COMMAND_OS_IDIOMA=en; break ;; esac
   done
 fi
