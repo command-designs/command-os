@@ -106,8 +106,8 @@ def huella(lista):
 
 
 def vigilar():
-    """Al conectar una pantalla (o cambiar su modo), le pone la escala y vuelve a poner el fondo.
-    Las que ya estaban no se tocan: si alguien cambia la escala a mano (wdisplays), se respeta.
+    """Al conectar una pantalla, le pone la escala; al conectarla o cambiar su modo, vuelve a poner
+    el fondo. La escala de las que ya estaban no se toca: un cambio a mano (wdisplays) se respeta.
     Termina cuando el compositor se cierra."""
     antes = huella(salidas())
     fallos = 0
@@ -121,9 +121,13 @@ def vigilar():
             if fallos >= 3:
                 return
             continue
+        # Escala solo para las nuevas: si una que ya estaba cambia de modo, ha sido a mano (wdisplays)
+        # y la escala elegida con ese cambio se respeta. El fondo, para las dos.
+        nuevas = set(ahora) - set(antes)
         cambiadas = {n for n, modo in ahora.items() if antes.get(n) != modo}
+        if nuevas:
+            aplicar(nuevas)
         if cambiadas:
-            aplicar(cambiadas)
             if os.environ.get("COMMAND_OS_FONDO") == "1":
                 subprocess.run(["command-os-wallpaper"], check=False)
         antes = ahora

@@ -15,11 +15,13 @@ Qué hace cada pieza para que todo se vea igual de bien en 16:9 (1366x768, 1920x
   `/etc/command-os/escala` (todo el equipo, también inicio de sesión y asistente). Respeta el tope.
 - **Dónde se aplica**: `aplicar` al empezar la sesión (`labwc/autostart`, antes de la barra y el
   fondo) y dentro de cage antes de abrir el inicio de sesión y el asistente. `vigilar` (cada 2 s,
-  `wlr-randr --json`) ajusta las pantallas que se conectan o cambian de modo y vuelve a poner el fondo;
-  las que ya estaban no se tocan (un cambio con wdisplays se respeta). Termina al cerrarse el compositor.
+  `wlr-randr --json`) pone la escala a las pantallas que se conectan y el fondo a las que se conectan
+  o cambian de modo; la escala de las que ya estaban no se toca (un cambio con wdisplays se respeta).
+  Termina al cerrarse el compositor.
 - **hyprlock no aplica la escala** (mide todo en píxeles físicos: probado con `fractional_scaling` 0,
   1 y 2). `command-os-lock` le da la configuración de serie con las medidas multiplicadas, un bloque
-  por pantalla (`command-os-pantallas hyprlock`, ~50 ms). La configuración propia de una cuenta
+  por pantalla (`command-os-pantallas hyprlock`, ~50 ms), antes de revisarla en busca de errores
+  (se revisa la que se va a usar). La configuración propia de una cuenta
   (`~/.config/hypr/hyprlock.conf`) se usa tal cual.
 - Depende de `wlr-randr` (en `packages.txt`).
 
@@ -46,7 +48,9 @@ arranque escala igual.
   preferido de `/sys/class/drm`, la interna si la hay): fuentes JetBrains Mono con `grub-mkfont` (menú
   20 px, textos 15 px, consola 18 px a 1080 de alto), `theme.txt` con el bloque centrado y
   `GRUB_GFXMODE=<nativa>,auto`. Sin `grub-mkfont` o sin la fuente, se queda sin tema (fondo `void`).
-- `COMMAND_OS_PANTALLA=ANCHOxALTO` fija la pantalla (pruebas en VM y en CI).
+- `COMMAND_OS_PANTALLA=ANCHOxALTO` fija la pantalla (pruebas en VM y en CI); `generica` no mira la
+  de la máquina (la usa `build-image.sh`: la imagen va a cualquier equipo) y deja `auto` con medidas de
+  1080 hasta la siguiente actualización de GRUB o de command-os en el equipo.
 - `grub-mkconfig` va con el `LANG` de `/etc/locale.conf`: las entradas salen en el idioma del
   sistema. Hoy los equipos se instalan con `en_US` (`build/x86/lib.sh`), así que salen en inglés.
 

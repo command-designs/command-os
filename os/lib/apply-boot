@@ -166,8 +166,14 @@ if [[ -f /etc/default/grub ]]; then
   set_grub GRUB_TERMINAL_OUTPUT gfxterm
   # A la resolución nativa de la pantalla (algunos firmwares arrancan en 1024x768); si el firmware
   # no tiene ese modo, GRUB pasa a «auto».
-  # COMMAND_OS_PANTALLA=ANCHOxALTO fija la pantalla (pruebas: VM y tests/escritorio.sh).
-  mode=${COMMAND_OS_PANTALLA:-$(native_mode)}
+  # COMMAND_OS_PANTALLA=ANCHOxALTO fija la pantalla (pruebas: VM y tests/escritorio.sh); «generica»
+  # no mira la de esta máquina (imagen para cualquier equipo, build-image.sh): «auto» y medidas de
+  # 1080. En el equipo, la siguiente actualización de GRUB o de command-os lo ajusta a su pantalla.
+  case "${COMMAND_OS_PANTALLA:-}" in
+    generica) mode="" ;;
+    "") mode=$(native_mode) ;;
+    *) mode=${COMMAND_OS_PANTALLA} ;;
+  esac
   set_grub GRUB_GFXMODE "${mode:+${mode},}auto"
   set_grub GRUB_GFXPAYLOAD_LINUX keep
   # Fondo sin tema (si no se pudo generar): el tema usa el mismo, recortado sin deformar.

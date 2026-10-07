@@ -23,6 +23,18 @@ cfg="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprlock.conf"
 [ -e "${cfg}" ] || cfg=/etc/xdg/hypr/hyprlock.conf
 emergencia=/usr/share/command-os/config/hypr/hyprlock-emergencia.conf
 
+# Alta densidad: hyprlock no aplica la escala de la pantalla; la configuración de serie se le da
+# con las medidas escaladas (command-os-pantallas hyprlock). La de una cuenta se usa tal cual. Va
+# antes de la revisión: se revisa la configuración que de verdad se va a usar.
+if [ "${cfg}" = /etc/xdg/hypr/hyprlock.conf ] && [ -n "${run}" ] && [ -d "${run}" ] && [ -O "${run}" ]; then
+  escalada="${run}/command-os-hyprlock.conf"
+  if command-os-pantallas hyprlock "${cfg}" > "${escalada}.nueva" 2>/dev/null && [ -s "${escalada}.nueva" ]; then
+    mv -f "${escalada}.nueva" "${escalada}" && cfg="${escalada}"
+  else
+    rm -f "${escalada}.nueva"
+  fi
+fi
+
 # Revisión sin bloquear: hyprlock lee la configuración antes de conectarse a la pantalla; contra una
 # pantalla que no existe, informa de los errores y aborta (sin volcado: ulimit -c 0). El resultado
 # se guarda en la carpeta privada del usuario hasta que cambian la configuración o hyprlock (así no
@@ -42,17 +54,6 @@ fi
 if [ "${estado}" = mal ]; then
   logger -t command-os-lock "la configuración de hyprlock (${cfg}) tiene errores; se usa la de emergencia"
   cfg="${emergencia}"
-fi
-
-# Alta densidad: hyprlock no aplica la escala de la pantalla; la configuración de serie se le da
-# con las medidas escaladas (command-os-pantallas hyprlock). La de una cuenta se usa tal cual.
-if [ "${cfg}" = /etc/xdg/hypr/hyprlock.conf ] && [ -n "${run}" ] && [ -d "${run}" ] && [ -O "${run}" ]; then
-  escalada="${run}/command-os-hyprlock.conf"
-  if command-os-pantallas hyprlock "${cfg}" > "${escalada}.nueva" 2>/dev/null && [ -s "${escalada}.nueva" ]; then
-    mv -f "${escalada}.nueva" "${escalada}" && cfg="${escalada}"
-  else
-    rm -f "${escalada}.nueva"
-  fi
 fi
 
 hyprlock --config "${cfg}" && exit 0

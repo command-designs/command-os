@@ -51,6 +51,12 @@ if [[ -f /etc/default/grub ]]; then
   else
     mal "GRUB: tema o modo para 2560x1600"
   fi
+  if COMMAND_OS_PANTALLA=generica /usr/lib/command-os/apply-boot \
+      && grep -q 'pantallas de 1080 px' "${tema}/theme.txt" && grep -qxF 'GRUB_GFXMODE=auto' /etc/default/grub; then
+    ok "GRUB: imagen genérica (auto y medidas de 1080)"
+  else
+    mal "GRUB: imagen genérica"
+  fi
   /usr/lib/command-os/apply-boot
 else
   mal "no hay /etc/default/grub (falta grub en el contenedor)"
