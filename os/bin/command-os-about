@@ -3,6 +3,7 @@
 # Panel informativo igual que command-os-keys: nombre, versión del paquete, Arch validado, hardware y
 # estado de las instantáneas. Solo informa: elegir una línea cierra el panel.
 set -uo pipefail
+source /usr/lib/command-os/textos.sh
 
 STYLE="$(command-os-config wofi/power.css)"
 TAG="command-os-about"
@@ -15,40 +16,40 @@ row() { printf '%-9s %s\n' "$1" "$2"; }
 
 version=$(cat "${SHARE}/version" 2>/dev/null || true)
 if [[ -e /etc/command-os/rolling || ! -s "${SHARE}/pacman/snapshot-date" ]]; then
-  arch="al día (sin fecha fija)"
+  arch="$(t 'al día (sin fecha fija)')"
 else
-  arch="$(grep -oE '^[0-9]{4}/[0-9]{2}/[0-9]{2}' "${SHARE}/pacman/snapshot-date" | head -1) (validado)"
+  arch="$(grep -oE '^[0-9]{4}/[0-9]{2}/[0-9]{2}' "${SHARE}/pacman/snapshot-date" | head -1) ($(t 'validado'))"
 fi
 cpu=$(lscpu 2>/dev/null | sed -nE 's/^Model name:[[:space:]]+//p' | head -1)
 mem=$(awk '/^MemTotal:/ { printf "%.1f GB", $2 / 1048576 }' /proc/meminfo)
 gpu=$(fastfetch -s gpu --format json 2>/dev/null | grep -oE '"name": *"[^"]*"' | head -1 | cut -d'"' -f4)
 
 # Las cuentas de wheel administran el equipo (sudo); la primera siempre lo es (docs/cuentas.md).
-if id -nG | grep -qw wheel; then cuenta="$(id -un) (administrador)"; else cuenta="$(id -un)"; fi
+if id -nG | grep -qw wheel; then cuenta="$(id -un) ($(t 'administrador'))"; else cuenta="$(id -un)"; fi
 
 if [[ "$(findmnt -no FSTYPE / 2>/dev/null)" == btrfs ]] && mountpoint -q /.snapshots; then
   # /.snapshots es de root (750): el número solo se ve con permiso; si no, se dice solo "sí".
-  snaps="sí (command-os-rollback)"
+  snaps="$(t 'sí (command-os-rollback)')"
   if [[ -r /.snapshots ]]; then
     n=$(find /.snapshots -mindepth 1 -maxdepth 1 -type d | wc -l)
-    snaps="sí, ${n} instantáneas (command-os-rollback)"
+    snaps="$(tn 'sí, %d instantánea (command-os-rollback)' 'sí, %d instantáneas (command-os-rollback)' "${n}" "${n}")"
   fi
 else
-  snaps="no (la raíz no es btrfs)"
+  snaps="$(t 'no (la raíz no es btrfs)')"
 fi
 
 {
-  row "sistema" "cmd-os · command os"
-  row "paquete" "${version:-sin versión}"
+  row "$(t 'sistema')" "cmd-os · command os"
+  row "$(t 'paquete')" "${version:-$(t 'sin versión')}"
   row "arch" "${arch}"
-  row "equipo" "$(id -un)@$(cat /etc/hostname 2>/dev/null || uname -n)"
-  row "cuenta" "${cuenta}"
+  row "$(t 'equipo')" "$(id -un)@$(cat /etc/hostname 2>/dev/null || uname -n)"
+  row "$(t 'cuenta')" "${cuenta}"
   row "kernel" "$(uname -r)"
   row "cpu" "${cpu:--}"
   row "gpu" "${gpu:--}"
-  row "memoria" "${mem:--}"
-  row "volver" "${snaps}"
-  row "" "más detalle: fastfetch"
+  row "$(t 'memoria')" "${mem:--}"
+  row "$(t 'volver')" "${snaps}"
+  row "" "$(t 'más detalle: fastfetch')"
 } | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
   --define hide_search=true --cache-file /dev/null \
   --width 560 --height 490 >/dev/null

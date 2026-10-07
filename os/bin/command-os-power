@@ -3,6 +3,7 @@
 # Se abre con Super+Escape o con el botón de encendido de la barra. Reiniciar y apagar piden
 # confirmación; las acciones van por systemd-logind (sin contraseña para la sesión activa).
 set -uo pipefail
+source /usr/lib/command-os/textos.sh
 
 STYLE="$(command-os-config wofi/power.css)"
 TAG="command-os-power"
@@ -16,10 +17,12 @@ menu() {  # menu línea…  -> imprime la línea elegida (Esc o clic fuera: nada
     --width 280 --height $(( 22 + 40 * $# ))
 }
 
-LOCK="󰌾   bloquear"
-REBOOT="󰜉   reiniciar"
-OFF="󰐥   apagar"
-CANCEL="󰜺   cancelar"
+LOCK="󰌾   $(t 'bloquear')"
+REBOOT="󰜉   $(t 'reiniciar')"
+OFF="󰐥   $(t 'apagar')"
+CANCEL="󰜺   $(t 'cancelar')"
+YES_REBOOT="󰜉   $(t 'sí, reiniciar')"
+YES_OFF="󰐥   $(t 'sí, apagar')"
 
 choice=$(menu "${LOCK}" "${REBOOT}" "${OFF}") || exit 0
 
@@ -27,8 +30,8 @@ case "${choice}" in
   "${LOCK}")
     loginctl lock-session ;;
   "${REBOOT}")
-    [[ "$(menu "󰜉   sí, reiniciar" "${CANCEL}")" == "󰜉   sí, reiniciar" ]] && systemctl reboot ;;
+    [[ "$(menu "${YES_REBOOT}" "${CANCEL}")" == "${YES_REBOOT}" ]] && systemctl reboot ;;
   "${OFF}")
-    [[ "$(menu "󰐥   sí, apagar" "${CANCEL}")" == "󰐥   sí, apagar" ]] && systemctl poweroff ;;
+    [[ "$(menu "${YES_OFF}" "${CANCEL}")" == "${YES_OFF}" ]] && systemctl poweroff ;;
 esac
 exit 0

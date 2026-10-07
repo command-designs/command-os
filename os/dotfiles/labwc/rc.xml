@@ -142,13 +142,13 @@
     <!-- Salida de emergencia: cierra labwc y el inicio automático de tty1 abre una sesión nueva. -->
     <keybind key="W-S-m"><action name="Exit" /></keybind>
     <keybind key="Print">
-      <action name="Execute" command="sh -c 'grim -g &quot;$(slurp)&quot; - | wl-copy &amp;&amp; notify-send -a captura &quot;captura de zona copiada&quot;'" />
+      <action name="Execute" command="command-os-captura zona" />
     </keybind>
     <keybind key="W-S-s">
-      <action name="Execute" command="sh -c 'grim -g &quot;$(slurp)&quot; - | wl-copy &amp;&amp; notify-send -a captura &quot;captura de zona copiada&quot;'" />
+      <action name="Execute" command="command-os-captura zona" />
     </keybind>
     <keybind key="S-Print">
-      <action name="Execute" command="sh -c 'grim - | wl-copy &amp;&amp; notify-send -a captura &quot;captura de pantalla copiada&quot;'" />
+      <action name="Execute" command="command-os-captura pantalla" />
     </keybind>
 
     <!-- Teclas multimedia, con OSD. Funcionan también con la sesión bloqueada. -->

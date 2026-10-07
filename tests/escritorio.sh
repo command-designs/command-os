@@ -61,7 +61,7 @@ if [[ -f /etc/default/grub ]]; then
 else
   mal "no hay /etc/default/grub (falta grub en el contenedor)"
 fi
-for f in /etc/xdg/labwc/rc.xml /etc/xdg/labwc/menu.xml; do
+for f in /etc/xdg/labwc/rc.xml /usr/share/command-os/config/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
 done
 

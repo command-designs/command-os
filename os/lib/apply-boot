@@ -33,7 +33,7 @@ THEME_DIR=/boot/grub/themes/command
 # Idioma del sistema (/etc/locale.conf, command-os-idioma) para el menú y los textos del tema: desde
 # un gancho de pacman no llega su LANG.
 LANG_SISTEMA=$(sed -nE 's/^LANG=//p' /etc/locale.conf 2>/dev/null | tr -d '"' | tail -n1)
-t() {  # t 'texto' -> traducido al idioma del sistema (os/po/) o el original
+t() {  # t TEXTO -> traducido al idioma del sistema (os/po/) o el original
   LC_ALL=${LANG_SISTEMA:-C} LANGUAGE="" TEXTDOMAIN=command-os TEXTDOMAINDIR=/usr/share/locale \
     gettext -- "$1" 2>/dev/null || printf '%s' "$1"
 }

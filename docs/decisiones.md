@@ -74,6 +74,26 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   GRUB**: lo que se ve al elegir el idioma. El resto de textos propios (barra, menús, splash,
   instalador) va como punto propio del roadmap.
 
+## 2026-10-07 — El escritorio en inglés (`docs/idioma.md`)
+
+- **Los archivos estáticos se traducen al abrir la sesión, no se duplican por idioma.** Waybar (JSON),
+  hyprlock y el menú de labwc no pueden llamar a gettext. Se marcan sus textos (`{{texto}}`, o el
+  propio `label="…"` del menú) y `lib/traducir.py` los traduce con el mismo catálogo que el resto.
+  Descartado: un archivo por idioma (se desincronizan al cambiar uno) y un diccionario aparte.
+- **El menú de labwc deja de estar en `/etc/xdg/labwc` y va en `/usr/share/command-os/config/labwc/`**,
+  traducido en `$XDG_RUNTIME_DIR` al iniciar sesión. Con `--merge-config`, labwc lee primero el del
+  sistema y se queda con el primero de cada id (el de la cuenta llega tarde y se ignora, con un aviso
+  «already exists»): una copia traducida en `~/.config` no se vería. Se probó. Descartado: pipemenus
+  (no valen para el menú raíz) y copiar el menú a `~/.config` (no gana al del sistema).
+- **`t` y `tn` en un `lib/textos.sh` común** (bash y sh) y no una función por script; `tn` para
+  singular y plural. `build/po.sh` busca las llamadas con su propio extractor: `xgettext -L Shell`
+  se pierde los textos tras `{`, `do` y `(( ))`. Falla si un texto no va entero y literal.
+- **Los registros y diagnósticos de administración siguen en castellano** (`logger`, avisos de
+  `apply-*`, uso de las órdenes internas): los lee quien administra, y mezclar idiomas en el diario
+  dificulta buscar. Se traducen lo que ve la persona: avisos, paneles, menús y las órdenes de terminal.
+- **Las capturas pasan de un `sh -c` incrustado en `rc.xml` a `command-os-captura`**, para poder
+  traducir el aviso (y porque el XML escapado era ilegible).
+
 ## 2026-10-07 — Pantallas 16:9 y 16:10 y alta densidad (`docs/notas/pantallas.md`)
 
 - **Escala automática fraccionaria (pasos de 0,25)**, por la densidad del monitor y con tope de

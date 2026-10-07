@@ -4,13 +4,23 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 `docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
 de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
-12. **Command OS entero en inglés.** Con el idioma en inglés (`docs/idioma.md`), hoy solo se traducen
-   el asistente, la pantalla de inicio de sesión y el menú de GRUB. Pasar a gettext el resto de textos
-   propios: barra y sus avisos, menús de labwc, «acerca de», ayuda de atajos, notificaciones,
-   `command-os-update`/`-rollback`/`-login`/`-idioma`, los textos del splash (son imágenes: una por
-   idioma) y, si se decide, el instalador.
-   _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (muchos archivos, pero mecánico y con
-   `tests/idioma.sh` vigilando).
+12. **Órdenes de terminal en inglés** (rama `feat/traducir-ordenes-de-terminal`). El escritorio ya
+   está traducido (`docs/idioma.md`). Faltan los mensajes de `command-os-update`, `-rollback`, `-login`
+   y `-idioma` (y la cabecera de `command-os-user-setup`, el `motd`) con `t` y los tests que hoy
+   comparan mensajes en castellano.
+   _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (todo bash con `t`, sin diseño nuevo).
+
+13. **Texto del splash por idioma** (rama `feat/splash-por-idioma`). `texto-clave*.png` son imágenes:
+   `build/make-plymouth-textos.py` genera una por idioma y `command-os-idioma` pone la del idioma elegido
+   en el tema y rehace el initramfs (Plymouth no lee `LANG`). Probar con disco cifrado en la VM
+   `command-os-instalador`.
+   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo alto (initramfs y cifrado: difícil de depurar).
+
+14. **Instalador en inglés** (decidir antes). Corre en la ISO de Arch, antes de Command OS: habría que
+   llevar los `.mo` dentro del paquete firmado y elegir el idioma a partir del de la ISO. La
+   confirmación de borrado se teclea («Escribe SI…»): traducirla exige una prueba nueva en
+   `tests/discos.sh` (`AGENTS.md`: no se relaja sin ella).
+   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo alto (borrado de discos).
 
 ## Lo prueba el usuario
 

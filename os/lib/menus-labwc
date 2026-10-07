@@ -1,0 +1,18 @@
+#!/bin/sh
+# Command OS — el menú de labwc en el idioma del sistema (docs/idioma.md). labwc no traduce: se copia
+# el menú de serie con sus etiquetas traducidas a $XDG_RUNTIME_DIR/command-os/xdg/labwc/menu.xml y se
+# imprime esa carpeta; command-os-session la pone la primera en XDG_CONFIG_DIRS. Si no se puede
+# traducir, el menú sale en castellano. Falla (sin imprimir nada) solo si no hay carpeta de ejecución.
+#
+# El menú de serie no está en /etc/xdg/labwc: labwc se queda con el primero que lee de los que
+# tienen el mismo id (el del sistema, antes que el de la cuenta) y no habría forma de traducirlo.
+src=/usr/share/command-os/config/labwc/menu.xml
+run="${XDG_RUNTIME_DIR:-}"
+[ -d "${run}" ] && [ -O "${run}" ] || exit 1
+dir="${run}/command-os/xdg"
+mkdir -p "${dir}/labwc" || exit 1
+out="${dir}/labwc/menu.xml"
+/usr/lib/command-os/traducir.py etiquetas "${src}" > "${out}.nuevo" 2>/dev/null && [ -s "${out}.nuevo" ] \
+  || cp "${src}" "${out}.nuevo" || exit 1
+mv -f "${out}.nuevo" "${out}" || exit 1
+printf '%s\n' "${dir}"

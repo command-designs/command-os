@@ -27,7 +27,7 @@ de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualiza
 igual en 16:9 y 16:10 con escala automática de alta densidad y tema de GRUB propio
 (`docs/notas/pantallas.md`). Al instalar en un PC, el disco se cifra (LUKS2, sí por defecto) con la
 contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). En castellano de serie, con
-el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext (`docs/idioma.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -84,9 +84,14 @@ usuario); ARM, aparcado hasta tener la placa.
   símbolos: `keyboardputstring` teclea como un teclado de EE. UU. y la VM usa el español.
 - Initramfs: el busybox de mkinitcpio **no tiene `tr` ni `stty`**, y Plymouth pinta la ñ y las tildes
   como cuadrados (`label-freetype` sin locale): textos con acentos en el splash, como imágenes.
-- Textos: el original es el castellano dentro de `_()` (Python) o `t` (bash); un texto nuevo o cambiado
-  necesita `bash build/po.sh` y su traducción en `os/po/`, o `tests/idioma.sh` falla. Nada de textos
-  montados a trozos.
+- Textos: el original es el castellano dentro de `_()` (Python), `t`/`tn` (shell, de `lib/textos.sh`,
+  el texto entero y literal), `{{…}}` (Waybar, hyprlock) o el `label="…"` del menú de labwc; un texto
+  nuevo o cambiado necesita `bash build/po.sh` y su traducción en `os/po/`, o `tests/idioma.sh` falla.
+  Nada de textos montados a trozos ni `t "$variable"`.
+- El menú de labwc **no** va en `/etc/xdg/labwc` (con `--merge-config` gana el primero que se lee, el del
+  sistema, y no se podría traducir): va en `/usr/share/command-os/config/labwc/` y `lib/menus-labwc`
+  lo traduce al iniciar la sesión (`docs/idioma.md`). `printf '%-22s'` cuenta bytes: para alinear
+  texto con flechas o «·», rellenar con `${#texto}`.
 - cage se cierra cuando se cierra una tubería que hereda su programa: nada que se lance con `&` dentro
   de su `sh -c` puede quedársela (`pantallas.py vigilar` cierra los descriptores heredados) o la pantalla
   se queda en negro tras el asistente o el inicio de sesión.
