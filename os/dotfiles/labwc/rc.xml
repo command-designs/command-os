@@ -99,6 +99,7 @@
       <action name="Execute" command="command-os-clipboard" />
     </keybind>
     <keybind key="W-F1"><action name="Execute" command="command-os-keys" /></keybind>
+    <keybind key="W-F2"><action name="Execute" command="command-os-about" /></keybind>
     <keybind key="C-S-Escape"><action name="Execute" command="kitty --class btop -e btop" /></keybind>
 
     <!-- Ventanas. -->

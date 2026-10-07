@@ -14,6 +14,10 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   botones SVG de `build/make-labwc-buttons.py`) instalado en `/usr/share/themes/Command`. Portales en
   `os/dotfiles/xdg-desktop-portal/labwc-portals.conf` (gtk + wlr). Ayuda de atajos
   `os/bin/command-os-keys` (Super+F1): si se cambia un atajo en `rc.xml`, cambiarlo también ahí.
+  `os/bin/command-os-about` (Super+F2, o «acerca de cmd-os» en el menú): mismo panel de wofi; lee el
+  paquete de `/usr/share/command-os/version`, la fecha de Arch de `pacman/snapshot-date` y la GPU de
+  `fastfetch -s gpu --format json` (fastfetch ya no admite opciones de módulo por línea de comandos).
+  Las etiquetas son ASCII: `printf '%-9s'` cuenta bytes y desalinea las acentuadas.
 - **Escritorios** (petición del usuario: que no se vean si no se crea uno extra): labwc no crea
   escritorios en caliente, así que `os/bin/command-os-desktops nuevo|quitar` reescribe `<names>` en
   `~/.config/labwc/rc.xml`, recarga con SIGHUP y, al crear, salta al nuevo pulsando Super+N con

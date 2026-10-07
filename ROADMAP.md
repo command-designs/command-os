@@ -3,9 +3,6 @@
 Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle queda en `AGENTS.md`,
 `docs/` y el historial de git). Todo cambio vale a la vez para x86 (GRUB) y ARM/Pi 5 (`cmdline.txt`).
 
-3. **Pantalla «Acerca de CMD-OS»** con nombre y código, visible desde el escritorio. Ancla 5.
-   Decidir antes formato y datos (versión del paquete, fecha de Arch validada, hardware…).
-   _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (pantalla pequeña; el diseño lo decides tú antes).
 4. **Firefox personalizado**: página de inicio, tema y políticas de serie dentro del paquete.
    _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (políticas y preferencias de Firefox).
 5. **Instalador que pida usuario y contraseña** (hoy `deck`/`deck` fijo con inicio automático).

@@ -80,7 +80,8 @@ animaciones, sonidos); fuera lo que ni sirve ni aporta ambiente, lo que daría i
 - **Paneles del sistema:** el menú de energía (`command-os-power`: bloquear · reiniciar · apagar, con
   confirmación) es un panel Wofi pequeño sin buscador, con el filo rojo en la opción elegida; se abre
   con Super+Escape o con el botón 󰐥 al final de la barra. La ayuda de atajos (`command-os-keys`,
-  Super+F1) usa el mismo panel en dos columnas. El mezclador de volumen (clic en `vol`) es pavucontrol
+  Super+F1) usa el mismo panel en dos columnas; «acerca de cmd-os» (`command-os-about`, Super+F2 o el
+  menú del escritorio) también: nombre, paquete, Arch validado, hardware y si se puede volver atrás. El mezclador de volumen (clic en `vol`) es pavucontrol
   de 460×340 sin barra de título, fijado bajo la barra arriba a la derecha; otro clic lo cierra.
 - **Sin blur ni transparencias** en el escritorio: la GPU del Pi 5 no da para blur fluido y el HUD
   se lee mejor opaco. El brillo se hace con sombras y `text-shadow`.
@@ -146,7 +147,7 @@ ni emojis.
 | 2   | Firma de arranque          | Plymouth: letras de izquierda a derecha y luego la barra. ~1,1 s. Cualquier tecla salta la animación (Esc sigue siendo el modo detalles). | ✔ verificado en VM (2026-10-07; ~1,1 s medidos) |
 | 3   | Un solo punto rojo         | El rojo es el primario del HUD pero sigue marcando lo activo (marco de ventana, espacio de trabajo, foco, selección); los datos van en cian. El punto rojo físico depende del hardware. | pantalla ✔ verificado en VM · objeto pendiente |
 | 4   | Voz                        | Textos de bloqueo, `issue` y `motd` en tono terminal.                                                                             | ✔                                            |
-| 5   | Nombre y código            | `os-release` (`VARIANT="CMD-OS"`), `/etc/issue` y `motd`. Falta una pantalla de información del sistema.                           | parcial                                      |
+| 5   | Nombre y código            | `os-release` (`VARIANT="CMD-OS"`), `/etc/issue` y `motd`. Pantalla «acerca de cmd-os» (Super+F2).                                 | ✔ verificado en VM (2026-10-07)              |
 | 6   | Principios como requisitos | Base abierta (Arch + dotfiles en el repo). Resto depende del hardware.                                                            | pendiente                                    |
 | 7   | Por dentro también         | Serigrafía de la placa.                                                                                                           | pendiente (hardware)                         |
 | 8   | Lo impreso es de la marca  | Caja, manuales, etiquetas.                                                                                                        | pendiente                                    |
