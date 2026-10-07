@@ -53,6 +53,9 @@
     <item label="atajos de teclado" icon="preferences-desktop-keyboard-shortcuts">
       <action name="Execute" command="command-os-keys" />
     </item>
+    <item label="acerca de cmd-os" icon="help-about">
+      <action name="Execute" command="command-os-about" />
+    </item>
     <separator />
     <item label="bloquear" icon="system-lock-screen">
       <action name="Execute" command="loginctl lock-session" />

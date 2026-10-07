@@ -38,6 +38,7 @@ KEYS=(
   "super + clic derecho   redimensionar ventana"
   "clic derecho           menú del escritorio"
   "super + f1             esta ayuda"
+  "super + f2             acerca de cmd-os"
 )
 
 printf '%s\n' "${KEYS[@]}" | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
