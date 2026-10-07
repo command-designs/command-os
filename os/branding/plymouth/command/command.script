@@ -12,20 +12,30 @@
 Window.SetBackgroundTopColor(0.051, 0.043, 0.055);
 Window.SetBackgroundBottomColor(0.051, 0.043, 0.055);
 
-BAR_H = 2;
-PAD = 16;  # margen transparente de los fotogramas (halo y glitch), ver build/make-plymouth.py
+# Todo va en proporción al alto de la pantalla: igual de grande en 1366x768 que en 2560x1600 o
+# en 4K. A 1080 px de alto, K = 1 (wordmark de 640 px). Los fotogramas vienen a doble resolución
+# (build/make-plymouth.py) y se reducen una sola vez aquí, al cargarlos.
+K = Window.GetHeight() / 1080;
+if (K < 0.7) K = 0.7;
+if (K > 2) K = 2;
+SRC = 2;  # resolución de los fotogramas
+BAR_H = Math.Int(2 * K + 0.5);
+if (BAR_H < 2) BAR_H = 2;
+PAD = Math.Int(16 * K);  # margen transparente de los fotogramas (halo y glitch)
 
 frame_count = 28;
-for (i = 0; i < frame_count; i++)
-    frame[i] = Image("frame-" + i + ".png");
+for (i = 0; i < frame_count; i++) {
+    src = Image("frame-" + i + ".png");
+    frame[i] = src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
+}
 
 # --- Composición: wordmark centrado, barra a la mitad de su ancho, centrada debajo ---
 logo_w = frame[0].GetWidth() - 2 * PAD;
 logo_x = Window.GetX() + (Window.GetWidth() - logo_w) / 2;
-logo_y = Window.GetY() + (Window.GetHeight() - frame[0].GetHeight()) / 2 - 20;
+logo_y = Window.GetY() + (Window.GetHeight() - frame[0].GetHeight()) / 2 - Math.Int(20 * K);
 bar_w  = Math.Int(logo_w / 2);
 bar_x  = Window.GetX() + (Window.GetWidth() - bar_w) / 2;
-bar_y  = logo_y + frame[0].GetHeight() - PAD + 56;
+bar_y  = logo_y + frame[0].GetHeight() - PAD + Math.Int(56 * K);
 
 logo = Sprite();
 logo.SetX(logo_x - PAD);
@@ -46,11 +56,11 @@ if (!booting) bar_bg.SetOpacity(0);
 
 # --- Consola de arranque: bajo la barra, alineada con el wordmark ---------------------
 # La línea más reciente (abajo) en hueso; las anteriores se apagan hacia Smoke. Solo al arrancar.
-FONT = "Monospace 9";
+FONT = "Monospace " + Math.Int(9 * K + 0.5);
 LOG_LINES = 6;
-LINE_H = 17;
+LINE_H = Math.Int(17 * K + 0.5);
 LOG_MAX = 76;
-log_y = bar_y + BAR_H + 28;
+log_y = bar_y + BAR_H + Math.Int(28 * K);
 for (i = 0; i < LOG_LINES; i++) {
     log_text[i] = "";
     log_sprite[i] = Sprite();
