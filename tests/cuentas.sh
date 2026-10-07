@@ -28,13 +28,14 @@ echo "${CLAVE}" | "${CREAR}" --usuario 'Ana López' >/dev/null 2>&1 && mal "acep
 echo "${CLAVE}" | "${CREAR}" --usuario root >/dev/null 2>&1 && mal "acepta root" || ok "rechaza un usuario que ya existe"
 echo "corta" | "${CREAR}" --usuario ana >/dev/null 2>&1 && mal "acepta una contraseña corta" || ok "rechaza contraseña corta"
 echo "${CLAVE}" | "${CREAR}" --usuario ana --teclado 'es;rm' >/dev/null 2>&1 && mal "acepta un teclado raro" || ok "rechaza teclado no válido"
+echo "${CLAVE}" | "${CREAR}" --usuario ana --idioma fr_FR.UTF-8 >/dev/null 2>&1 && mal "acepta un idioma que no está en la lista" || ok "rechaza idiomas que no están en la lista"
 echo "${CLAVE}" | "${CREAR}" --usuario video >/dev/null 2>&1 && mal "acepta un nombre de grupo del sistema"   || ok "rechaza nombres de grupos del sistema"
 getent passwd video >/dev/null && mal "quedó la cuenta video"
 getent passwd ana >/dev/null && mal "quedó una cuenta a medias" || ok "no quedan cuentas a medias"
 [[ -e /var/lib/command-os/configurado ]] && mal "se marcó como configurado tras un error" || ok "sigue sin configurar"
 
 echo "==> Cuenta principal"
-if echo "${CLAVE}" | "${CREAR}" --usuario ana --nombre 'Ana López' --teclado 'de(nodeadkeys)' >/dev/null; then
+if echo "${CLAVE}" | "${CREAR}" --usuario ana --nombre 'Ana López' --teclado 'de(nodeadkeys)' --idioma en_US.UTF-8 >/dev/null; then
   ok "crear-cuenta ana"
 else
   mal "crear-cuenta ana"
@@ -48,6 +49,7 @@ else
   ok "la contraseña no aparece en claro en ningún archivo"
 fi
 [[ "$(cat /etc/command-os/kb_layout)" == 'de(nodeadkeys)' ]] && ok "teclado con variante guardado" || mal "teclado"
+grep -qx 'LANG=en_US.UTF-8' /etc/locale.conf && ok "idioma elegido en locale.conf" || mal "no se aplicó el idioma"
 grep -q 'command = "command-os-greeter"' "${TOML}" && ok "greetd: pantalla de inicio de sesión" || mal "greetd sin pantalla de inicio de sesión"
 grep -q initial_session "${TOML}" && mal "inicio automático sin pedirlo" || ok "pide contraseña (por defecto)"
 echo "${CLAVE}" | "${CREAR}" --usuario luis >/dev/null 2>&1 && mal "se puede repetir el primer arranque" || ok "no se repite"

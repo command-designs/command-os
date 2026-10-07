@@ -30,6 +30,13 @@ native_mode() {  # ANCHOxALTO del modo preferido de la pantalla (la interna si h
 # fuentes y las medidas se generan aquí para el alto de la pantalla del equipo (1080 px = medidas
 # base), así el menú se ve igual en 1366x768 que en 2560x1600. Sin la fuente, se queda sin tema.
 THEME_DIR=/boot/grub/themes/command
+# Idioma del sistema (/etc/locale.conf, command-os-idioma) para el menú y los textos del tema: desde
+# un gancho de pacman no llega su LANG.
+LANG_SISTEMA=$(sed -nE 's/^LANG=//p' /etc/locale.conf 2>/dev/null | tr -d '"' | tail -n1)
+t() {  # t 'texto' -> traducido al idioma del sistema (os/po/) o el original
+  LC_ALL=${LANG_SISTEMA:-C} LANGUAGE="" TEXTDOMAIN=command-os TEXTDOMAINDIR=/usr/share/locale \
+    gettext -- "$1" 2>/dev/null || printf '%s' "$1"
+}
 THEME_FONT=/usr/share/fonts/TTF/JetBrainsMonoNLNerdFont-Regular.ttf
 # Latín, puntuación, flechas y cajas (el editor y la consola de GRUB dibujan recuadros).
 FONT_RANGES=0x20-0x7E,0xA0-0x17F,0x2010-0x2027,0x2190-0x2193,0x2500-0x257F
@@ -116,7 +123,7 @@ terminal-border: "0"
   align = "center"
   font = "cmd-texto"
   color = "#5bbfc4"
-  text = "arranca en %d s"
+  text = "$(t 'arranca en %d s')"
 }
 
 + label {
@@ -127,7 +134,7 @@ terminal-border: "0"
   align = "center"
   font = "cmd-texto"
   color = "#6f6870"
-  text = "↑ ↓  elegir      intro  arrancar      e  editar      c  consola"
+  text = "$(t '↑ ↓  elegir      intro  arrancar      e  editar      c  consola')"
 }
 EOF
 }
@@ -197,9 +204,8 @@ if [[ -f /etc/default/grub ]]; then
     sed -i '/echo.*"\$message"/d' /etc/grub.d/10_linux
   fi
   if [[ -f /boot/grub/grub.cfg ]] && command -v grub-mkconfig >/dev/null; then
-    # En el idioma del sistema («Opciones avanzadas…»): desde un gancho de pacman no llega su LANG.
-    lang=$(sed -nE 's/^LANG=//p' /etc/locale.conf 2>/dev/null | tr -d '"')
-    LANG=${lang:-C} grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1 \
+    # En el idioma del sistema («Opciones avanzadas…»).
+    LANG=${LANG_SISTEMA:-C} grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1 \
       || echo "command-os: aviso: grub-mkconfig falló; el menú de arranque no se ha regenerado" >&2
   fi
 fi

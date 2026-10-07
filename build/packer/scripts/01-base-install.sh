@@ -37,9 +37,10 @@ chmod 600 /mnt/root/.ssh/authorized_keys
 arch-chroot /mnt /bin/bash -euxc "
   ln -sf /usr/share/zoneinfo/UTC /etc/localtime
   hwclock --systohc
+  echo 'es_ES.UTF-8 UTF-8' >> /etc/locale.gen
   echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
   locale-gen
-  echo 'LANG=en_US.UTF-8' > /etc/locale.conf
+  echo 'LANG=es_ES.UTF-8' > /etc/locale.conf
   echo '${HOSTNAME}' > /etc/hostname
   passwd -d root
   sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config

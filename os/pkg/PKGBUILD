@@ -18,6 +18,7 @@ url="https://commandlab.dev/"
 license=('custom')
 install=command-os.install
 backup=()
+makedepends=('gettext')
 
 _os=$(cd "${startdir}/.." && pwd)
 # Todo el escritorio: lo que antes instalaba install.sh a mano.
@@ -109,6 +110,12 @@ package() {
     "${d}/usr/lib/systemd/system/command-os-check-updates.timer"
   install -Dm 644 "${s}/system/polkit-check-updates.rules" \
     "${d}/usr/share/polkit-1/rules.d/50-command-os-check-updates.rules"
+
+  # --- Traducciones (os/po/<idioma>.po, docs/idioma.md): el texto original es el castellano ---
+  for f in "${s}"/po/*.po; do
+    install -d "${d}/usr/share/locale/$(basename "${f}" .po)/LC_MESSAGES"
+    msgfmt --check -o "${d}/usr/share/locale/$(basename "${f}" .po)/LC_MESSAGES/command-os.mo" "${f}"
+  done
 
   echo "${pkgver}" > "${d}/usr/share/command-os/version"
 }

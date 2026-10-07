@@ -54,9 +54,11 @@ find "$MNT/root/command-os-src/os" -name '*.sh' -exec sed -i 's/\r$//' {} +
 
 arch-chroot "$MNT" /bin/bash -euxc "
   ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+  # Castellano de serie; inglés generado para poder elegirlo en el asistente (command-os-idioma).
+  echo 'es_ES.UTF-8 UTF-8' >> /etc/locale.gen
   echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
   locale-gen
-  echo 'LANG=en_US.UTF-8' > /etc/locale.conf
+  echo 'LANG=es_ES.UTF-8' > /etc/locale.conf
   echo command-os > /etc/hostname
   passwd -l root
   # Imagen para cualquier equipo: GRUB sin la resolución de la máquina que la construye.

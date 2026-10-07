@@ -21,6 +21,8 @@ greetd
 cage
 gtk4
 python-gobject
+# Traducciones de Command OS (docs/idioma.md): `gettext` en los scripts (tema de GRUB).
+gettext
 
 # Shell / status bar / launcher
 waybar
