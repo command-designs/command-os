@@ -4,6 +4,7 @@
 # una barra de progreso fina debajo y, bajo la barra, una consola de 6 líneas con los servicios que
 # va arrancando systemd (llegan por Plymouth.SetUpdateStatusFunction / SetMessageFunction). Es el
 # único texto del arranque: el cargador, el kernel y systemd no escriben en pantalla.
+# Cualquier tecla salta la animación del wordmark (va al último fotograma; el arranque no se toca).
 # Para soporte técnico, Esc cambia al modo detalles de Plymouth (texto de arranque completo).
 # El progreso lo calcula Plymouth con la duración guardada de arranques anteriores; en el
 # primer arranque es una estimación por defecto. Al apagar/reiniciar no hay barra.
@@ -112,3 +113,9 @@ fun refresh_callback() {
     tick++;
 }
 Plymouth.SetRefreshFunction(refresh_callback);
+
+# --- Saltar la animación con una tecla ---------------------------------------------
+fun key_callback(key) {
+    if (tick < frame_count * 2) tick = frame_count * 2;
+}
+Plymouth.SetKeyboardInputFunction(key_callback);

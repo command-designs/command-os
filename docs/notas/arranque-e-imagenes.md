@@ -82,7 +82,11 @@ barra (a petición del usuario, el mismo 2026-10-04: los logs solo dentro de la 
   ejecuta `grub-mkconfig` si existe `/boot/grub/grub.cfg`.
 - **Splash** (`command.script`): wordmark animado + barra fina + consola de servicios (systemd los
   manda a Plymouth aunque el arranque sea silencioso; verificado en VM); al apagar, sin barra. **Esc** pasa al
-  modo detalles de Plymouth (soporte técnico; `details.so` va en el initramfs).
+  modo detalles de Plymouth (soporte técnico; `details.so` va en el initramfs). Cualquier tecla salta la
+  animación del wordmark (`Plymouth.SetKeyboardInputFunction`: va al último fotograma, el arranque no se
+  toca). Medido en la VM el 2026-10-07 con capturas cada ~80 ms: la animación dura ~1,1 s (de la
+  primera letra al último fotograma estable); con una tecla, el último fotograma sale en ~0,15 s.
+  Para repetirlo: `controlvm screenshotpng` en bucle tras `systemctl reboot` y contar píxeles claros del wordmark.
 - **Paso al escritorio**: `plymouth quit --retain-splash` (drop-in de `plymouth-quit.service`), agetty
   con `--skip-login --nonewline --noissue --nohints`, `~/.hushlogin`, y `labwc` con la salida a
   `$XDG_RUNTIME_DIR/labwc.log` (no a tty1). labwc reutiliza el modo del splash

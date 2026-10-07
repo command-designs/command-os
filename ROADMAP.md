@@ -3,9 +3,6 @@
 Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle queda en `AGENTS.md`,
 `docs/` y el historial de git). Todo cambio vale a la vez para x86 (GRUB) y ARM/Pi 5 (`cmdline.txt`).
 
-2. **Splash que se pueda saltar** con una tecla (Esc sigue siendo el modo detalles) y medir la
-   duración real de la animación. Ancla 2 de `docs/DISENO.md`.
-   _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (script de Plymouth acotado).
 3. **Pantalla «Acerca de CMD-OS»** con nombre y código, visible desde el escritorio. Ancla 5.
    Decidir antes formato y datos (versión del paquete, fecha de Arch validada, hardware…).
    _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (pantalla pequeña; el diseño lo decides tú antes).
