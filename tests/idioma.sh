@@ -128,6 +128,21 @@ tt() { LANG=$1 bash -c '. /usr/lib/command-os/textos.sh; "$@"' _ "${@:2}"; }
   && ok "tn: singular y plural en inglés" || mal "tn en inglés"
 [[ "$(tt es_ES.UTF-8 tn 'y %d paquete más' 'y %d paquetes más' 3 3)" == 'y 3 paquetes más' ]] \
   && [[ "$(tt es_ES.UTF-8 t 'hace %d min' 5)" == 'hace 5 min' ]] && ok "t y tn en castellano" || mal "t y tn en castellano"
+# Órdenes de terminal: mensajes en el idioma de la sesión (no en el que se elige).
+[[ "$(LANG=en_US.UTF-8 command-os-idioma fr 2>&1)" == *'language not available'* ]] \
+  && [[ "$(LANG=es_ES.UTF-8 command-os-idioma fr 2>&1)" == *'idioma no disponible'* ]] \
+  && ok "command-os-idioma: errores en el idioma de la sesión" || mal "command-os-idioma: errores sin traducir"
+LANG=en_US.UTF-8 command-os-idioma | grep -q '^language: ' && LANG=es_ES.UTF-8 command-os-idioma | grep -q '^idioma: ' \
+  && ok "command-os-idioma: estado en los dos idiomas" || mal "command-os-idioma: estado"
+LANG=en_US.UTF-8 command-os-login | grep -q '^at power on: ' && LANG=es_ES.UTF-8 command-os-login | grep -q '^al encender: ' \
+  && ok "command-os-login: modo actual en los dos idiomas" || mal "command-os-login: modo actual"
+[[ "$(tt en_US.UTF-8 t 'SI')" == YES && "$(tt es_ES.UTF-8 t 'SI')" == SI ]] \
+  && ok "palabra de confirmación de command-os-rollback por idioma" || mal "palabra de confirmación"
+if ! mountpoint -q /.snapshots; then
+  [[ "$(LANG=en_US.UTF-8 command-os-rollback 2>&1)" == *'no snapshots: the root is not btrfs'* ]] \
+    && [[ "$(LANG=es_ES.UTF-8 command-os-rollback 2>&1)" == *'no hay instantáneas'* ]] \
+    && ok "command-os-rollback: error en los dos idiomas" || mal "command-os-rollback: error sin traducir"
+fi
 # El aviso de la barra, en inglés.
 export COMMAND_OS_UPDATES_STATE="${T}/updates" COMMAND_OS_PACMAN_LOCAL="${T}/local"
 mkdir -p "${COMMAND_OS_PACMAN_LOCAL}"; touch -d '1 hour ago' "${COMMAND_OS_PACMAN_LOCAL}"

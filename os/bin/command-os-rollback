@@ -11,43 +11,46 @@
 # Con el disco cifrado (/boot en una partición aparte), además pone en /boot el kernel de la instantánea.
 set -euo pipefail
 
+source /usr/lib/command-os/textos.sh
 die() { echo "error: $*" >&2; exit 1; }
 [[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
 
 [[ "${1:-}" == "--lista" ]] && exec snapper -c root list
-mountpoint -q /.snapshots || die "no hay instantáneas: la raíz no es btrfs con snapper"
+mountpoint -q /.snapshots || die "$(t 'no hay instantáneas: la raíz no es btrfs con snapper')"
 
 if [[ -n "${1:-}" ]]; then
-  [[ "$1" =~ ^[0-9]+$ ]] || die "uso: command-os-rollback [N | --lista]"
+  [[ "$1" =~ ^[0-9]+$ ]] || die "$(t 'uso: command-os-rollback [N | --lista]')"
   target="@snapshots/$1/snapshot"
 else
   target=$(sed -nE 's/.*rootflags=subvol=\/?([^ ,]+).*/\1/p' /proc/cmdline)
   [[ "${target}" == @snapshots/*/snapshot ]] \
-    || die "no se ha arrancado una instantánea; indica el número (command-os-rollback --lista)"
+    || die "$(t 'no se ha arrancado una instantánea; indica el número (command-os-rollback --lista)')"
 fi
 
 dev=$(findmnt -nvo SOURCE /.snapshots)
 top=$(mktemp -d /run/command-os-top.XXXX)
 mount -o subvolid=5 "${dev}" "${top}"
 trap 'umount "${top}"; rmdir "${top}"' EXIT
-[[ -d "${top}/${target}" ]] || die "no existe la instantánea ${target}"
+[[ -d "${top}/${target}" ]] || die "$(t 'no existe la instantánea %s' "${target}")"
 
 old="@antes-de-volver-$(date +%Y%m%d-%H%M%S)"
-echo "Se va a volver a la instantánea ${target}."
-echo "El sistema actual se guarda como ${old} y /home no se toca."
+echo "$(t 'Se va a volver a la instantánea %s.' "${target}")"
+echo "$(t 'El sistema actual se guarda como %s y /home no se toca.' "${old}")"
 if [[ "$(uname -m)" != x86_64 ]]; then
-  echo "Aviso: en la Raspberry Pi el kernel está fuera de la instantánea (partición de arranque);"
-  echo "si se actualizó después, sus módulos no coincidirán hasta reinstalarlo."
+  echo "$(t 'Aviso: en la Raspberry Pi el kernel está fuera de la instantánea (partición de arranque);')"
+  echo "$(t 'si se actualizó después, sus módulos no coincidirán hasta reinstalarlo.')"
 fi
-read -rp "Escribe SI para continuar: " ok
-[[ "${ok}" == SI ]] || die "cancelado"
+# La palabra de confirmación se escribe a mano: la de cada idioma (SI, YES…), tal como sale en el aviso.
+palabra=$(t 'SI')
+read -rp "$(t 'Escribe %s para continuar:' "${palabra}") " ok
+[[ "${ok}" == "${palabra}" ]] || die "$(t 'cancelado')"
 
 mv "${top}/@" "${top}/${old}"
 btrfs subvolume snapshot "${top}/${target}" "${top}/@" >/dev/null
 
 # Deshace el cambio de @ si algo falla a partir de aquí: el sistema queda como estaba.
 undo() {
-  echo "error: $*; se deja el sistema como estaba" >&2
+  echo "$(t 'error: %s; se deja el sistema como estaba' "$*")" >&2
   mv "${top}/@" "${top}/${old}-fallido" && mv "${top}/${old}" "${top}/@"
   btrfs subvolume delete "${top}/${old}-fallido" >/dev/null || true
   exit 1
@@ -71,16 +74,16 @@ restore_kernel() {
       ver=$(basename "${m}") base=$(<"${m}pkgbase")
       chroot "${new}" pacman -Qqo "/usr/lib/modules/${ver}/vmlinuz" >/dev/null 2>&1 || continue
       if [[ "${vistos}" == *" ${base} "* ]]; then
-        echo "error: la instantánea tiene dos kernels ${base}" >&2
+        echo "$(t 'error: la instantánea tiene dos kernels %s' "${base}")" >&2
         ok=0
         break
       fi
       vistos+="${base} "
       if [[ -f "/boot/vmlinuz-${base}" && "$(sha256sum < "${m}vmlinuz")" == "$(sha256sum < "/boot/vmlinuz-${base}")" ]]; then
-        echo "Kernel ${base} ${ver}: es el mismo que hay en /boot."
+        echo "$(t 'Kernel %s %s: es el mismo que hay en /boot.' "${base}" "${ver}")"
         continue
       fi
-      echo "Kernel ${base} ${ver} del sistema recuperado: rehaciendo su initramfs…"
+      echo "$(t 'Kernel %s %s del sistema recuperado: rehaciendo su initramfs…' "${base}" "${ver}")"
       chroot "${new}" mkinitcpio -k "${ver}" -g "/boot/initramfs-${base}.img.nuevo" >/dev/null 2>&1 || { ok=0; break; }
       nuevos+=("/boot/initramfs-${base}.img")
       if [[ -f "/boot/initramfs-${base}-fallback.img" ]]; then
@@ -99,13 +102,13 @@ restore_kernel() {
   fi
   for f in "${nuevos[@]}"; do mv "${f}.nuevo" "${f}" || return 1; done
   if [[ "${vistos}" == " " ]]; then
-    echo "aviso: la instantánea no tiene ningún kernel; se queda el de /boot" >&2
+    echo "$(t 'aviso: la instantánea no tiene ningún kernel; se queda el de /boot')" >&2
   fi
   return 0
 }
 
 if mountpoint -q /boot && [[ -d /boot/grub ]]; then
-  restore_kernel || undo "no se pudo poner el kernel de la instantánea en /boot"
+  restore_kernel || undo "$(t 'no se pudo poner el kernel de la instantánea en /boot')"
 else
   # /boot/grub va dentro de @ y la instantánea trae el suyo: desfasado (la lista de instantáneas del
   # menú es la de entonces), con módulos que pueden no casar con el GRUB de la partición EFI (esa no
@@ -122,6 +125,6 @@ else
     cp -a "${grub}" "${top}/@/boot/grub"
   fi
 fi
-echo "Hecho. Reinicia para entrar en el sistema recuperado."
-echo "Cuando todo funcione, puedes borrar la copia anterior con:"
+echo "$(t 'Hecho. Reinicia para entrar en el sistema recuperado.')"
+echo "$(t 'Cuando todo funcione, puedes borrar la copia anterior con:')"
 echo "  sudo mount -o subvolid=5 ${dev} /mnt && sudo btrfs subvolume delete -R /mnt/${old} && sudo umount /mnt"

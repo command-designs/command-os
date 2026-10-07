@@ -91,6 +91,10 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **Los registros y diagnósticos de administración siguen en castellano** (`logger`, avisos de
   `apply-*`, uso de las órdenes internas): los lee quien administra, y mezclar idiomas en el diario
   dificulta buscar. Se traducen lo que ve la persona: avisos, paneles, menús y las órdenes de terminal.
+- **Las órdenes de terminal hablan el idioma de la sesión, no el del sistema que se acaba de elegir**
+  (`LANG` de quien las lanza; sudo lo conserva). La confirmación de `command-os-rollback` es una palabra
+  traducida (`SI`/`YES`) que se enseña en el mismo aviso: no se acepta la de otro idioma, para que lo
+  que se pide y lo que se compara no puedan desparejarse. El `motd` queda sin traducir: no se muestra.
 - **Las capturas pasan de un `sh -c` incrustado en `rc.xml` a `command-os-captura`**, para poder
   traducir el aviso (y porque el XML escapado era ilegible).
 

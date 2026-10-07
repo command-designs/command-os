@@ -11,6 +11,7 @@
 set -euo pipefail
 
 LOCALE_CONF=/etc/locale.conf
+source /usr/lib/command-os/textos.sh
 die() { echo "command-os-idioma: $*" >&2; exit 1; }
 
 # Idiomas de Command OS: locale y nombre en su propio idioma (el asistente de primer arranque saca
@@ -54,28 +55,28 @@ generar() {
   else
     echo "${loc} UTF-8" >> /etc/locale.gen
   fi
-  locale-gen >/dev/null || die "no se pudo generar ${loc} (locale-gen)"
-  generado "${loc}" || die "no se pudo generar ${loc}: falta su definición en /usr/share/i18n/locales"
+  locale-gen >/dev/null || die "$(t 'no se pudo generar %s (locale-gen)' "${loc}")"
+  generado "${loc}" || die "$(t 'no se pudo generar %s: falta su definición en /usr/share/i18n/locales' "${loc}")"
 }
 
 case "${1:-}" in
   "")
     loc=$(actual)
-    echo "idioma: $(nombre "${loc:-C}") (${loc:-sin definir})"
+    echo "$(t 'idioma: %s (%s)' "$(nombre "${loc:-C}")" "${loc:-$(t 'sin definir')}")"
     exit 0 ;;
   lista)
     for linea in "${IDIOMAS[@]}"; do echo "${linea}"; done
     exit 0 ;;
-  -*) die "uso: command-os-idioma [lista | IDIOMA]" ;;
+  -*) die "$(t 'uso: command-os-idioma [lista | IDIOMA]')" ;;
 esac
 
 loc=$(normalizar "$1")
-[[ -n "${loc}" ]] || die "idioma no disponible: $1 (los que hay: command-os-idioma lista)"
+[[ -n "${loc}" ]] || die "$(t 'idioma no disponible: %s (los que hay: command-os-idioma lista)' "$1")"
 [[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
 
 generado "${loc}" || generar "${loc}"
 if [[ "$(actual)" == "${loc}" ]]; then
-  echo "el idioma ya es $(nombre "${loc}")"
+  echo "$(t 'el idioma ya es %s' "$(nombre "${loc}")")"
   exit 0
 fi
 # Se cambia LANG y se conserva el resto (LC_TIME, LC_PAPER… que alguien haya puesto a mano). Se
@@ -85,5 +86,5 @@ tmp=$(mktemp "${LOCALE_CONF}.XXXXXX")
 chmod 644 "${tmp}"
 mv -f "${tmp}" "${LOCALE_CONF}"
 # Menú y tema de GRUB en el idioma nuevo. Si falla, el idioma ya está cambiado: solo se avisa.
-/usr/lib/command-os/apply-boot || echo "command-os-idioma: aviso: no se pudo rehacer el menú de arranque" >&2
-echo "hecho: el idioma del sistema es $(nombre "${loc}"). Se aplica del todo al reiniciar."
+/usr/lib/command-os/apply-boot || echo "command-os-idioma: $(t 'aviso: no se pudo rehacer el menú de arranque')" >&2
+echo "$(t 'hecho: el idioma del sistema es %s. Se aplica del todo al reiniciar.' "$(nombre "${loc}")")"

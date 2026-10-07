@@ -10,33 +10,34 @@
 set -euo pipefail
 
 CONF=/etc/command-os
+source /usr/lib/command-os/textos.sh
 die() { echo "command-os-login: $*" >&2; exit 1; }
 
 case "${1:-}" in
   "")
     if [[ -s "${CONF}/inicio-automatico" ]]; then
-      echo "al encender: entra solo como $(cat "${CONF}/inicio-automatico")"
+      echo "$(t 'al encender: entra solo como %s' "$(cat "${CONF}/inicio-automatico")")"
     else
-      echo "al encender: pide usuario y contraseña"
+      echo "$(t 'al encender: pide usuario y contraseña')"
     fi
     exit 0 ;;
   auto|pedir) ;;
-  *) die "uso: command-os-login [auto [usuario] | pedir]" ;;
+  *) die "$(t 'uso: command-os-login [auto [usuario] | pedir]')" ;;
 esac
 
 [[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
 
 if [[ "$1" == auto ]]; then
   usuario=${2:-$(cat "${CONF}/cuenta-principal" 2>/dev/null || true)}
-  [[ -n "${usuario}" ]] || die "indica el usuario: command-os-login auto USUARIO"
-  getent passwd "${usuario}" >/dev/null || die "no existe el usuario ${usuario}"
+  [[ -n "${usuario}" ]] || die "$(t 'indica el usuario: command-os-login auto USUARIO')"
+  getent passwd "${usuario}" >/dev/null || die "$(t 'no existe el usuario %s' "${usuario}")"
   IFS=: read -r _ _ uid _ _ _ shell < <(getent passwd "${usuario}")
   [[ "${uid}" -ge 1000 && "${uid}" -lt 60000 && "${shell}" != */nologin && "${shell}" != */false ]] \
-    || die "${usuario} no es una cuenta de persona"
+    || die "$(t '%s no es una cuenta de persona' "${usuario}")"
   echo "${usuario}" > "${CONF}/inicio-automatico"
-  echo "hecho: al encender entrará solo como ${usuario} (la pantalla se sigue bloqueando con contraseña)"
+  echo "$(t 'hecho: al encender entrará solo como %s (la pantalla se sigue bloqueando con contraseña)' "${usuario}")"
 else
   rm -f "${CONF}/inicio-automatico"
-  echo "hecho: al encender pedirá usuario y contraseña"
+  echo "$(t 'hecho: al encender pedirá usuario y contraseña')"
 fi
 /usr/lib/command-os/apply-login
