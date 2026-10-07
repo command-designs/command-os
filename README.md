@@ -40,7 +40,8 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
 - `build/packer/` — pipeline de build desatendido para la VM de desarrollo
   (QEMU, x86_64). Particiona disco, instala Arch base y corre
   `os/install.sh` sin intervención manual.
-- `build/x86/` — instalación en un PC con el asistente `instalar.sh`: junto a Windows
+- `build/x86/` — instalación en un PC con el asistente `instalar.sh` (publicado y firmado: se descarga
+  con `instalar-command-os.sh`, sin clonar nada): junto a Windows
   (`install-dualboot.sh`) o como sistema principal en el disco entero (`install-disco.sh`); guía en
   [`docs/instalacion.md`](docs/instalacion.md). También la imagen para probar desde un USB
   (`build-image.sh`). Raíz en btrfs con instantáneas (`lib.sh`), disco cifrado con LUKS2 si se quiere

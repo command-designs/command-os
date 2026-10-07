@@ -221,6 +221,12 @@ disco real**. Todo vive en `build/x86/vbox/instalador/` (ignorado por git):
 - La NVRAM de la VM pierde la entrada `command-os` al apagarla: arranca por `EFI/BOOT/BOOTX64.EFI`.
   Para volver al USB en vivo con un sistema ya instalado en el disco: dentro de él,
   `efibootmgr -n <la entrada de SATA 0>` y reiniciar.
+- Instalar en un disco temporal sin estropear el dual boot de `disco.vdi`: `NO_NVRAM=1` (no toca la
+  entrada UEFI del dual boot; el temporal arranca por `EFI/BOOT/BOOTX64.EFI`). Sin él,
+  `forget_nvram_entries` borra la del disco que no está conectado y hay que rehacerla desde el USB con
+  `efibootmgr -c -d /dev/sdb -p 1 -L command-os -l '\EFI\command-os\grubx64.efi'`.
+- Instalador publicado sin la clave real: firmar con una clave de prueba y cambiar `HUELLA` en una
+  copia de `instalar-command-os.sh`; `COMMAND_OS_INSTALADOR_URL=file:///root/pub` lo lee de una carpeta.
 - Para empezar de cero: cambiar `disco.vdi` por uno vacío. La NVRAM de la VM se queda con la entrada
   `command-os` vieja, que apunta a una partición que ya no existe: así se prueba `forget_nvram_entries`.
 - Si `startvm` falla con «The VM session was closed before any attempt to power it on», quedan procesos

@@ -40,15 +40,11 @@ Al encender, entra en la BIOS (F2, F10, Supr o Esc según la marca):
 loadkeys es                       # teclado español en la consola
 iwctl                             # solo wifi: station wlan0 connect "NombreDeLaRed", luego exit
 ping -c2 archlinux.org            # comprobar internet
-
-pacman -Sy --noconfirm git
-git clone https://github.com/command-designs/command-os.git
-# Repo privado: usuario de GitHub y, como contraseña, un token personal
-# (github.com → Settings → Developer settings → Personal access tokens, permiso de lectura).
-
-lsblk -o NAME,SIZE,MODEL          # identificar el disco interno (normalmente nvme0n1)
-bash command-os/build/x86/install-dualboot.sh /dev/nvme0n1
+curl -fLO https://github.com/command-designs/command-os-versions/releases/download/instalador/instalar-command-os.sh
+bash instalar-command-os.sh       # 1) junto a Windows y el disco interno (normalmente nvme0n1)
 ```
+
+El instalador se descarga firmado y se comprueba antes de ejecutarlo ([`instalacion.md`](instalacion.md) § 2).
 
 El script comprueba que hay un hueco libre de ≥30 GB, pregunta si **cifrar** Command OS (sí por
 defecto: contraseña y clave de recuperación, [`cifrado.md`](cifrado.md)), enseña el disco y pide

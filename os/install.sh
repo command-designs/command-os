@@ -11,8 +11,10 @@
 # quien va a usar el equipo (lib/apply-login, docs/cuentas.md).
 #
 # Variables: COMMAND_OS_VARIANT (os/variants/), COMMAND_OS_SSH=1 (servidor SSH encendido; de serie
-# solo en la variante vbox), COMMAND_OS_DEV_USER=deck (solo imágenes de desarrollo: crea esa cuenta
-# con su nombre como contraseña y entra sola, sin asistente; nunca en un equipo que se entrega).
+# solo en la variante vbox), COMMAND_OS_PAQUETE=repo (instala el paquete firmado del repositorio en
+# vez de construirlo: lo pone el instalador publicado), COMMAND_OS_DEV_USER=deck (solo imágenes de
+# desarrollo: crea esa cuenta con su nombre como contraseña y entra sola, sin asistente; nunca en un
+# equipo que se entrega).
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -59,22 +61,32 @@ if [[ -n "${VARIANT}" && -e "${REPO_DIR}/variants/${VARIANT}/inicio-automatico-d
   touch /etc/command-os/inicio-automatico-de-serie
 fi
 
-echo "==> Paquete command-os (construido desde este árbol)"
-BUILD=$(mktemp -d)
-trap 'rm -rf "${BUILD}"; userdel command-os-build 2>/dev/null || true' EXIT
-cp -r "${REPO_DIR}" "${BUILD}/os"
-# makepkg no se ejecuta como root: una cuenta de sistema temporal, que se borra al terminar.
-id command-os-build &>/dev/null || useradd -r -M -d "${BUILD}" -s /usr/bin/nologin command-os-build
-chown -R command-os-build: "${BUILD}"
-as_user command-os-build bash -c "cd '${BUILD}/os/pkg' && makepkg -df --noconfirm >/dev/null"
-PKG=$(ls "${BUILD}"/os/pkg/command-os-*.pkg.tar.*)
 # --overwrite: rutas que el install.sh anterior al paquete copiaba a mano (máquinas ya instaladas).
-pacman -U --noconfirm \
-  --overwrite '/usr/share/command-os/*' --overwrite '/usr/share/themes/Command/*' \
-  --overwrite '/usr/share/plymouth/themes/command/*' --overwrite '/usr/share/fonts/command-os/*' \
-  --overwrite '/usr/share/pixmaps/command-os.png' --overwrite '/etc/xdg/fastfetch/*' \
-  --overwrite '/etc/dconf/profile/user' --overwrite '/etc/dconf/db/local.d/00-command-os' \
-  "${PKG}"
+OVERWRITE=(
+  --overwrite '/usr/share/command-os/*' --overwrite '/usr/share/themes/Command/*'
+  --overwrite '/usr/share/plymouth/themes/command/*' --overwrite '/usr/share/fonts/command-os/*'
+  --overwrite '/usr/share/pixmaps/command-os.png' --overwrite '/etc/xdg/fastfetch/*'
+  --overwrite '/etc/dconf/profile/user' --overwrite '/etc/dconf/db/local.d/00-command-os'
+)
+if [[ "${COMMAND_OS_PAQUETE:-}" == repo ]]; then
+  # Instalador publicado (build/x86/instalar-command-os.sh): el paquete firmado del repositorio, el
+  # mismo del que se actualizará el equipo. pacman comprueba la firma (SigLevel = Required).
+  echo "==> Paquete command-os (del repositorio firmado)"
+  grep -q '^\[command-os\]$' /etc/pacman.conf \
+    || { echo "No se pudo configurar el repositorio de Command OS (¿sin internet?)." >&2; exit 1; }
+  pacman -S --noconfirm "${OVERWRITE[@]}" command-os   # bases de datos ya al día (-Syu de arriba)
+else
+  echo "==> Paquete command-os (construido desde este árbol)"
+  BUILD=$(mktemp -d)
+  trap 'rm -rf "${BUILD}"; userdel command-os-build 2>/dev/null || true' EXIT
+  cp -r "${REPO_DIR}" "${BUILD}/os"
+  # makepkg no se ejecuta como root: una cuenta de sistema temporal, que se borra al terminar.
+  id command-os-build &>/dev/null || useradd -r -M -d "${BUILD}" -s /usr/bin/nologin command-os-build
+  chown -R command-os-build: "${BUILD}"
+  as_user command-os-build bash -c "cd '${BUILD}/os/pkg' && makepkg -df --noconfirm >/dev/null"
+  PKG=$(ls "${BUILD}"/os/pkg/command-os-*.pkg.tar.*)
+  pacman -U --noconfirm "${OVERWRITE[@]}" "${PKG}"
+fi
 
 # --- Instantáneas (raíz en btrfs: lo que crean build/x86/build-image.sh y install-dualboot.sh) ---
 # snapper guarda el estado del sistema y snap-pac hace una instantánea antes y otra después de cada

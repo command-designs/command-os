@@ -4,10 +4,6 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 `docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
 de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
-11. **Instalar sin clonar el repositorio privado.** Hoy hace falta un token de GitHub en el USB. Publicar
-   el instalador firmado junto al paquete (`command-os-versions`) para bajarlo con `curl` y verificar su
-   firma. **Decide el usuario antes:** hace públicos los scripts de instalación.
-   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo medio (publicación y firma).
 12. **Command OS entero en inglés.** Con el idioma en inglés (`docs/idioma.md`), hoy solo se traducen
    el asistente, la pantalla de inicio de sesión y el menú de GRUB. Pasar a gettext el resto de textos
    propios: barra y sus avisos, menús de labwc, «acerca de», ayuda de atajos, notificaciones,
@@ -19,7 +15,7 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 ## Lo prueba el usuario
 
 - PC real (bare metal x86, GPU NVIDIA).
-- Instalar en un PC real con `build/x86/instalar.sh` (dual boot o disco entero; `docs/instalacion.md`):
+- Instalar en un PC real con `instalar-command-os.sh` (dual boot o disco entero; `docs/instalacion.md` § 2):
   arranque desde la entrada UEFI, wifi y gráfica concretos.
 - Disco cifrado en un PC real (`docs/cifrado.md`): la contraseña en el splash con el teclado del
   portátil y con uno USB, una contraseña con símbolos (en la VM solo se teclean letras, cifras y
@@ -36,8 +32,6 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Otros pendientes
 
-- **Autorizar Context7** (`claude mcp list` lo marca «Needs authentication»): abrir `claude` en una
-  terminal, `/mcp`, elegir `context7` y autenticar. Una sola vez, vale para todos los proyectos.
 - Probar en la VM lo configurado y no verificado: apagado de pantalla a los 10 min, portapapeles,
   teclas de volumen y brillo, clic derecho en el escritorio (no se simula sin ratón virtual).
 - Oír los sonidos (solo se ha verificado que no saturan).
