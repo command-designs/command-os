@@ -1,0 +1,14 @@
+# shellcheck shell=bash
+# Command OS — entorno común de las sesiones gráficas (se carga con `source`): command-os-session,
+# command-os-greeter y command-os-primer-arranque.
+# GPU virtual (VirtualBox, QEMU sin 3D): wlroots necesita permiso para el render por software y
+# cursor por software. En hardware real (Raspberry Pi 5, PC) no se tocan.
+if systemd-detect-virt --quiet --vm; then
+  export WLR_NO_HARDWARE_CURSORS=1 WLR_RENDERER_ALLOW_SOFTWARE=1
+fi
+# Teclado del equipo (lo eligen el asistente de primer arranque o el instalador).
+if [[ -s /etc/command-os/kb_layout ]]; then
+  XKB_DEFAULT_LAYOUT=$(tr -d '[:space:]' < /etc/command-os/kb_layout)
+  export XKB_DEFAULT_LAYOUT
+fi
+export XCURSOR_THEME=Adwaita XCURSOR_SIZE=24

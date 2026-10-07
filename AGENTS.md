@@ -29,6 +29,7 @@ usuario) y Arch Linux ARM.
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
+| por qué se decidió algo (y qué se descartó) | `docs/decisiones.md` |
 | qué viene ahora | `ROADMAP.md` (se quita cada punto al terminarlo y verificarlo) |
 
 ## Trampas que ya han roto algo (resumen; el porqué está en `docs/notas/`)

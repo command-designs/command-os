@@ -12,14 +12,9 @@ import subprocess
 import sys
 import unicodedata
 
-import gi
+from comun import CONF, cargar_tema, fila, leer, logo, panel
+from gi.repository import GLib, Gtk
 
-gi.require_version("Gtk", "4.0")
-from gi.repository import Gdk, GdkPixbuf, GLib, Gtk  # noqa: E402
-
-CONF = "/etc/command-os"
-CSS = "/usr/share/command-os/greeter/command.css"
-LOGO = "/usr/share/command-os/logo/command-wordmark-white.png"
 CREAR = "/usr/lib/command-os/crear-cuenta"
 MIN_CONTRASENA = 8
 
@@ -36,14 +31,6 @@ TECLADOS = [
 ]
 
 
-def leer(ruta, defecto=""):
-    try:
-        with open(ruta, encoding="utf-8") as f:
-            return f.read().strip()
-    except OSError:
-        return defecto
-
-
 def usuario_desde(nombre):
     """«Daniel Infante» -> «daniel»: primera palabra, sin tildes, en minúsculas."""
     plano = unicodedata.normalize("NFKD", nombre).encode("ascii", "ignore").decode()
@@ -57,20 +44,10 @@ class Asistente(Gtk.ApplicationWindow):
         self.usuario_tocado = False
         self.teclado = leer(f"{CONF}/kb_layout", "es")
 
-        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
-        caja.add_css_class("panel")
-        caja.set_halign(Gtk.Align.CENTER)
-        caja.set_hexpand(True)
-        caja.set_valign(Gtk.Align.CENTER)
-        caja.set_size_request(460, -1)
-
-        if os.path.exists(LOGO):
-            # Escalado de antemano: a tamaño natural, el wordmark ensancharía todo el panel.
-            imagen = GdkPixbuf.Pixbuf.new_from_file_at_scale(LOGO, 400, 44, True)
-            logo = Gtk.Picture.new_for_paintable(Gdk.Texture.new_for_pixbuf(imagen))
-            logo.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
-            logo.set_halign(Gtk.Align.CENTER)
-            caja.append(logo)
+        fondo, caja = panel(460)
+        marca = logo(44)
+        if marca:
+            caja.append(marca)
 
         titulo = Gtk.Label(label="› primer arranque", xalign=0)
         titulo.add_css_class("titulo")
@@ -82,27 +59,30 @@ class Asistente(Gtk.ApplicationWindow):
         caja.append(intro)
 
         # Teclado: lo primero, para que el resto ya se escriba con él.
-        self.combo = Gtk.DropDown.new_from_strings([n for _, n in TECLADOS])
-        codigos = [c for c, _ in TECLADOS]
-        if self.teclado in codigos:
-            self.combo.set_selected(codigos.index(self.teclado))
+        # Si el instalador dejó otra distribución (us-intl, de(nodeadkeys)…), sale la primera y
+        # seleccionada: la lista nunca enseña un teclado distinto del que se está usando.
+        self.teclados = list(TECLADOS)
+        if self.teclado not in [c for c, _ in self.teclados]:
+            self.teclados.insert(0, (self.teclado, f"{self.teclado} (del instalador)"))
+        self.combo = Gtk.DropDown.new_from_strings([n for _, n in self.teclados])
+        self.combo.set_selected([c for c, _ in self.teclados].index(self.teclado))
         self.combo.connect("notify::selected", self.on_teclado)
-        caja.append(self.fila("teclado", self.combo))
+        caja.append(fila("teclado", self.combo))
 
         self.nombre = Gtk.Entry(placeholder_text="opcional")
         self.nombre.connect("changed", self.on_nombre)
-        caja.append(self.fila("tu nombre", self.nombre))
+        caja.append(fila("tu nombre", self.nombre))
 
         self.usuario = Gtk.Entry(placeholder_text="minúsculas, sin espacios")
         self.usuario.connect("changed", self.on_usuario)
-        caja.append(self.fila("usuario", self.usuario))
+        caja.append(fila("usuario", self.usuario))
 
         self.clave = Gtk.PasswordEntry(show_peek_icon=True)
         self.clave.set_property("placeholder-text", f"al menos {MIN_CONTRASENA} caracteres")
-        caja.append(self.fila("contraseña", self.clave))
+        caja.append(fila("contraseña", self.clave))
         self.clave2 = Gtk.PasswordEntry(show_peek_icon=True)
         self.clave2.connect("activate", self.on_crear)
-        caja.append(self.fila("repítela", self.clave2))
+        caja.append(fila("repítela", self.clave2))
 
         admin = Gtk.Label(
             label="esta cuenta administra el equipo: instala programas y cambia el sistema "
@@ -126,7 +106,7 @@ class Asistente(Gtk.ApplicationWindow):
         auto_fila.append(self.auto)
         caja.append(auto_fila)
 
-        self.error = Gtk.Label(xalign=0, wrap=True)
+        self.error = Gtk.Label(xalign=0, wrap=True, max_width_chars=44)
         self.error.add_css_class("error")
         caja.append(self.error)
 
@@ -135,22 +115,11 @@ class Asistente(Gtk.ApplicationWindow):
         self.boton.connect("clicked", self.on_crear)
         caja.append(self.boton)
 
-        fondo = Gtk.Box(hexpand=True)
-        fondo.add_css_class("fondo")
-        fondo.append(caja)
         self.set_child(fondo)
         self.nombre.grab_focus()
 
-    def fila(self, etiqueta, widget):
-        fila = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        texto = Gtk.Label(label=etiqueta, xalign=0)
-        texto.add_css_class("etiqueta")
-        fila.append(texto)
-        fila.append(widget)
-        return fila
-
     def on_teclado(self, combo, _param):
-        codigo = TECLADOS[combo.get_selected()][0]
+        codigo = self.teclados[combo.get_selected()][0]
         if codigo == self.teclado:
             return
         os.makedirs(CONF, exist_ok=True)
@@ -205,12 +174,7 @@ class App(Gtk.Application):
         self.codigo = 0
 
     def do_activate(self):
-        css = Gtk.CssProvider()
-        if os.path.exists(CSS):
-            css.load_from_path(CSS)
-        Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_USER
-        )
+        cargar_tema()
         ventana = Asistente(self)
         ventana.fullscreen()
         ventana.present()

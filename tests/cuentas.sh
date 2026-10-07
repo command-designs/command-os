@@ -28,11 +28,13 @@ echo "${CLAVE}" | "${CREAR}" --usuario 'Ana López' >/dev/null 2>&1 && mal "acep
 echo "${CLAVE}" | "${CREAR}" --usuario root >/dev/null 2>&1 && mal "acepta root" || ok "rechaza un usuario que ya existe"
 echo "corta" | "${CREAR}" --usuario ana >/dev/null 2>&1 && mal "acepta una contraseña corta" || ok "rechaza contraseña corta"
 echo "${CLAVE}" | "${CREAR}" --usuario ana --teclado 'es;rm' >/dev/null 2>&1 && mal "acepta un teclado raro" || ok "rechaza teclado no válido"
+echo "${CLAVE}" | "${CREAR}" --usuario video >/dev/null 2>&1 && mal "acepta un nombre de grupo del sistema"   || ok "rechaza nombres de grupos del sistema"
+getent passwd video >/dev/null && mal "quedó la cuenta video"
 getent passwd ana >/dev/null && mal "quedó una cuenta a medias" || ok "no quedan cuentas a medias"
 [[ -e /var/lib/command-os/configurado ]] && mal "se marcó como configurado tras un error" || ok "sigue sin configurar"
 
 echo "==> Cuenta principal"
-if echo "${CLAVE}" | "${CREAR}" --usuario ana --nombre 'Ana López' --teclado es >/dev/null; then
+if echo "${CLAVE}" | "${CREAR}" --usuario ana --nombre 'Ana López' --teclado 'de(nodeadkeys)' >/dev/null; then
   ok "crear-cuenta ana"
 else
   mal "crear-cuenta ana"
@@ -45,7 +47,7 @@ if grep -rqsF "${CLAVE}" /etc /var/lib/command-os /var/log /home /root /tmp 2>/d
 else
   ok "la contraseña no aparece en claro en ningún archivo"
 fi
-[[ "$(cat /etc/command-os/kb_layout)" == es ]] && ok "teclado guardado" || mal "teclado"
+[[ "$(cat /etc/command-os/kb_layout)" == 'de(nodeadkeys)' ]] && ok "teclado con variante guardado" || mal "teclado"
 grep -q 'command = "command-os-greeter"' "${TOML}" && ok "greetd: pantalla de inicio de sesión" || mal "greetd sin pantalla de inicio de sesión"
 grep -q initial_session "${TOML}" && mal "inicio automático sin pedirlo" || ok "pide contraseña (por defecto)"
 echo "${CLAVE}" | "${CREAR}" --usuario luis >/dev/null 2>&1 && mal "se puede repetir el primer arranque" || ok "no se repite"
@@ -54,6 +56,7 @@ echo "==> command-os-login"
 command-os-login auto >/dev/null && grep -q 'user = "ana"' "${TOML}" && grep -q initial_session "${TOML}" \
   && ok "auto: entra sola como ana" || mal "command-os-login auto"
 command-os-login auto nadie >/dev/null 2>&1 && mal "auto con un usuario que no existe" || ok "auto rechaza usuarios inexistentes"
+command-os-login auto nobody >/dev/null 2>&1 && mal "auto acepta nobody" || ok "auto rechaza cuentas que no son de personas"
 command-os-login pedir >/dev/null && ! grep -q initial_session "${TOML}" && ok "pedir: sin inicio automático" \
   || mal "command-os-login pedir"
 

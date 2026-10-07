@@ -4,5 +4,6 @@
 set -euxo pipefail
 
 chmod +x /tmp/command-os/os/install.sh
-# VM de desarrollo: se entra por SSH, así que install.sh no debe apagarlo.
-COMMAND_OS_SSH=1 /tmp/command-os/os/install.sh
+# VM de desarrollo: se entra por SSH, así que install.sh no debe apagarlo, y lleva la cuenta de
+# desarrollo deck/deck con inicio automático (sin asistente de primer arranque).
+COMMAND_OS_SSH=1 COMMAND_OS_DEV_USER=deck /tmp/command-os/os/install.sh
