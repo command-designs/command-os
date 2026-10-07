@@ -154,6 +154,12 @@ msgstr "could not create the account."
 msgid "cuenta {usuario} creada. entrando…"
 msgstr "account {usuario} created. signing in…"
 
+msgid "contraseña del disco  ·  o la clave de recuperación"
+msgstr "disk password  ·  or the recovery key"
+
+msgid "contraseña incorrecta  ·  vuelve a escribirla"
+msgstr "wrong password  ·  type it again"
+
 msgid "hay que ejecutarlo como root"
 msgstr "it must be run as root"
 
@@ -287,7 +293,8 @@ msgstr "could not generate %s (locale-gen)"
 
 #, python-format
 msgid "no se pudo generar %s: falta su definición en /usr/share/i18n/locales"
-msgstr "could not generate %s: its definition is missing in /usr/share/i18n/locales"
+msgstr ""
+"could not generate %s: its definition is missing in /usr/share/i18n/locales"
 
 #, python-format
 msgid "idioma: %s (%s)"
@@ -301,7 +308,8 @@ msgstr "usage: command-os-idioma [lista | LANGUAGE]"
 
 #, python-format
 msgid "idioma no disponible: %s (los que hay: command-os-idioma lista)"
-msgstr "language not available: %s (the ones there are: command-os-idioma lista)"
+msgstr ""
+"language not available: %s (the ones there are: command-os-idioma lista)"
 
 #, python-format
 msgid "el idioma ya es %s"
@@ -445,7 +453,9 @@ msgstr "%s is not a person's account"
 msgid ""
 "hecho: al encender entrará solo como %s (la pantalla se sigue bloqueando con "
 "contraseña)"
-msgstr "done: at power on it will sign in automatically as %s (the screen still locks with a password)"
+msgstr ""
+"done: at power on it will sign in automatically as %s (the screen still "
+"locks with a password)"
 
 msgid "hecho: al encender pedirá usuario y contraseña"
 msgstr "done: at power on it will ask for user and password"
@@ -485,10 +495,14 @@ msgstr "The current system is kept as %s and /home is not touched."
 msgid ""
 "Aviso: en la Raspberry Pi el kernel está fuera de la instantánea (partición "
 "de arranque);"
-msgstr "Warning: on the Raspberry Pi the kernel is outside the snapshot (boot partition);"
+msgstr ""
+"Warning: on the Raspberry Pi the kernel is outside the snapshot (boot "
+"partition);"
 
 msgid "si se actualizó después, sus módulos no coincidirán hasta reinstalarlo."
-msgstr "if it was updated afterwards, its modules will not match until it is reinstalled."
+msgstr ""
+"if it was updated afterwards, its modules will not match until it is "
+"reinstalled."
 
 msgid "SI"
 msgstr "YES"
@@ -534,7 +548,8 @@ msgstr "no network"
 msgid ""
 "command-os: el kernel se ha actualizado; reinicia para terminar (systemctl "
 "reboot)."
-msgstr "command-os: the kernel was updated; restart to finish (systemctl reboot)."
+msgstr ""
+"command-os: the kernel was updated; restart to finish (systemctl reboot)."
 
 msgid "hace un momento"
 msgstr "just now"

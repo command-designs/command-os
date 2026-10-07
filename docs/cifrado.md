@@ -72,17 +72,20 @@ Una clave de recuperación nueva: `tr -dc 0-9 < /dev/urandom | head -c 48` da la
   antes de `autodetect` para que entren todos los teclados (uno USB enchufado después también sirve) y
   `keymap` con la distribución de `/etc/vconsole.conf`.
 - `command-os-cifrado` (`os/initcpio/`, va en el paquete) pide la contraseña con `plymouth
-  ask-for-password` en castellano y sin límite de intentos, y abre el volumen. El gancho `encrypt` de
+  ask-for-password` en el idioma del sistema (parámetro `command-os.idioma=` de la línea del kernel,
+  que pone `apply-boot`; `docs/idioma.md`) y sin límite de intentos, y abre el volumen. El gancho `encrypt` de
   Arch lo ve abierto y no hace nada: de él solo se usan cryptsetup y los módulos. Sin Plymouth, pregunta
   en la consola. (El `encrypt` de Arch pide en inglés y, tras 3 fallos, deja una consola de emergencia.)
   Si no puede preguntar 5 veces seguidas (Plymouth no atiende, consola sin entrada), cede el paso a
   `encrypt`, que acaba en la consola de emergencia: el arranque nunca se queda colgado en el splash.
 - El tema del splash (`command.script`) dibuja el campo: el texto, una línea y un cuadradito hueso por
   carácter, con el cursor cian. Los dos textos del gancho («contraseña del disco · o la clave de
-  recuperación» y el de contraseña incorrecta, en rojo) son **imágenes** en JetBrains Mono
-  (`build/make-plymouth-textos.py`): en el initramfs Plymouth solo tiene `label-freetype`, que sin un
-  locale UTF-8 pinta la ñ y las tildes como cuadrados. Si se cambian los textos del gancho, regenerar
-  las imágenes (el tema las reconoce por «del disco» e «incorrecta»).
+  recuperación» y el de contraseña incorrecta, en rojo) son **imágenes** en JetBrains Mono, una por
+  idioma (`texto-clave.es.png`, `.en.png`…; `build/make-plymouth-textos.py`, con los textos de
+  `os/po/`): en el initramfs Plymouth solo tiene `label-freetype`, que sin un locale UTF-8 pinta la ñ
+  y las tildes como cuadrados. El tema elige la imagen por el texto que manda el gancho («del disco» e
+  «incorrecta»; «Disk password» y «Wrong password»): si se cambian, cambiar los dos. Cambiar de idioma
+  no rehace el initramfs: solo la línea del kernel (GRUB).
 - El busybox del initramfs es el reducido de mkinitcpio: **no tiene `tr` ni `stty`**. El gancho solo usa
   shell, `cryptsetup` y `plymouth`; `tests/discos.sh` lo ejecuta con un `PATH` que solo tiene eso.
 

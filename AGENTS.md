@@ -83,7 +83,8 @@ usuario); ARM, aparcado hasta tener la placa.
   `cryptdevice=` va en `GRUB_CMDLINE_LINUX`, no en `_DEFAULT`. La contraseña de prueba en la VM, sin
   símbolos: `keyboardputstring` teclea como un teclado de EE. UU. y la VM usa el español.
 - Initramfs: el busybox de mkinitcpio **no tiene `tr` ni `stty`**, y Plymouth pinta la ñ y las tildes
-  como cuadrados (`label-freetype` sin locale): textos con acentos en el splash, como imágenes.
+  como cuadrados (`label-freetype` sin locale): textos con acentos en el splash, como imágenes
+  (una por idioma; el gancho sabe el idioma por `command-os.idioma=` en la línea del kernel).
 - Textos: el original es el castellano dentro de `_()` (Python), `t`/`tn` (shell, de `lib/textos.sh`,
   el texto entero y literal), `{{…}}` (Waybar, hyprlock) o el `label="…"` del menú de labwc; un texto
   nuevo o cambiado necesita `bash build/po.sh` y su traducción en `os/po/`, o `tests/idioma.sh` falla.

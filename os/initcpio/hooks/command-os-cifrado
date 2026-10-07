@@ -1,7 +1,7 @@
 #!/usr/bin/ash
 # shellcheck shell=dash
-# Command OS — abre el disco cifrado pidiendo la contraseña dentro del splash (Plymouth): en
-# castellano, sin límite de intentos y avisando si es incorrecta. Va justo antes del gancho encrypt
+# Command OS — abre el disco cifrado pidiendo la contraseña dentro del splash (Plymouth): en el
+# idioma del sistema, sin límite de intentos y avisando si es incorrecta. Va justo antes del gancho encrypt
 # de Arch, que al ver el volumen ya abierto no hace nada («Device … already exists»): de él solo se
 # usan los módulos y cryptsetup que mete en el initramfs. Sin Plymouth, pregunta en la consola.
 #
@@ -34,6 +34,33 @@ cifrado_abrir() {
     printf '%s' "${solo}" | cryptsetup open --type luks --key-file=- "$1" "$2" >/dev/null 2>&1
 }
 
+# idioma_arranque [LÍNEA] — «en» o «es», del parámetro command-os.idioma= de la línea del kernel (lo
+# pone lib/apply-boot con el idioma del sistema); castellano si no está. Sin LÍNEA, /proc/cmdline.
+idioma_arranque() {
+    local linea=$1 p
+    [ $# -gt 0 ] || read -r linea < /proc/cmdline 2>/dev/null || linea=""
+    for p in ${linea}; do
+        case "${p}" in command-os.idioma=en) echo en; return 0 ;; esac
+    done
+    echo es
+}
+
+# textos_cifrado IDIOMA — los textos del gancho: TEXTO_PEDIR, TEXTO_MALA y TEXTO_ABRIENDO. Aquí no hay
+# gettext: van escritos en cada idioma. command.script reconoce los dos primeros por su contenido y
+# los enseña como imagen (build/make-plymouth-textos.py): si cambian, cambiarlos también allí.
+textos_cifrado() {
+    case "$1" in
+        en)
+            TEXTO_PEDIR="Disk password (or recovery key)"
+            TEXTO_MALA="Wrong password. Type it again"
+            TEXTO_ABRIENDO="cmd-os: unlocking the disk" ;;
+        *)
+            TEXTO_PEDIR="Contraseña del disco (o clave de recuperación)"
+            TEXTO_MALA="Contraseña incorrecta. Vuelve a escribirla"
+            TEXTO_ABRIENDO="cmd-os: desbloqueando el disco" ;;
+    esac
+}
+
 con_splash() { command -v plymouth >/dev/null 2>&1 && plymouth --ping 2>/dev/null; }
 
 # cifrado_pedir TEXTO — imprime lo que se teclee (en el splash o, sin él, en la consola).
@@ -61,7 +88,8 @@ EOF
     modprobe -a -q dm-crypt >/dev/null 2>&1
     cryptsetup isLuks "${dispositivo}" >/dev/null 2>&1 || return 0
 
-    texto="Contraseña del disco (o clave de recuperación)"
+    textos_cifrado "$(idioma_arranque)"
+    texto=${TEXTO_PEDIR}
     while :; do
         # Si no se puede preguntar (Plymouth no atiende, consola sin entrada) 5 veces seguidas, lo
         # deja al gancho encrypt de Arch: pregunta a su manera y, si tampoco puede, deja una consola
@@ -77,11 +105,11 @@ EOF
         fi
         fallos=0
         [ -n "${clave}" ] || continue
-        con_splash && plymouth display-message --text="cmd-os: desbloqueando el disco"
+        con_splash && plymouth display-message --text="${TEXTO_ABRIENDO}"
         if cifrado_abrir "${dispositivo}" "${nombre}" "${clave}"; then
             break
         fi
-        texto="Contraseña incorrecta. Vuelve a escribirla"
+        texto=${TEXTO_MALA}
     done
     clave=""
 }

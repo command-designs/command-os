@@ -212,6 +212,14 @@ gancho() {
 }
 conchas=(bash)
 command -v busybox >/dev/null && conchas+=("busybox ash")
+# Idioma: del parámetro command-os.idioma= de la línea del kernel (lib/apply-boot); castellano si no está.
+for concha in "${conchas[@]}"; do
+  # shellcheck disable=SC2086
+  idiomas=$(${concha} -c '. "$1"; idioma_arranque "quiet command-os.idioma=en splash"; idioma_arranque "quiet splash"
+    idioma_arranque "command-os.idioma=fr"; textos_cifrado en; echo "${TEXTO_PEDIR}"' _ "${REPO}/os/initcpio/hooks/command-os-cifrado")
+  [[ "${idiomas}" == $'en\nes\nes\nDisk password (or recovery key)' ]] \
+    && ok "${concha}: idioma del gancho por la línea del kernel" || mal "${concha}: idioma del gancho: ${idiomas//$'\n'/ | }"
+done
 for concha in "${conchas[@]}"; do
   # Una mala y después la clave de recuperación con guiones (como se enseña al instalar) o con espacios.
   for sep in - ' '; do
