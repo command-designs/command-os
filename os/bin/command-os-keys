@@ -12,7 +12,7 @@ if pkill -f "^wofi --dmenu --prompt ${TAG}" 2>/dev/null; then exit 0; fi
 
 KEYS=()
 # fila TECLAS ACCIÓN: las teclas en 22 columnas (printf cuenta bytes y descuadra las flechas y el «·»).
-fila() { KEYS+=("$1$(printf '%*s' $(( 22 - ${#1} )) '') $2"); }
+fila() { local n=$(( 22 - ${#1} )); (( n < 1 )) && n=1; KEYS+=("$1$(printf '%*s' "${n}" '') $2"); }
 # Las teclas solo se traducen donde llevan palabras (intro, mayús, impr…).
 fila "super"                 "$(t 'aplicaciones')"
 fila "super + $(t 'intro')"          "$(t 'terminal')"

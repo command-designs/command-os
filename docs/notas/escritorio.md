@@ -9,7 +9,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   lanzador), sin animaciones de ventana, y es el compositor por defecto de Raspberry Pi OS en el Pi 5.
   Decisión del usuario frente a un tiling compositor y a un escritorio tipo GNOME/XFCE. El usuario
   no quiere nada de Hyprland en el repo salvo hyprlock/hypridle (le gustan).
-- **Archivos**: `os/dotfiles/labwc/` (`rc.xml` atajos/reglas, `menu.xml` menús en castellano,
+- **Archivos**: `os/dotfiles/labwc/` (`rc.xml` atajos/reglas, `menu.xml` menús (en castellano; se instala en `/usr/share/command-os/config/labwc/` y `lib/menus-labwc` lo traduce al iniciar sesión, `docs/idioma.md`),
   `autostart`, `environment`), tema de ventanas `os/branding/labwc/Command/labwc/` (`themerc` +
   botones SVG de `build/make-labwc-buttons.py`) instalado en `/usr/share/themes/Command`. Portales en
   `os/dotfiles/xdg-desktop-portal/labwc-portals.conf` (gtk + wlr). Ayuda de atajos

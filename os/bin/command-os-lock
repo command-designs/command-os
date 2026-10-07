@@ -31,11 +31,14 @@ emergencia=/usr/share/command-os/config/hypr/hyprlock-emergencia.conf
 # del sistema en una copia. Si no se puede, el texto original sin las llaves. La de una cuenta se usa
 # tal cual.
 priv="${run}"
-{ [ -n "${priv}" ] && [ -d "${priv}" ] && [ -O "${priv}" ]; } || priv=$(mktemp -d 2>/dev/null) || priv=/tmp
-traducida() {  # traducida ORIGEN DESTINO
+if ! { [ -n "${priv}" ] && [ -d "${priv}" ] && [ -O "${priv}" ]; }; then
+  priv=$(mktemp -d 2>/dev/null) && trap 'rm -rf "${priv}"' EXIT || priv=""
+fi
+traducida() {  # traducida ORIGEN DESTINO: falla (y no deja nada) si la copia saliera vacía
+  [ -n "${priv}" ] || return 1
   /usr/lib/command-os/traducir.py plantilla "$1" > "$2.nueva" 2>/dev/null && [ -s "$2.nueva" ] \
-    || sed -E 's/\{\{([^{}]+)\}\}/\1/g' "$1" > "$2.nueva"
-  mv -f "$2.nueva" "$2"
+    || sed -E 's/\{\{([^{}]+)\}\}/\1/g' "$1" > "$2.nueva" 2>/dev/null
+  if [ -s "$2.nueva" ]; then mv -f "$2.nueva" "$2"; else rm -f "$2.nueva"; return 1; fi
 }
 if traducida "${emergencia}" "${priv}/command-os-hyprlock-emergencia.conf"; then
   emergencia="${priv}/command-os-hyprlock-emergencia.conf"

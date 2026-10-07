@@ -72,7 +72,7 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   arrancar y el cambio no llegaría a la pantalla de inicio de sesión hasta reiniciar.
 - **En este paso se traducen el asistente, la pantalla de inicio de sesión, `crear-cuenta` y el tema de
   GRUB**: lo que se ve al elegir el idioma. El resto de textos propios (barra, menús, splash,
-  instalador) va como punto propio del roadmap.
+  instalador) va como punto propio del roadmap. (Barra y menús ya están: ver «El escritorio en inglés».)
 
 ## 2026-10-07 — El escritorio en inglés (`docs/idioma.md`)
 
