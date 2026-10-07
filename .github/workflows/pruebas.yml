@@ -21,12 +21,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Sintaxis
         run: |
-          for f in os/install.sh os/lib/* os/bin/* os/pkg/PKGBUILD build/x86/*.sh tests/*.sh; do
+          for f in os/install.sh os/lib/* os/bin/* os/initcpio/*/* os/pkg/PKGBUILD build/x86/*.sh tests/*.sh; do
             case "$f" in *.py) python3 -c "import ast, sys; ast.parse(open(sys.argv[1]).read())" "$f" || exit 1 ;; *) bash -n "$f" || exit 1 ;; esac
           done
       - name: shellcheck (solo errores)
         run: |
-          shellcheck -S error -e SC1090,SC1091 os/install.sh $(find os/lib -maxdepth 1 -type f ! -name '*.py') os/bin/* build/x86/*.sh tests/*.sh
+          shellcheck -S error -e SC1090,SC1091 os/install.sh $(find os/lib -maxdepth 1 -type f ! -name '*.py') os/bin/* os/initcpio/*/* build/x86/*.sh tests/*.sh
       - name: Escala de las pantallas
         run: bash tests/pantallas.sh
 
@@ -36,8 +36,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Herramientas
-        run: sudo apt-get update -q && sudo apt-get install -yq gdisk dosfstools ntfs-3g
-      - name: Qué discos rechaza, confirmación y particionado
+        run: sudo apt-get update -q && sudo apt-get install -yq gdisk dosfstools ntfs-3g cryptsetup-bin busybox
+      - name: Qué discos rechaza, confirmación, particionado y cifrado
         run: sudo bash tests/discos.sh
 
   escritorio-validada:

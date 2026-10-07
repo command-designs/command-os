@@ -3,6 +3,36 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-07 — Cifrado del disco (`docs/cifrado.md`)
+
+- **Opcional y marcado por defecto, en disco entero y en dual boot.** En un portátil con Windows
+  cifrado por BitLocker, un Linux sin cifrar al lado sería el punto débil. La imagen USB
+  (`build-image.sh`) no se cifra: es genérica y no hay a quién pedirle la contraseña. Descartado:
+  siempre cifrado (hay equipos donde no se quiere, como un banco de pruebas) y desmarcado por defecto
+  (casi nadie lo marcaría).
+- **`/boot` en una partición aparte sin cifrar; GRUB no descifra nada.** Así la contraseña se pide una
+  sola vez y dentro del splash. Descartado: `/boot` cifrado con `GRUB_ENABLE_CRYPTODISK` (GRUB la pide
+  antes del splash en modo texto, tarda con argon2id y hay que pedirla dos veces o meter una clave en el
+  initramfs). Coste aceptado: el kernel sale de las instantáneas; `command-os-rollback` pone el de la
+  instantánea y rehace su initramfs.
+- **Clave de recuperación que guarda el usuario**, en una segunda ranura de LUKS: generada en el
+  equipo, enseñada una vez y comprobada con dos grupos al azar; nadie más tiene copia. No es una puerta
+  trasera (esa sería una forma de entrar del fabricante): es como la de BitLocker, pero sin copia en
+  ningún servidor. Solo cifras, para teclearla en cualquier distribución de teclado; se acepta con o
+  sin guiones. Descartado: nada (un olvido = perderlo todo) y guardarla en el equipo o en la nube.
+- **Gancho propio del initramfs (`command-os-cifrado`) antes de `encrypt`.** El de Arch pide en inglés
+  y, tras 3 fallos, deja una consola de emergencia. El propio pide en castellano dentro del splash,
+  sin límite de intentos, y `encrypt` lo respeta («Device already exists»). Descartado: copiar y
+  modificar `encrypt` (habría que seguirle los cambios) y pasar al initramfs de systemd (`sd-encrypt`),
+  que rompe el arranque de instantáneas (`grub-btrfs-overlayfs` solo va en el de udev).
+- **LUKS2 con argon2id y TRIM (`allow-discards`) guardado en la cabecera.** TRIM alarga la vida del
+  SSD y mantiene su rendimiento; a cambio se ve qué zonas están libres, no lo que contienen.
+- **Contraseña de 8 caracteres como mínimo, sin ñ ni tildes.** Igual que las cuentas; argon2id frena
+  la fuerza bruta. Sin ñ ni tildes porque se teclea antes de que arranque el sistema: si el teclado no
+  las diera, no se podría entrar.
+- **Todo se pregunta antes de la confirmación del borrado**: después no hay más preguntas y, si se
+  cancela, no se ha tocado nada.
+
 ## 2026-10-07 — Idioma del sistema (punto 10 del roadmap)
 
 - **Castellano de serie y elección de idioma en el asistente de primer arranque** (decisión del
@@ -81,7 +111,7 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **Menú de GRUB sin las entradas «EFI BootNext»** (`GRUB_DISABLE_BOOTNEXT=true`, `os/lib/apply-boot`):
   GRUB 2.16 copia en el menú la NVRAM del momento (USB, discos sueltos, Windows repetido).
 - **Sin cifrado de disco en este paso:** pide la contraseña antes del splash y toca el initramfs y
-  grub-btrfs; va como punto propio del roadmap.
+  grub-btrfs; va como punto propio del roadmap (hecho después: «Cifrado del disco», arriba).
 
 ## 2026-10-07 — Aviso de actualizaciones (`docs/actualizaciones.md` § 7)
 

@@ -9,9 +9,10 @@ Dos formas, con el mismo asistente (`build/x86/instalar.sh`) desde un USB de Arc
 | Antes, en Windows | Liberar ≥ 30 GB, BitLocker, inicio rápido ([`dualboot.md`](dualboot.md)) | Copiar lo que quieras conservar |
 | Script | `install-dualboot.sh` | `install-disco.sh` |
 
-En los dos: raíz en btrfs con instantáneas (volver atrás desde el menú de arranque o con
-`command-os-rollback`), el Arch de la fecha validada y, al encender, el asistente de primer arranque
-para crear tu cuenta ([`cuentas.md`](cuentas.md)). Las actualizaciones llegan después solas
+En los dos: disco cifrado si se quiere (sí por defecto; [`cifrado.md`](cifrado.md)), raíz en btrfs
+con instantáneas (volver atrás desde el menú de arranque o con `command-os-rollback`), el Arch de la
+fecha validada y, al encender, el asistente de primer arranque para crear tu cuenta
+([`cuentas.md`](cuentas.md)). Las actualizaciones llegan después solas
 ([`actualizaciones.md`](actualizaciones.md)).
 
 Hace falta: un USB de ≥ 2 GB (se borra), internet (cable o wifi) y un disco de ≥ 30 GB.
@@ -44,12 +45,14 @@ El asistente pregunta:
    aparece. En el modo sistema principal, los discos que no se pueden usar salen sin número y con el
    motivo.
 
-Después, el instalador elegido enseña el disco y lo que contiene y pide confirmación. Tarda 10–20 min
-(descarga unos 2 GB). Al terminar: `reboot` y quita el USB cuando se apague la pantalla.
+Después, el instalador elegido pregunta si **cifrar el disco** (sí por defecto) y, si sí, la
+contraseña del disco y la **clave de recuperación**, que hay que apuntar ([`cifrado.md`](cifrado.md)).
+Por último enseña el disco y lo que contiene y pide confirmación: hasta ahí no se ha tocado nada.
+Tarda 10–20 min (descarga unos 2 GB). Al terminar: `reboot` y quita el USB cuando se apague la pantalla.
 
 Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash ...`): `KB_LAYOUT` (teclado, `es`),
-`TIMEZONE` (`Europe/Madrid`), `HOSTNAME_NEW` (`command-os`) y `VARIANT` (`pc-nvidia` si hay GPU
-NVIDIA, solo; vacío en Intel/AMD).
+`TIMEZONE` (`Europe/Madrid`), `HOSTNAME_NEW` (`command-os`), `VARIANT` (`pc-nvidia` si hay GPU
+NVIDIA, solo; vacío en Intel/AMD) y `CIFRADO` (`si`/`no`: no pregunta si cifrar).
 
 ## 3. Qué protege al instalador del disco entero
 
@@ -73,10 +76,19 @@ se cumple (`build/x86/lib.sh`, probado en `tests/discos.sh` en cada cambio):
 | 1 | 1 GiB, FAT32 (`/efi`) | GRUB: entrada `command-os` en la NVRAM del equipo y el arranque de reserva `EFI/BOOT/BOOTX64.EFI` (arranca aunque la BIOS pierda la entrada) |
 | 2 | el resto, btrfs | subvolúmenes `@` (sistema y kernel), `@home`, `@snapshots`, `@var_log`, `@pkg` |
 
-Sin swap. Sin cifrado de disco por ahora (pendiente en `ROADMAP.md`).
+Con el disco cifrado:
+
+| Partición | Tamaño | Qué es |
+| --- | --- | --- |
+| 1 | 1 GiB, FAT32 (`/efi`) | GRUB, igual que sin cifrar |
+| 2 | 1 GiB, ext4 (`/boot`), **sin cifrar** | kernel, initramfs y `/boot/grub`: GRUB no descifra, la contraseña se pide en el splash |
+| 3 | el resto, LUKS2 | btrfs con los mismos subvolúmenes (`@` ya sin el kernel) |
+
+Sin swap. Detalle del cifrado, la clave de recuperación y las instantáneas: [`cifrado.md`](cifrado.md).
 
 ## 5. Primer arranque y problemas
 
+- Disco cifrado: la contraseña del disco (o la clave de recuperación) en la pantalla de arranque.
 - Sale el asistente de primer arranque: cuenta, contraseña y si quieres entrar sin contraseña.
 - Wifi: el icono de red de la barra o `nmtui` en una terminal.
 - **No arranca Command OS** (vuelve al USB o a «no hay sistema»): en la BIOS, pon `command-os` (o el
@@ -96,4 +108,5 @@ confirmaciones malas; instala en el disco vacío, arranca desde él (asistente d
 actualiza; la huella del señuelo es la misma antes y después. Después, en el mismo disco, una tabla como
 la de Windows (EFI con `bootmgfw.efi`, MSR, NTFS y hueco libre) y el dual boot: Windows queda igual
 (tabla, NTFS, archivos de la EFI y su arranque de reserva), el menú de GRUB tiene Command OS, Windows e
-instantáneas, y la entrada UEFI apunta a la partición nueva. **No se ha probado en un PC real.**
+instantáneas, y la entrada UEFI apunta a la partición nueva. Con el disco cifrado, los dos modos y la
+vuelta atrás: [`cifrado.md`](cifrado.md). **No se ha probado en un PC real.**

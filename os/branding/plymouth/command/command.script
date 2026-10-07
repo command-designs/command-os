@@ -6,6 +6,7 @@
 # único texto del arranque: el cargador, el kernel y systemd no escriben en pantalla.
 # Cualquier tecla salta la animación del wordmark (va al último fotograma; el arranque no se toca).
 # Para soporte técnico, Esc cambia al modo detalles de Plymouth (texto de arranque completo).
+# Con el disco cifrado, la contraseña se pide aquí mismo, en el sitio de la consola (abajo).
 # El progreso lo calcula Plymouth con la duración guardada de arranques anteriores; en el
 # primer arranque es una estimación por defecto. Al apagar/reiniciar no hay barra.
 # Paleta HUD (docs/DISENO.md): fondo Void #0D0B0E, barra roja sobre Steel.
@@ -129,3 +130,77 @@ fun key_callback(key) {
     if (tick < frame_count * 2) tick = frame_count * 2;
 }
 Plymouth.SetKeyboardInputFunction(key_callback);
+
+# --- Contraseña del disco cifrado ---------------------------------------------------
+# La pide el gancho command-os-cifrado del initramfs (os/initcpio). En el sitio de la consola: el
+# texto, una línea de campo y un cuadradito hueso por carácter (no se ve cuántos hay a partir de
+# DOT_MAX) con el cursor cian detrás. Los dos textos del gancho van como imágenes en JetBrains Mono
+# (build/make-plymouth-textos.py): en el initramfs, Image.Text pinta la ñ y las tildes como cuadrados.
+# Se reconocen por su contenido («incorrecta», «del disco»); cualquier otro, con Image.Text.
+px_bone = Image("px-bone.png");
+px_cyan = Image("px-cyan.png");
+src = Image("texto-clave.png");
+img_prompt = src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
+src = Image("texto-clave-mala.png");
+img_wrong = src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
+DOT = Math.Int(7 * K + 0.5);
+DOT_GAP = DOT;
+DOT_MAX = Math.Int(logo_w / (DOT + DOT_GAP)) - 2;
+field_y = log_y + Math.Int(LINE_H * 1.8);
+prompt_sprite = Sprite();
+prompt_sprite.SetPosition(logo_x, log_y, 4);
+field_line = Sprite(px_dim.Scale(logo_w, BAR_H));
+field_line.SetPosition(logo_x, field_y + DOT + Math.Int(10 * K), 4);
+field_line.SetOpacity(0);
+caret = Sprite(px_cyan.Scale(Math.Int(DOT / 2) + 1, DOT + Math.Int(6 * K)));
+caret.SetOpacity(0);
+for (i = 0; i < DOT_MAX; i++) {
+    dot[i] = Sprite(px_bone.Scale(DOT, DOT));
+    dot[i].SetPosition(logo_x + i * (DOT + DOT_GAP), field_y, 4);
+    dot[i].SetOpacity(0);
+}
+
+fun show_log(visible) {
+    for (i = 0; i < LOG_LINES; i++) {
+        if (visible && log_text[i] != "") log_sprite[i].SetOpacity(1);
+        else log_sprite[i].SetOpacity(0);
+    }
+}
+
+fun contains(text, word) {
+    for (i = 0; i + word.Length() <= text.Length(); i++)
+        if (text.SubString(i, i + word.Length()) == word) return 1;
+    return 0;
+}
+
+fun display_password_callback(prompt, bullets) {
+    show_log(0);
+    if (contains(prompt, "incorrecta")) {
+        prompt_sprite.SetImage(img_wrong);
+    } else if (prompt == "" || contains(prompt, "del disco")) {
+        prompt_sprite.SetImage(img_prompt);
+    } else {
+        if (prompt.Length() > LOG_MAX) prompt = prompt.SubString(0, LOG_MAX);
+        prompt_sprite.SetImage(Image.Text(prompt, 0.93, 0.92, 0.90, 1, FONT));
+    }
+    prompt_sprite.SetOpacity(1);
+    field_line.SetOpacity(1);
+    shown = bullets;
+    if (shown > DOT_MAX) shown = DOT_MAX;
+    for (i = 0; i < DOT_MAX; i++) {
+        if (i < shown) dot[i].SetOpacity(1);
+        else dot[i].SetOpacity(0);
+    }
+    caret.SetPosition(logo_x + shown * (DOT + DOT_GAP), field_y - Math.Int(3 * K), 5);
+    caret.SetOpacity(1);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+fun display_normal_callback() {
+    prompt_sprite.SetOpacity(0);
+    field_line.SetOpacity(0);
+    caret.SetOpacity(0);
+    for (i = 0; i < DOT_MAX; i++) dot[i].SetOpacity(0);
+    show_log(1);
+}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);

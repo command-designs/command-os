@@ -1,9 +1,12 @@
-# Command OS: el tema del splash va dentro del initramfs; si cambia, hay que regenerarlo.
+# Command OS: el tema del splash y el gancho de la contraseña del disco cifrado van dentro del
+# initramfs; si cambian, hay que regenerarlo.
 [Trigger]
 Operation = Install
 Operation = Upgrade
 Type = Path
 Target = usr/share/plymouth/themes/command/*
+Target = usr/lib/initcpio/hooks/command-os-cifrado
+Target = usr/lib/initcpio/install/command-os-cifrado
 
 [Action]
 Description = Command OS: splash de arranque en el initramfs

@@ -176,8 +176,10 @@ if [[ -f /etc/default/grub ]]; then
   esac
   set_grub GRUB_GFXMODE "${mode:+${mode},}auto"
   set_grub GRUB_GFXPAYLOAD_LINUX keep
-  # Fondo sin tema (si no se pudo generar): el tema usa el mismo, recortado sin deformar.
-  set_grub GRUB_BACKGROUND '"/usr/share/command-os/wallpapers/command-void.png"'
+  # Fondo sin tema (si no se pudo generar): el tema usa el mismo, recortado sin deformar. Va en
+  # /boot/grub: con el disco cifrado, GRUB solo lee /boot (la raíz no la descifra).
+  install -Dm 644 /usr/share/command-os/wallpapers/command-void.png /boot/grub/command-os-fondo.png
+  set_grub GRUB_BACKGROUND '"/boot/grub/command-os-fondo.png"'
   height=${mode#*x}
   if make_grub_theme "${height:-1080}"; then
     set_grub GRUB_THEME "\"${THEME_DIR}/theme.txt\""

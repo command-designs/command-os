@@ -28,6 +28,8 @@ as_user() {
   local u=$1; shift
   runuser -u "${u}" -- env -u XDG_CONFIG_HOME HOME="$(getent passwd "${u}" | cut -d: -f6)" USER="${u}" "$@"
 }
+# ¿La raíz va sobre un volumen cifrado (LUKS)? lsblk -s recorre de / hacia el disco.
+root_is_encrypted() { lsblk -nso TYPE "$(findmnt -nvo SOURCE /)" 2>/dev/null | grep -qx crypt; }
 # ¿Máquina virtual? Dentro de un chroot (imágenes construidas en WSL o desde el USB de Arch) no se
 # sabe en qué hardware acabará el sistema: se trata como hardware real.
 is_vm() { ! systemd-detect-virt --quiet --chroot && systemd-detect-virt --quiet --vm; }
@@ -114,6 +116,14 @@ setup_snapshots() {
     # funciona en el initramfs clásico (udev), no en el de systemd. plymouth va después de udev
     # (por eso esto va después de instalar el paquete, que trae plymouth).
     local hooks="HOOKS=(base udev plymouth autodetect microcode modconf kms keyboard keymap block filesystems fsck grub-btrfs-overlayfs)"
+    # Raíz cifrada (build/x86/lib.sh: luks_root): la contraseña se pide en el splash
+    # (command-os-cifrado, del paquete) antes de encrypt, que solo aporta cryptsetup y los módulos.
+    # keyboard va antes de autodetect: así entran todos los teclados, no solo el que había al
+    # instalar (uno USB enchufado después tiene que poder escribir la contraseña), y keymap pone la
+    # distribución de /etc/vconsole.conf.
+    if root_is_encrypted; then
+      hooks="HOOKS=(base udev plymouth keyboard autodetect microcode modconf kms keymap block command-os-cifrado encrypt filesystems fsck grub-btrfs-overlayfs)"
+    fi
     if ! grep -qxF "${hooks}" /etc/mkinitcpio.conf; then
       sed -i -E "s/^HOOKS=.*/${hooks}/" /etc/mkinitcpio.conf
       mkinitcpio -P
