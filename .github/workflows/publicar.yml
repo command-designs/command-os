@@ -1,5 +1,9 @@
-# Command OS — construye, firma y publica el paquete command-os en el repositorio público
-# command-designs/command-os-versions (Release "repo"), de donde se actualizan los equipos.
+# Command OS — construye, firma y publica en el repositorio público command-designs/command-os-versions:
+#   - Release "repo": el paquete command-os (repositorio de pacman), de donde se instalan y
+#     actualizan los equipos. Solo si ha cambiado os/: así un cambio que solo toca el instalador no
+#     avisa a todos los equipos de una actualización que no cambia nada.
+#   - Release "instalador": el instalador firmado (build/x86/empaquetar-instalador.sh), el script
+#     que lo descarga y comprueba (build/x86/instalar-command-os.sh) y la clave pública. Siempre.
 #
 # Necesita dos secretos en este repositorio (Settings → Secrets and variables → Actions):
 #   COMMAND_OS_GPG_KEY     clave privada de firma (ASCII armor). La pública está en
@@ -11,7 +15,7 @@ name: publicar
 on:
   push:
     branches: [main]
-    paths: ['os/**']
+    paths: ['os/**', 'build/x86/**']
   workflow_dispatch:
   workflow_call:
     secrets:
@@ -30,12 +34,33 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
+      # git antes del checkout: sin él, actions/checkout baja los archivos sin el historial y no hay
+      # git archive (empaquetar-instalador.sh) ni comparación con el commit anterior.
+      - name: Herramientas
+        run: pacman -Syu --noconfirm base-devel git github-cli gnupg
+
       - uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
-      - name: Herramientas
-        run: pacman -Syu --noconfirm base-devel git github-cli gnupg
+      - name: Repositorio de git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Qué ha cambiado
+        id: cambios
+        run: |
+          # Un push que no toca os/ (solo el instalador) no publica paquete nuevo. A mano
+          # (workflow_dispatch), desde otro workflow o si no se sabe el commit anterior, sí.
+          antes="${{ github.event.before }}"
+          if [ "${{ github.event_name }}" = push ] && [ -n "$antes" ] \
+            && git cat-file -e "$antes^{commit}" 2>/dev/null \
+            && git diff --quiet "$antes" HEAD -- os; then
+            echo "paquete=no" >> "$GITHUB_OUTPUT"
+            echo "os/ no ha cambiado: solo se publica el instalador"
+          else
+            echo "paquete=si" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Clave de firma
         env:
@@ -49,6 +74,7 @@ jobs:
           echo "GPGKEY=$huella" >> "$GITHUB_ENV"
 
       - name: Paquete
+        if: steps.cambios.outputs.paquete == 'si'
         run: |
           useradd -m constructor
           cp -r os /home/constructor/os
@@ -62,6 +88,7 @@ jobs:
           for p in command-os-*.pkg.tar.zst; do gpg --batch --yes --detach-sign "$p"; done
 
       - name: Repositorio
+        if: steps.cambios.outputs.paquete == 'si'
         env:
           GH_TOKEN: ${{ secrets.COMMAND_OS_VERSIONS_TOKEN }}
         run: |
@@ -88,3 +115,23 @@ jobs:
             | grep -E '^command-os-.*\.pkg\.tar\.zst(\.sig)?$' | grep -vxF -e "$nuevo" -e "$nuevo.sig" \
             | while read -r viejo; do gh release delete-asset repo "$viejo" -R "$REPO_PUBLICO" -y; done
           echo "Publicado: $nuevo"
+
+      - name: Instalador
+        env:
+          GH_TOKEN: ${{ secrets.COMMAND_OS_VERSIONS_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "::error::Falta el secreto COMMAND_OS_VERSIONS_TOKEN"; exit 1; fi
+          # La versión del paquete que está publicado ahora (el de este paso o el anterior).
+          version=$(gh release view repo -R "$REPO_PUBLICO" --json assets -q '.assets[].name' \
+            | sed -nE 's/^command-os-(.+)-[0-9]+-any\.pkg\.tar\.zst$/\1/p' | head -1)
+          [ -n "$version" ] || { echo "::error::No hay ningún paquete publicado en la Release repo"; exit 1; }
+          mkdir instalador
+          bash build/x86/empaquetar-instalador.sh instalador/command-os-instalador.tar.gz "$version"
+          gpg --batch --yes --detach-sign instalador/command-os-instalador.tar.gz
+          cp build/x86/instalar-command-os.sh os/pacman/command-os.gpg instalador/
+          gpg --batch --yes --detach-sign instalador/instalar-command-os.sh
+          gh release view instalador -R "$REPO_PUBLICO" >/dev/null 2>&1 || gh release create instalador \
+            -R "$REPO_PUBLICO" --title "Instalador de Command OS" \
+            --notes "Desde el USB en vivo de Arch Linux: descarga instalar-command-os.sh y ejecútalo con bash. Comprueba la firma del instalador antes de ejecutarlo."
+          gh release upload instalador -R "$REPO_PUBLICO" --clobber instalador/*
+          echo "Instalador publicado (paquete $version)"

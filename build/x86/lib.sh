@@ -133,7 +133,10 @@ forget_nvram_entries() {
 # sobre un disco loop). Falla si la instalación no se completó.
 configure_system() {
   local mnt=$1 efi=$2 disk=$3 grub="grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot"
-  local boot luks cmdline=""
+  local boot luks cmdline="" paquete=""
+  # Instalador publicado (empaquetar-instalador.sh deja PUBLICADO): el paquete firmado del
+  # repositorio, el mismo del que se actualizará. Desde un clon del repositorio, se construye.
+  [[ -f "${REPO:-}/PUBLICADO" ]] && paquete=repo
   # Raíz cifrada: cryptdevice= en GRUB_CMDLINE_LINUX (no en _DEFAULT, que es de apply-boot), así va
   # también en las entradas de recuperación y en las de las instantáneas (grub-btrfs).
   luks=$(luks_uuid_of "${mnt}")
@@ -157,7 +160,7 @@ configure_system() {
     echo 'KEYMAP=${KB_LAYOUT}' > /etc/vconsole.conf
     echo ${HOSTNAME_NEW} > /etc/hostname
     passwd -l root
-    COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${COMMAND_OS_SSH:-0} bash /root/command-os-src/os/install.sh
+    COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${COMMAND_OS_SSH:-0} COMMAND_OS_PAQUETE=${paquete} bash /root/command-os-src/os/install.sh
     if [[ '${VARIANT}' == pc-nvidia ]]; then
       grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
     fi
