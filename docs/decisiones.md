@@ -29,6 +29,34 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **Sin recuperación de contraseña propia:** otra cuenta administradora o un USB de rescate. Una
   puerta trasera sería un agujero.
 
+## 2026-10-07 — Instalar como sistema principal (`docs/instalacion.md`)
+
+- **Dos formas de instalar en un PC: junto a Windows o como sistema principal**, con un asistente
+  común (`build/x86/instalar.sh`) y un script por modo. La imagen USB (`build-image.sh`) se queda para
+  probar sin instalar. Descartado: un único script con opciones (el modo que borra quedaría a un
+  parámetro de distancia del que no borra).
+- **Seguridad antes que comodidad en el borrado:** disco siempre indicado a mano, sin valor por
+  defecto; se rechazan el USB en vivo, el sistema en marcha, discos montados, con swap o volúmenes en
+  uso, particiones, solo lectura y < 30 GB; la confirmación es escribir el nombre exacto del disco (y
+  `BORRAR WINDOWS` si lo hay). Solo corre desde el USB en vivo de Arch: no se puede lanzar por error
+  en un equipo instalado. Descartado: confirmar con «SI» (se teclea sin leer) y elegir el disco más
+  grande solo (puede ser el de los datos).
+- **GPT con EFI de 1 GiB y btrfs para el resto, sin swap.** Igual que el dual boot y la imagen (mismas
+  instantáneas y `command-os-rollback`). 1 GiB deja sitio a varios kernels si algún día van a la EFI.
+- **GRUB con entrada en la NVRAM y además `EFI/BOOT/BOOTX64.EFI`:** hay firmwares que pierden u
+  ordenan mal las entradas; la copia de reserva arranca igual. En el dual boot no se pone (es el
+  arranque de reserva de Windows).
+- **Lo común del dual boot y el disco entero en `build/x86/lib.sh`** (`install_base`,
+  `configure_system`); `build-image.sh` se queda aparte porque hace una imagen genérica (zona UTC,
+  cuenta de desarrollo, sin NVRAM).
+- **Antes de `grub-install`, se borran las entradas `command-os` viejas de la NVRAM**
+  (`forget_nvram_entries`): GRUB no actualiza una entrada con su misma ruta aunque apunte a otra
+  partición, y al reinstalar la BIOS seguiría una entrada muerta (en dual boot, arrancaría Windows sin menú).
+- **Menú de GRUB sin las entradas «EFI BootNext»** (`GRUB_DISABLE_BOOTNEXT=true`, `os/lib/apply-boot`):
+  GRUB 2.16 copia en el menú la NVRAM del momento (USB, discos sueltos, Windows repetido).
+- **Sin cifrado de disco en este paso:** pide la contraseña antes del splash y toca el initramfs y
+  grub-btrfs; va como punto propio del roadmap.
+
 ## 2026-10-07 — Aviso de actualizaciones (`docs/actualizaciones.md` § 7)
 
 - **Comprobar a los 10 min de arrancar y cada 6 h, con retraso al azar.** Las versiones salen pocas

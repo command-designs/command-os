@@ -33,6 +33,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd | `docs/cuentas.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
+| instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos | `docs/instalacion.md` (§ 3: lo que protege del borrado) |
 | splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
 | por qué se decidió algo (y qué se descartó) | `docs/decisiones.md` |
@@ -60,6 +61,10 @@ usuario); ARM, aparcado hasta tener la placa.
 - Aviso de actualizaciones: nunca `pacman -Sy` para mirar (usa `checkupdates`, copia de la base de datos).
   La unidad tiene su propio `/tmp` y sistema de archivos de solo lectura: un repositorio de prueba
   `file://` va fuera de `/tmp`. Waybar oculta el módulo solo si el texto del JSON va vacío.
+- Instalador en disco entero: **nunca ejecutarlo fuera de una VM o de discos loop** (borra el disco).
+  Las comprobaciones de `disk_problems`/`confirm_erase` (`build/x86/lib.sh`) no se relajan sin una
+  prueba nueva en `tests/discos.sh`. VM de pruebas: `command-os-instalador` (`docs/testing.md`).
+  `grub-install` no actualiza una entrada UEFI con su misma ruta: `forget_nvram_entries` va antes.
 - VirtualBox: **nunca `snapshot take --live`** con la VM encendida: la deja congelada (pasó con
   `command-os-x86`). Instantáneas con la VM apagada.
 

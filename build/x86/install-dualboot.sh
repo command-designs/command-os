@@ -27,6 +27,7 @@ cleanup() { set +e; mountpoint -q "$MNT" && umount -R "$MNT"; }
 trap cleanup EXIT
 
 [[ $(id -u) -eq 0 ]] || die "ejecutar como root"
+require_live_usb
 [[ -b "$DISK" ]] || die "uso: $0 /dev/<disco>   (ver discos con: lsblk -o NAME,SIZE,MODEL)"
 [[ -n "${NO_NVRAM:-}" || -d /sys/firmware/efi ]] \
   || die "el USB no arrancó en modo UEFI (desactiva CSM/Legacy en la BIOS)"
@@ -71,24 +72,12 @@ mount "$ESP" "$MNT/efi"
 ESP_FREE_MB=$(( $(df --output=avail -k "$MNT/efi" | tail -1) / 1024 ))
 (( ESP_FREE_MB >= 10 )) || die "la partición EFI solo tiene ${ESP_FREE_MB} MB libres"
 
-if [[ -z "${VARIANT+x}" ]]; then
-  VARIANT=
-  lspci 2>/dev/null | grep -qiE '(vga|3d|display).*nvidia' && VARIANT=pc-nvidia
-fi
-echo "==> Variante: ${VARIANT:-ninguna (GPU Intel/AMD)}"
+detect_variant
 
-# El kernel y el initramfs van en /boot dentro de btrfs (entran en las instantáneas): la EFI de
-# Windows suele ser de 100-300 MB y solo recibe el binario de GRUB (EFI/command-os/grubx64.efi).
-pacstrap -K -C "$(pinned_pacman_conf "$REPO")" "$MNT" base linux linux-firmware intel-ucode \
-  amd-ucode sudo networkmanager openssh grub efibootmgr ntfs-3g btrfs-progs git base-devel
-# Sin swap (genfstab copiaría la del sistema en vivo) y sin subvolid (ver build/x86/lib.sh).
-fstab "$MNT"
-
-mkdir -p "$MNT/root/command-os-src" "$MNT/etc/command-os"
-cp -r "$REPO/os" "$MNT/root/command-os-src/os"
-find "$MNT/root/command-os-src/os" -name '*.sh' -exec sed -i 's/\r$//' {} +
+# La EFI de Windows suele ser de 100-300 MB: solo recibe el binario de GRUB
+# (EFI/command-os/grubx64.efi); el kernel va en /boot dentro de btrfs (build/x86/lib.sh).
+install_base "$MNT" "$REPO" ntfs-3g
 touch "$MNT/etc/command-os/dualboot"
-echo "$KB_LAYOUT" > "$MNT/etc/command-os/kb_layout"
 # Windows guarda la hora local en el reloj del equipo: Linux también, para que no se desfase.
 printf '0.0 0 0.0\n0\nLOCAL\n' > "$MNT/etc/adjtime"
 
@@ -111,29 +100,8 @@ else
   echo "aviso: no hay EFI/Microsoft/Boot/bootmgfw.efi en $ESP; GRUB no tendrá entrada de Windows" >&2
 fi
 
-NVRAM_FLAG=
-[[ -n "${NO_NVRAM:-}" ]] && NVRAM_FLAG=--no-nvram
-arch-chroot "$MNT" /bin/bash -euxc "
-  ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
-  echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
-  echo 'es_ES.UTF-8 UTF-8' >> /etc/locale.gen
-  locale-gen
-  echo 'LANG=en_US.UTF-8' > /etc/locale.conf
-  echo 'KEYMAP=${KB_LAYOUT}' > /etc/vconsole.conf
-  echo ${HOSTNAME_NEW} > /etc/hostname
-  passwd -l root
-  COMMAND_OS_VARIANT=${VARIANT} bash /root/command-os-src/os/install.sh
-  if [[ '${VARIANT}' == pc-nvidia ]]; then
-    grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
-  fi
-  # Sin --removable: no se pisa EFI/BOOT/BOOTX64.EFI (el arranque de reserva de Windows).
-  grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot --bootloader-id=command-os ${NVRAM_FLAG}
-  grub-mkconfig -o /boot/grub/grub.cfg
-"
-# Comprobación explícita: una instalación a medias no debe darse por buena.
-[[ -f "$MNT/usr/share/command-os/version" && -f "$MNT/boot/grub/grub.cfg" ]] \
-  || die "la instalación no se completó (ver el registro de arriba)"
-rm -rf "$MNT/root/command-os-src"
+# Sin --removable: no se pisa EFI/BOOT/BOOTX64.EFI (el arranque de reserva de Windows).
+configure_system "$MNT" compartida
 
 if grep -q "menuentry 'Windows" "$MNT/boot/grub/grub.cfg"; then
   echo "==> GRUB tiene entrada para Windows"
