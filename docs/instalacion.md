@@ -1,5 +1,8 @@
 # Instalar Command OS en un PC (x86_64)
 
+> Todas las formas de instalar (PC, máquina virtual, Arch ya instalado, imagen USB…), con los pasos
+> para quien instala: [`INSTALAR.md`](../INSTALAR.md). Aquí, el detalle del instalador para PC.
+
 Dos formas, con el mismo asistente (`build/x86/instalar.sh`) desde un USB de Arch Linux:
 
 | | Junto a Windows (dual boot) | Como sistema principal |
