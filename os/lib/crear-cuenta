@@ -2,7 +2,8 @@
 # Command OS — crea la cuenta principal del equipo. Lo usa el asistente de primer arranque
 # (command-os-primer-arranque) y, en las imágenes de desarrollo, install.sh. Solo root.
 #
-#   crear-cuenta --usuario NOMBRE [--nombre "Nombre completo"] [--teclado es] [--inicio-auto]
+#   crear-cuenta --usuario NOMBRE [--nombre "Nombre completo"] [--teclado es] [--idioma es_ES.UTF-8]
+#                [--inicio-auto]
 #
 # La contraseña llega por la entrada estándar (una línea), nunca como argumento ni variable: así
 # no queda en la lista de procesos, en el historial ni en ningún registro. Se guarda solo como
@@ -10,46 +11,67 @@
 #
 # La cuenta es la administradora del equipo (grupo wheel: sudo con su propia contraseña) y root
 # queda bloqueado: toda la administración pasa por sudo. Si algo falla, no queda nada a medias.
+# El idioma (command-os-idioma) se aplica después de crear la cuenta; si falla, se deshace. Los
+# mensajes salen en el idioma de LANG (el asistente lo pone con el idioma elegido).
 set -uo pipefail
 
 ESTADO=/var/lib/command-os
 CONF=/etc/command-os
 MIN_CONTRASENA=8
 
+export TEXTDOMAIN=command-os TEXTDOMAINDIR=/usr/share/locale
+# t 'texto con %s' ARGS… — el texto traducido (os/po/, docs/idioma.md) o, sin traducción, el original.
+t() {
+  local f=$1 traducido
+  shift
+  traducido=$(gettext -- "${f}" 2>/dev/null) && f=${traducido}
+  # shellcheck disable=SC2059  # el formato es el texto traducido
+  printf -- "${f}" "$@"
+}
 die() { echo "crear-cuenta: $*" >&2; exit 1; }
-[[ "$(id -u)" -eq 0 ]] || die "hay que ejecutarlo como root"
+[[ "$(id -u)" -eq 0 ]] || die "$(t 'hay que ejecutarlo como root')"
 
-usuario="" nombre="" teclado="" auto=0
+usuario="" nombre="" teclado="" idioma="" auto=0
 while (( $# )); do
   case "$1" in
     --usuario) usuario=${2:-}; shift 2 ;;
     --nombre) nombre=${2:-}; shift 2 ;;
     --teclado) teclado=${2:-}; shift 2 ;;
+    --idioma) idioma=${2:-}; shift 2 ;;
     --inicio-auto) auto=1; shift ;;
-    *) die "opción desconocida: $1" ;;
+    *) die "$(t 'opción desconocida: %s' "$1")" ;;
   esac
 done
 
-[[ -e "${ESTADO}/configurado" ]] && die "el equipo ya está configurado"
+[[ -e "${ESTADO}/configurado" ]] && die "$(t 'el equipo ya está configurado')"
 # Nombres de usuario de Linux: minúsculas, números, - y _, empezando por letra (máx. 32).
 [[ "${usuario}" =~ ^[a-z][a-z0-9_-]{0,31}$ ]] \
-  || die "nombre de usuario no válido: minúsculas, números, - o _, empezando por una letra"
-getent passwd "${usuario}" >/dev/null && die "ya existe un usuario llamado ${usuario}"
-getent group "${usuario}" >/dev/null && die "${usuario} es un nombre reservado del sistema: elige otro"
-[[ "${nombre}" != *:* && "${nombre}" != *$'\n'* ]] || die "el nombre completo no puede llevar ':'"
+  || die "$(t 'nombre de usuario no válido: minúsculas, números, - o _, empezando por una letra')"
+getent passwd "${usuario}" >/dev/null && die "$(t 'ya existe un usuario llamado %s' "${usuario}")"
+getent group "${usuario}" >/dev/null && die "$(t '%s es un nombre reservado del sistema: elige otro' "${usuario}")"
+[[ "${nombre}" != *:* && "${nombre}" != *$'\n'* ]] || die "$(t "el nombre completo no puede llevar ':'")"
 if [[ -n "${teclado}" ]]; then
   # Distribución de xkb, con variante opcional: es, latam, us-intl, de(nodeadkeys)…
-  [[ "${teclado}" =~ ^[a-z][a-z0-9_-]{1,15}(\([a-z0-9_-]+\))?$ ]] || die "distribución de teclado no válida"
+  [[ "${teclado}" =~ ^[a-z][a-z0-9_-]{1,15}(\([a-z0-9_-]+\))?$ ]] || die "$(t 'distribución de teclado no válida')"
+fi
+# Solo un idioma de la lista de command-os-idioma, escrito tal cual (es_ES.UTF-8).
+if [[ -n "${idioma}" ]] && ! command-os-idioma lista | cut -d' ' -f1 | grep -qxF -- "${idioma}"; then
+  die "$(t 'idioma no disponible: %s' "${idioma}")"
 fi
 
 IFS= read -r contrasena || true
 [[ ${#contrasena} -ge ${MIN_CONTRASENA} ]] \
-  || die "la contraseña tiene que tener al menos ${MIN_CONTRASENA} caracteres"
+  || die "$(t 'la contraseña tiene que tener al menos %s caracteres' "${MIN_CONTRASENA}")"
 
 deshacer() { userdel -r "${usuario}" >/dev/null 2>&1; die "$1"; }
-useradd -m -G wheel -s /bin/bash -c "${nombre}" "${usuario}" || die "no se pudo crear la cuenta"
-printf '%s:%s\n' "${usuario}" "${contrasena}" | chpasswd || deshacer "no se pudo fijar la contraseña"
+useradd -m -G wheel -s /bin/bash -c "${nombre}" "${usuario}" || die "$(t 'no se pudo crear la cuenta')"
+printf '%s:%s\n' "${usuario}" "${contrasena}" | chpasswd || deshacer "$(t 'no se pudo fijar la contraseña')"
 unset contrasena
+
+# Idioma del sistema y menú de arranque en ese idioma (unos segundos: rehace GRUB).
+if [[ -n "${idioma}" ]]; then
+  command-os-idioma "${idioma}" >/dev/null || deshacer "$(t 'no se pudo aplicar el idioma %s' "${idioma}")"
+fi
 
 # root sin contraseña ni acceso: se administra con sudo (cuenta de wheel).
 passwd -l root >/dev/null 2>&1 || true
@@ -73,4 +95,4 @@ echo "${usuario}" > "${CONF}/cuenta-principal"
 if (( auto )); then echo "${usuario}" > "${CONF}/inicio-automatico"; else rm -f "${CONF}/inicio-automatico"; fi
 touch "${ESTADO}/configurado"
 /usr/lib/command-os/apply-login
-echo "cuenta ${usuario} creada (administradora)"
+echo "$(t 'cuenta %s creada (administradora)' "${usuario}")"

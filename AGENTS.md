@@ -26,7 +26,8 @@ pantalla de inicio de sesión propia e inicio automático opcional (`docs/cuenta
 de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualizaciones.md` § 7). Se ve
 igual en 16:9 y 16:10 con escala automática de alta densidad y tema de GRUB propio
 (`docs/notas/pantallas.md`). Al instalar en un PC, el disco se cifra (LUKS2, sí por defecto) con la
-contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). En castellano de serie, con
+el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext (`docs/idioma.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -35,6 +36,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | --- | --- |
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd | `docs/cuentas.md` |
+| idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos | `docs/instalacion.md` (§ 3: lo que protege del borrado) |
 | cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
@@ -81,6 +83,12 @@ usuario); ARM, aparcado hasta tener la placa.
   símbolos: `keyboardputstring` teclea como un teclado de EE. UU. y la VM usa el español.
 - Initramfs: el busybox de mkinitcpio **no tiene `tr` ni `stty`**, y Plymouth pinta la ñ y las tildes
   como cuadrados (`label-freetype` sin locale): textos con acentos en el splash, como imágenes.
+- Textos: el original es el castellano dentro de `_()` (Python) o `t` (bash); un texto nuevo o cambiado
+  necesita `bash build/po.sh` y su traducción en `os/po/`, o `tests/idioma.sh` falla. Nada de textos
+  montados a trozos.
+- cage se cierra cuando se cierra una tubería que hereda su programa: nada que se lance con `&` dentro
+  de su `sh -c` puede quedársela (`pantallas.py vigilar` cierra los descriptores heredados) o la pantalla
+  se queda en negro tras el asistente o el inicio de sesión.
 - Nunca `rm -rf` de un chroot con montajes `--rbind` (/dev, /run…): entra en ellos y borra los del sistema.
 
 ## Qué se probó y qué se descartó (no repetir)

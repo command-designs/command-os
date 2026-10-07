@@ -19,5 +19,6 @@ os/hooks/* text eol=lf
 os/initcpio/** text eol=lf
 os/system/** text eol=lf
 os/pacman/* text eol=lf
+os/po/* text eol=lf
 .github/** text eol=lf
 os/branding/**/*.wav binary

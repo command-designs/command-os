@@ -12,3 +12,13 @@ if [[ -s /etc/command-os/kb_layout ]]; then
   export XKB_DEFAULT_LAYOUT
 fi
 export XCURSOR_THEME=Adwaita XCURSOR_SIZE=24
+# Idioma del sistema (/etc/locale.conf, command-os-idioma) leído al abrir cada sesión: systemd solo
+# lo lee al arrancar, y así un cambio de idioma llega ya a la siguiente pantalla sin reiniciar.
+if [[ -r /etc/locale.conf ]]; then
+  while IFS='=' read -r _clave _valor; do
+    [[ "${_clave}" =~ ^(LANG|LC_[A-Z]+)$ ]] || continue
+    _valor=${_valor//[\"\']/}   # el valor puede ir entre comillas dobles o simples
+    export "${_clave}=${_valor}"
+  done < /etc/locale.conf
+  unset _clave _valor
+fi

@@ -30,12 +30,12 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
 
 - `os/` — el producto. El sistema es el paquete de pacman `command-os` (`pkg/PKGBUILD`): depende de
   `packages.txt` y lleva scripts (`bin/`, `lib/`), ganchos de pacman (`hooks/`) y del initramfs
-  (`initcpio/`: la contraseña del disco cifrado en el splash), marca
-  (`branding/`), configuración de serie (`dotfiles/`, `system/`) y la fecha validada de Arch y la
+  (`initcpio/`: la contraseña del disco cifrado en el splash), traducciones (`po/`, castellano de
+  serie e inglés: [`docs/idioma.md`](docs/idioma.md)), marca (`branding/`), configuración de serie (`dotfiles/`, `system/`) y la fecha validada de Arch y la
   clave de firma (`pacman/`). `install.sh` prepara la máquina, construye el paquete y lo instala;
   las actualizaciones llegan después por pacman. Cómo funciona todo: [`docs/actualizaciones.md`](docs/actualizaciones.md).
 - `tests/` y `.github/workflows/` — pruebas automáticas (sesión real sin pantalla, escala de las
-  pantallas, discos y cifrado del instalador) en
+  pantallas, discos y cifrado del instalador, idioma y traducciones) en
   cada cambio y cada día, publicación firmada del paquete y validación de fechas de Arch.
 - `build/packer/` — pipeline de build desatendido para la VM de desarrollo
   (QEMU, x86_64). Particiona disco, instala Arch base y corre

@@ -1,0 +1,217 @@
+# Command OS — traducción al inglés (docs/idioma.md). El original es el castellano.
+# Se pone al día con `bash build/po.sh`; tests/idioma.sh comprueba que no falte nada.
+msgid ""
+msgstr ""
+"Project-Id-Version: command-os\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-10-07 18:00+0200\n"
+"Last-Translator: Command OS\n"
+"Language-Team: Command OS\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid ""
+"contraseña incorrecta. tras varios intentos fallidos la cuenta se bloquea "
+"unos minutos: espera y vuelve a probar."
+msgstr ""
+"wrong password. after several failed attempts the account is locked for a "
+"few minutes: wait and try again."
+
+#, python-brace-format
+msgid "no se pudo entrar: {motivo}."
+msgstr "could not sign in: {motivo}."
+
+msgid "error desconocido"
+msgstr "unknown error"
+
+msgid "cuenta"
+msgstr "account"
+
+msgid "contraseña"
+msgstr "password"
+
+msgid "entrar"
+msgstr "sign in"
+
+msgid "reiniciar"
+msgstr "restart"
+
+msgid "apagar"
+msgstr "shut down"
+
+msgid "no hay ninguna cuenta en este equipo."
+msgstr "there are no accounts on this computer."
+
+msgid "comprobando…"
+msgstr "checking…"
+
+#, python-brace-format
+msgid "no se pudo hablar con greetd ({error})."
+msgstr "could not talk to greetd ({error})."
+
+msgid "español (España)"
+msgstr "Spanish (Spain)"
+
+msgid "español (Latinoamérica)"
+msgstr "Spanish (Latin America)"
+
+msgid "inglés (EE. UU.)"
+msgstr "English (US)"
+
+msgid "inglés (Reino Unido)"
+msgstr "English (UK)"
+
+msgid "portugués (Portugal)"
+msgstr "Portuguese (Portugal)"
+
+msgid "portugués (Brasil)"
+msgstr "Portuguese (Brazil)"
+
+msgid "francés"
+msgstr "French"
+
+msgid "alemán"
+msgstr "German"
+
+msgid "italiano"
+msgstr "Italian"
+
+msgid "cmd-os · primer arranque"
+msgstr "cmd-os · setup"
+
+msgid "› primer arranque"
+msgstr "› setup"
+
+msgid "crea la cuenta con la que vas a usar este equipo."
+msgstr "create the account you will use on this computer."
+
+msgid "idioma"
+msgstr "language"
+
+#, python-brace-format
+msgid "{teclado} (del instalador)"
+msgstr "{teclado} (from the installer)"
+
+msgid "teclado"
+msgstr "keyboard"
+
+msgid "opcional"
+msgstr "optional"
+
+msgid "tu nombre"
+msgstr "your name"
+
+msgid "minúsculas, sin espacios"
+msgstr "lowercase, no spaces"
+
+msgid "usuario"
+msgstr "username"
+
+#, python-brace-format
+msgid "al menos {n} caracteres"
+msgstr "at least {n} characters"
+
+msgid "repítela"
+msgstr "repeat it"
+
+msgid ""
+"esta cuenta administra el equipo: instala programas y cambia el sistema con "
+"tu contraseña."
+msgstr ""
+"this account administers the computer: it installs programs and changes the "
+"system with your password."
+
+msgid ""
+"entrar sin contraseña al encender\n"
+"(la pantalla se sigue bloqueando con ella)"
+msgstr ""
+"sign in without a password at startup\n"
+"(the screen still locks with it)"
+
+msgid "crear cuenta"
+msgstr "create account"
+
+msgid "usuario: minúsculas, números, - o _, empezando por una letra."
+msgstr "username: lowercase letters, numbers, - or _, starting with a letter."
+
+#, python-brace-format
+msgid "la contraseña tiene que tener al menos {n} caracteres."
+msgstr "the password must be at least {n} characters long."
+
+msgid "las contraseñas no coinciden."
+msgstr "the passwords do not match."
+
+msgid "creando la cuenta…"
+msgstr "creating the account…"
+
+msgid "no se pudo crear la cuenta."
+msgstr "could not create the account."
+
+#, python-brace-format
+msgid "cuenta {usuario} creada. entrando…"
+msgstr "account {usuario} created. signing in…"
+
+msgid "hay que ejecutarlo como root"
+msgstr "it must be run as root"
+
+#, sh-printf-format
+msgid "opción desconocida: %s"
+msgstr "unknown option: %s"
+
+msgid "el equipo ya está configurado"
+msgstr "this computer is already set up"
+
+msgid ""
+"nombre de usuario no válido: minúsculas, números, - o _, empezando por una "
+"letra"
+msgstr ""
+"invalid username: lowercase letters, numbers, - or _, starting with a letter"
+
+#, sh-printf-format
+msgid "ya existe un usuario llamado %s"
+msgstr "a user named %s already exists"
+
+#, sh-printf-format
+msgid "%s es un nombre reservado del sistema: elige otro"
+msgstr "%s is a reserved system name: choose another one"
+
+msgid "el nombre completo no puede llevar ':'"
+msgstr "the full name cannot contain ':'"
+
+msgid "distribución de teclado no válida"
+msgstr "invalid keyboard layout"
+
+#, sh-printf-format
+msgid "idioma no disponible: %s"
+msgstr "language not available: %s"
+
+#, sh-printf-format
+msgid "la contraseña tiene que tener al menos %s caracteres"
+msgstr "the password must be at least %s characters long"
+
+msgid "no se pudo crear la cuenta"
+msgstr "could not create the account"
+
+msgid "no se pudo fijar la contraseña"
+msgstr "could not set the password"
+
+#, sh-printf-format
+msgid "no se pudo aplicar el idioma %s"
+msgstr "could not apply the language %s"
+
+#, sh-printf-format
+msgid "cuenta %s creada (administradora)"
+msgstr "account %s created (administrator)"
+
+#, sh-printf-format
+msgid "arranca en %d s"
+msgstr "starting in %d s"
+
+msgid "↑ ↓  elegir      intro  arrancar      e  editar      c  consola"
+msgstr "↑ ↓  choose      enter  boot      e  edit      c  console"
+
+msgid "Command OS: instantáneas (volver atrás)"
+msgstr "Command OS: snapshots (go back)"

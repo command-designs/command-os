@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # Command OS — pantalla de inicio de sesión (greeter de greetd): ventana GTK 4 a pantalla completa
-# dentro de cage, como el usuario greeter. Mismo diseño que el asistente de primer arranque, en
-# castellano. La lanza command-os-greeter.
+# dentro de cage, como el usuario greeter. Mismo diseño que el asistente de primer arranque, en el
+# idioma del sistema (/etc/locale.conf). La lanza command-os-greeter.
 #
 # La comprobación de la contraseña la hace greetd con PAM: aquí solo se habla con greetd por su
 # socket ($GREETD_SOCK; mensajes JSON precedidos de su longitud en 4 bytes) y la contraseña no se
 # guarda ni se registra en ningún sitio. La conversación va en un hilo aparte: PAM tarda (unos 2 s
 # tras un fallo) y la ventana no debe congelarse.
 import json
+import locale
 import os
 import pwd
 import socket
@@ -17,12 +18,11 @@ import sys
 import threading
 import time
 
-from comun import CONF, cargar_tema, fila, leer, logo, panel
+from comun import CONF, cargar_tema, fila, leer, logo, panel, traductor
 from gi.repository import GLib, Gtk
 
 SESION = ["command-os-session"]
-DIAS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
-MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+_ = traductor()
 
 
 def cuentas():
@@ -77,9 +77,9 @@ def entrar(usuario, contrasena):
     if r.get("error_type") == "auth_error":
         # pam_faillock bloquea la cuenta unos minutos tras varios fallos seguidos: entonces también
         # falla la contraseña buena, y PAM no lo distingue de una contraseña mal escrita.
-        return ("contraseña incorrecta. tras varios intentos fallidos la cuenta se bloquea unos "
-                "minutos: espera y vuelve a probar.")
-    return "no se pudo entrar: " + (r.get("description") or "error desconocido") + "."
+        return _("contraseña incorrecta. tras varios intentos fallidos la cuenta se bloquea unos "
+                 "minutos: espera y vuelve a probar.")
+    return _("no se pudo entrar: {motivo}.").format(motivo=r.get("description") or _("error desconocido"))
 
 
 class Pantalla(Gtk.ApplicationWindow):
@@ -110,23 +110,23 @@ class Pantalla(Gtk.ApplicationWindow):
         for i, p in enumerate(self.personas):
             if p.pw_name == principal:
                 self.lista.set_selected(i)
-        caja.append(fila("cuenta", self.lista))
+        caja.append(fila(_("cuenta"), self.lista))
 
         self.clave = Gtk.PasswordEntry(show_peek_icon=True)
         self.clave.connect("activate", self.on_entrar)
-        caja.append(fila("contraseña", self.clave))
+        caja.append(fila(_("contraseña"), self.clave))
 
         self.error = Gtk.Label(xalign=0, wrap=True, max_width_chars=44)
         self.error.add_css_class("error")
         caja.append(self.error)
 
-        self.boton = Gtk.Button(label="entrar")
+        self.boton = Gtk.Button(label=_("entrar"))
         self.boton.add_css_class("suggested-action")
         self.boton.connect("clicked", self.on_entrar)
         caja.append(self.boton)
 
         energia = Gtk.Box(spacing=8, halign=Gtk.Align.CENTER)
-        for texto, orden in (("reiniciar", "reboot"), ("apagar", "poweroff")):
+        for texto, orden in ((_("reiniciar"), "reboot"), (_("apagar"), "poweroff")):
             b = Gtk.Button(label=texto)
             b.add_css_class("flat")
             b.connect("clicked", lambda _b, o=orden: subprocess.Popen(["systemctl", o]))
@@ -139,17 +139,18 @@ class Pantalla(Gtk.ApplicationWindow):
     def reloj(self):
         t = time.localtime()
         self.hora.set_text(time.strftime("%H:%M", t))
-        self.fecha.set_text(f"{DIAS[t.tm_wday]} {t.tm_mday} {MESES[t.tm_mon - 1]}")
+        # Día y mes abreviados en el idioma del sistema («mar 7 oct», «Tue 7 Oct»), en minúsculas.
+        self.fecha.set_text(time.strftime("%a %-d %b", t).replace(".", "").lower())
         return True
 
-    def on_entrar(self, *_):
+    def on_entrar(self, *_args):
         if not self.personas:
-            self.error.set_text("no hay ninguna cuenta en este equipo.")
+            self.error.set_text(_("no hay ninguna cuenta en este equipo."))
             return
         if not self.boton.get_sensitive():
             return  # ya hay un intento en marcha
         self.boton.set_sensitive(False)
-        self.error.set_text("comprobando…")
+        self.error.set_text(_("comprobando…"))
         usuario = self.personas[self.lista.get_selected()].pw_name
         clave = self.clave.get_text()
         self.clave.set_text("")
@@ -159,7 +160,7 @@ class Pantalla(Gtk.ApplicationWindow):
         try:
             fallo = entrar(usuario, clave)
         except (OSError, ValueError, KeyError, struct.error) as e:
-            fallo = f"no se pudo hablar con greetd ({e})."
+            fallo = _("no se pudo hablar con greetd ({error}).").format(error=e)
         GLib.idle_add(self.resultado, fallo)
 
     def resultado(self, fallo):
@@ -184,5 +185,9 @@ class App(Gtk.Application):
 
 
 if __name__ == "__main__":
+    try:
+        locale.setlocale(locale.LC_ALL, "")  # fecha en el idioma del sistema
+    except locale.Error:
+        pass
     App().run([])
     sys.exit(0)

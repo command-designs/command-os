@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# Command OS — idioma del sistema.
+#
+#   command-os-idioma           muestra el idioma actual
+#   command-os-idioma lista     los idiomas que se pueden elegir (código y nombre)
+#   command-os-idioma IDIOMA    lo cambia: es, en (o es_ES.UTF-8, en_US.UTF-8)
+#
+# Genera el locale si falta, escribe /etc/locale.conf y rehace el arranque (apply-boot: menú y tema
+# de GRUB en el idioma nuevo). Lo usa el asistente de primer arranque (crear-cuenta --idioma). Las
+# ventanas de Command OS lo leen al abrirse (lib/entorno-grafico); el resto del sistema, al reiniciar.
+set -euo pipefail
+
+LOCALE_CONF=/etc/locale.conf
+die() { echo "command-os-idioma: $*" >&2; exit 1; }
+
+# Idiomas de Command OS: locale y nombre en su propio idioma (el asistente de primer arranque saca
+# la lista de aquí). Para añadir uno: su línea y su traducción en os/po/ (docs/idioma.md).
+IDIOMAS=(
+  "es_ES.UTF-8 español"
+  "en_US.UTF-8 English"
+)
+
+# actual — LANG de locale.conf, sin comillas (nada si no hay archivo: no es un error).
+actual() { { sed -nE 's/^LANG=//p' "${LOCALE_CONF}" 2>/dev/null || true; } | tr -d "\"'" | tail -n1; }
+
+# normalizar es|en|es_ES|es_ES.UTF-8|es_ES.utf8 -> es_ES.UTF-8 (nada si no es de la lista)
+normalizar() {
+  local pedido=${1%%.*} linea loc
+  for linea in "${IDIOMAS[@]}"; do
+    loc=${linea%% *}
+    if [[ "${pedido}" == "${loc%%.*}" || "${pedido}" == "${loc%%_*}" ]]; then
+      echo "${loc}"
+      return 0
+    fi
+  done
+}
+
+nombre() {
+  local linea
+  for linea in "${IDIOMAS[@]}"; do
+    [[ "${linea%% *}" == "$1" ]] && { echo "${linea#* }"; return 0; }
+  done
+  echo "$1"
+}
+
+# generado es_ES.UTF-8 — 0 si glibc ya tiene ese locale (locale -a lo da como es_ES.utf8).
+generado() { locale -a 2>/dev/null | grep -qxi "${1%%.*}.utf-\?8"; }
+
+# generar es_ES.UTF-8 — lo activa en /etc/locale.gen (o lo añade) y ejecuta locale-gen.
+generar() {
+  local loc=$1
+  if grep -qE "^#?${loc//./\\.} UTF-8" /etc/locale.gen 2>/dev/null; then
+    sed -i -E "s/^#(${loc//./\\.} UTF-8)/\1/" /etc/locale.gen
+  else
+    echo "${loc} UTF-8" >> /etc/locale.gen
+  fi
+  locale-gen >/dev/null || die "no se pudo generar ${loc} (locale-gen)"
+  generado "${loc}" || die "no se pudo generar ${loc}: falta su definición en /usr/share/i18n/locales"
+}
+
+case "${1:-}" in
+  "")
+    loc=$(actual)
+    echo "idioma: $(nombre "${loc:-C}") (${loc:-sin definir})"
+    exit 0 ;;
+  lista)
+    for linea in "${IDIOMAS[@]}"; do echo "${linea}"; done
+    exit 0 ;;
+  -*) die "uso: command-os-idioma [lista | IDIOMA]" ;;
+esac
+
+loc=$(normalizar "$1")
+[[ -n "${loc}" ]] || die "idioma no disponible: $1 (los que hay: command-os-idioma lista)"
+[[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
+
+generado "${loc}" || generar "${loc}"
+if [[ "$(actual)" == "${loc}" ]]; then
+  echo "el idioma ya es $(nombre "${loc}")"
+  exit 0
+fi
+# Se cambia LANG y se conserva el resto (LC_TIME, LC_PAPER… que alguien haya puesto a mano). Se
+# escribe en un temporal y se mueve: nunca queda un locale.conf a medias.
+tmp=$(mktemp "${LOCALE_CONF}.XXXXXX")
+{ grep -v '^LANG=' "${LOCALE_CONF}" 2>/dev/null || true; echo "LANG=${loc}"; } > "${tmp}"
+chmod 644 "${tmp}"
+mv -f "${tmp}" "${LOCALE_CONF}"
+# Menú y tema de GRUB en el idioma nuevo. Si falla, el idioma ya está cambiado: solo se avisa.
+/usr/lib/command-os/apply-boot || echo "command-os-idioma: aviso: no se pudo rehacer el menú de arranque" >&2
+echo "hecho: el idioma del sistema es $(nombre "${loc}"). Se aplica del todo al reiniciar."

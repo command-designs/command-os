@@ -33,12 +33,30 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **Todo se pregunta antes de la confirmación del borrado**: después no hay más preguntas y, si se
   cancela, no se ha tocado nada.
 
-## 2026-10-07 — Idioma del sistema (punto 10 del roadmap)
+## 2026-10-07 — Idioma del sistema (`docs/idioma.md`)
 
 - **Castellano de serie y elección de idioma en el asistente de primer arranque** (decisión del
   usuario). El producto habla en castellano; con `en_US` el menú de GRUB y los programas sin
   traducción propia salían en inglés. Elegirlo en el asistente deja usar el equipo en otro idioma sin
   reinstalar. Descartado: solo castellano fijo (cierra la puerta a otros idiomas) y dejarlo en `en_US`.
+- **gettext para las traducciones, con el castellano como texto original.** Es el estándar de Linux:
+  sirve igual en Python y en bash, las herramientas avisan de lo que falta y cualquier traductor sabe
+  usar un `.po`. Descartado: un diccionario propio en Python (no vale para los scripts y habría que
+  tirarlo al traducir el resto) y textos originales en inglés (el producto se escribe en castellano).
+- **Una sola orden cambia el idioma (`command-os-idioma`)**, que usan el asistente y las personas. Así
+  el locale generado, `locale.conf` y el menú de GRUB nunca quedan desparejados.
+- **El idioma se aplica al crear la cuenta, no al elegirlo.** El asistente cambia al momento, pero el
+  sistema no se toca hasta el final: si se apaga a medias, no queda nada cambiado.
+- **Idioma por equipo, no por cuenta.** GRUB, el splash y la pantalla de inicio de sesión son del
+  equipo, y hoy hay una sola cuenta. Si se añaden cuentas desde el escritorio, se podrá dar a cada una
+  el suyo (`~/.config/locale.conf`).
+- **El idioma no cambia el teclado.** Quien elige inglés en España sigue con teclado español; el
+  teclado tiene su propia fila.
+- **Las ventanas leen `/etc/locale.conf` al abrirse** (`entorno-grafico`): systemd solo lo lee al
+  arrancar y el cambio no llegaría a la pantalla de inicio de sesión hasta reiniciar.
+- **En este paso se traducen el asistente, la pantalla de inicio de sesión, `crear-cuenta` y el tema de
+  GRUB**: lo que se ve al elegir el idioma. El resto de textos propios (barra, menús, splash,
+  instalador) va como punto propio del roadmap.
 
 ## 2026-10-07 — Pantallas 16:9 y 16:10 y alta densidad (`docs/notas/pantallas.md`)
 
