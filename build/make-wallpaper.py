@@ -9,10 +9,14 @@ un ordenador fabricado en el mundo de Cyberpunk, no paisajes.
   (ya llevan su propio logo encima).
 
 La barra del símbolo es siempre Signal Red (#A51500); su resplandor, el rojo de la marca.
-Uso: python build/make-wallpaper.py  ->  os/branding/wallpapers/command-<nombre>.png
+Los de escritorio salen en 16:9 (2560x1440, command-<nombre>.jpg) y 16:10 (2560x1600,
+command-<nombre>-16x10.jpg): cada pantalla usa el suyo y no se recorta (command-os-wallpaper). La
+composición va en proporción al lienzo. void solo en 16:9: es liso y se recorta sin perder nada.
+Uso: python build/make-wallpaper.py [16x9|16x10]   (sin argumento, los dos)
 """
 import math
 import random
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -360,14 +364,19 @@ def void():
     return finish(img, 44, grain=0)
 
 
+FORMATOS = {"16x9": ((2560, 1440), ""), "16x10": ((2560, 1600), "-16x10")}
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
-    # Los de escritorio en JPEG de alta calidad (el grano no deja comprimir al PNG: ~4 MB cada uno).
-    # El de bloqueo y GRUB en PNG y sin grano: liso, pesa poco.
-    for name, fn in (("interfaz", interfaz), ("nucleo", nucleo), ("placa", placa)):
-        path = OUT / f"command-{name}.jpg"
-        fn().save(path, quality=93, subsampling=0, optimize=True)
-        print(path, path.stat().st_size)
-    path = OUT / "command-void.png"
-    void().save(path, optimize=True)
-    print(path, path.stat().st_size)
+    for formato in sys.argv[1:] or list(FORMATOS):
+        (W, H), sufijo = FORMATOS[formato]
+        # Los de escritorio en JPEG de alta calidad (el grano no deja comprimir al PNG: ~4 MB cada uno).
+        for name, fn in (("interfaz", interfaz), ("nucleo", nucleo), ("placa", placa)):
+            path = OUT / f"command-{name}{sufijo}.jpg"
+            fn().save(path, quality=93, subsampling=0, optimize=True)
+            print(path, path.stat().st_size)
+        # El de bloqueo y GRUB en PNG y sin grano: liso, pesa poco.
+        if formato == "16x9":
+            path = OUT / "command-void.png"
+            void().save(path, optimize=True)
+            print(path, path.stat().st_size)

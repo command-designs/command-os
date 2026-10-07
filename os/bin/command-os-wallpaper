@@ -20,9 +20,19 @@ current() {
 }
 
 apply() {  # arranca el nuevo swaybg y después cierra el anterior: sin parpadeo
-  local old
+  local old args name w h
   old=$(pgrep -x swaybg)
-  swaybg -m fill -c '#0d0b0e' -i "${DIR}/command-$1.jpg" >/dev/null 2>&1 &
+  # Cada fondo existe en 16:9 y en 16:10: cada pantalla recibe el más cercano a su proporción, sin
+  # recortar ni deformar (4:3 y 5:4 también toman el 16:10, que es el que menos recorta).
+  args=(-o '*' -m fill -c '#0d0b0e' -i "${DIR}/command-$1.jpg")
+  if [[ -f "${DIR}/command-$1-16x10.jpg" ]]; then
+    while read -r name w h _; do
+      if [[ -n "${h}" ]] && (( h > 0 && w * 100 / h < 170 )); then
+        args+=(-o "${name}" -m fill -c '#0d0b0e' -i "${DIR}/command-$1-16x10.jpg")
+      fi
+    done < <(command-os-pantallas lista 2>/dev/null)
+  fi
+  swaybg "${args[@]}" >/dev/null 2>&1 &
   disown
   if [[ -n "${old}" ]]; then
     sleep 0.5
