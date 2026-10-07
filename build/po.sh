@@ -12,14 +12,68 @@ set -euo pipefail
 
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 PO="${REPO}/os/po"
-# Archivos con textos traducibles: Python con _() y N_(); bash con t (crear-cuenta, apply-boot).
+# Archivos con textos traducibles: Python con _() y N_(); shell con t y tn (lib/textos.sh).
 PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py)
-SHELL_=(os/lib/crear-cuenta os/lib/apply-boot)
+SHELL_=(
+  os/lib/crear-cuenta os/lib/apply-boot
+  os/bin/command-os-{about,captura,desktops,keys,lock,power,status,updates,wallpaper}
+)
+# Archivos de configuración que no pueden llamar a gettext (lib/traducir.py, docs/idioma.md): los
+# textos entre {{ }}, y las etiquetas label="…" de los menús de labwc.
+MARCAS=(os/dotfiles/waybar/config.jsonc os/dotfiles/hypr/hyprlock.conf os/dotfiles/hypr/hyprlock-emergencia.conf)
+ETIQUETAS=(os/dotfiles/labwc/menu.xml)
+
+# Los textos de SHELL_, MARCAS y ETIQUETAS como un Python de _("…") y ngettext(…), para que xgettext
+# los trate igual. En shell se buscan las llamadas `t 'texto'` y `tn 'singular' 'plural' N` con los
+# textos escritos enteros entre comillas (xgettext -L Shell se pierde tras `{`, `do` o `(( ))`).
+estaticos() {
+  python3 - "$@" <<'EOF'
+import json, re, sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, "os/lib")
+import traducir
+
+LIT = r"""(?:'([^']*)'|"([^"$`\x5c]*)")"""
+SHELL_T = re.compile(r"(?<![\w-])t\s+" + LIT)
+SHELL_TN = re.compile(r"(?<![\w-])tn\s+" + LIT + r"\s+" + LIT)
+NO_LITERAL = re.compile(r"""(?<![\w-])tn?\s+["']?\$""")
+j = lambda s: json.dumps(s, ensure_ascii=False)
+pick = lambda a, b: a if a else b
+modo, fallos = None, 0
+for arg in sys.argv[1:]:
+    if arg in ("shell", "marcas", "etiquetas"):
+        modo = arg
+        continue
+    texto = open(arg, encoding="utf-8").read()
+    if modo == "shell":
+        for n, linea in enumerate(texto.splitlines(), 1):
+            if linea.lstrip().startswith("#"):
+                continue
+            if NO_LITERAL.search(linea):
+                print(f"{arg}:{n}: texto sin escribir entero: {linea.strip()}", file=sys.stderr)
+                fallos = 1
+            for m in SHELL_TN.finditer(linea):
+                print("ngettext(%s, %s, 1)" % (j(pick(m[1], m[2])), j(pick(m[3], m[4]))))
+            for m in SHELL_T.finditer(linea):
+                print("_(%s)" % j(pick(m[1], m[2])))
+    else:
+        regex = traducir.MARCA if modo == "marcas" else traducir.ETIQUETA
+        for m in regex.finditer(texto):
+            original = m.group(1) if modo == "marcas" else traducir.unescape(m.group(2))
+            print("_(%s)" % j(original))
+sys.exit(fallos)
+EOF
+}
 
 plantilla() {  # plantilla SALIDA.pot
   cd "${REPO}"
   xgettext --from-code=UTF-8 --no-location -L Python -k_ -kN_ -o "$1" "${PYTHON[@]}"
-  xgettext --from-code=UTF-8 --no-location -j -L Shell -k -kt -o "$1" "${SHELL_[@]}"
+  local estaticos
+  estaticos=$(mktemp --suffix=.py)
+  estaticos shell "${SHELL_[@]}" marcas "${MARCAS[@]}" etiquetas "${ETIQUETAS[@]}" > "${estaticos}" \
+    || { rm -f "${estaticos}"; exit 1; }
+  xgettext --from-code=UTF-8 --no-location -j -L Python -k_ -o "$1" "${estaticos}"
+  rm -f "${estaticos}"
   # Cabecera en UTF-8 y sin la fecha: msgmerge la copiaría al .po y cambiaría en cada pasada.
   sed -i -e 's/charset=CHARSET/charset=UTF-8/' -e '/^"POT-Creation-Date:/d' "$1"
 }

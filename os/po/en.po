@@ -157,7 +157,7 @@ msgstr "account {usuario} created. signing in…"
 msgid "hay que ejecutarlo como root"
 msgstr "it must be run as root"
 
-#, sh-printf-format
+#, python-format
 msgid "opción desconocida: %s"
 msgstr "unknown option: %s"
 
@@ -170,11 +170,11 @@ msgid ""
 msgstr ""
 "invalid username: lowercase letters, numbers, - or _, starting with a letter"
 
-#, sh-printf-format
+#, python-format
 msgid "ya existe un usuario llamado %s"
 msgstr "a user named %s already exists"
 
-#, sh-printf-format
+#, python-format
 msgid "%s es un nombre reservado del sistema: elige otro"
 msgstr "%s is a reserved system name: choose another one"
 
@@ -184,11 +184,11 @@ msgstr "the full name cannot contain ':'"
 msgid "distribución de teclado no válida"
 msgstr "invalid keyboard layout"
 
-#, sh-printf-format
+#, python-format
 msgid "idioma no disponible: %s"
 msgstr "language not available: %s"
 
-#, sh-printf-format
+#, python-format
 msgid "la contraseña tiene que tener al menos %s caracteres"
 msgstr "the password must be at least %s characters long"
 
@@ -198,15 +198,15 @@ msgstr "could not create the account"
 msgid "no se pudo fijar la contraseña"
 msgstr "could not set the password"
 
-#, sh-printf-format
+#, python-format
 msgid "no se pudo aplicar el idioma %s"
 msgstr "could not apply the language %s"
 
-#, sh-printf-format
+#, python-format
 msgid "cuenta %s creada (administradora)"
 msgstr "account %s created (administrator)"
 
-#, sh-printf-format
+#, python-format
 msgid "arranca en %d s"
 msgstr "starting in %d s"
 
@@ -215,3 +215,318 @@ msgstr "↑ ↓  choose      enter  boot      e  edit      c  console"
 
 msgid "Command OS: instantáneas (volver atrás)"
 msgstr "Command OS: snapshots (go back)"
+
+msgid "al día (sin fecha fija)"
+msgstr "up to date (no fixed date)"
+
+msgid "validado"
+msgstr "validated"
+
+msgid "administrador"
+msgstr "administrator"
+
+msgid "sí (command-os-rollback)"
+msgstr "yes (command-os-rollback)"
+
+#, python-format
+msgid "sí, %d instantánea (command-os-rollback)"
+msgid_plural "sí, %d instantáneas (command-os-rollback)"
+msgstr[0] "yes, %d snapshot (command-os-rollback)"
+msgstr[1] "yes, %d snapshots (command-os-rollback)"
+
+msgid "no (la raíz no es btrfs)"
+msgstr "no (root is not btrfs)"
+
+msgid "sistema"
+msgstr "system"
+
+msgid "paquete"
+msgstr "package"
+
+msgid "sin versión"
+msgstr "no version"
+
+msgid "equipo"
+msgstr "host"
+
+msgid "memoria"
+msgstr "memory"
+
+msgid "volver"
+msgstr "rollback"
+
+msgid "más detalle: fastfetch"
+msgstr "more detail: fastfetch"
+
+msgid "captura"
+msgstr "screenshot"
+
+msgid "captura de zona copiada"
+msgstr "area screenshot copied"
+
+msgid "captura de pantalla copiada"
+msgstr "screen screenshot copied"
+
+#, python-format
+msgid "escritorio %02d"
+msgstr "desktop %02d"
+
+msgid "nuevo escritorio"
+msgstr "new desktop"
+
+msgid "escritorios"
+msgstr "desktops"
+
+#, python-format
+msgid "ya hay %d escritorios"
+msgstr "there are already %d desktops"
+
+msgid "aplicaciones"
+msgstr "applications"
+
+msgid "intro"
+msgstr "enter"
+
+msgid "terminal"
+msgstr "terminal"
+
+msgid "archivos"
+msgstr "files"
+
+msgid "navegador"
+msgstr "browser"
+
+msgid "portapapeles"
+msgstr "clipboard"
+
+msgid "cerrar ventana"
+msgstr "close window"
+
+msgid "maximizar"
+msgstr "maximize"
+
+msgid "restaurar o minimizar"
+msgstr "restore or minimize"
+
+msgid "media pantalla"
+msgstr "half screen"
+
+msgid "pantalla completa"
+msgstr "fullscreen"
+
+msgid "ver el escritorio"
+msgstr "show the desktop"
+
+msgid "siempre encima"
+msgstr "always on top"
+
+msgid "cambiar de ventana"
+msgstr "switch window"
+
+msgid "quitar el último escritorio"
+msgstr "remove the last desktop"
+
+msgid "ir al escritorio"
+msgstr "go to desktop"
+
+msgid "mayús"
+msgstr "shift"
+
+msgid "llevar la ventana al escritorio"
+msgstr "move window to desktop"
+
+msgid "siguiente escritorio"
+msgstr "next desktop"
+
+msgid "bloquear"
+msgstr "lock"
+
+msgid "energía"
+msgstr "power"
+
+msgid "cerrar notificaciones"
+msgstr "dismiss notifications"
+
+msgid "impr"
+msgstr "prtsc"
+
+msgid "captura de zona"
+msgstr "area screenshot"
+
+msgid "captura de pantalla"
+msgstr "screenshot"
+
+msgid "monitor del sistema"
+msgstr "system monitor"
+
+msgid "arrastrar"
+msgstr "drag"
+
+msgid "mover ventana"
+msgstr "move window"
+
+msgid "clic derecho"
+msgstr "right click"
+
+msgid "redimensionar ventana"
+msgstr "resize window"
+
+msgid "menú del escritorio"
+msgstr "desktop menu"
+
+msgid "esta ayuda"
+msgstr "this help"
+
+msgid "acerca de cmd-os"
+msgstr "about cmd-os"
+
+msgid "la sesión no se ha podido bloquear"
+msgstr "the session could not be locked"
+
+msgid "fallan hyprlock y swaylock; revisar con: journalctl -t command-os-lock"
+msgstr "hyprlock and swaylock both failed; check with: journalctl -t command-os-lock"
+
+msgid "cancelar"
+msgstr "cancel"
+
+msgid "sí, reiniciar"
+msgstr "yes, restart"
+
+msgid "sí, apagar"
+msgstr "yes, shut down"
+
+msgid "sin red"
+msgstr "no network"
+
+msgid "hace un momento"
+msgstr "just now"
+
+#, python-format
+msgid "hace %d min"
+msgstr "%d min ago"
+
+#, python-format
+msgid "hace %d h"
+msgstr "%d h ago"
+
+#, python-format
+msgid "hace %d días"
+msgstr "%d days ago"
+
+#, python-format
+msgid "y %d paquete más"
+msgid_plural "y %d paquetes más"
+msgstr[0] "and %d more package"
+msgstr[1] "and %d more packages"
+
+msgid ""
+"al actualizar se aplica también la fecha de Arch validada con esa versión"
+msgstr "updating also applies the Arch date validated with that version"
+
+#, python-format
+msgid "%d paquete de Arch"
+msgid_plural "%d paquetes de Arch"
+msgstr[0] "%d Arch package"
+msgstr[1] "%d Arch packages"
+
+#, python-format
+msgid "… y %d más"
+msgstr "… and %d more"
+
+#, python-format
+msgid "comprobado %s · clic: actualizar · clic derecho: comprobar ahora"
+msgstr "checked %s · click: update · right click: check now"
+
+msgid "actualizaciones"
+msgstr "updates"
+
+msgid "ya hay una actualización en marcha"
+msgstr "an update is already running"
+
+msgid "actualizar command os"
+msgstr "update command os"
+
+msgid "pulsa intro para cerrar"
+msgstr "press enter to close"
+
+msgid "buscando actualizaciones…"
+msgstr "checking for updates…"
+
+msgid "hay actualizaciones: clic en la barra para instalarlas"
+msgstr "updates available: click the bar to install them"
+
+msgid "el sistema está al día"
+msgstr "the system is up to date"
+
+msgid "no se pudo comprobar (¿sin red?)"
+msgstr "could not check (no network?)"
+
+msgid "actualizar"
+msgstr "update"
+
+msgid "actualización disponible"
+msgstr "update available"
+
+#, python-format
+msgid "command-os %s · clic para actualizar"
+msgstr "command-os %s · click to update"
+
+msgid "interfaz"
+msgstr "interface"
+
+msgid "núcleo"
+msgstr "core"
+
+msgid "placa"
+msgstr "board"
+
+msgid "clic: conexiones"
+msgstr "click: connections"
+
+msgid "clic: mezclador"
+msgstr "click: mixer"
+
+msgid "sesión bloqueada"
+msgstr "session locked"
+
+msgid "acceso denegado"
+msgstr "access denied"
+
+msgid "cmd-os"
+msgstr "cmd-os"
+
+msgid "ajustes"
+msgstr "settings"
+
+msgid "fondo de pantalla"
+msgstr "wallpaper"
+
+msgid "pantallas"
+msgstr "displays"
+
+msgid "sonido"
+msgstr "sound"
+
+msgid "red"
+msgstr "network"
+
+msgid "recargar escritorio"
+msgstr "reload desktop"
+
+msgid "quitar el último"
+msgstr "remove the last"
+
+msgid "atajos de teclado"
+msgstr "keyboard shortcuts"
+
+msgid "minimizar"
+msgstr "minimize"
+
+msgid "en todos los escritorios"
+msgstr "on all desktops"
+
+msgid "mover a escritorio"
+msgstr "move to desktop"
+
+msgid "cerrar"
+msgstr "close"

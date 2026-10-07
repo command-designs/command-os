@@ -1,26 +1,16 @@
 # Command OS — piezas comunes de las ventanas GTK 4 de la entrada al equipo (lib/greeter.py y
 # lib/primer-arranque.py): lectura del estado, traducciones, filas del formulario, tema y logo.
-import gettext
 import os
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gdk, GdkPixbuf, Gtk  # noqa: E402
+from traducir import DOMINIO, LOCALES, traductor  # noqa: E402,F401
 
 CONF = "/etc/command-os"
 CSS = "/usr/share/command-os/greeter/command.css"
 LOGO = "/usr/share/command-os/logo/command-wordmark-white.png"
-# Traducciones (os/po/, docs/idioma.md). El texto original es el castellano: sin catálogo, se ve tal cual.
-DOMINIO = "command-os"
-LOCALES = "/usr/share/locale"
-
-
-def traductor(idioma=None):
-    """La función de traducción del idioma pedido (es_ES.UTF-8, en_US.UTF-8…) o, sin él, del
-    entorno (LANG, que pone entorno-grafico desde /etc/locale.conf)."""
-    idiomas = [idioma.split(".")[0]] if idioma else None
-    return gettext.translation(DOMINIO, LOCALES, languages=idiomas, fallback=True).gettext
 
 
 def leer(ruta, defecto=""):

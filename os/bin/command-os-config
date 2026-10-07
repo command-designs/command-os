@@ -1,10 +1,27 @@
 #!/bin/sh
-# Command OS — ruta de la configuración de un programa que no busca en /etc/xdg (mako, hypridle,
-# wofi): la del usuario si existe en ~/.config, y si no la de serie del paquete.
+# Command OS — ruta de la configuración de un programa que no busca en /etc/xdg (waybar, mako,
+# hypridle, wofi): la del usuario si existe en ~/.config, y si no la de serie del paquete.
 #   command-os-config mako/config   ->  ~/.config/mako/config  o  /usr/share/command-os/config/mako/config
+# La de serie con textos {{así}} sale traducida al idioma del sistema (lib/traducir.py,
+# docs/idioma.md): se escribe en $XDG_RUNTIME_DIR/command-os/config/ y se da esa ruta. Si no se
+# puede traducir, sale en castellano: nunca falla ni deja las llaves a la vista.
 user="${XDG_CONFIG_HOME:-$HOME/.config}/${1:?uso: command-os-config <programa/archivo>}"
 if [ -e "${user}" ]; then
   printf '%s\n' "${user}"
-else
-  printf '%s\n' "/usr/share/command-os/config/$1"
+  exit 0
 fi
+src="/usr/share/command-os/config/$1"
+run="${XDG_RUNTIME_DIR:-}"
+if grep -q '{{' "${src}" 2>/dev/null && [ -d "${run}" ] && [ -O "${run}" ]; then
+  out="${run}/command-os/config/$1"
+  if mkdir -p "$(dirname "${out}")"; then
+    /usr/lib/command-os/traducir.py plantilla "${src}" > "${out}.nuevo" 2>/dev/null && [ -s "${out}.nuevo" ] \
+      || sed -E 's/\{\{([^{}]+)\}\}/\1/g' "${src}" > "${out}.nuevo"
+    if mv -f "${out}.nuevo" "${out}"; then
+      printf '%s\n' "${out}"
+      exit 0
+    fi
+  fi
+  rm -f "${out}.nuevo"
+fi
+printf '%s\n' "${src}"

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Command OS — captura al portapapeles y aviso (Impr, Mayús+Impr, Super+Mayús+S; ver rc.xml).
+#   command-os-captura zona       elige una zona con slurp y la copia
+#   command-os-captura pantalla   copia la pantalla entera
+set -uo pipefail
+source /usr/lib/command-os/textos.sh
+
+avisar() { notify-send -a "$(t 'captura')" "$1"; }
+
+case "${1:-}" in
+  zona)
+    zona=$(slurp) || exit 0   # Esc en la selección: nada que copiar
+    grim -g "${zona}" - | wl-copy && avisar "$(t 'captura de zona copiada')" ;;
+  pantalla)
+    grim - | wl-copy && avisar "$(t 'captura de pantalla copiada')" ;;
+  *)
+    echo "uso: command-os-captura zona|pantalla" >&2
+    exit 2 ;;
+esac

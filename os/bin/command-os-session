@@ -9,6 +9,12 @@ export XDG_CURRENT_DESKTOP=labwc:wlroots XDG_SESSION_TYPE=wayland
 # los ajustes del equipo (teclado, perfil de VM) en ~/.config/labwc/environment.d/local.env.
 command-os-user-setup >/dev/null 2>&1 || true
 
+# El menú de labwc, traducido al idioma del equipo, en una carpeta de configuración propia que va
+# la primera (lib/menus-labwc, docs/idioma.md). Sin ella, labwc no tendría menú.
+if menus=$(/usr/lib/command-os/menus-labwc); then
+  export XDG_CONFIG_DIRS="${menus}:${XDG_CONFIG_DIRS:-/etc/xdg}"
+fi
+
 # --merge-config: la configuración de serie (/etc/xdg/labwc) más lo que el usuario añada en
 # ~/.config/labwc. El registro va a un archivo, no a la pantalla.
 exec labwc --merge-config > "${XDG_RUNTIME_DIR:-/tmp}/labwc.log" 2>&1

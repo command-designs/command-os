@@ -69,7 +69,7 @@ package() {
   # --- Configuración de serie que los programas leen solos de /etc/xdg ---
   # (el usuario la amplía o la sustituye con su propia copia en ~/.config)
   install -d "${d}/etc/xdg/"{labwc,kitty,hypr,fastfetch,xdg-desktop-portal}
-  install -m 644 "${s}"/dotfiles/labwc/{rc.xml,menu.xml,environment} "${d}/etc/xdg/labwc/"
+  install -m 644 "${s}"/dotfiles/labwc/{rc.xml,environment} "${d}/etc/xdg/labwc/"
   install -m 755 "${s}/dotfiles/labwc/autostart" "${d}/etc/xdg/labwc/"
   install -m 644 "${s}/dotfiles/kitty/kitty.conf" "${d}/etc/xdg/kitty/"
   install -m 644 "${s}/dotfiles/hypr/hyprlock.conf" "${d}/etc/xdg/hypr/"
@@ -79,7 +79,9 @@ package() {
   # --- Configuración de serie de los programas que no miran /etc/xdg ---
   # command-os-config elige la copia del usuario si existe; si no, esta.
   local c="${d}/usr/share/command-os/config"
-  install -d "${c}/"{waybar,mako,hypr,wofi,gtk-3.0,gtk-4.0,nano,bash}
+  install -d "${c}/"{waybar,mako,hypr,wofi,gtk-3.0,gtk-4.0,nano,bash,labwc}
+  # El menú de labwc va aquí y no en /etc/xdg/labwc: command-os-session lo da traducido (lib/menus-labwc).
+  install -m 644 "${s}/dotfiles/labwc/menu.xml" "${c}/labwc/"
   # Waybar trae su propia configuración de ejemplo en /etc/xdg/waybar: la nuestra va aquí.
   install -m 644 "${s}"/dotfiles/waybar/{config.jsonc,style.css} "${c}/waybar/"
   install -m 644 "${s}/dotfiles/mako/config" "${c}/mako/"

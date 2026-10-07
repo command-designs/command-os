@@ -10,6 +10,9 @@
 # Si fallan los tres, la sesión no se puede bloquear: se registra como crítico, se avisa en pantalla
 # y se sale con error.
 
+# Textos traducidos (docs/idioma.md). Sin la biblioteca, en castellano: bloquear no puede fallar por esto.
+. /usr/lib/command-os/textos.sh 2>/dev/null || t() { _f=$1; shift; printf -- "${_f}" "$@"; }
+
 run="${XDG_RUNTIME_DIR:-}"
 # Una sola instancia: la que está bloqueando guarda el cerrojo hasta que se desbloquea. (pidof no
 # sirve: la revisión de abajo también es un proceso hyprlock.)
@@ -20,14 +23,35 @@ fi
 pidof swaylock >/dev/null 2>&1 && exit 0
 
 cfg="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprlock.conf"
-[ -e "${cfg}" ] || cfg=/etc/xdg/hypr/hyprlock.conf
+serie=0
+[ -e "${cfg}" ] || { cfg=/etc/xdg/hypr/hyprlock.conf; serie=1; }
 emergencia=/usr/share/command-os/config/hypr/hyprlock-emergencia.conf
+
+# Las configuraciones de serie llevan sus textos entre {{ }} (docs/idioma.md): se traducen al idioma
+# del sistema en una copia. Si no se puede, el texto original sin las llaves. La de una cuenta se usa
+# tal cual.
+priv="${run}"
+if ! { [ -n "${priv}" ] && [ -d "${priv}" ] && [ -O "${priv}" ]; }; then
+  priv=$(mktemp -d 2>/dev/null) && trap 'rm -rf "${priv}"' EXIT || priv=""
+fi
+traducida() {  # traducida ORIGEN DESTINO: falla (y no deja nada) si la copia saliera vacía
+  [ -n "${priv}" ] || return 1
+  /usr/lib/command-os/traducir.py plantilla "$1" > "$2.nueva" 2>/dev/null && [ -s "$2.nueva" ] \
+    || sed -E 's/\{\{([^{}]+)\}\}/\1/g' "$1" > "$2.nueva" 2>/dev/null
+  if [ -s "$2.nueva" ]; then mv -f "$2.nueva" "$2"; else rm -f "$2.nueva"; return 1; fi
+}
+if traducida "${emergencia}" "${priv}/command-os-hyprlock-emergencia.conf"; then
+  emergencia="${priv}/command-os-hyprlock-emergencia.conf"
+fi
+if [ "${serie}" = 1 ] && traducida "${cfg}" "${priv}/command-os-hyprlock.conf"; then
+  cfg="${priv}/command-os-hyprlock.conf"
+fi
 
 # Alta densidad: hyprlock no aplica la escala de la pantalla; la configuración de serie se le da
 # con las medidas escaladas (command-os-pantallas hyprlock). La de una cuenta se usa tal cual. Va
 # antes de la revisión: se revisa la configuración que de verdad se va a usar.
-if [ "${cfg}" = /etc/xdg/hypr/hyprlock.conf ] && [ -n "${run}" ] && [ -d "${run}" ] && [ -O "${run}" ]; then
-  escalada="${run}/command-os-hyprlock.conf"
+if [ "${serie}" = 1 ] && [ -n "${run}" ] && [ -d "${run}" ] && [ -O "${run}" ]; then
+  escalada="${run}/command-os-hyprlock-escalada.conf"
   if command-os-pantallas hyprlock "${cfg}" > "${escalada}.nueva" 2>/dev/null && [ -s "${escalada}.nueva" ]; then
     mv -f "${escalada}.nueva" "${escalada}" && cfg="${escalada}"
   else
@@ -66,6 +90,6 @@ swaylock --color 0d0b0e --inside-color 15121a --ring-color d13449 \
   --key-hl-color 5bbfc4 --text-color edebe6 --indicator-radius 80 --show-failed-attempts && exit 0
 
 logger -p auth.crit -t command-os-lock "NO SE HA PODIDO BLOQUEAR LA SESIÓN: fallan hyprlock y swaylock"
-notify-send -u critical "› la sesión no se ha podido bloquear" \
-  "fallan hyprlock y swaylock; revisar con: journalctl -t command-os-lock" 2>/dev/null
+notify-send -u critical "› $(t 'la sesión no se ha podido bloquear')" \
+  "$(t 'fallan hyprlock y swaylock; revisar con: journalctl -t command-os-lock')" 2>/dev/null
 exit 1

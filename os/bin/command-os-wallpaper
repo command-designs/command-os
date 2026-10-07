@@ -4,13 +4,14 @@
 #   command-os-wallpaper elegir    menú para cambiarlo (ajustes → fondo de pantalla)
 # La elección se guarda en ~/.config/command-os/wallpaper.
 set -uo pipefail
+source /usr/lib/command-os/textos.sh
 
 DIR=/usr/share/command-os/wallpapers
 STATE="${XDG_CONFIG_HOME:-$HOME/.config}/command-os/wallpaper"
 STYLE="$(command-os-config wofi/power.css)"
 TAG="command-os-wallpaper"
 NAMES=(interfaz nucleo placa)
-declare -A LABEL=([interfaz]="interfaz" [nucleo]="núcleo" [placa]="placa")
+declare -A LABEL=([interfaz]="$(t 'interfaz')" [nucleo]="$(t 'núcleo')" [placa]="$(t 'placa')")
 
 current() {
   local name

@@ -14,9 +14,14 @@ asistente de primer arranque o cualquier texto que se traduzca.
   actual y `command-os-idioma lista` enseña los que hay. La pantalla de inicio de sesión sale ya en el
   idioma nuevo al cerrar sesión; el resto del sistema, al reiniciar.
 - **Qué cambia:** el asistente, la pantalla de inicio de sesión, el menú y el tema de GRUB, los
-  mensajes de `crear-cuenta` y los programas que traen su propia traducción (GTK, Firefox…). El
-  resto de textos propios de Command OS (barra, menús, «acerca de», splash, instalador) sigue en
-  castellano hasta que se traduzca (`ROADMAP.md`).
+  mensajes de `crear-cuenta`, **el escritorio entero** (barra y su aviso de actualizaciones, menús de
+  labwc, paneles «atajos», «acerca de» y energía, fondos, pantalla de bloqueo, notificaciones de
+  capturas, escritorios y bloqueo fallido) y los programas que traen su propia traducción (GTK,
+  Firefox…). Sigue en castellano lo que está en `ROADMAP.md`: las órdenes de terminal
+  (`command-os-update`, `-rollback`, `-login`, `-idioma`), el texto del splash y el instalador. Los
+  registros y diagnósticos de administración (`logger`, avisos de `apply-*`) se quedan en castellano.
+- **Cuándo se nota:** barra, menús y bloqueo leen el idioma al abrir la sesión: tras
+  `command-os-idioma en`, al cerrar sesión y volver a entrar (o reiniciar).
 - El teclado es aparte: elegir inglés no cambia la distribución del teclado.
 
 ## Cómo funciona
@@ -28,18 +33,25 @@ asistente de primer arranque o cualquier texto que se traduzca.
 | `lib/entorno-grafico` | Lee `LANG` y `LC_*` de `/etc/locale.conf` al abrir cada pantalla (asistente, inicio de sesión, sesión). systemd solo lo lee al arrancar. |
 | `lib/apply-boot` | Genera el menú de GRUB con el `LANG` del sistema («Opciones avanzadas…») y los textos del tema (cuenta atrás y ayuda de teclas) traducidos. |
 | `os/po/<idioma>.po` | Las traducciones. El `PKGBUILD` las compila a `/usr/share/locale/<idioma>/LC_MESSAGES/command-os.mo`. |
+| `lib/textos.sh` | `t` y `tn` para los scripts de shell (bash y sh). Se carga con `source`. |
+| `lib/traducir.py` | Traductor sin GTK: `traductor()` para Python y dos modos para archivos de configuración que no pueden llamar a gettext: `plantilla` (los `{{textos}}`) y `etiquetas` (los `label="…"` de un menú XML). |
+| `command-os-config` | Da la configuración de serie de Waybar traducida (copia en `$XDG_RUNTIME_DIR/command-os/config/`); si la cuenta tiene la suya, esa. Mismo mecanismo para hyprlock, que lo hace `command-os-lock`. |
+| `lib/menus-labwc` | Deja el menú de labwc traducido en `$XDG_RUNTIME_DIR/command-os/xdg/labwc/menu.xml`; `command-os-session` pone esa carpeta la primera de `XDG_CONFIG_DIRS`. |
 
 **Traducciones con gettext** (dominio `command-os`). El texto original es el castellano (el `msgid`):
 sin traducción se ve el original. En Python, `_ = traductor()` de `lib/comun.py` (el asistente lo pide
-para el idioma elegido, aún sin aplicar); en bash, una función `t` que llama a `gettext` (ver
-`lib/crear-cuenta`).
+para el idioma elegido, aún sin aplicar); en shell, `t` (y `tn` para singular y plural) de `lib/textos.sh`;
+en los archivos de configuración, `{{texto}}` (Waybar, hyprlock) o la propia etiqueta `label="texto"`
+(menús de labwc), que se traducen al abrir la sesión (tabla de arriba).
 
 ## Añadir o cambiar textos
 
-1. En el código, el texto en castellano dentro de `_("…")` (Python) o `t '…'` (bash). Con datos
-   variables, `{nombre}` en Python (`.format(nombre=…)`) y `%s` en bash; nunca se traduce un texto
-   montado a trozos.
-2. Si es un archivo nuevo con textos, añadirlo a `PYTHON` o `SHELL_` en `build/po.sh`.
+1. En el código, el texto en castellano dentro de `_("…")` (Python), `t '…'` o `tn 'un %d' 'varios %d' N N`
+   (shell, el texto entero y literal entre comillas) o `{{…}}` en Waybar/hyprlock; en un menú de labwc,
+   solo el `label="…"`. Con datos variables, `{nombre}` en Python (`.format(nombre=…)`) y `%s`/`%d` en
+   shell; nunca se traduce un texto montado a trozos. El singular de `tn` lleva también `%d`.
+2. Si es un archivo nuevo con textos, añadirlo a `PYTHON`, `SHELL_`, `MARCAS` o `ETIQUETAS` en
+   `build/po.sh`. `build/po.sh` falla si una llamada a `t` no lleva el texto escrito entero.
 3. `bash build/po.sh` (necesita gettext; en WSL, Arch) pone al día `os/po/*.po`: los textos nuevos
    quedan vacíos y los cambiados, marcados `fuzzy`. Traducirlos y quitar la marca.
 4. `tests/idioma.sh` (CI) falla si falta alguna traducción, hay alguna `fuzzy` o sobra algún texto.
@@ -62,6 +74,11 @@ para el idioma elegido, aún sin aplicar); en bash, una función `t` que llama a
   sigue en inglés), errores en inglés y cuenta creada; después, pantalla de inicio de sesión en inglés
   (fecha, contraseña mala), escritorio con `LANG=en_US.UTF-8` y GRUB con `set lang=en_US`, «Advanced
   options» y el submenú de instantáneas traducido.
+- Escritorio traducido (2026-10-07), VM `command-os-x86` con `command-os-idioma en`: menú del
+  escritorio y atajos, «acerca de», bloqueo («session locked»), avisos de capturas y de escritorios,
+  y la barra con su configuración traducida; sin avisos «already exists» de labwc. `tests/idioma.sh`
+  comprueba Waybar (JSON válido), hyprlock, el menú (XML válido y mismo número de etiquetas),
+  `lib/menus-labwc`, `t`/`tn` en los dos idiomas y el aviso de actualizaciones.
 - Sin probar: verlo en un PC real (lo mismo que la VM salvo la pantalla).
 
 **Decisiones** (con lo descartado, en `docs/decisiones.md`): gettext y no un diccionario propio;

@@ -74,6 +74,69 @@ if [[ -f /boot/grub/themes/command/theme.txt ]]; then
     || mal "el tema de GRUB no vuelve al castellano"
 fi
 
+echo "==> Textos del escritorio (barra, menús, bloqueo, scripts)"
+T=$(mktemp -d)
+trap 'rm -rf "${T}"' EXIT
+export XDG_RUNTIME_DIR="${T}/run" XDG_CONFIG_HOME="${T}/config" HOME="${T}/home"
+mkdir -p "${XDG_RUNTIME_DIR}" "${XDG_CONFIG_HOME}" "${HOME}"
+chmod 700 "${XDG_RUNTIME_DIR}"
+json_ok() { python3 -c 'import json, re, sys; json.loads(re.sub(r"(?m)^\s*//.*$", "", open(sys.argv[1]).read()))' "$1"; }
+# Waybar: la configuración de serie sale traducida y sigue siendo JSON.
+cfg=$(LANG=en_US.UTF-8 command-os-config waybar/config.jsonc)
+[[ "${cfg}" == "${XDG_RUNTIME_DIR}"/* ]] && grep -q 'no network' "${cfg}" && grep -q 'click: connections' "${cfg}" \
+  && ! grep -q '{{' "${cfg}" && ok "waybar en inglés" || mal "la configuración de Waybar no sale en inglés"
+json_ok "${cfg}" && ok "waybar traducida sigue siendo JSON" || mal "waybar traducida no es JSON válido"
+cfg=$(LANG=es_ES.UTF-8 command-os-config waybar/config.jsonc)
+grep -q 'sin red' "${cfg}" && ! grep -q '{{' "${cfg}" && json_ok "${cfg}" && ok "waybar en castellano" \
+  || mal "la configuración de Waybar en castellano"
+mkdir -p "${XDG_CONFIG_HOME}/waybar" && echo '{ "propia": true }' > "${XDG_CONFIG_HOME}/waybar/config.jsonc"
+[[ "$(command-os-config waybar/config.jsonc)" == "${XDG_CONFIG_HOME}/waybar/config.jsonc" ]] \
+  && ok "la configuración propia de la cuenta manda" || mal "se ignoró la configuración propia de Waybar"
+rm -rf "${XDG_CONFIG_HOME}/waybar"
+# hyprlock (normal y de emergencia): sin llaves en ningún idioma.
+for f in hyprlock hyprlock-emergencia; do
+  src=/usr/share/command-os/config/hypr/${f}.conf
+  [[ -e "${src}" ]] || src=/etc/xdg/hypr/${f}.conf
+  LANG=en_US.UTF-8 /usr/lib/command-os/traducir.py plantilla "${src}" | grep -q 'session locked' \
+    && ok "${f} en inglés" || mal "${f} no sale en inglés"
+  /usr/lib/command-os/traducir.py plantilla "${src}" | grep -q '{{' && mal "${f} deja llaves" || ok "${f} sin llaves"
+done
+# Menús de labwc: etiquetas traducidas y XML válido.
+LANG=en_US.UTF-8 /usr/lib/command-os/traducir.py etiquetas /usr/share/command-os/config/labwc/menu.xml > "${T}/menu-en.xml"
+grep -q 'label="keyboard shortcuts"' "${T}/menu-en.xml" && grep -q 'label="applications"' "${T}/menu-en.xml" \
+  && ok "menú de labwc en inglés" || mal "el menú de labwc no sale en inglés"
+python3 -c 'import sys, xml.dom.minidom as m; m.parse(sys.argv[1])' "${T}/menu-en.xml" \
+  && ok "menú traducido: XML válido" || mal "menú traducido: XML roto"
+[[ "$(grep -c 'label=' "${T}/menu-en.xml")" == "$(grep -c 'label=' /usr/share/command-os/config/labwc/menu.xml)" ]] \
+  && ok "menú traducido: las mismas etiquetas" || mal "menú traducido: cambió el número de etiquetas"
+# lib/menus-labwc: lo que labwc lee de verdad (primera carpeta de XDG_CONFIG_DIRS), por idioma.
+dir=$(LANG=en_US.UTF-8 /usr/lib/command-os/menus-labwc)
+[[ "${dir}" == "${XDG_RUNTIME_DIR}/command-os/xdg" ]] && grep -q 'label="keyboard shortcuts"' "${dir}/labwc/menu.xml" \
+  && ok "menus-labwc: menú en inglés" || mal "menus-labwc no deja el menú en inglés"
+dir=$(LANG=es_ES.UTF-8 /usr/lib/command-os/menus-labwc)
+grep -q 'label="atajos de teclado"' "${dir}/labwc/menu.xml" && ok "menus-labwc: el menú sigue al idioma" \
+  || mal "menus-labwc no vuelve al castellano"
+[[ ! -e /etc/xdg/labwc/menu.xml ]] && ok "no hay menú en /etc/xdg/labwc (labwc se quedaría con ese)" \
+  || mal "sobra /etc/xdg/labwc/menu.xml: taparía el traducido"
+XDG_RUNTIME_DIR=/no/existe /usr/lib/command-os/menus-labwc >/dev/null 2>&1 \
+  && mal "menus-labwc sin carpeta de ejecución debe fallar" || ok "menus-labwc falla sin carpeta de ejecución"
+# Scripts de shell: t y tn (singular y plural).
+tt() { LANG=$1 bash -c '. /usr/lib/command-os/textos.sh; "$@"' _ "${@:2}"; }
+[[ "$(tt en_US.UTF-8 t 'hace %d min' 5)" == '5 min ago' ]] && ok "t con datos" || mal "t con datos"
+[[ "$(tt en_US.UTF-8 tn 'y %d paquete más' 'y %d paquetes más' 1 1)" == 'and 1 more package' ]] \
+  && [[ "$(tt en_US.UTF-8 tn 'y %d paquete más' 'y %d paquetes más' 3 3)" == 'and 3 more packages' ]] \
+  && ok "tn: singular y plural en inglés" || mal "tn en inglés"
+[[ "$(tt es_ES.UTF-8 tn 'y %d paquete más' 'y %d paquetes más' 3 3)" == 'y 3 paquetes más' ]] \
+  && [[ "$(tt es_ES.UTF-8 t 'hace %d min' 5)" == 'hace 5 min' ]] && ok "t y tn en castellano" || mal "t y tn en castellano"
+# El aviso de la barra, en inglés.
+export COMMAND_OS_UPDATES_STATE="${T}/updates" COMMAND_OS_PACMAN_LOCAL="${T}/local"
+mkdir -p "${COMMAND_OS_PACMAN_LOCAL}"; touch -d '1 hour ago' "${COMMAND_OS_PACMAN_LOCAL}"
+printf '%s\ncommand-os 1-1 -> 2-1\nmesa 1-1 -> 2-1\n' "$(date +%s)" > "${COMMAND_OS_UPDATES_STATE}"
+LANG=en_US.UTF-8 command-os-updates status | grep -q 'and 1 more package' \
+  && LANG=en_US.UTF-8 command-os-updates status | grep -q 'click: update' \
+  && ok "aviso de actualizaciones en inglés" || mal "el aviso de actualizaciones no sale en inglés"
+unset COMMAND_OS_UPDATES_STATE COMMAND_OS_PACMAN_LOCAL XDG_RUNTIME_DIR XDG_CONFIG_HOME
+
 echo "==> Entorno de las ventanas (lib/entorno-grafico)"
 printf 'LANG="en_US.UTF-8"\nLC_TIME=C.UTF-8\n' > /etc/locale.conf
 [[ "$(env -u LANG bash -c 'source /usr/lib/command-os/entorno-grafico; echo "${LANG}|${LC_TIME}"')" \

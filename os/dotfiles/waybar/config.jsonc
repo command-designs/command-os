@@ -6,12 +6,13 @@
     "modules-center": ["clock"],
     "modules-right": ["custom/updates", "ext/workspaces", "cpu", "temperature", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
 
+    // Los textos entre dobles llaves se traducen al abrir la sesión (command-os-config, docs/idioma.md).
     // Etiqueta en cian (dato) + valor en hueso. Colores de docs/DISENO.md.
     // Logo como fondo CSS (#custom-logo en style.css): el módulo `image` de Waybar 0.15 se
     // bloquea al arrancar y deja la barra invisible. Clic: lanzador de aplicaciones.
     "custom/logo": {
         "format": " ",
-        "tooltip-format": "aplicaciones",
+        "tooltip-format": "{{aplicaciones}}",
         "on-click": "command-os-launcher"
     },
     // Aviso de actualizaciones: oculto si no hay nada (el script devuelve texto vacío). Solo lee el
@@ -69,15 +70,15 @@
     "network": {
         "format-wifi": "<span color='#5bbfc4'>net</span> {essid} {signalStrength}%",
         "format-ethernet": "<span color='#5bbfc4'>net</span> eth",
-        "format-disconnected": "<span color='#d13449'>net</span> sin red",
-        "tooltip-format": "{ifname} · {ipaddr} · clic: conexiones",
+        "format-disconnected": "<span color='#d13449'>net</span> {{sin red}}",
+        "tooltip-format": "{ifname} · {ipaddr} · {{clic: conexiones}}",
         "on-click": "nm-connection-editor"
     },
     "pulseaudio": {
         "format": "<span color='#5bbfc4'>vol</span> {volume}%",
         "format-muted": "<span color='#d13449'>vol</span> mute",
         "on-click": "command-os-volume",
-        "tooltip-format": "{desc} · clic: mezclador"
+        "tooltip-format": "{desc} · {{clic: mezclador}}"
     },
     // Con la batería descargándose, el tiempo que queda; cargando, un +.
     "battery": {
@@ -91,7 +92,7 @@
     // Menú de energía (bloquear · reiniciar · apagar), igual que Super+Escape.
     "custom/power": {
         "format": "󰐥",
-        "tooltip-format": "energía",
+        "tooltip-format": "{{energía}}",
         "on-click": "command-os-power"
     }
 }
