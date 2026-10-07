@@ -109,6 +109,11 @@ def vigilar():
     """Al conectar una pantalla, le pone la escala; al conectarla o cambiar su modo, vuelve a poner
     el fondo. La escala de las que ya estaban no se toca: un cambio a mano (wdisplays) se respeta.
     Termina cuando el compositor se cierra."""
+    # Fuera los descriptores heredados (todo salvo 0-2). cage sabe que su programa ha terminado
+    # cuando se cierra una tubería que le pasa al lanzarlo; lanzado con & desde el mismo sh, este
+    # proceso la heredaba y cage no se cerraba nunca: tras el asistente o el inicio de sesión, la
+    # pantalla se quedaba en negro.
+    os.closerange(3, os.sysconf("SC_OPEN_MAX"))
     antes = huella(salidas())
     fallos = 0
     while True:
