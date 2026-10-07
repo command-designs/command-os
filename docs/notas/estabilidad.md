@@ -32,6 +32,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Cómo funciona todo: `do
   `@snapshots/N/snapshot`, escritorio completo). Para llegar al menú de GRUB por teclado:
   `controlvm keyboardputscancode 01 81` (Esc) **después** de que pase el firmware (si no, abre el
   setup UEFI: elegir Continue).
-- Pendiente: tras un retroceso, la lista de instantáneas de GRUB (`grub-btrfs.cfg` dentro del @
-  recuperado) no se regenera hasta la siguiente instantánea. `shellcheck` no se ha ejecutado en
-  local (lo hace `pruebas.yml`).
+- Tras un retroceso, el @ recuperado se queda con el `/boot/grub` del sistema anterior (2026-10-07):
+  verificado en `command-os-btrfs` volviendo a la instantánea 4, que es de la construcción de la
+  imagen y no tenía `/boot/grub` (sin el arreglo el @ nuevo quedaba sin `grub.cfg`; no se llegó a reiniciar así). Arrancó y el
+  menú listaba hasta la 7. Esas instantáneas de la imagen arrancan el escritorio pero sin red: no
+  sirven como punto de vuelta real. `shellcheck` no se ha ejecutado en local (lo hace `pruebas.yml`).

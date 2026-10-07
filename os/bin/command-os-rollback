@@ -43,6 +43,20 @@ read -rp "Escribe SI para continuar: " ok
 
 mv "${top}/@" "${top}/${old}"
 btrfs subvolume snapshot "${top}/${target}" "${top}/@" >/dev/null
+# /boot/grub va dentro de @ y la instantánea trae el suyo: desfasado (la lista de instantáneas del menú
+# es la de entonces), con módulos que pueden no casar con el GRUB de la partición EFI (esa no vuelve
+# atrás) o ni siquiera existir (las instantáneas de la imagen son de antes de instalar GRUB). Se usa
+# el del sistema anterior, que está al día: sus entradas no dependen de cuál sea el @. Si se arrancó
+# una instantánea, ese es ${old}; si ya se había vuelto atrás sin reiniciar, el que está en marcha.
+# Solo x86 (la Pi no tiene GRUB).
+grub=""
+for g in "${top}/${old}/boot/grub" /boot/grub; do
+  [[ -f "${g}/grub.cfg" ]] && { grub="${g}"; break; }
+done
+if [[ -n "${grub}" ]]; then
+  rm -rf "${top}/@/boot/grub"
+  cp -a "${grub}" "${top}/@/boot/grub"
+fi
 echo "Hecho. Reinicia para entrar en el sistema recuperado."
 echo "Cuando todo funcione, puedes borrar la copia anterior con:"
 echo "  sudo mount -o subvolid=5 ${dev} /mnt && sudo btrfs subvolume delete -R /mnt/${old} && sudo umount /mnt"
