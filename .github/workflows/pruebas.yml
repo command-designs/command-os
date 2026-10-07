@@ -1,5 +1,6 @@
 # Command OS — pruebas en cada cambio y cada día.
 #   - scripts: sintaxis y errores graves (shellcheck) de todos los scripts.
+#   - pantallas: la escala de alta densidad y la configuración de hyprlock escalada (tests/pantallas.sh).
 #   - discos: el instalador en disco entero rechaza lo que no debe borrar (tests/discos.sh).
 #   - escritorio con el Arch de la fecha validada: lo que tienen los equipos.
 #   - escritorio con el Arch del día: avisa antes de que una actualización de Arch rompa algo; si
@@ -26,6 +27,8 @@ jobs:
       - name: shellcheck (solo errores)
         run: |
           shellcheck -S error -e SC1090,SC1091 os/install.sh $(find os/lib -maxdepth 1 -type f ! -name '*.py') os/bin/* build/x86/*.sh tests/*.sh
+      - name: Escala de las pantallas
+        run: bash tests/pantallas.sh
 
   # Seguridad del instalador en disco entero, con discos loop (nunca discos reales del ejecutor).
   discos:

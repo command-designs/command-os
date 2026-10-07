@@ -43,7 +43,8 @@ package() {
   install -m 644 "${s}"/hooks/*.hook "${d}/usr/share/libalpm/hooks/"
 
   # --- Marca: logo, fondos, sonidos, fuentes, identidad del sistema ---
-  install -d "${d}/usr/share/command-os/"{logo,wallpapers,sounds,fastfetch,identity}
+  install -d "${d}/usr/share/command-os/"{logo,wallpapers,sounds,fastfetch,identity,grub}
+  install -m 644 "${s}"/branding/grub/*.png "${d}/usr/share/command-os/grub/"
   install -m 644 "${s}"/branding/logo/* "${d}/usr/share/command-os/logo/"
   install -m 644 "${s}"/branding/wallpapers/* "${d}/usr/share/command-os/wallpapers/"
   install -m 644 "${s}"/branding/sounds/*.wav "${d}/usr/share/command-os/sounds/"

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Command OS — escala de las pantallas (lib/pantallas.py, docs/notas/pantallas.md).
+#   command-os-pantallas aplicar   ajusta la escala de cada pantalla (autostart, greeter, asistente)
+#   command-os-pantallas vigilar   igual con cada pantalla que se conecte después
+#   command-os-pantallas lista     NOMBRE ANCHO ALTO de las pantallas encendidas (command-os-wallpaper)
+#   command-os-pantallas escala ANCHO ALTO ANCHO_MM ALTO_MM [NOMBRE]   escala automática calculada
+# Escala a mano: un número o «auto» en ~/.config/command-os/escala o /etc/command-os/escala.
+exec python3 /usr/lib/command-os/pantallas.py "$@"

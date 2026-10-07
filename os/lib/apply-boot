@@ -14,6 +14,124 @@ if [[ "$(systemd-detect-virt 2>/dev/null || true)" == "oracle" ]]; then
   SILENT_ARGS="${SILENT_ARGS} video=1280x720"
 fi
 
+native_mode() {  # ANCHOxALTO del modo preferido de la pantalla (la interna si hay); vacío si no se sabe
+  local c m best=""
+  for c in /sys/class/drm/card*-*; do
+    [[ "$(cat "${c}/status" 2>/dev/null)" == connected ]] || continue
+    m=$(head -n1 "${c}/modes" 2>/dev/null)
+    [[ "${m}" =~ ^[0-9]+x[0-9]+$ ]] || continue
+    case "${c##*/}" in *eDP*|*LVDS*|*DSI*) printf '%s' "${m}"; return ;; esac
+    [[ -n "${best}" ]] || best=${m}
+  done
+  printf '%s' "${best}"
+}
+
+# Tema de GRUB (piezas de os/branding/grub, build/make-grub-theme.py). GRUB no escala nada: las
+# fuentes y las medidas se generan aquí para el alto de la pantalla del equipo (1080 px = medidas
+# base), así el menú se ve igual en 1366x768 que en 2560x1600. Sin la fuente, se queda sin tema.
+THEME_DIR=/boot/grub/themes/command
+THEME_FONT=/usr/share/fonts/TTF/JetBrainsMonoNLNerdFont-Regular.ttf
+# Latín, puntuación, flechas y cajas (el editor y la consola de GRUB dibujan recuadros).
+FONT_RANGES=0x20-0x7E,0xA0-0x17F,0x2010-0x2027,0x2190-0x2193,0x2500-0x257F
+
+make_grub_theme() {  # make_grub_theme ALTO_PANTALLA -> 0 si el tema queda listo
+  local h=$1 k
+  command -v grub-mkfont >/dev/null && [[ -f "${THEME_FONT}" ]] || return 1
+  k=$(( h * 1000 / 1080 ))
+  (( k < 700 )) && k=700
+  (( k > 2000 )) && k=2000
+  p() { echo $(( $1 * k / 1000 )); }
+  # Wordmark de 300 px a 1080 px de alto; GRUB no escala imágenes: el más cercano de los generados.
+  local lw lh
+  lw=$(( ($(p 300) + 10) / 20 * 20 ))
+  (( lw < 200 )) && lw=200
+  (( lw > 600 )) && lw=600
+  install -d "${THEME_DIR}"
+  rm -f "${THEME_DIR}"/*.pf2 "${THEME_DIR}"/*.png
+  cp /usr/share/command-os/grub/{panel,sel,thumb}_*.png "${THEME_DIR}/" || return 1
+  cp "/usr/share/command-os/grub/logo-${lw}.png" "${THEME_DIR}/logo.png" || return 1
+  cp /usr/share/command-os/wallpapers/command-void.png "${THEME_DIR}/fondo.png" || return 1
+  lh=$(( lw * 223 / 1498 ))
+  local name size
+  for name in menu:20 texto:15 consola:18; do
+    size=$(p "${name#*:}")
+    grub-mkfont -s "${size}" -n "cmd-${name%%:*}" -r "${FONT_RANGES}" \
+      -o "${THEME_DIR}/cmd-${name%%:*}.pf2" "${THEME_FONT}" || return 1
+  done
+  # Bloque centrado: wordmark, hueco, panel del menú (4 entradas a la vista; si hay más, barra de
+  # desplazamiento) y cuenta atrás.
+  local gap ih sp pad mh half
+  gap=$(p 44); ih=$(p 44); sp=$(p 4); pad=$(p 10); mh=$(( 4 * (ih + sp) + 2 * pad + 4 ))
+  half=$(( (lh + gap + mh) / 2 ))
+  cat > "${THEME_DIR}/theme.txt" <<EOF
+# Command OS — tema de GRUB para pantallas de ${h} px de alto. Lo genera /usr/lib/command-os/apply-boot
+# (al instalar o actualizar command-os o GRUB): no editar a mano.
+title-text: ""
+desktop-image: "fondo.png"
+desktop-image-scale-method: "crop"
+desktop-color: "#0d0b0e"
+terminal-font: "cmd-consola"
+terminal-left: "4%"
+terminal-top: "4%"
+terminal-width: "92%"
+terminal-height: "92%"
+terminal-border: "0"
+
++ image {
+  file = "logo.png"
+  left = 50%-$(( lw / 2 ))
+  top = 50%-${half}
+  width = ${lw}
+  height = ${lh}
+}
+
++ boot_menu {
+  left = 50%-$(p 330)
+  top = 50%-$(( half - lh - gap ))
+  width = $(p 660)
+  height = ${mh}
+  menu_pixmap_style = "panel_*.png"
+  item_font = "cmd-menu"
+  selected_item_font = "cmd-menu"
+  item_color = "#a8a2a6"
+  selected_item_color = "#edebe6"
+  selected_item_pixmap_style = "sel_*.png"
+  item_height = ${ih}
+  item_spacing = ${sp}
+  item_padding = ${pad}
+  icon_width = 0
+  icon_height = 0
+  item_icon_space = $(p 18)
+  scrollbar = true
+  scrollbar_width = $(p 4)
+  scrollbar_thumb = "thumb_*.png"
+}
+
++ label {
+  id = "__timeout__"
+  left = 0
+  top = 50%+$(( lh + gap + mh - half + $(p 18) ))
+  width = 100%
+  height = $(p 24)
+  align = "center"
+  font = "cmd-texto"
+  color = "#5bbfc4"
+  text = "arranca en %d s"
+}
+
++ label {
+  left = 0
+  top = 100%-$(p 56)
+  width = 100%
+  height = $(p 24)
+  align = "center"
+  font = "cmd-texto"
+  color = "#6f6870"
+  text = "↑ ↓  elegir      intro  arrancar      e  editar      c  consola"
+}
+EOF
+}
+
 add_args() {  # add_args "línea actual" -> añade los SILENT_ARGS que falten (no quita nada)
   local line="$1" arg
   for arg in ${SILENT_ARGS}; do
@@ -46,9 +164,28 @@ if [[ -f /etc/default/grub ]]; then
   # tiene su entrada y el resto está en el menú de arranque de la BIOS.
   set_grub GRUB_DISABLE_BOOTNEXT true
   set_grub GRUB_TERMINAL_OUTPUT gfxterm
-  set_grub GRUB_GFXMODE auto
+  # A la resolución nativa de la pantalla (algunos firmwares arrancan en 1024x768); si el firmware
+  # no tiene ese modo, GRUB pasa a «auto».
+  # COMMAND_OS_PANTALLA=ANCHOxALTO fija la pantalla (pruebas: VM y tests/escritorio.sh); «generica»
+  # no mira la de esta máquina (imagen para cualquier equipo, build-image.sh): «auto» y medidas de
+  # 1080. En el equipo, la siguiente actualización de GRUB o de command-os lo ajusta a su pantalla.
+  case "${COMMAND_OS_PANTALLA:-}" in
+    generica) mode="" ;;
+    "") mode=$(native_mode) ;;
+    *) mode=${COMMAND_OS_PANTALLA} ;;
+  esac
+  set_grub GRUB_GFXMODE "${mode:+${mode},}auto"
   set_grub GRUB_GFXPAYLOAD_LINUX keep
+  # Fondo sin tema (si no se pudo generar): el tema usa el mismo, recortado sin deformar.
   set_grub GRUB_BACKGROUND '"/usr/share/command-os/wallpapers/command-void.png"'
+  height=${mode#*x}
+  if make_grub_theme "${height:-1080}"; then
+    set_grub GRUB_THEME "\"${THEME_DIR}/theme.txt\""
+    set_grub GRUB_FONT "\"${THEME_DIR}/cmd-consola.pf2\""
+  else
+    echo "command-os: aviso: sin tema de GRUB (falta grub-mkfont o la fuente JetBrains Mono)" >&2
+    sed -i -E '/^GRUB_(THEME|FONT)=/d' /etc/default/grub
+  fi
   set_grub GRUB_COLOR_NORMAL '"light-gray/black"'
   set_grub GRUB_COLOR_HIGHLIGHT '"light-red/black"'
   current=$(sed -nE 's/^GRUB_CMDLINE_LINUX_DEFAULT="(.*)"/\1/p' /etc/default/grub)
@@ -58,7 +195,9 @@ if [[ -f /etc/default/grub ]]; then
     sed -i '/echo.*"\$message"/d' /etc/grub.d/10_linux
   fi
   if [[ -f /boot/grub/grub.cfg ]] && command -v grub-mkconfig >/dev/null; then
-    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1 \
+    # En el idioma del sistema («Opciones avanzadas…»): desde un gancho de pacman no llega su LANG.
+    lang=$(sed -nE 's/^LANG=//p' /etc/locale.conf 2>/dev/null | tr -d '"')
+    LANG=${lang:-C} grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1 \
       || echo "command-os: aviso: grub-mkconfig falló; el menú de arranque no se ha regenerado" >&2
   fi
 fi

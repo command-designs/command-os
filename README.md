@@ -33,7 +33,8 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
   (`branding/`), configuración de serie (`dotfiles/`, `system/`) y la fecha validada de Arch y la
   clave de firma (`pacman/`). `install.sh` prepara la máquina, construye el paquete y lo instala;
   las actualizaciones llegan después por pacman. Cómo funciona todo: [`docs/actualizaciones.md`](docs/actualizaciones.md).
-- `tests/escritorio.sh` y `.github/workflows/` — pruebas automáticas (sesión real sin pantalla) en
+- `tests/` y `.github/workflows/` — pruebas automáticas (sesión real sin pantalla, escala de las
+  pantallas, discos del instalador) en
   cada cambio y cada día, publicación firmada del paquete y validación de fechas de Arch.
 - `build/packer/` — pipeline de build desatendido para la VM de desarrollo
   (QEMU, x86_64). Particiona disco, instala Arch base y corre
@@ -58,7 +59,8 @@ render es por software (ver `docs/testing.md`).
 
 El escritorio sigue la marca de Command (`BRAND.md` de `command-web`): casi monocromo, rojo solo como
 señal. Detalle y estado de cada ancla de marca en [`docs/DISENO.md`](docs/DISENO.md). Los assets están
-en `os/branding/` (logo, fuentes, wallpaper, splash de arranque).
+en `os/branding/` (logo, fuentes, fondos en 16:9 y 16:10, splash de arranque, tema de GRUB). Escala
+de alta densidad y resoluciones: [`docs/notas/pantallas.md`](docs/notas/pantallas.md).
 
 ## Siguientes pasos
 

@@ -3,6 +3,25 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-07 — Pantallas 16:9 y 16:10 y alta densidad (`docs/notas/pantallas.md`)
+
+- **Escala automática fraccionaria (pasos de 0,25)**, por la densidad del monitor y con tope de
+  720 px de alto útil. Es lo que se ve del tamaño justo en portátiles de 13–16". Coste aceptado: las
+  apps antiguas por XWayland se ven algo borrosas a escala no entera. Descartado: solo 1 o 2 (muchos
+  portátiles quedan demasiado grandes o pequeños) y escala 1 fija con wdisplays (no se guarda ni
+  llega al inicio de sesión).
+- **Referencia 120 ppp en paneles internos y 110 en monitores**: los internos se miran más de cerca.
+  Con estos valores salen las escalas habituales de cada tamaño (Windows y GNOME rondan lo mismo).
+- **Un vigilante por sondeo (`wlr-randr` cada 2 s) en vez de kanshi**: kanshi necesita perfiles
+  por monitor; aquí la escala sale sola. labwc no avisa de pantallas nuevas a un script.
+- **Fondos en 16:9 y 16:10 en vez de uno con margen de seguridad**: cada pantalla ve la composición
+  entera y nítida. Pesa poco (~2,7 MB más). Descartado: un único 16:10 (en 16:9 recortaría arriba y abajo).
+- **hyprlock con la configuración escalada al bloquear**: hyprlock ignora la escala de labwc. Solo la
+  de serie; la de una cuenta se respeta tal cual.
+- **Tema de GRUB generado al instalar para la pantalla del equipo**: GRUB no escala fuentes ni
+  imágenes. Descartado: forzar GRUB a 1920x1080 (borroso y deformado en 16:10) y un tema fijo.
+- **Splash en proporción al alto de la pantalla**, con fotogramas a doble resolución.
+
 ## 2026-10-07 — Prioridad x86
 
 - **Se trabaja y se prueba en x86; nada específico de hardware ARM por ahora.** No se sabe qué placa

@@ -144,6 +144,8 @@ Cierre de ventana = apagado ACPI limpio: `setextradata GUI/DefaultCloseAction Sh
   línea del kernel (sin eso, `vboxvideo` pone 1024x768). Splash y escritorio van a 1280x720 y labwc
   reutiliza el modo (`<reuseOutputMode>`): sin pantallazo negro al entrar. La ventana de VirtualBox
   está en modo escalado (`GUI/Scale`).
+- **Otras resoluciones** (16:9, 16:10, alta densidad, GRUB y splash): `setvideomodehint` no funciona
+  aquí; cómo cambiarlas y capturarlas en `docs/notas/pantallas.md` § «Probar resoluciones en la VM».
 - **Grabar vídeo**: `VBoxManage modifyvm command-os-x86 --recording=on --recording-screens=0
   --recording-file=<ruta.webm> --recording-video-res=1280x720 --recording-video-fps=25` con la VM
   apagada; graba desde el encendido hasta el apagado. Solo capta lo que va a la resolución de la
