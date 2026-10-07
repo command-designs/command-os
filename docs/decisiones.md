@@ -3,6 +3,13 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-07 — Idioma del sistema (punto 10 del roadmap)
+
+- **Castellano de serie y elección de idioma en el asistente de primer arranque** (decisión del
+  usuario). El producto habla en castellano; con `en_US` el menú de GRUB y los programas sin
+  traducción propia salían en inglés. Elegirlo en el asistente deja usar el equipo en otro idioma sin
+  reinstalar. Descartado: solo castellano fijo (cierra la puerta a otros idiomas) y dejarlo en `en_US`.
+
 ## 2026-10-07 — Pantallas 16:9 y 16:10 y alta densidad (`docs/notas/pantallas.md`)
 
 - **Escala automática fraccionaria (pasos de 0,25)**, por la densidad del monitor y con tope de
