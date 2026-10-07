@@ -20,10 +20,11 @@ jobs:
       - name: Sintaxis
         run: |
           for f in os/install.sh os/lib/* os/bin/* os/pkg/PKGBUILD build/x86/*.sh tests/*.sh; do
-            bash -n "$f" || exit 1
+            case "$f" in *.py) python3 -m py_compile "$f" || exit 1 ;; *) bash -n "$f" || exit 1 ;; esac
           done
       - name: shellcheck (solo errores)
-        run: shellcheck -S error -e SC1090,SC1091 os/install.sh os/lib/* os/bin/* build/x86/*.sh tests/*.sh
+        run: |
+          shellcheck -S error -e SC1090,SC1091 os/install.sh $(ls os/lib/* | grep -v '\.py$') os/bin/* build/x86/*.sh tests/*.sh
 
   escritorio-validada:
     uses: ./.github/workflows/escritorio.yml

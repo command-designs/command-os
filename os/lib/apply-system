@@ -37,6 +37,9 @@ if (( regen )) && command -v mkinitcpio >/dev/null; then
 fi
 
 /usr/lib/command-os/apply-boot || warn "no se pudo aplicar el arranque silencioso"
+# Entrada al equipo (greetd): asistente, inicio de sesión o inicio automático; migra los equipos
+# que entraban con agetty --autologin.
+/usr/lib/command-os/apply-login || warn "no se pudo configurar la entrada al equipo"
 # Fecha validada de Arch y repositorio de Command OS (la fecha puede venir nueva con el paquete).
 /usr/lib/command-os/apply-repos || warn "no se pudieron ajustar los repositorios"
 exit 0

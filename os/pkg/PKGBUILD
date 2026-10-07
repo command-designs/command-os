@@ -91,5 +91,11 @@ package() {
   install -Dm 644 "${s}/system/plymouth-quit-retain-splash.conf" \
     "${d}/usr/lib/systemd/system/plymouth-quit.service.d/command-os-retain-splash.conf"
 
+  # --- Entrada al equipo: greetd con el asistente de primer arranque, el inicio de sesión o el automático ---
+  install -Dm 644 "${s}/system/greetd-command-os.conf" \
+    "${d}/usr/lib/systemd/system/greetd.service.d/command-os.conf"
+  install -Dm 440 "${s}/system/sudoers-wheel" "${d}/etc/sudoers.d/10-command-os-wheel"
+  install -Dm 644 "${s}/branding/greeter/command.css" "${d}/usr/share/command-os/greeter/command.css"
+
   echo "${pkgver}" > "${d}/usr/share/command-os/version"
 }

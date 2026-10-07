@@ -63,8 +63,8 @@ Al terminar: `reboot`, y quita el USB cuando se apague la pantalla.
 ## 4. Primer arranque
 
 - Sale el menú de GRUB 5 s: **Command OS Linux** (por defecto) o **Windows**.
-- Usuario `deck`, contraseña `deck`: entra directo al escritorio. Cámbiala con `passwd` en una
-  terminal (Super+Enter).
+- El asistente de primer arranque pide tu cuenta (usuario y contraseña) y si quieres entrar sin
+  contraseña al encender (en un portátil, mejor no). Ver `docs/cuentas.md`.
 - Wifi: `nmtui` en una terminal.
 - La entrada **Windows** de GRUB arranca el gestor de Windows desde la partición EFI. Si fallara,
   Windows sigue disponible en el menú de arranque de la BIOS (F12/F9/Esc).

@@ -4,7 +4,8 @@
 #   wsl -d archlinux -u root -- bash /mnt/c/<repo>/build/x86/build-image.sh
 # Variables: IMG (ruta de salida), SIZE (tamaño sparse), VARIANT (variante de
 # os/variants/, default pc-nvidia), DEV_SSH_PUBKEY (fichero .pub opcional: se
-# instala en ~deck/.ssh/authorized_keys y enciende SSH, solo para pruebas en VM),
+# crea la cuenta de desarrollo deck/deck con su llave en ~deck/.ssh y enciende SSH, solo para
+# pruebas en VM; sin ella, la imagen es la de producto: el primer arranque pide la cuenta),
 # ROLLING=1 (Arch del día en vez de la fecha validada).
 # Raíz en btrfs con instantáneas (build/x86/lib.sh) y partición EFI en /efi.
 set -euo pipefail
@@ -58,7 +59,7 @@ arch-chroot "$MNT" /bin/bash -euxc "
   echo 'LANG=en_US.UTF-8' > /etc/locale.conf
   echo command-os > /etc/hostname
   passwd -l root
-  COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${DEV_SSH_PUBKEY:+1} bash /root/command-os-src/os/install.sh
+  COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${DEV_SSH_PUBKEY:+1} COMMAND_OS_DEV_USER=${DEV_SSH_PUBKEY:+deck} bash /root/command-os-src/os/install.sh
   # install.sh ya dejó el arranque silencioso en la línea del kernel: aquí solo se añade NVIDIA.
   grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
   # --removable: EFI/BOOT/BOOTX64.EFI, sin depender de la NVRAM del equipo. El kernel y la

@@ -5,15 +5,18 @@
 # El sistema en sí (escritorio, marca, configuración de serie, ganchos de pacman) es el paquete
 # command-os (os/pkg): aquí se construye desde este árbol y se instala, y las actualizaciones
 # llegan después por pacman (command-os-update). Este script hace lo propio de cada máquina:
-# repositorios, usuario e inicio automático, variante de hardware, servicios e instantáneas.
+# repositorios, variante de hardware, servicios e instantáneas.
 #
-# Variables: COMMAND_OS_USER (deck), COMMAND_OS_VARIANT (os/variants/), COMMAND_OS_SSH=1 (servidor
-# SSH encendido; de serie solo en la variante vbox).
+# No crea ninguna cuenta: al encender por primera vez, el asistente de primer arranque pide la de
+# quien va a usar el equipo (lib/apply-login, docs/cuentas.md).
+#
+# Variables: COMMAND_OS_VARIANT (os/variants/), COMMAND_OS_SSH=1 (servidor SSH encendido; de serie
+# solo en la variante vbox), COMMAND_OS_DEV_USER=deck (solo imágenes de desarrollo: crea esa cuenta
+# con su nombre como contraseña y entra sola, sin asistente; nunca en un equipo que se entrega).
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TARGET_USER="${COMMAND_OS_USER:-deck}"
-TARGET_HOME="/home/${TARGET_USER}"
+DEV_USER="${COMMAND_OS_DEV_USER:-}"
 VARIANT="${COMMAND_OS_VARIANT:-}"
 
 if [[ "$(id -u)" -ne 0 ]]; then
@@ -22,7 +25,8 @@ if [[ "$(id -u)" -ne 0 ]]; then
 fi
 # runuser conserva el entorno de root: HOME y XDG_CONFIG_HOME tienen que ser los del usuario.
 as_user() {
-  runuser -u "${TARGET_USER}" -- env -u XDG_CONFIG_HOME HOME="${TARGET_HOME}" USER="${TARGET_USER}" "$@"
+  local u=$1; shift
+  runuser -u "${u}" -- env -u XDG_CONFIG_HOME HOME="$(getent passwd "${u}" | cut -d: -f6)" USER="${u}" "$@"
 }
 # ¿Máquina virtual? Dentro de un chroot (imágenes construidas en WSL o desde el USB de Arch) no se
 # sabe en qué hardware acabará el sistema: se trata como hardware real.
@@ -34,20 +38,33 @@ pacman -Syu --noconfirm
 # Para construir el paquete: base-devel (makepkg) y git.
 pacman -S --needed --noconfirm base-devel git
 
-echo "==> Usuario: ${TARGET_USER}"
-if ! id "${TARGET_USER}" &>/dev/null; then
-  useradd -m -G wheel -s /bin/bash "${TARGET_USER}"
-  echo "${TARGET_USER}:${TARGET_USER}" | chpasswd
-  echo "==> Creado ${TARGET_USER} con contraseña '${TARGET_USER}': CAMBIARLA antes de entregar el equipo."
+# Cuenta de desarrollo (VM de pruebas): se crea antes del paquete para que apply-login la tome como
+# la cuenta principal con inicio automático y no aparezca el asistente.
+if [[ -n "${DEV_USER}" ]]; then
+  echo "==> Cuenta de desarrollo: ${DEV_USER} (contraseña '${DEV_USER}'; solo para pruebas)"
+  if ! id "${DEV_USER}" &>/dev/null; then
+    useradd -m -G wheel -s /bin/bash "${DEV_USER}"
+    echo "${DEV_USER}:${DEV_USER}" | chpasswd
+  fi
+  install -d /etc/command-os /var/lib/command-os
+  echo "${DEV_USER}" > /etc/command-os/cuenta-principal
+  echo "${DEV_USER}" > /etc/command-os/inicio-automatico
+  touch /var/lib/command-os/configurado
 fi
-sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+# Variantes de dispositivo (p. ej. el cyberdeck): el asistente propone entrar sin contraseña.
+if [[ -n "${VARIANT}" && -e "${REPO_DIR}/variants/${VARIANT}/inicio-automatico-de-serie" ]]; then
+  install -d /etc/command-os
+  touch /etc/command-os/inicio-automatico-de-serie
+fi
 
 echo "==> Paquete command-os (construido desde este árbol)"
 BUILD=$(mktemp -d)
-trap 'rm -rf "${BUILD}"' EXIT
+trap 'rm -rf "${BUILD}"; userdel command-os-build 2>/dev/null || true' EXIT
 cp -r "${REPO_DIR}" "${BUILD}/os"
-chown -R "${TARGET_USER}:" "${BUILD}"
-as_user bash -c "cd '${BUILD}/os/pkg' && makepkg -df --noconfirm >/dev/null"
+# makepkg no se ejecuta como root: una cuenta de sistema temporal, que se borra al terminar.
+id command-os-build &>/dev/null || useradd -r -M -d "${BUILD}" -s /usr/bin/nologin command-os-build
+chown -R command-os-build: "${BUILD}"
+as_user command-os-build bash -c "cd '${BUILD}/os/pkg' && makepkg -df --noconfirm >/dev/null"
 PKG=$(ls "${BUILD}"/os/pkg/command-os-*.pkg.tar.*)
 # --overwrite: rutas que el install.sh anterior al paquete copiaba a mano (máquinas ya instaladas).
 pacman -U --noconfirm \
@@ -144,52 +161,10 @@ fi
 # Audio: PipeWire por socket para todos los usuarios (sesión gráfica incluida).
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
-echo "==> Cuenta de ${TARGET_USER}: configuración, inicio automático en tty1 y labwc"
-as_user command-os-user-setup
-# Ajustes de esta máquina (no son de serie): teclado y, en VM, el perfil ligero sin sombras.
-LABWC_DIR="${TARGET_HOME}/.config/labwc"
-as_user mkdir -p "${LABWC_DIR}/environment.d"
-{
-  echo '# Ajustes de esta máquina. Lo genera install.sh.'
-  if [[ -s /etc/command-os/kb_layout ]]; then
-    echo "XKB_DEFAULT_LAYOUT=$(tr -d '[:space:]' < /etc/command-os/kb_layout)"
-  fi
-} > "${LABWC_DIR}/environment.d/local.env"
-if is_vm; then
-  # Render por software: sin halo ni sombras (cada fotograma cuenta). El producto conserva el tema.
-  printf '%s\n' '# Perfil ligero para VM (render por software). Lo genera install.sh.' \
-    'window.active.shadow.size: 0' 'window.inactive.shadow.size: 0' > "${LABWC_DIR}/themerc-override"
+echo "==> Entrada al equipo: greetd (asistente de primer arranque, inicio de sesión o inicio automático)"
+/usr/lib/command-os/apply-login
+if [[ -n "${DEV_USER}" ]]; then
+  as_user "${DEV_USER}" command-os-user-setup
 fi
-chown -R "${TARGET_USER}:" "${LABWC_DIR}"
-
-mkdir -p /etc/systemd/system/getty@tty1.service.d
-# Sin texto en pantalla: ni /etc/issue, ni prompt, ni "login:"; .hushlogin quita motd y último acceso.
-cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<EOF
-[Service]
-ExecStart=
-ExecStart=-/usr/bin/agetty --autologin ${TARGET_USER} --noclear --skip-login --nonewline --noissue --nohints %I \$TERM
-TTYVTDisallocate=no
-EOF
-
-BASH_PROFILE="${TARGET_HOME}/.bash_profile"
-touch "${BASH_PROFILE}"
-MARKER="# --- Command OS: autostart labwc on tty1 ---"
-# Se reemplaza el bloque entero (hasta el `fi` de nivel 0) para recoger cambios al re-ejecutar.
-sed -i "\|${MARKER}|,/^fi\$/d" "${BASH_PROFILE}"
-cat >> "${BASH_PROFILE}" <<'EOF'
-# --- Command OS: autostart labwc on tty1 ---
-if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-  # GPU virtual (VirtualBox, QEMU sin 3D): wlroots necesita permiso para el render por software
-  # y cursor por software. En hardware real (Raspberry Pi 5, PC) no se tocan.
-  if systemd-detect-virt --quiet; then
-    export WLR_NO_HARDWARE_CURSORS=1
-    export WLR_RENDERER_ALLOW_SOFTWARE=1
-  fi
-  # --merge-config: la configuración de serie (/etc/xdg/labwc) más lo que el usuario añada en
-  # ~/.config/labwc. El log va a un archivo y no a tty1 (sin texto entre el splash y el escritorio).
-  exec labwc --merge-config > "${XDG_RUNTIME_DIR:-/tmp}/labwc.log" 2>&1
-fi
-EOF
-chown "${TARGET_USER}:" "${BASH_PROFILE}"
 
 echo "==> Command OS instalado ($(cat /usr/share/command-os/version))."

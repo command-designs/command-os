@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Command OS — cómo se entra al equipo (greetd en tty1). Genera /etc/command-os/greetd.toml a partir
+# del estado y deja greetd encendido. Lo ejecutan el paquete en cada actualización (apply-system),
+# crear-cuenta y command-os-login. Idempotente.
+#
+#   - Equipo sin configurar (/var/lib/command-os/configurado no existe): el asistente de primer
+#     arranque, que crea la cuenta principal.
+#   - Configurado: la pantalla de inicio de sesión (lib/greeter.py). Si /etc/command-os/inicio-automatico
+#     tiene un usuario, al encender se entra directamente con él (initial_session: solo una vez por
+#     arranque; al cerrar sesión vuelve la pantalla de inicio de sesión).
+#   - tty2…tty6 siguen siendo consolas normales: la salida de emergencia si algo falla (Ctrl+Alt+F2).
+set -uo pipefail
+
+ESTADO=/var/lib/command-os
+CONF=/etc/command-os
+TOML="${CONF}/greetd.toml"
+GETTY=/etc/systemd/system/getty@tty1.service.d/override.conf
+warn() { echo "command-os: aviso: $*" >&2; }
+
+install -d "${CONF}" "${ESTADO}"
+
+# --- Equipos instalados antes de greetd: entraban solos en tty1 con agetty --autologin ---
+# Se conservan tal cual (misma cuenta, inicio automático) sin pasar por el asistente.
+if [[ ! -e "${ESTADO}/configurado" && -f "${GETTY}" ]]; then
+  previo=$(sed -nE 's/.*--autologin ([^ ]+).*/\1/p' "${GETTY}" | head -1)
+  if [[ -n "${previo}" ]] && getent passwd "${previo}" >/dev/null; then
+    echo "${previo}" > "${CONF}/cuenta-principal"
+    echo "${previo}" > "${CONF}/inicio-automatico"
+    touch "${ESTADO}/configurado"
+    # Su .bash_profile lanzaba labwc en tty1: ahora lo hace greetd (command-os-session).
+    perfil="$(getent passwd "${previo}" | cut -d: -f6)/.bash_profile"
+    [[ -f "${perfil}" ]] && sed -i '\|^# --- Command OS: autostart labwc on tty1 ---$|,/^fi$/d' "${perfil}"
+  fi
+fi
+# El agetty con inicio automático de la instalación anterior ya no hace falta (greetd ocupa tty1).
+if [[ -f "${GETTY}" ]] && grep -q -- '--autologin' "${GETTY}"; then
+  rm -f "${GETTY}"
+  rmdir "$(dirname "${GETTY}")" 2>/dev/null || true
+fi
+
+auto=""
+if [[ -s "${CONF}/inicio-automatico" ]]; then
+  auto=$(tr -d '[:space:]' < "${CONF}/inicio-automatico")
+  getent passwd "${auto}" >/dev/null || { warn "inicio automático: no existe ${auto}"; auto=""; }
+fi
+
+tmp=$(mktemp)
+{
+  echo '# Command OS: lo genera /usr/lib/command-os/apply-login. No editar: usa command-os-login.'
+  echo '[terminal]'
+  echo 'vt = 1'
+  echo
+  echo '[default_session]'
+  if [[ -e "${ESTADO}/configurado" ]]; then
+    echo 'command = "command-os-greeter"'
+    echo 'user = "greeter"'
+  else
+    echo 'command = "command-os-primer-arranque"'
+    echo 'user = "root"'
+  fi
+  if [[ -n "${auto}" && -e "${ESTADO}/configurado" ]]; then
+    echo
+    echo '[initial_session]'
+    echo 'command = "command-os-session"'
+    echo "user = \"${auto}\""
+  fi
+} > "${tmp}"
+install -m 644 "${tmp}" "${TOML}"
+rm -f "${tmp}"
+
+if command -v greetd >/dev/null; then
+  systemctl enable greetd.service >/dev/null 2>&1 || warn "no se pudo activar greetd"
+fi
+exit 0

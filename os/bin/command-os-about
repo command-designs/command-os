@@ -23,6 +23,9 @@ cpu=$(lscpu 2>/dev/null | sed -nE 's/^Model name:[[:space:]]+//p' | head -1)
 mem=$(awk '/^MemTotal:/ { printf "%.1f GB", $2 / 1048576 }' /proc/meminfo)
 gpu=$(fastfetch -s gpu --format json 2>/dev/null | grep -oE '"name": *"[^"]*"' | head -1 | cut -d'"' -f4)
 
+# Las cuentas de wheel administran el equipo (sudo); la primera siempre lo es (docs/cuentas.md).
+if id -nG | grep -qw wheel; then cuenta="$(id -un) (administrador)"; else cuenta="$(id -un)"; fi
+
 if [[ "$(findmnt -no FSTYPE / 2>/dev/null)" == btrfs ]] && mountpoint -q /.snapshots; then
   # /.snapshots es de root (750): el número solo se ve con permiso; si no, se dice solo "sí".
   snaps="sí (command-os-rollback)"
@@ -39,6 +42,7 @@ fi
   row "paquete" "${version:-sin versión}"
   row "arch" "${arch}"
   row "equipo" "$(id -un)@$(cat /etc/hostname 2>/dev/null || uname -n)"
+  row "cuenta" "${cuenta}"
   row "kernel" "$(uname -r)"
   row "cpu" "${cpu:--}"
   row "gpu" "${gpu:--}"
@@ -47,5 +51,5 @@ fi
   row "" "más detalle: fastfetch"
 } | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
   --define hide_search=true --cache-file /dev/null \
-  --width 560 --height 450 >/dev/null
+  --width 560 --height 490 >/dev/null
 exit 0

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Command OS — la sesión de escritorio (labwc). La lanza greetd al entrar, con contraseña o con
+# inicio automático (/etc/command-os/greetd.toml). Vale para cualquier cuenta del equipo.
+set -uo pipefail
+
+# GPU virtual (VirtualBox, QEMU sin 3D): wlroots necesita permiso para el render por software y
+# cursor por software. En hardware real (Raspberry Pi 5, PC) no se tocan.
+if systemd-detect-virt --quiet --vm; then
+  export WLR_NO_HARDWARE_CURSORS=1
+  export WLR_RENDERER_ALLOW_SOFTWARE=1
+fi
+export XDG_CURRENT_DESKTOP=labwc:wlroots XDG_SESSION_TYPE=wayland
+
+# Cuenta lista antes de que labwc lea su configuración: la primera vez, tras una actualización, y
+# los ajustes del equipo (teclado, perfil de VM) en ~/.config/labwc/environment.d/local.env.
+command-os-user-setup >/dev/null 2>&1 || true
+
+# --merge-config: la configuración de serie (/etc/xdg/labwc) más lo que el usuario añada en
+# ~/.config/labwc. El registro va a un archivo, no a la pantalla.
+exec labwc --merge-config > "${XDG_RUNTIME_DIR:-/tmp}/labwc.log" 2>&1

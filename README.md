@@ -22,7 +22,8 @@ Raspberry Pi 5 importa. Es el mismo compositor que usa Raspberry Pi OS por defec
 
 **Estado respecto a esa meta**: `os/` ya tiene escritorio labwc con tema de ventanas propio,
 tema de marca, notificaciones (Mako), bloqueo/idle (Hyprlock/Hypridle), OSD, splash de arranque,
-atajos con su ayuda (Super+F1) y apps por defecto, verificado en una VM x86_64. Falta probar varias piezas,
+atajos con su ayuda (Super+F1), apps por defecto y asistente de primer arranque con pantalla de
+inicio de sesión propia (`docs/cuentas.md`), verificado en una VM x86_64. Falta probar varias piezas,
 empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
 
 ## Estructura

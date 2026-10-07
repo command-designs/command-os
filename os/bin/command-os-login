@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Command OS — cómo se entra al equipo al encenderlo.
+#
+#   command-os-login              muestra el modo actual
+#   command-os-login auto [USER]  entra solo, sin pedir contraseña (por defecto, la cuenta principal)
+#   command-os-login pedir        pide usuario y contraseña al encender (lo recomendado en un PC)
+#
+# Con inicio automático la sesión se sigue bloqueando con la contraseña (inactividad, Super+L, tapa).
+# El cambio se aplica en el siguiente arranque.
+set -euo pipefail
+
+CONF=/etc/command-os
+die() { echo "command-os-login: $*" >&2; exit 1; }
+
+case "${1:-}" in
+  "")
+    if [[ -s "${CONF}/inicio-automatico" ]]; then
+      echo "al encender: entra solo como $(cat "${CONF}/inicio-automatico")"
+    else
+      echo "al encender: pide usuario y contraseña"
+    fi
+    exit 0 ;;
+  auto|pedir) ;;
+  *) die "uso: command-os-login [auto [usuario] | pedir]" ;;
+esac
+
+[[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
+
+if [[ "$1" == auto ]]; then
+  usuario=${2:-$(cat "${CONF}/cuenta-principal" 2>/dev/null || true)}
+  [[ -n "${usuario}" ]] || die "indica el usuario: command-os-login auto USUARIO"
+  getent passwd "${usuario}" >/dev/null || die "no existe el usuario ${usuario}"
+  [[ "$(getent passwd "${usuario}" | cut -d: -f3)" -ge 1000 ]] || die "${usuario} no es una cuenta de persona"
+  echo "${usuario}" > "${CONF}/inicio-automatico"
+  echo "hecho: al encender entrará solo como ${usuario} (la pantalla se sigue bloqueando con contraseña)"
+else
+  rm -f "${CONF}/inicio-automatico"
+  echo "hecho: al encender pedirá usuario y contraseña"
+fi
+/usr/lib/command-os/apply-login

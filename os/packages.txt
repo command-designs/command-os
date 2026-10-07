@@ -15,6 +15,13 @@ qt6-wayland
 # una app lo pide: en reposo no consume.
 xorg-xwayland
 
+# Entrada al equipo: greetd; el inicio de sesión y el asistente de primer arranque son ventanas
+# GTK 4 en Python (os/lib/greeter.py, primer-arranque.py) dentro de cage.
+greetd
+cage
+gtk4
+python-gobject
+
 # Shell / status bar / launcher
 waybar
 wofi
