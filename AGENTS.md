@@ -86,6 +86,9 @@ usuario); ARM, aparcado hasta tener la placa.
 - Textos: el original es el castellano dentro de `_()` (Python) o `t` (bash); un texto nuevo o cambiado
   necesita `bash build/po.sh` y su traducción en `os/po/`, o `tests/idioma.sh` falla. Nada de textos
   montados a trozos.
+- cage se cierra cuando se cierra una tubería que hereda su programa: nada que se lance con `&` dentro
+  de su `sh -c` puede quedársela (`pantallas.py vigilar` cierra los descriptores heredados) o la pantalla
+  se queda en negro tras el asistente o el inicio de sesión.
 - Nunca `rm -rf` de un chroot con montajes `--rbind` (/dev, /run…): entra en ellos y borra los del sistema.
 
 ## Qué se probó y qué se descartó (no repetir)

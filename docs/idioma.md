@@ -52,5 +52,17 @@ para el idioma elegido, aún sin aplicar); en bash, una función `t` que llama a
 3. Generar su locale en los instaladores (`build/x86/lib.sh`, `build/x86/build-image.sh`) para que
    elegirlo en el asistente no tarde. Si no, `command-os-idioma` lo genera al elegirlo (unos segundos).
 
+## Cómo se ha probado
+
+- `tests/idioma.sh` y `tests/cuentas.sh` (CI, en cada cambio): traducciones completas, catálogo
+  instalado, `command-os-idioma` (cambios, rechazos, locale que falta, comillas), tema de GRUB en los
+  dos idiomas y `crear-cuenta --idioma`.
+- VM `command-os-instalador` (2026-10-07), instalando en disco entero: `LANG=es_ES.UTF-8` y menú de
+  GRUB en castellano. En el asistente: cambio a inglés al momento, cambio de teclado (reabre cage y
+  sigue en inglés), errores en inglés y cuenta creada; después, pantalla de inicio de sesión en inglés
+  (fecha, contraseña mala), escritorio con `LANG=en_US.UTF-8` y GRUB con `set lang=en_US`, «Advanced
+  options» y el submenú de instantáneas traducido.
+- Sin probar: verlo en un PC real (lo mismo que la VM salvo la pantalla).
+
 **Decisiones** (con lo descartado, en `docs/decisiones.md`): gettext y no un diccionario propio;
 castellano como texto original; idioma por equipo, no por cuenta.
