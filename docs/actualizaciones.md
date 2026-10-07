@@ -89,13 +89,18 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
 
 ## 6. Repositorio de paquetes y firma
 
-- Público: `command-designs/command-os-versions`, Release `repo` (el código sigue privado). Los equipos
+- Público: `command-designs/command-os-versions`, Release `repo` (el código sigue privado). En la
+  Release `instalador`, el instalador firmado (`command-os-instalador.tar.gz`: scripts de `build/x86`
+  y el árbol `os/`), `instalar-command-os.sh`, que lo descarga y comprueba, y la clave pública
+  ([`instalacion.md`](instalacion.md) § 2). Los equipos
   lo añaden solos en cuanto responde (`lib/apply-repos`), con `SigLevel = Required`.
 - Firma: clave ed25519, huella en `os/pacman/command-os.fingerprint`, pública en
   `os/pacman/command-os.gpg`. La privada está solo en el secreto `COMMAND_OS_GPG_KEY` de GitHub y en
   la copia de seguridad fuera de línea del responsable. Si se pierde, hay que generar otra y
   publicar un paquete que traiga la nueva pública firmado con la antigua.
-- Publicación: `.github/workflows/publicar.yml`, en cada cambio de `os/` en `main`. Secretos:
+- Publicación: `.github/workflows/publicar.yml`, en cada cambio de `os/` o `build/x86/` en `main`. El
+  paquete solo se publica si cambia `os/` (un cambio del instalador no avisa a los equipos de una
+  actualización vacía); el instalador, siempre, con la versión del paquete publicado. Secretos:
   `COMMAND_OS_GPG_KEY` y `COMMAND_OS_VERSIONS_TOKEN` (token con escritura en el repositorio público).
 
 ## 7. Aviso de actualizaciones en el escritorio

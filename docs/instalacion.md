@@ -32,11 +32,17 @@ Hace falta: un USB de ≥ 2 GB (se borra), internet (cable o wifi) y un disco de
 ```sh
 loadkeys es                       # teclado español en la consola
 iwctl                             # solo wifi: station wlan0 connect "NombreDeLaRed", luego exit
-pacman -Sy --noconfirm git
-git clone https://github.com/command-designs/command-os.git
-# Repo privado: usuario de GitHub y, como contraseña, un token personal de solo lectura.
-bash command-os/build/x86/instalar.sh
+curl -fLO https://github.com/command-designs/command-os-versions/releases/download/instalador/instalar-command-os.sh
+bash instalar-command-os.sh
 ```
+
+`instalar-command-os.sh` descarga el instalador publicado y **comprueba que está firmado con la clave
+de Command OS** (la huella va escrita en el script) antes de ejecutar nada; si la firma no es buena,
+no hace nada. No hace falta cuenta de GitHub ni token. El equipo instala el paquete `command-os` firmado
+del repositorio público, el mismo del que se actualizará. Cómo se publica: [`actualizaciones.md`](actualizaciones.md) § 6.
+
+Desde un clon del repositorio (desarrollo, VM de pruebas), `bash command-os/build/x86/instalar.sh`
+hace lo mismo pero construye el paquete desde el árbol `os/`.
 
 El asistente pregunta:
 
@@ -50,7 +56,7 @@ contraseña del disco y la **clave de recuperación**, que hay que apuntar ([`ci
 Por último enseña el disco y lo que contiene y pide confirmación: hasta ahí no se ha tocado nada.
 Tarda 10–20 min (descarga unos 2 GB). Al terminar: `reboot` y quita el USB cuando se apague la pantalla.
 
-Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash ...`): `KB_LAYOUT` (teclado, `es`),
+Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash instalar-command-os.sh`): `KB_LAYOUT` (teclado, `es`),
 `TIMEZONE` (`Europe/Madrid`), `HOSTNAME_NEW` (`command-os`), `VARIANT` (`pc-nvidia` si hay GPU
 NVIDIA, solo; vacío en Intel/AMD) y `CIFRADO` (`si`/`no`: no pregunta si cifrar).
 
@@ -109,4 +115,10 @@ actualiza; la huella del señuelo es la misma antes y después. Después, en el 
 la de Windows (EFI con `bootmgfw.efi`, MSR, NTFS y hueco libre) y el dual boot: Windows queda igual
 (tabla, NTFS, archivos de la EFI y su arranque de reserva), el menú de GRUB tiene Command OS, Windows e
 instantáneas, y la entrada UEFI apunta a la partición nueva. Con el disco cifrado, los dos modos y la
-vuelta atrás: [`cifrado.md`](cifrado.md). **No se ha probado en un PC real.**
+vuelta atrás: [`cifrado.md`](cifrado.md).
+
+Instalador publicado (2026-10-07): `tests/instalador.sh` en cada cambio (huella, contenido, y que no
+ejecuta nada con la firma alterada, sin firma o de otra clave) y, en la misma VM, el USB en vivo **sin
+clon del repositorio**: `instalar-command-os.sh` comprobó la firma (clave de prueba), instaló en disco
+entero el paquete publicado validado por firma (`pacman -Qi`: «Signature») y arrancó hasta el asistente.
+**No se ha probado en un PC real.**

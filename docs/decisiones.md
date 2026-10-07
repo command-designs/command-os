@@ -33,6 +33,22 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **Todo se pregunta antes de la confirmación del borrado**: después no hay más preguntas y, si se
   cancela, no se ha tocado nada.
 
+## 2026-10-07 — Instalador publicado y firmado (`docs/instalacion.md` § 2)
+
+- **Publicar el instalador** (decisión del usuario) en `command-os-versions`, junto al paquete. No
+  revela nada nuevo: el árbol `os/` ya va dentro del paquete público y los scripts no tienen
+  secretos. Quita el token de GitHub del USB, que da acceso al repositorio privado si se pierde.
+  Descartado: seguir clonando con token y una ISO propia (más trabajo y otra cosa que mantener).
+- **Firmado con la clave del paquete, y comprobado antes de ejecutar nada.** `instalar-command-os.sh`
+  lleva la huella escrita y usa un anillo de claves vacío: una clave o una firma sustituidas no
+  valen. Lo primero que se descarga (ese script) depende de HTTPS, como cualquier instalador por
+  internet; para comprobarlo a mano está su `.sig`.
+- **El equipo instala el paquete firmado del repositorio**, no uno construido al instalar: lo
+  instalado es exactamente lo publicado y el primer aviso de actualizaciones no ve una versión «nueva»
+  que no lo es. Desde un clon del repositorio se sigue construyendo (desarrollo).
+- **El paquete solo se republica si cambia `os/`:** un cambio del instalador no avisa a todos los
+  equipos de una actualización que no cambia nada.
+
 ## 2026-10-07 — Idioma del sistema (`docs/idioma.md`)
 
 - **Castellano de serie y elección de idioma en el asistente de primer arranque** (decisión del

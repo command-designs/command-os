@@ -47,4 +47,8 @@ install -d "${DESTINO}"
 tar -xzf "${tmp}/command-os-instalador.tar.gz" -C "${DESTINO}"
 [[ -f "${DESTINO}/command-os/build/x86/instalar.sh" ]] || die "el instalador descargado está incompleto"
 echo "==> Instalador $(cat "${DESTINO}/command-os/PUBLICADO" 2>/dev/null || echo '?')"
+# exec no pasa por el trap: se limpia antes (el agente de gpg y la carpeta temporal).
+gpgconf --kill gpg-agent 2>/dev/null || true
+rm -rf "${tmp}"
+trap - EXIT
 exec bash "${DESTINO}/command-os/build/x86/instalar.sh" "$@"
