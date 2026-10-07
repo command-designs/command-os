@@ -212,6 +212,13 @@ configure_system() {
     *) die "configure_system: EFI desconocida: ${efi}" ;;
   esac
   if [[ -z "${NO_NVRAM:-}" ]]; then forget_nvram_entries "${disk}"; fi
+  # Los mensajes de install.sh, en el idioma del instalador: su catálogo compilado (cargar_idioma) va
+  # con el árbol os/ y se borra con él al final. En castellano no hace falta (es el original).
+  local textos=""
+  if [[ "${COMMAND_OS_IDIOMA:-es}" != es && -d "${LOCALE_DIR}/${COMMAND_OS_IDIOMA}" ]]; then
+    cp -r "${LOCALE_DIR}" "${mnt}/root/command-os-src/locale"
+    textos="COMMAND_OS_LOCALE_DIR=/root/command-os-src/locale LC_MESSAGES=${IDIOMA}"
+  fi
   arch-chroot "${mnt}" /bin/bash -euxc "
     ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
     # Los dos idiomas generados: el elegido al instalar y el otro, para poder cambiarlo en el asistente.
@@ -228,7 +235,7 @@ configure_system() {
       sed -i -E '/^#?GRUB_CMDLINE_LINUX=/d' /etc/default/grub
       echo 'GRUB_CMDLINE_LINUX=\"${cmdline}\"' >> /etc/default/grub
     fi
-    COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${COMMAND_OS_SSH:-0} COMMAND_OS_PAQUETE=${paquete} bash /root/command-os-src/os/install.sh
+    ${textos} COMMAND_OS_VARIANT=${VARIANT} COMMAND_OS_SSH=${COMMAND_OS_SSH:-0} COMMAND_OS_PAQUETE=${paquete} bash /root/command-os-src/os/install.sh
     if [[ '${VARIANT}' == pc-nvidia ]]; then
       grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
     fi

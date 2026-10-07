@@ -160,6 +160,54 @@ msgstr "disk password  ·  or the recovery key"
 msgid "contraseña incorrecta  ·  vuelve a escribirla"
 msgstr "wrong password  ·  type it again"
 
+msgid "Ejecutar como root (pacman, usuarios, servicios)."
+msgstr "Run it as root (pacman, users, services)."
+
+msgid ""
+"Repositorios (en x86_64, Arch de la fecha validada: os/pacman/snapshot-date)"
+msgstr "Repositories (on x86_64, Arch from the validated date: os/pacman/snapshot-date)"
+
+#, python-format
+msgid "Cuenta de desarrollo: %s (contraseña «%s»; solo para pruebas)"
+msgstr "Development account: %s (password “%s”; for testing only)"
+
+msgid "Paquete command-os (del repositorio firmado)"
+msgstr "command-os package (from the signed repository)"
+
+msgid "No se pudo configurar el repositorio de Command OS (¿sin internet?)."
+msgstr "Could not set up the Command OS repository (no internet?)."
+
+msgid "Paquete command-os (construido desde este árbol)"
+msgstr "command-os package (built from this tree)"
+
+msgid "Instantáneas del sistema (btrfs + snapper)"
+msgstr "System snapshots (btrfs + snapper)"
+
+msgid ""
+"Instantáneas: la raíz no es btrfs; sin instantáneas (solo en instalaciones "
+"nuevas)."
+msgstr "Snapshots: the root is not btrfs; no snapshots (only on new installations)."
+
+#, python-format
+msgid "Variante desconocida: %s"
+msgstr "Unknown variant: %s"
+
+#, python-format
+msgid "Variante: %s"
+msgstr "Variant: %s"
+
+msgid "Servicios"
+msgstr "Services"
+
+msgid ""
+"Entrada al equipo: greetd (asistente de primer arranque, inicio de sesión o "
+"inicio automático)"
+msgstr "Sign-in: greetd (first boot setup, login screen or automatic sign-in)"
+
+#, python-format
+msgid "Command OS instalado (%s)."
+msgstr "Command OS installed (%s)."
+
 msgid "hay que ejecutarlo como root"
 msgstr "it must be run as root"
 
@@ -640,7 +688,8 @@ msgid "el USB no arrancó en modo UEFI (desactiva CSM/Legacy en la BIOS)"
 msgstr "the USB did not boot in UEFI mode (turn off CSM/Legacy in the BIOS)"
 
 msgid "sin internet: conecta el cable o el wifi (iwctl) y vuelve a empezar"
-msgstr "no internet: plug in the cable or connect the wifi (iwctl) and start again"
+msgstr ""
+"no internet: plug in the cable or connect the wifi (iwctl) and start again"
 
 msgid "Command OS: instalación en este equipo"
 msgstr "Command OS: installation on this computer"
@@ -651,7 +700,9 @@ msgstr "Alongside Windows (dual boot)"
 msgid ""
 "Windows se queda; al encender eliges cuál arrancar. Necesita espacio libre "
 "sin particionar (≥ 30 GB, se libera desde Windows: docs/dualboot.md)."
-msgstr "Windows stays; at power on you choose which one to start. It needs free unpartitioned space (≥ 30 GB, freed from Windows: docs/dualboot.md)."
+msgstr ""
+"Windows stays; at power on you choose which one to start. It needs free "
+"unpartitioned space (≥ 30 GB, freed from Windows: docs/dualboot.md)."
 
 msgid "Como sistema principal"
 msgstr "As the main system"
@@ -659,7 +710,9 @@ msgstr "As the main system"
 msgid ""
 "Command OS ocupa el disco entero. BORRA TODO LO QUE TENGA (Windows y "
 "archivos incluidos)."
-msgstr "Command OS takes the whole disk. IT ERASES EVERYTHING ON IT (Windows and files included)."
+msgstr ""
+"Command OS takes the whole disk. IT ERASES EVERYTHING ON IT (Windows and "
+"files included)."
 
 msgid "Elige 1 o 2 (otra cosa cancela):"
 msgstr "Choose 1 or 2 (anything else cancels):"
@@ -678,10 +731,6 @@ msgid ""
 "instalado"
 msgstr "this runs from the Arch Linux live USB, not from an installed system"
 
-#, python-format
-msgid "Variante: %s"
-msgstr "Variant: %s"
-
 msgid "ninguna (GPU Intel/AMD)"
 msgstr "none (Intel/AMD GPU)"
 
@@ -696,7 +745,8 @@ msgid "falta el arranque de reserva EFI/BOOT/BOOTX64.EFI"
 msgstr "the fallback boot loader EFI/BOOT/BOOTX64.EFI is missing"
 
 msgid "el menú de GRUB no abre el disco cifrado (falta cryptdevice=)"
-msgstr "the GRUB menu does not open the encrypted disk (cryptdevice= is missing)"
+msgstr ""
+"the GRUB menu does not open the encrypted disk (cryptdevice= is missing)"
 
 msgid "el initramfs no tiene los ganchos del disco cifrado"
 msgstr "the initramfs does not have the encrypted disk hooks"
@@ -709,7 +759,9 @@ msgstr "%s does not exist or is not a disk"
 msgid ""
 "%s es una partición, no un disco entero (ejemplo: /dev/nvme0n1, no /dev/"
 "nvme0n1p2)"
-msgstr "%s is a partition, not a whole disk (example: /dev/nvme0n1, not /dev/nvme0n1p2)"
+msgstr ""
+"%s is a partition, not a whole disk (example: /dev/nvme0n1, not /dev/"
+"nvme0n1p2)"
 
 #, python-format
 msgid "%s es un lector de CD/DVD, no un disco entero"
@@ -772,7 +824,10 @@ msgid ""
 "Sin la contraseña nadie puede leer lo que hay en Command OS, aunque se lleve "
 "el equipo o saque el disco. Se escribe al encender, en la pantalla de "
 "arranque."
-msgstr "Without the password nobody can read what is in Command OS, even if they take the computer or remove the disk. You type it at power on, on the boot screen."
+msgstr ""
+"Without the password nobody can read what is in Command OS, even if they "
+"take the computer or remove the disk. You type it at power on, on the boot "
+"screen."
 
 msgid "¿Cifrar el disco? [S/n]:"
 msgstr "Encrypt the disk? [Y/n]:"
@@ -786,7 +841,9 @@ msgstr "only plain letters, digits, spaces and symbols (no accents)"
 msgid ""
 "La contraseña del disco: al menos 8 caracteres, sin ñ ni tildes. No se "
 "muestra al escribirla."
-msgstr "The disk password: at least 8 characters, no accents. It is not shown while you type it."
+msgstr ""
+"The disk password: at least 8 characters, no accents. It is not shown while "
+"you type it."
 
 msgid "Contraseña del disco:"
 msgstr "Disk password:"
@@ -812,7 +869,11 @@ msgid ""
 "Command OS no guarda ninguna copia y nadie puede recuperarla. Apúntala en "
 "papel (o en un gestor de contraseñas de otro aparato) y guárdala lejos del "
 "equipo. Se escribe al encender, en lugar de la contraseña."
-msgstr "If you forget the disk password, this key is the ONLY way in: Command OS keeps no copy and nobody can recover it. Write it down on paper (or in a password manager on another device) and keep it away from the computer. You type it at power on, instead of the password."
+msgstr ""
+"If you forget the disk password, this key is the ONLY way in: Command OS "
+"keeps no copy and nobody can recover it. Write it down on paper (or in a "
+"password manager on another device) and keep it away from the computer. You "
+"type it at power on, instead of the password."
 
 #, python-format
 msgid "Para comprobarla, escribe el grupo %s:"
@@ -844,7 +905,9 @@ msgstr "Keyboard: %s (the same one used to type the password at power on)."
 msgid ""
 "ya hay un volumen abierto como %s: ciérralo (cryptsetup close %s) y vuelve a "
 "empezar"
-msgstr "a volume is already open as %s: close it (cryptsetup close %s) and start again"
+msgstr ""
+"a volume is already open as %s: close it (cryptsetup close %s) and start "
+"again"
 
 #, python-format
 msgid "no se pudo cifrar %s"
@@ -872,12 +935,16 @@ msgstr "THE WHOLE DISK %s (%s, %s) IS GOING TO BE ERASED."
 msgid ""
 "Todo lo que contiene (sistemas, particiones y archivos) se pierde y no se "
 "puede recuperar."
-msgstr "Everything on it (systems, partitions and files) is lost and cannot be recovered."
+msgstr ""
+"Everything on it (systems, partitions and files) is lost and cannot be "
+"recovered."
 
 msgid ""
 "Este disco tiene WINDOWS. Si quieres conservarlo, cancela y usa el dual boot "
 "(docs/dualboot.md)."
-msgstr "This disk has WINDOWS. If you want to keep it, cancel and use dual boot (docs/dualboot.md)."
+msgstr ""
+"This disk has WINDOWS. If you want to keep it, cancel and use dual boot "
+"(docs/dualboot.md)."
 
 msgid "Particiones"
 msgstr "Partitions"
@@ -896,7 +963,9 @@ msgstr "Encrypted disk: at power on, type its password on the boot screen."
 msgid ""
 "Quita el USB y reinicia (reboot): el asistente de primer arranque te pide "
 "crear tu cuenta."
-msgstr "Remove the USB and restart (reboot): the first boot setup asks you to create your account."
+msgstr ""
+"Remove the USB and restart (reboot): the first boot setup asks you to create "
+"your account."
 
 #, python-format
 msgid "uso: %s /dev/<disco>   (ver discos con: lsblk -o NAME,SIZE,MODEL)"
@@ -914,24 +983,32 @@ msgstr "there is no EFI partition on %s"
 msgid ""
 "solo hay %s GB libres sin particionar en %s (mínimo %s); encoge C: en "
 "Windows primero"
-msgstr "there are only %s GB of free unpartitioned space on %s (minimum %s); shrink C: in Windows first"
+msgstr ""
+"there are only %s GB of free unpartitioned space on %s (minimum %s); shrink "
+"C: in Windows first"
 
 #, python-format
 msgid "con el disco cifrado hacen falta %s GB libres (1 para /boot); hay %s"
-msgstr "with the encrypted disk %s GB free are needed (1 for /boot); there are %s"
+msgstr ""
+"with the encrypted disk %s GB free are needed (1 for /boot); there are %s"
 
 #, python-format
 msgid ""
 "Se crearán dos particiones en el espacio libre de %s (%s GB): /boot de 1 GB "
 "y el resto cifrado. Se añadirá GRUB a la partición EFI %s. Windows y sus "
 "particiones no se tocan."
-msgstr "Two partitions will be created in the free space of %s (%s GB): a 1 GB /boot and the rest encrypted. GRUB will be added to the EFI partition %s. Windows and its partitions are not touched."
+msgstr ""
+"Two partitions will be created in the free space of %s (%s GB): a 1 GB /boot "
+"and the rest encrypted. GRUB will be added to the EFI partition %s. Windows "
+"and its partitions are not touched."
 
 #, python-format
 msgid ""
 "Se creará una partición nueva de %s GB en el espacio libre de %s y se "
 "añadirá GRUB a la partición EFI %s. Windows y sus particiones no se tocan."
-msgstr "A new %s GB partition will be created in the free space of %s and GRUB will be added to the EFI partition %s. Windows and its partitions are not touched."
+msgstr ""
+"A new %s GB partition will be created in the free space of %s and GRUB will "
+"be added to the EFI partition %s. Windows and its partitions are not touched."
 
 msgid "no se encontró la partición nueva"
 msgstr "the new partition was not found"
@@ -955,7 +1032,9 @@ msgstr "the EFI partition only has %s MB free"
 msgid ""
 "aviso: no hay EFI/Microsoft/Boot/bootmgfw.efi en %s; GRUB no tendrá entrada "
 "de Windows"
-msgstr "warning: there is no EFI/Microsoft/Boot/bootmgfw.efi on %s; GRUB will not have a Windows entry"
+msgstr ""
+"warning: there is no EFI/Microsoft/Boot/bootmgfw.efi on %s; GRUB will not "
+"have a Windows entry"
 
 msgid "GRUB tiene entrada para Windows"
 msgstr "GRUB has an entry for Windows"
@@ -969,7 +1048,8 @@ msgid "Al encender, el asistente de primer arranque te pide crear tu cuenta."
 msgstr "At power on, the first boot setup asks you to create your account."
 
 msgid "Quita el USB y reinicia: sale el menú de GRUB (Command OS / Windows)."
-msgstr "Remove the USB and restart: the GRUB menu appears (Command OS / Windows)."
+msgstr ""
+"Remove the USB and restart: the GRUB menu appears (Command OS / Windows)."
 
 msgid "clic: conexiones"
 msgstr "click: connections"

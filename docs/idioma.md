@@ -70,7 +70,9 @@ Command OS. `instalar-command-os.sh` pregunta el idioma antes de descargar nada 
 van escritos en los dos idiomas, porque aún no tiene el catálogo) y lo pasa como `COMMAND_OS_IDIOMA`.
 `cargar_idioma` (`build/x86/lib.sh`) genera el locale (`localedef`, un segundo), compila
 `os/po/<idioma>.po` del mismo árbol (`msgfmt`) y deja `IDIOMA` (el `LANG` del sistema instalado) y el
-teclado de serie (`us` en inglés). Las traducciones salen siempre del árbol del instalador, nunca de un
+teclado de serie (`us` en inglés). `configure_system` pasa ese catálogo a `os/install.sh`, que corre
+dentro del sistema nuevo antes de que esté el paquete (`COMMAND_OS_LOCALE_DIR`). Las traducciones salen
+siempre del árbol del instalador, nunca de un
 Command OS instalado; en castellano no se traduce aunque el entorno esté en otro idioma. Las
 confirmaciones que se teclean (`BORRAR WINDOWS`, `SI`) son las del idioma elegido, y solo esas
 (`tests/discos.sh`).
@@ -109,6 +111,11 @@ confirmaciones que se teclean (`BORRAR WINDOWS`, `SI`) son las del idioma elegid
   «desbloqueando el disco»; tras elegir inglés en el asistente, `command-os.idioma=en` en
   `GRUB_CMDLINE_LINUX` y, al reiniciar, «disk password · or the recovery key», «wrong password · type
   it again» con una mala, «unlocking the disk» y arranque hasta la pantalla de inicio de sesión.
+- Instalador en inglés (2026-10-08), VM `command-os-instalador` en un disco temporal, disco entero con
+  cifrado: todas las preguntas y mensajes en inglés (también los de `os/install.sh`), discos
+  rechazados con el motivo traducido, `ERASE WINDOWS`/`YES` en `tests/discos.sh`; el sistema queda con
+  `LANG=en_US.UTF-8`, teclado `us` y `command-os.idioma=en` junto a `cryptdevice=`, y al encender, el
+  splash en inglés y el asistente ya en inglés con teclado «English (US)».
 - Sin probar: verlo en un PC real (lo mismo que la VM salvo la pantalla).
 
 **Decisiones** (con lo descartado, en `docs/decisiones.md`): gettext y no un diccionario propio;
