@@ -213,3 +213,15 @@ disco real**. Todo vive en `build/x86/vbox/instalador/` (ignorado por git):
 - Tras instalar: apagar, quitar `usb.vdi` y `cidata.vdi` y arrancar. El asistente de primer arranque se
   maneja con `VBoxManage controlvm command-os-instalador keyboardputstring` y capturas
   (`screenshotpng`); después, `VBoxManage guestcontrol … run --username <cuenta>` para mirar dentro.
+- **Disco cifrado** (`docs/cifrado.md`): se instala sin teclear con `expect` en el USB en vivo
+  (`pacman -Sy expect`), que lee la clave de recuperación de la pantalla y contesta los dos grupos que
+  pide. La contraseña del splash se teclea con `keyboardputstring`, que escribe como un teclado de
+  EE. UU.: en la VM (teclado español) solo letras, cifras y espacios; la clave de recuperación, sin
+  guiones (con espacios sí).
+- La NVRAM de la VM pierde la entrada `command-os` al apagarla: arranca por `EFI/BOOT/BOOTX64.EFI`.
+  Para volver al USB en vivo con un sistema ya instalado en el disco: dentro de él,
+  `efibootmgr -n <la entrada de SATA 0>` y reiniciar.
+- Para empezar de cero: cambiar `disco.vdi` por uno vacío. La NVRAM de la VM se queda con la entrada
+  `command-os` vieja, que apunta a una partición que ya no existe: así se prueba `forget_nvram_entries`.
+- Si `startvm` falla con «The VM session was closed before any attempt to power it on», quedan procesos
+  `VBoxHeadless` de una sesión anterior bloqueando `VBoxHardening.log`: cerrar el padre (la VM apagada).

@@ -5,7 +5,9 @@
 #   bash build/x86/install-dualboot.sh /dev/nvme0n1
 # Crea una partición btrfs (con instantáneas, build/x86/lib.sh) en el mayor hueco libre del
 # disco, reutiliza la partición EFI de Windows sin formatearla y deja GRUB con menú
-# (Command OS / Windows). No toca ninguna partición existente.
+# (Command OS / Windows). No toca ninguna partición existente. Con el disco cifrado (lo pregunta,
+# sí por defecto), en el hueco van dos: /boot de 1 GiB sin cifrar y el resto en LUKS2.
+# CIFRADO=si|no no pregunta si cifrar (la contraseña y la clave de recuperación se piden siempre).
 # Variables: KB_LAYOUT (teclado, default es), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
 # (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (hueco mínimo, 30),
 # NO_NVRAM=1 (no registra la entrada UEFI; solo para pruebas sobre un disco loop, junto con
@@ -24,7 +26,7 @@ MNT=/mnt/command-os
 ESP_GUID=c12a7328-f81f-11d2-ba4b-00a0c93ec93b
 
 die() { echo "error: $*" >&2; exit 1; }
-cleanup() { set +e; mountpoint -q "$MNT" && umount -R "$MNT"; }
+cleanup() { set +e; mountpoint -q "$MNT" && umount -R "$MNT"; close_luks; }
 trap cleanup EXIT
 
 [[ $(id -u) -eq 0 ]] || die "ejecutar como root"
@@ -34,7 +36,7 @@ require_live_usb
   || die "el USB no arrancó en modo UEFI (desactiva CSM/Legacy en la BIOS)"
 [[ $(lsblk -dno PTTYPE "$DISK") == gpt ]] || die "$DISK no es GPT (Windows en UEFI siempre usa GPT)"
 
-pacman -Sy --needed --noconfirm arch-install-scripts gptfdisk dosfstools btrfs-progs >/dev/null
+pacman -Sy --needed --noconfirm arch-install-scripts gptfdisk dosfstools btrfs-progs cryptsetup >/dev/null
 
 # Tabla de particiones leída con sfdisk (no depende de udev, a diferencia de lsblk PARTTYPE).
 parts() { sfdisk -d "$DISK" | grep '^/dev/'; }
@@ -50,24 +52,50 @@ SECTOR=$(blockdev --getss "$DISK")
 FREE_GB=$(( ${FREE_SECTORS:-0} * SECTOR / 1024 / 1024 / 1024 ))
 (( FREE_GB >= MIN_GB )) || die "solo hay ${FREE_GB} GB libres sin particionar en $DISK (mínimo ${MIN_GB}); encoge C: en Windows primero"
 
+# Cifrado, contraseña y clave de recuperación: todo antes de la confirmación.
+prepare_encryption
+
 echo
 lsblk -o NAME,SIZE,FSTYPE,LABEL,PARTLABEL "$DISK"
 echo
-echo "Se creará una partición nueva de ${FREE_GB} GB en el espacio libre de $DISK"
-echo "y se añadirá GRUB a la partición EFI $ESP. Windows y sus particiones no se tocan."
+if [[ "$CIFRADO" == si ]]; then
+  echo "Se crearán dos particiones en el espacio libre de $DISK (${FREE_GB} GB): /boot de 1 GB y el"
+  echo "resto cifrado. Se añadirá GRUB a la partición EFI $ESP. Windows y sus particiones no se tocan."
+else
+  echo "Se creará una partición nueva de ${FREE_GB} GB en el espacio libre de $DISK"
+  echo "y se añadirá GRUB a la partición EFI $ESP. Windows y sus particiones no se tocan."
+fi
 read -rp "Escribe SI para continuar: " ok
 [[ "$ok" == SI ]] || die "cancelado"
 
-# Partición nueva: inicio y fin 0 = el mayor bloque libre. Tipo 8304 = raíz Linux x86-64.
-before=$(parts | cut -d' ' -f1 | sort)
-sgdisk -n 0:0:0 -t 0:8304 -c 0:command-os "$DISK"
-partprobe "$DISK"; udevadm settle 2>/dev/null || sleep 2
-ROOT=$(comm -13 <(echo "$before") <(parts | cut -d' ' -f1 | sort) | head -1)
-[[ -b "$ROOT" ]] || die "no se encontró la partición nueva"
-echo "==> Partición nueva: $ROOT"
+# new_partition TAMAÑO TIPO NOMBRE — crea una partición al principio del mayor hueco libre (inicio
+# 0 = ese hueco; TAMAÑO 0 = hasta su final) e imprime su ruta.
+new_partition() {
+  local before dev
+  before=$(parts | cut -d' ' -f1 | sort)
+  sgdisk -n "0:0:$1" -t "0:$2" -c "0:$3" "$DISK" >/dev/null
+  partprobe "$DISK"; udevadm settle 2>/dev/null || sleep 2
+  dev=$(comm -13 <(echo "$before") <(parts | cut -d' ' -f1 | sort) | head -1)
+  [[ -b "$dev" ]] || die "no se encontró la partición nueva"
+  echo "$dev"
+}
 
 mkdir -p "$MNT"
-btrfs_root "$ROOT" "$MNT"
+if [[ "$CIFRADO" == si ]]; then
+  # /boot sin cifrar (8300; GRUB lee de aquí el kernel) y el resto en LUKS (8309).
+  BOOT=$(new_partition +1G 8300 command-os-boot)
+  ROOT=$(new_partition 0 8309 command-os)
+  echo "==> Particiones nuevas: $BOOT (/boot) y $ROOT (cifrada)"
+  echo "==> Cifrando la partición (LUKS2)"
+  luks_root "$ROOT"
+  btrfs_root "/dev/mapper/$LUKS_NAME" "$MNT"
+  boot_partition "$BOOT" "$MNT"
+else
+  # Tipo 8304 = raíz Linux x86-64.
+  ROOT=$(new_partition 0 8304 command-os)
+  echo "==> Partición nueva: $ROOT"
+  btrfs_root "$ROOT" "$MNT"
+fi
 mkdir -p "$MNT/efi"
 mount "$ESP" "$MNT/efi"
 ESP_FREE_MB=$(( $(df --output=avail -k "$MNT/efi" | tail -1) / 1024 ))
@@ -76,7 +104,8 @@ ESP_FREE_MB=$(( $(df --output=avail -k "$MNT/efi" | tail -1) / 1024 ))
 detect_variant
 
 # La EFI de Windows suele ser de 100-300 MB: solo recibe el binario de GRUB
-# (EFI/command-os/grubx64.efi); el kernel va en /boot dentro de btrfs (build/x86/lib.sh).
+# (EFI/command-os/grubx64.efi); el kernel va en /boot dentro de btrfs o, cifrado, en la partición
+# /boot nueva (build/x86/lib.sh).
 install_base "$MNT" "$REPO" ntfs-3g
 touch "$MNT/etc/command-os/dualboot"
 # Windows guarda la hora local en el reloj del equipo: Linux también, para que no se desfase.
@@ -113,5 +142,6 @@ fi
 sync
 echo
 echo "==> Command OS instalado en $ROOT."
+[[ "$CIFRADO" == si ]] && echo "    Disco cifrado: al encender, escribe su contraseña en la pantalla de arranque."
 echo "    Al encender, el asistente de primer arranque te pide crear tu cuenta."
 echo "    Quita el USB y reinicia: sale el menú de GRUB (Command OS / Windows)."

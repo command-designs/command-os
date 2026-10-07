@@ -8,6 +8,7 @@
 #
 # Qué hace: guarda el sistema actual como @antes-de-volver-<fecha> (por si acaso), crea un @ nuevo a
 # partir de la instantánea y pide reiniciar. /home no se toca: los archivos del usuario se quedan.
+# Con el disco cifrado (/boot en una partición aparte), además pone en /boot el kernel de la instantánea.
 set -euo pipefail
 
 die() { echo "error: $*" >&2; exit 1; }
@@ -43,19 +44,68 @@ read -rp "Escribe SI para continuar: " ok
 
 mv "${top}/@" "${top}/${old}"
 btrfs subvolume snapshot "${top}/${target}" "${top}/@" >/dev/null
-# /boot/grub va dentro de @ y la instantánea trae el suyo: desfasado (la lista de instantáneas del menú
-# es la de entonces), con módulos que pueden no casar con el GRUB de la partición EFI (esa no vuelve
-# atrás) o ni siquiera existir (las instantáneas de la imagen son de antes de instalar GRUB). Se usa
-# el del sistema anterior, que está al día: sus entradas no dependen de cuál sea el @. Si se arrancó
-# una instantánea, ese es ${old}; si ya se había vuelto atrás sin reiniciar, el que está en marcha.
-# Solo x86 (la Pi no tiene GRUB).
-grub=""
-for g in "${top}/${old}/boot/grub" /boot/grub; do
-  [[ -f "${g}/grub.cfg" ]] && { grub="${g}"; break; }
-done
-if [[ -n "${grub}" ]]; then
-  rm -rf "${top}/@/boot/grub"
-  cp -a "${grub}" "${top}/@/boot/grub"
+
+# Deshace el cambio de @ si algo falla a partir de aquí: el sistema queda como estaba.
+undo() {
+  echo "error: $*; se deja el sistema como estaba" >&2
+  mv "${top}/@" "${top}/${old}-fallido" && mv "${top}/${old}" "${top}/@"
+  btrfs subvolume delete "${top}/${old}-fallido" >/dev/null || true
+  exit 1
+}
+
+# restore_kernel — con /boot en una partición aparte (disco cifrado: GRUB no lee la raíz), el kernel
+# no entra en las instantáneas y el de /boot puede ser más nuevo que los módulos del sistema
+# recuperado. Se pone el de la instantánea (Arch lo guarda junto a sus módulos, en
+# /usr/lib/modules/<versión>/vmlinuz) y se rehace su initramfs con el mkinitcpio y la configuración
+# del sistema recuperado. Primero se generan los archivos nuevos y solo al final se cambian.
+restore_kernel() {
+  local new="${top}/@" m ver base f ok=1 nuevos=()
+  local montajes=(dev proc sys boot)
+  mount --bind /dev "${new}/dev" && mount -t proc proc "${new}/proc" && mount -t sysfs sys "${new}/sys" \
+    && mount --bind /boot "${new}/boot" || ok=0
+  if (( ok )); then
+    for m in "${new}"/usr/lib/modules/*/; do
+      [[ -f "${m}vmlinuz" && -f "${m}pkgbase" ]] || continue
+      ver=$(basename "${m}") base=$(<"${m}pkgbase")
+      echo "Kernel ${base} ${ver} del sistema recuperado: rehaciendo su initramfs…"
+      chroot "${new}" mkinitcpio -k "${ver}" -g "/boot/initramfs-${base}.img.nuevo" >/dev/null 2>&1 || { ok=0; break; }
+      nuevos+=("/boot/initramfs-${base}.img")
+      if [[ -f "/boot/initramfs-${base}-fallback.img" ]]; then
+        chroot "${new}" mkinitcpio -k "${ver}" -S autodetect -g "/boot/initramfs-${base}-fallback.img.nuevo" \
+          >/dev/null 2>&1 || { ok=0; break; }
+        nuevos+=("/boot/initramfs-${base}-fallback.img")
+      fi
+      install -m 644 "${m}vmlinuz" "/boot/vmlinuz-${base}.nuevo" || { ok=0; break; }
+      nuevos+=("/boot/vmlinuz-${base}")
+    done
+  fi
+  for f in "${montajes[@]}"; do mountpoint -q "${new}/${f}" && umount "${new}/${f}"; done
+  if (( ok )) && (( ${#nuevos[@]} )); then
+    for f in "${nuevos[@]}"; do mv "${f}.nuevo" "${f}"; done
+    return 0
+  fi
+  rm -f /boot/*.nuevo
+  (( ok )) || return 1
+  echo "aviso: la instantánea no tiene ningún kernel; se queda el de /boot" >&2
+}
+
+if mountpoint -q /boot && [[ -d /boot/grub ]]; then
+  restore_kernel || undo "no se pudo poner el kernel de la instantánea en /boot"
+else
+  # /boot/grub va dentro de @ y la instantánea trae el suyo: desfasado (la lista de instantáneas del
+  # menú es la de entonces), con módulos que pueden no casar con el GRUB de la partición EFI (esa no
+  # vuelve atrás) o ni siquiera existir (las instantáneas de la imagen son de antes de instalar GRUB).
+  # Se usa el del sistema anterior, que está al día: sus entradas no dependen de cuál sea el @. Si se
+  # arrancó una instantánea, ese es ${old}; si ya se había vuelto atrás sin reiniciar, el que está en
+  # marcha. Solo x86 (la Pi no tiene GRUB). Con /boot aparte, GRUB no está en @ y no hace falta.
+  grub=""
+  for g in "${top}/${old}/boot/grub" /boot/grub; do
+    [[ -f "${g}/grub.cfg" ]] && { grub="${g}"; break; }
+  done
+  if [[ -n "${grub}" ]]; then
+    rm -rf "${top}/@/boot/grub"
+    cp -a "${grub}" "${top}/@/boot/grub"
+  fi
 fi
 echo "Hecho. Reinicia para entrar en el sistema recuperado."
 echo "Cuando todo funcione, puedes borrar la copia anterior con:"

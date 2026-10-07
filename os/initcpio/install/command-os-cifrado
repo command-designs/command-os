@@ -1,0 +1,18 @@
+#!/bin/bash
+# Command OS — gancho del initramfs que pide la contraseña del disco cifrado en el splash
+# (hooks/command-os-cifrado). Va entre plymouth y encrypt: HOOKS=(… plymouth … keymap block
+# command-os-cifrado encrypt filesystems …); lo ordena os/install.sh.
+
+build() {
+    add_binary cryptsetup
+    add_runscript
+}
+
+help() {
+    cat <<HELPEOF
+Command OS: pide la contraseña del volumen cryptdevice= dentro del splash de Plymouth (o en la
+consola), sin límite de intentos, y lo abre antes del gancho encrypt.
+HELPEOF
+}
+
+# vim: set ft=sh ts=4 sw=4 et:

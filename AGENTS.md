@@ -25,7 +25,8 @@ instalación).** Desde el 2026-10-07 no hay cuenta de serie: greetd con asistent
 pantalla de inicio de sesión propia e inicio automático opcional (`docs/cuentas.md`). La barra avisa
 de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualizaciones.md` § 7). Se ve
 igual en 16:9 y 16:10 con escala automática de alta densidad y tema de GRUB propio
-(`docs/notas/pantallas.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+(`docs/notas/pantallas.md`). Al instalar en un PC, el disco se cifra (LUKS2, sí por defecto) con la
+contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -36,6 +37,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd | `docs/cuentas.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos | `docs/instalacion.md` (§ 3: lo que protege del borrado) |
+| cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
 | splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | resoluciones, 16:9/16:10, alta densidad (escala), fondos, tema de GRUB, tamaño del splash | `docs/notas/pantallas.md` |
 | VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
@@ -73,6 +75,13 @@ usuario); ARM, aparcado hasta tener la placa.
   `wlr-randr` dentro) y 1366x768 sale roto en `screenshotpng` (capturar con `grim`).
 - VirtualBox: **nunca `snapshot take --live`** con la VM encendida: la deja congelada (pasó con
   `command-os-x86`). Instantáneas con la VM apagada.
+- Disco cifrado: `/boot` es otra partición y **el kernel no va en las instantáneas** (`command-os-rollback`
+  lo repone). GRUB solo lee `/boot`: nada que GRUB necesite (fondo, tema, fuentes) puede ir en `/usr`.
+  `cryptdevice=` va en `GRUB_CMDLINE_LINUX`, no en `_DEFAULT`. La contraseña de prueba en la VM, sin
+  símbolos: `keyboardputstring` teclea como un teclado de EE. UU. y la VM usa el español.
+- Initramfs: el busybox de mkinitcpio **no tiene `tr` ni `stty`**, y Plymouth pinta la ñ y las tildes
+  como cuadrados (`label-freetype` sin locale): textos con acentos en el splash, como imágenes.
+- Nunca `rm -rf` de un chroot con montajes `--rbind` (/dev, /run…): entra en ellos y borra los del sistema.
 
 ## Qué se probó y qué se descartó (no repetir)
 

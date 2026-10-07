@@ -11,7 +11,8 @@ BTRFS_OPTS=noatime,compress=zstd:1
 #   @snapshots  /.snapshots            instantáneas de snapper (install.sh configura snapper)
 #   @var_log    /var/log               registros: se conservan al volver atrás (ver qué pasó)
 #   @pkg        /var/cache/pacman/pkg  caché de paquetes: no hace falta fotografiarla
-# El kernel va en /boot dentro de @: una instantánea guarda el kernel con sus módulos.
+# El kernel va en /boot dentro de @: una instantánea guarda el kernel con sus módulos. Con el disco
+# cifrado, /boot es una partición aparte (boot_partition) y command-os-rollback repone el kernel.
 btrfs_root() {
   local dev=$1 mnt=$2 sv
   mkfs.btrfs -f -L command-os "${dev}" >/dev/null
@@ -26,6 +27,14 @@ btrfs_root() {
   mount -o "${BTRFS_OPTS},subvol=@snapshots" "${dev}" "${mnt}/.snapshots"
   mount -o "${BTRFS_OPTS},subvol=@var_log" "${dev}" "${mnt}/var/log"
   mount -o "${BTRFS_OPTS},subvol=@pkg" "${dev}" "${mnt}/var/cache/pacman/pkg"
+}
+
+# boot_partition DISPOSITIVO MONTAJE — con el disco cifrado: formatea /boot en ext4 (sin cifrar; GRUB
+# lee de aquí el kernel, el initramfs y su tema) y lo monta en MONTAJE/boot. Va después de btrfs_root.
+boot_partition() {
+  mkfs.ext4 -q -F -L command-os-boot "$1"
+  mkdir -p "$2/boot"
+  mount "$1" "$2/boot"
 }
 
 # fstab MONTAJE — genfstab sin swap y sin subvolid: los subvolúmenes se montan por nombre, así que
@@ -76,7 +85,8 @@ detect_variant() {
 
 # install_base MONTAJE REPO [PAQUETES...] — sistema base con el Arch de la fecha validada, fstab y
 # el árbol os/ listo para install.sh. El kernel y el initramfs van en /boot dentro de btrfs (entran
-# en las instantáneas); la partición EFI solo recibe GRUB.
+# en las instantáneas) o, con el disco cifrado, en la partición /boot sin cifrar (GRUB no la
+# descifra: la contraseña se pide en el splash); la partición EFI solo recibe GRUB.
 install_base() {
   local mnt=$1 repo=$2
   shift 2
@@ -120,7 +130,11 @@ forget_nvram_entries() {
 # sobre un disco loop). Falla si la instalación no se completó.
 configure_system() {
   local mnt=$1 efi=$2 disk=$3 grub="grub-install --target=x86_64-efi --efi-directory=/efi --boot-directory=/boot"
-  local boot
+  local boot luks cmdline=""
+  # Raíz cifrada: cryptdevice= en GRUB_CMDLINE_LINUX (no en _DEFAULT, que es de apply-boot), así va
+  # también en las entradas de recuperación y en las de las instantáneas (grub-btrfs).
+  luks=$(luks_uuid_of "${mnt}")
+  [[ -n "${luks}" ]] && cmdline="cryptdevice=UUID=${luks}:${LUKS_NAME}"
   case "${efi}" in
     compartida) boot="${grub} --bootloader-id=command-os${NO_NVRAM:+ --no-nvram}" ;;
     propia)
@@ -143,6 +157,10 @@ configure_system() {
     if [[ '${VARIANT}' == pc-nvidia ]]; then
       grep -q 'nvidia_drm.modeset' /etc/default/grub || sed -i -E 's/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 nvidia_drm.modeset=1 nvidia_drm.fbdev=1\"/' /etc/default/grub
     fi
+    if [[ -n '${cmdline}' ]]; then
+      sed -i -E '/^#?GRUB_CMDLINE_LINUX=/d' /etc/default/grub
+      echo 'GRUB_CMDLINE_LINUX=\"${cmdline}\"' >> /etc/default/grub
+    fi
     ${boot}
     grub-mkconfig -o /boot/grub/grub.cfg
   "
@@ -151,6 +169,13 @@ configure_system() {
     || die "la instalación no se completó (ver el registro de arriba)"
   if [[ "${efi}" == propia && ! -f "${mnt}/efi/EFI/BOOT/BOOTX64.EFI" ]]; then
     die "falta el arranque de reserva EFI/BOOT/BOOTX64.EFI"
+  fi
+  # Cifrado: sin cryptdevice= en el menú o sin los ganchos en el initramfs, el equipo no arrancaría.
+  if [[ -n "${luks}" ]]; then
+    grep -q "cryptdevice=UUID=${luks}:${LUKS_NAME}" "${mnt}/boot/grub/grub.cfg" \
+      || die "el menú de GRUB no abre el disco cifrado (falta cryptdevice=)"
+    grep -qE '^HOOKS=.*\bcommand-os-cifrado encrypt\b' "${mnt}/etc/mkinitcpio.conf" \
+      || die "el initramfs no tiene los ganchos del disco cifrado"
   fi
   rm -rf "${mnt}/root/command-os-src"
 }
@@ -243,15 +268,162 @@ confirm_erase() {
   return 0
 }
 
-# partition_whole_disk DISCO — borra la tabla y las firmas del disco y crea GPT con EFI de 1 GiB
-# (tipo ef00) y el resto para Command OS (tipo 8304, raíz Linux x86-64). No formatea.
+# partition_whole_disk DISCO [cifrado] — borra la tabla y las firmas del disco y crea GPT con EFI de
+# 1 GiB (tipo ef00) y el resto para Command OS (tipo 8304, raíz Linux x86-64). Con «cifrado», entre
+# las dos va /boot de 1 GiB sin cifrar (8300; GRUB lee de ahí el kernel) y el resto es LUKS (8309).
+# No formatea.
 partition_whole_disk() {
-  local disk=$1
+  local disk=$1 n=2
   wipefs -aq "${disk}"
   sgdisk --zap-all "${disk}" >/dev/null
-  sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:0 -t 2:8304 -c 2:command-os "${disk}" >/dev/null
+  if [[ "${2:-}" == cifrado ]]; then
+    sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:+1G -t 2:8300 -c 2:command-os-boot \
+      -n 3:0:0 -t 3:8309 -c 3:command-os "${disk}" >/dev/null
+    n=3
+  else
+    sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:0 -t 2:8304 -c 2:command-os "${disk}" >/dev/null
+  fi
   partprobe "${disk}" 2>/dev/null || true
   udevadm settle 2>/dev/null || sleep 2
-  [[ -b "$(part_path "${disk}" 1)" && -b "$(part_path "${disk}" 2)" ]] \
-    || die "no aparecieron las particiones nuevas de ${disk}"
+  local i
+  for (( i = 1; i <= n; i++ )); do
+    [[ -b "$(part_path "${disk}" "${i}")" ]] || die "no aparecieron las particiones nuevas de ${disk}"
+  done
+}
+
+# --- Cifrado del disco (LUKS2; docs/instalacion.md § 4 y docs/decisiones.md) ---
+# Se pregunta todo (cifrar, contraseña y clave de recuperación) antes de la confirmación del borrado:
+# después ya no se pregunta nada. Las claves solo viven en variables de este proceso y se pasan a
+# cryptsetup por la entrada estándar: nunca en argumentos, en el entorno ni en archivos.
+
+LUKS_NAME=command-os   # /dev/mapper/command-os; el mismo en cryptdevice= (configure_system)
+RECOVERY_DIGITS=48     # 8 grupos de 6 cifras, ~159 bits; solo cifras: se teclean en cualquier teclado
+
+# ask_encryption — deja CIFRADO=si|no. Si ya viene en el entorno, no pregunta. Por defecto, sí.
+ask_encryption() {
+  local r
+  case "${CIFRADO:-}" in si|no) return 0 ;; "") ;; *) die "CIFRADO debe ser si o no" ;; esac
+  cat <<'EOF'
+
+  Cifrado del disco (recomendado)
+  Sin la contraseña nadie puede leer lo que hay en Command OS, aunque se lleve el equipo o saque
+  el disco. Se escribe al encender, en la pantalla de arranque.
+
+EOF
+  while :; do
+    read -rp "¿Cifrar el disco? [S/n]: " r || return 1
+    case "${r,,}" in
+      ""|s|si|sí) CIFRADO=si; return 0 ;;
+      n|no) CIFRADO=no; return 0 ;;
+    esac
+  done
+}
+
+# password_problem CLAVE — por qué no vale como contraseña del disco (nada = vale). Sin tildes ni ñ:
+# se teclea antes de que arranque el sistema y, si el teclado no las diera, no se podría entrar.
+password_problem() {
+  local LC_ALL=C   # byte a byte: una ñ o una tilde no entran en el rango ASCII de abajo
+  if (( ${#1} < 8 )); then echo "tiene que tener al menos 8 caracteres"; return 0; fi
+  if [[ ! "$1" =~ ^[\ -~]+$ ]]; then echo "solo letras sin tilde, cifras, espacios y símbolos (sin ñ ni tildes)"; fi
+  return 0
+}
+
+# ask_disk_password — pide la contraseña dos veces hasta que valga y coincida; la deja en CLAVE_DISCO.
+ask_disk_password() {
+  local a b p
+  echo "La contraseña del disco: al menos 8 caracteres, sin ñ ni tildes. No se muestra al escribirla."
+  while :; do
+    read -rsp "Contraseña del disco: " a || { echo; return 1; }
+    echo
+    p=$(password_problem "${a}")
+    if [[ -n "${p}" ]]; then echo "No vale: ${p}."; continue; fi
+    read -rsp "Repítela: " b || { echo; return 1; }
+    echo
+    if [[ "${a}" != "${b}" ]]; then echo "No coinciden. Otra vez."; continue; fi
+    CLAVE_DISCO=${a}
+    return 0
+  done
+}
+
+# new_recovery_key — 48 cifras al azar (/dev/urandom: cada byte que es una cifra vale igual).
+new_recovery_key() {
+  LC_ALL=C tr -dc 0-9 < /dev/urandom | head -c "${RECOVERY_DIGITS}"
+}
+
+# recovery_group CLAVE N — el grupo N (1–8) de 6 cifras.
+recovery_group() { echo "${1:$(( ($2 - 1) * 6 )):6}"; }
+
+# show_recovery_key — genera la clave de recuperación (CLAVE_RECUPERACION), la enseña y pide dos de
+# sus grupos al azar para comprobar que se ha apuntado. Sin comprobarla no se sigue.
+show_recovery_key() {
+  local k g1 g2 a b i shown=""
+  k=$(new_recovery_key)
+  [[ ${#k} == "${RECOVERY_DIGITS}" ]] || die "no se pudo generar la clave de recuperación"
+  for i in 1 2 3 4 5 6 7 8; do
+    shown+="$(recovery_group "${k}" "${i}")"
+    if (( i == 4 )); then shown+=$'\n      '; elif (( i < 8 )); then shown+="-"; fi
+  done
+  while :; do
+    g1=$(( RANDOM % 4 + 1 )) g2=$(( RANDOM % 4 + 5 ))
+    cat <<EOF
+
+  Clave de recuperación
+  Si olvidas la contraseña del disco, esta clave es la ÚNICA forma de entrar: Command OS no guarda
+  ninguna copia y nadie puede recuperarla. Apúntala en papel (o en un gestor de contraseñas de otro
+  aparato) y guárdala lejos del equipo. Se escribe al encender, en lugar de la contraseña.
+
+      ${shown}
+
+EOF
+    read -rp "Para comprobarla, escribe el grupo ${g1}: " a || return 1
+    read -rp "Y el grupo ${g2}: " b || return 1
+    if [[ "${a}" == "$(recovery_group "${k}" "${g1}")" && "${b}" == "$(recovery_group "${k}" "${g2}")" ]]; then
+      break
+    fi
+    echo "No coincide: revisa lo que has apuntado."
+  done
+  # Fuera de la pantalla y del historial de la terminal (sin depender de TERM, como clear).
+  [[ -t 1 ]] && printf '\033[H\033[2J\033[3J'
+  echo "Clave de recuperación comprobada."
+  CLAVE_RECUPERACION=${k}
+}
+
+# prepare_encryption — pregunta si cifrar y, si sí, la contraseña y la clave de recuperación.
+prepare_encryption() {
+  ask_encryption || die "cancelado: no se ha tocado nada"
+  [[ "${CIFRADO}" == si ]] || return 0
+  ask_disk_password || die "cancelado: no se ha tocado nada"
+  show_recovery_key || die "cancelado: no se ha tocado nada"
+}
+
+# luks_root PARTICIÓN — la cifra (LUKS2, argon2id) con CLAVE_DISCO y, en otra ranura, la clave de
+# recuperación, y la abre como /dev/mapper/${LUKS_NAME}. allow-discards queda guardado en la
+# cabecera (TRIM en los SSD; a cambio se ve qué zonas del disco están libres, no su contenido).
+# Borra las claves de la memoria del proceso al terminar.
+luks_root() {
+  local part=$1
+  [[ -n "${CLAVE_DISCO:-}" && -n "${CLAVE_RECUPERACION:-}" ]] || die "luks_root: faltan las claves"
+  printf '%s' "${CLAVE_DISCO}" | cryptsetup luksFormat --batch-mode --type luks2 --pbkdf argon2id \
+    --label command-os --key-file=- "${part}" || die "no se pudo cifrar ${part}"
+  printf '%s' "${CLAVE_DISCO}" | cryptsetup luksAddKey --batch-mode --pbkdf argon2id --key-file=- \
+    "${part}" <(printf '%s' "${CLAVE_RECUPERACION}") || die "no se pudo añadir la clave de recuperación"
+  printf '%s' "${CLAVE_DISCO}" | cryptsetup open --allow-discards --persistent --key-file=- \
+    "${part}" "${LUKS_NAME}" || die "no se pudo abrir ${part}"
+  unset CLAVE_DISCO CLAVE_RECUPERACION
+}
+
+# close_luks — cierra /dev/mapper/${LUKS_NAME} si está abierto (limpieza de los instaladores).
+close_luks() {
+  [[ -b "/dev/mapper/${LUKS_NAME}" ]] && cryptsetup close "${LUKS_NAME}"
+  return 0
+}
+
+# luks_uuid_of MONTAJE — UUID del volumen LUKS sobre el que va MONTAJE (nada si no está cifrado).
+luks_uuid_of() {
+  local src dev
+  src=$(findmnt -nvo SOURCE "$1") || return 0
+  [[ "${src}" == /dev/mapper/* ]] || return 0
+  dev=$(cryptsetup status "${src##*/}" 2>/dev/null | sed -nE 's/^ *device: *//p')
+  [[ -n "${dev}" ]] && cryptsetup luksUUID "${dev}"
+  return 0
 }

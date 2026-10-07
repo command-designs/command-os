@@ -32,8 +32,8 @@ La contraseña se guarda solo como hash (yescrypt) y no sale del equipo: no hay 
 en la nube, ni nada en el repositorio. El asistente se la pasa a `chpasswd` por la entrada estándar
 (nunca como argumento, variable o registro); `tests/cuentas.sh` comprueba que no aparece en claro.
 
-Límite: sin cifrado de disco, quien tenga el equipo en la mano puede leer los datos aunque no sepa
-la contraseña (pendiente en `ROADMAP.md`).
+Límite: la contraseña de la cuenta no protege los datos si alguien se lleva el equipo; para eso está
+el cifrado del disco, que el instalador propone de serie ([`cifrado.md`](cifrado.md)).
 
 ## Cómo funciona
 

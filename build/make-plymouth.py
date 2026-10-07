@@ -4,8 +4,8 @@ Firma de Command: el wordmark se revela de izquierda a derecha y después la bar
 desde la izquierda (28 fotogramas, ~1,1 s). Capa HUD (docs/DISENO.md): un cursor cian marca el
 borde del revelado y en tres fotogramas hay un glitch (franjas desplazadas + aberración
 cromática roja/cian). El último fotograma queda limpio.
-Salida: os/branding/plymouth/command/frame-N.png, px-red.png y px-dim.png (estos dos últimos son
-la barra de progreso de la consola de arranque de command.script).
+Salida: os/branding/plymouth/command/frame-N.png y los píxeles px-*.png (la barra de progreso y el
+campo de la contraseña del disco de command.script).
 Van a doble resolución (wordmark de 1280 px): command.script los reduce al tamaño de cada pantalla,
 así se ven nítidos también en alta densidad y en 4K.
 """
@@ -24,6 +24,7 @@ SIGNAL_RED = (165, 21, 0, 255)  # barra del logo: no se recolorea (ancla 1)
 RED = (209, 52, 73, 255)  # rojo 2077 del HUD
 CYAN = (91, 191, 196)
 STEEL = (46, 38, 48, 255)
+BONE = (237, 235, 230, 255)
 GLITCH = {5: 1, 11: 2, 20: 3}  # fotograma -> semilla
 PAD = 16 * S  # margen transparente para que quepan el halo y los desplazamientos del glitch
 
@@ -86,6 +87,9 @@ for i in range(REVEAL + BAR):
     n += 1
 print(n, "fotogramas", W + 2 * PAD, "x", H + 2 * PAD)
 
-# Píxeles sueltos para la barra de progreso del script (se escalan en Plymouth).
+# Píxeles sueltos que el script escala en Plymouth: la barra de progreso (rojo sobre Steel) y el
+# campo de la contraseña del disco (puntos en hueso, cursor cian).
 Image.new("RGBA", (1, 1), RED).save(OUT / "px-red.png")
 Image.new("RGBA", (1, 1), STEEL).save(OUT / "px-dim.png")
+Image.new("RGBA", (1, 1), BONE).save(OUT / "px-bone.png")
+Image.new("RGBA", (1, 1), CYAN + (255,)).save(OUT / "px-cyan.png")

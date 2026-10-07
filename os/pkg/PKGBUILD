@@ -42,6 +42,10 @@ package() {
   install -d "${d}/usr/share/libalpm/hooks"
   install -m 644 "${s}"/hooks/*.hook "${d}/usr/share/libalpm/hooks/"
 
+  # --- Initramfs: contraseña del disco cifrado dentro del splash (lo usa install.sh si hace falta) ---
+  install -Dm 644 "${s}/initcpio/hooks/command-os-cifrado" "${d}/usr/lib/initcpio/hooks/command-os-cifrado"
+  install -Dm 644 "${s}/initcpio/install/command-os-cifrado" "${d}/usr/lib/initcpio/install/command-os-cifrado"
+
   # --- Marca: logo, fondos, sonidos, fuentes, identidad del sistema ---
   install -d "${d}/usr/share/command-os/"{logo,wallpapers,sounds,fastfetch,identity,grub}
   install -m 644 "${s}"/branding/grub/*.png "${d}/usr/share/command-os/grub/"

@@ -29,12 +29,13 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
 ## Estructura
 
 - `os/` — el producto. El sistema es el paquete de pacman `command-os` (`pkg/PKGBUILD`): depende de
-  `packages.txt` y lleva scripts (`bin/`, `lib/`), ganchos de pacman (`hooks/`), marca
+  `packages.txt` y lleva scripts (`bin/`, `lib/`), ganchos de pacman (`hooks/`) y del initramfs
+  (`initcpio/`: la contraseña del disco cifrado en el splash), marca
   (`branding/`), configuración de serie (`dotfiles/`, `system/`) y la fecha validada de Arch y la
   clave de firma (`pacman/`). `install.sh` prepara la máquina, construye el paquete y lo instala;
   las actualizaciones llegan después por pacman. Cómo funciona todo: [`docs/actualizaciones.md`](docs/actualizaciones.md).
 - `tests/` y `.github/workflows/` — pruebas automáticas (sesión real sin pantalla, escala de las
-  pantallas, discos del instalador) en
+  pantallas, discos y cifrado del instalador) en
   cada cambio y cada día, publicación firmada del paquete y validación de fechas de Arch.
 - `build/packer/` — pipeline de build desatendido para la VM de desarrollo
   (QEMU, x86_64). Particiona disco, instala Arch base y corre
@@ -42,7 +43,8 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
 - `build/x86/` — instalación en un PC con el asistente `instalar.sh`: junto a Windows
   (`install-dualboot.sh`) o como sistema principal en el disco entero (`install-disco.sh`); guía en
   [`docs/instalacion.md`](docs/instalacion.md). También la imagen para probar desde un USB
-  (`build-image.sh`). Raíz en btrfs con instantáneas (`lib.sh`) y el Arch de la fecha validada.
+  (`build-image.sh`). Raíz en btrfs con instantáneas (`lib.sh`), disco cifrado con LUKS2 si se quiere
+  ([`docs/cifrado.md`](docs/cifrado.md)) y el Arch de la fecha validada.
 - `build/iso/` — ISOs descargadas (no versionadas, ver `.gitignore`).
 
 ## Flujo de desarrollo (VM x86_64 en QEMU)

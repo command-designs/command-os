@@ -50,8 +50,11 @@ lsblk -o NAME,SIZE,MODEL          # identificar el disco interno (normalmente nv
 bash command-os/build/x86/install-dualboot.sh /dev/nvme0n1
 ```
 
-El script enseña el disco, comprueba que hay un hueco libre de ≥30 GB y pide escribir `SI` antes de
-tocar nada. Tarda 10–20 min (descarga ~2 GB de paquetes). Detecta solo si hay GPU NVIDIA.
+El script comprueba que hay un hueco libre de ≥30 GB, pregunta si **cifrar** Command OS (sí por
+defecto: contraseña y clave de recuperación, [`cifrado.md`](cifrado.md)), enseña el disco y pide
+escribir `SI` antes de tocar nada. Cifrado, en el hueco van dos particiones: `/boot` de 1 GiB sin
+cifrar y el resto en LUKS2; Windows (y su BitLocker) no se toca. Tarda 10–20 min (descarga ~2 GB de
+paquetes). Detecta solo si hay GPU NVIDIA.
 
 Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash ...`):
 
@@ -61,12 +64,14 @@ Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash ...`):
 | `TIMEZONE` | `Europe/Madrid` | Zona horaria |
 | `HOSTNAME_NEW` | `command-os` | Nombre del equipo |
 | `VARIANT` | auto | `pc-nvidia` si hay GPU NVIDIA; vacío en Intel/AMD |
+| `CIFRADO` | pregunta | `si` o `no`: no pregunta si cifrar |
 
 Al terminar: `reboot`, y quita el USB cuando se apague la pantalla.
 
 ## 4. Primer arranque
 
 - Sale el menú de GRUB 5 s: **Command OS Linux** (por defecto) o **Windows**.
+- Si se cifró: la contraseña del disco en la pantalla de arranque de Command OS (Windows no la pide).
 - El asistente de primer arranque pide tu cuenta (usuario y contraseña) y si quieres entrar sin
   contraseña al encender (en un portátil, mejor no). Ver `docs/cuentas.md`.
 - Wifi: `nmtui` en una terminal.
@@ -83,7 +88,8 @@ Al terminar: `reboot`, y quita el USB cuando se apague la pantalla.
   `bcdedit /set "{bootmgr}" path \EFI\Microsoft\Boot\bootmgfw.efi`.
 - **El reloj de Windows se desfasa**: no debería; el instalador deja Linux con el reloj del equipo
   en hora local, como Windows (`/etc/adjtime` → `LOCAL`).
-- **Volver a dejar solo Windows**: en Administración de discos, borrar la partición `command-os`;
+- **Volver a dejar solo Windows**: en Administración de discos, borrar la partición `command-os` (y
+  `command-os-boot` si se cifró);
   en PowerShell como administrador, `mountvol S: /s` y borrar `S:\EFI\command-os`.
 
 ## Qué se ha probado
