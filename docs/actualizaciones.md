@@ -98,10 +98,46 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
 - Publicación: `.github/workflows/publicar.yml`, en cada cambio de `os/` en `main`. Secretos:
   `COMMAND_OS_GPG_KEY` y `COMMAND_OS_VERSIONS_TOKEN` (token con escritura en el repositorio público).
 
-## 7. Pruebas automáticas (`tests/escritorio.sh`, `.github/workflows/pruebas.yml`)
+## 7. Aviso de actualizaciones en el escritorio
+
+Una comprobación periódica **sin tocar el sistema** y un aviso en la barra de Waybar. Instalar sigue
+siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
+
+| Pieza | Qué hace |
+| --- | --- |
+| `command-os-check-updates.timer` | 10 min después de arrancar y cada 6 h (retraso al azar de hasta 15 min); lanza `command-os-check-updates@auto.service`. Se activa una sola vez (`lib/apply-system`, marca `/var/lib/command-os/aviso-actualizaciones`): si el usuario lo desactiva, las actualizaciones no lo vuelven a activar. |
+| `command-os-check-updates@.service` | `lib/check-updates` como root, con el sistema de archivos en solo lectura (solo escribe `/var/lib/command-os` y `/var/cache/command-os`). La instancia es el modo: `auto` o `manual`. |
+| `lib/check-updates` | Ejecuta `checkupdates` (pacman-contrib: sincroniza una **copia** de la base de datos en `/var/cache/command-os/checkup-db`, no la real) y guarda el resultado en `/var/lib/command-os/updates`: primera línea la hora, después `paquete antes -> después`. Si falla, conserva el resultado anterior; si falla con una copia mala, la borra y reintenta de cero. En `auto` no hace nada con una conexión de datos medidos (NetworkManager); `manual` comprueba siempre. |
+| `hooks/command-os-updates.hook` | Tras cada operación de pacman vuelve a comprobar (`lib/refresh-updates`; solo con systemd en marcha y fuera de un chroot): el aviso no enseña lo que ya está instalado. |
+| `os/system/polkit-check-updates.rules` | Quien está en el equipo (sesión local y activa) puede lanzar `command-os-check-updates@manual.service`, y solo esa unidad, sin contraseña. |
+| `os/bin/command-os-updates` | `status` (JSON para Waybar), `update`, `check`, `notify`, `watch` (autostart de labwc). |
+
+- **Barra:** oculta si no hay nada. `upd N` (N = command-os más el resto); el número va en ámbar si hay
+  versión nueva de command-os. Tooltip con las versiones, la lista de paquetes y cuándo se comprobó.
+  Si pacman cambió algo **después** de la comprobación, el módulo se oculta hasta la siguiente (lo que
+  decía ya no vale).
+- **Clic:** abre kitty con `command-os-update` (`sudo` pide la contraseña, pacman pregunta antes de
+  instalar, la terminal espera Intro para cerrarse; si ya hay una abierta, avisa). **Clic derecho:**
+  comprueba ahora y lo cuenta en una notificación.
+- **Notificación:** una sola por cada versión nueva de command-os (la última avisada queda en
+  `~/.local/state/command-os/updates-notified`); clic en ella = actualizar. Los paquetes sueltos de
+  Arch solo salen en la barra: con Arch del día cambian a diario y avisar sería ruido.
+- **Con la fecha validada (x86):** una versión nueva de command-os trae una fecha nueva de Arch, así que
+  los paquetes de esa fecha solo se ven tras instalarla; el tooltip lo dice.
+- **Al terminar `command-os-update`** avisa si hay que reiniciar (los módulos del kernel en marcha ya
+  no están en el disco).
+- **Probar a mano:** `systemctl start command-os-check-updates@manual.service` y `cat
+  /var/lib/command-os/updates`. Para simular una versión nueva, construir dos versiones con
+  `COMMAND_OS_PKGVER` y poner la nueva en un repositorio local fuera de `/tmp` (la unidad tiene su
+  propio `/tmp`) con `SigLevel = Optional TrustAll`. Si se cambia de repositorio, borrar los `.sig` viejos
+  de `/var/lib/pacman/sync` o pacman da «signature is invalid».
+
+## 8. Pruebas automáticas (`tests/*.sh`, `.github/workflows/pruebas.yml`)
 
 En cada cambio y cada día: sintaxis y shellcheck de los scripts, y una sesión real de labwc sin
 pantalla con el paquete instalado (labwc lee su configuración sin errores; Waybar, mako, hypridle y
 el fondo arrancan; las configuraciones de hyprlock son válidas; captura de pantalla en los
 artefactos). Se ejecuta contra el Arch de la fecha validada (lo que tienen los equipos) y contra el
 Arch del día (lo que llegará): si la del día falla, no se valida una fecha nueva hasta arreglarlo.
+Además: `tests/cuentas.sh` (entrada al equipo) y `tests/actualizaciones.sh` (lo que enseña la barra, la
+comprobación con un `checkupdates` de mentira, las unidades de systemd), sin red ni pantalla.

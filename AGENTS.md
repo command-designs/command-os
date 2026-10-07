@@ -22,14 +22,15 @@ que no es web (§ 12 para dispositivos).
 roturas, Arch de una fecha validada (x86), btrfs con instantáneas y pruebas automáticas en GitHub
 Actions. **Cómo funciona y por qué: `docs/actualizaciones.md` (leerlo antes de tocar la
 instalación).** Desde el 2026-10-07 no hay cuenta de serie: greetd con asistente de primer arranque,
-pantalla de inicio de sesión propia e inicio automático opcional (`docs/cuentas.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+pantalla de inicio de sesión propia e inicio automático opcional (`docs/cuentas.md`). La barra avisa
+de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualizaciones.md` § 7). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
 
 | Si vas a tocar… | Lee |
 | --- | --- |
-| paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
+| paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd | `docs/cuentas.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
@@ -56,6 +57,9 @@ usuario); ARM, aparcado hasta tener la placa.
   tener el hardware del cyberdeck. Lo ya escrito para el Pi (`cmdline.txt`) se deja como está.
 - tty1 es de greetd: para una sesión nueva, `systemctl restart greetd` (no `getty@tty1`). Si la entrada
   falla, tty2 es la consola de emergencia. `deck`/`deck` es solo de desarrollo (`COMMAND_OS_DEV_USER`).
+- Aviso de actualizaciones: nunca `pacman -Sy` para mirar (usa `checkupdates`, copia de la base de datos).
+  La unidad tiene su propio `/tmp` y sistema de archivos de solo lectura: un repositorio de prueba
+  `file://` va fuera de `/tmp`. Waybar oculta el módulo solo si el texto del JSON va vacío.
 - VirtualBox: **nunca `snapshot take --live`** con la VM encendida: la deja congelada (pasó con
   `command-os-x86`). Instantáneas con la VM apagada.
 

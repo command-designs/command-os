@@ -1,0 +1,13 @@
+# Command OS: tras instalar, actualizar o quitar paquetes, el aviso de actualizaciones del escritorio
+# se vuelve a comprobar (si no, seguiría enseñando lo que ya está instalado).
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Command OS: actualizando el aviso de actualizaciones
+When = PostTransaction
+Exec = /usr/lib/command-os/refresh-updates

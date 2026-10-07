@@ -15,3 +15,10 @@ if pacman -Si command-os >/dev/null 2>&1; then
 fi
 /usr/lib/command-os/apply-repos
 pacman -Syu "$@"
+
+# Si se actualizó el kernel, el que está en marcha ya no tiene sus módulos en el disco (Arch los
+# borra): hay que reiniciar para estrenar el nuevo.
+if [[ ! -d "/usr/lib/modules/$(uname -r)" ]]; then
+  echo
+  echo "command-os: el kernel se ha actualizado; reinicia para terminar (systemctl reboot)."
+fi

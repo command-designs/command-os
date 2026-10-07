@@ -1,0 +1,9 @@
+#!/bin/sh
+# Command OS — vuelve a mirar las actualizaciones tras una operación de pacman (gancho
+# command-os-updates.hook), para que el aviso del escritorio no enseñe lo que ya está instalado.
+# Solo con systemd en marcha y fuera de un chroot (instalaciones de imagen, WSL): allí no hay nada que
+# avisar y `systemctl` hablaría con el sistema del anfitrión. No espera y nunca falla.
+[ -d /run/systemd/system ] || exit 0
+systemd-detect-virt --chroot --quiet && exit 0
+systemctl --no-block start command-os-check-updates@auto.service >/dev/null 2>&1
+exit 0

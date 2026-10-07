@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+# Command OS — aviso de actualizaciones en el escritorio. Solo lee lo que dejó la comprobación del
+# sistema (lib/check-updates, cada 6 horas); no toca pacman.
+#
+#   command-os-updates status   JSON para el módulo de Waybar (custom/updates): vacío si no hay nada
+#   command-os-updates update   abre una terminal con command-os-update (clic en la barra o en el aviso)
+#   command-os-updates check    comprueba ahora y lo cuenta (clic derecho en la barra)
+#   command-os-updates notify   notifica una vez cada versión nueva de command-os
+#   command-os-updates watch    lo anterior cada 10 minutos (lo lanza el autostart de labwc)
+set -uo pipefail
+
+STATE=${COMMAND_OS_UPDATES_STATE:-/var/lib/command-os/updates}
+PACMAN_LOCAL=${COMMAND_OS_PACMAN_LOCAL:-/var/lib/pacman/local}
+NOTIFIED="${XDG_STATE_HOME:-${HOME}/.local/state}/command-os/updates-notified"
+SIGNAL=8 # el mismo que "signal" del módulo en config.jsonc
+TAG=command-os-updates
+
+# Lee el estado en `comprobado` (segundos), `actual`/`nuevo` (versión de command-os instalada y
+# disponible; `nuevo` vacío si no hay), `otros` (cuántos paquetes más) y `lista` (una línea por
+# paquete, sin command-os). Falla si no hay comprobación o es anterior al último cambio de pacman
+# (algo se instaló después: lo que dice ya no vale).
+leer() {
+  comprobado=0 actual="" nuevo="" otros=0 lista=""
+  [[ -r "${STATE}" ]] || return 1
+  comprobado=$(head -n 1 "${STATE}")
+  [[ "${comprobado}" =~ ^[0-9]+$ ]] || return 1
+  local instalado
+  instalado=$(stat -c %Y "${PACMAN_LOCAL}" 2>/dev/null || echo 0)
+  (( comprobado >= instalado )) || return 1
+  local nombre antes _flecha despues
+  while read -r nombre antes _flecha despues; do
+    [[ -n "${nombre}" && -n "${despues}" ]] || continue
+    if [[ "${nombre}" == command-os ]]; then
+      actual=${antes%-*} nuevo=${despues%-*}
+    else
+      otros=$((otros + 1))
+      lista+="${nombre} ${antes} → ${despues}"$'\n'
+    fi
+  done < <(tail -n +2 "${STATE}")
+  return 0
+}
+
+# Hace cuánto, en palabras.
+hace() {
+  local s=$(( $(date +%s) - $1 ))
+  if (( s < 90 )); then echo "hace un momento"
+  elif (( s < 5400 )); then echo "hace $(( (s + 30) / 60 )) min"
+  elif (( s < 172800 )); then echo "hace $(( (s + 1800) / 3600 )) h"
+  else echo "hace $(( (s + 43200) / 86400 )) días"; fi
+}
+
+# Escapa para el marcado de Pango (Waybar) y para una cadena JSON (los nombres y versiones de paquete
+# no llevan comillas ni barras: se quitan por si acaso, \134 es la barra invertida).
+pango() { sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
+json() { tr -d '"\134' | awk 'BEGIN { ORS = "" } NR > 1 { print "\134n" } { print }'; }
+
+estado() {
+  if ! leer || { [[ -z "${nuevo}" ]] && (( otros == 0 )); }; then
+    printf '{"text": "", "tooltip": "", "class": "ninguna"}\n'
+    return
+  fi
+  local total=$(( otros + (${#nuevo} > 0 ? 1 : 0) )) clase=paquetes tip=""
+  if [[ -n "${nuevo}" ]]; then
+    clase=nueva
+    tip="command-os ${actual} → ${nuevo}"$'\n'
+    (( otros > 0 )) && tip+="y ${otros} paquetes más"$'\n'
+    if [[ "$(uname -m)" == x86_64 && ! -e /etc/command-os/rolling ]]; then
+      tip+="al actualizar se aplica también la fecha de Arch validada con esa versión"$'\n'
+    fi
+  else
+    tip="${otros} paquetes de Arch"$'\n'
+    tip+=$(printf '%s' "${lista}" | head -n 8)$'\n'
+    (( otros > 8 )) && tip+="… y $(( otros - 8 )) más"$'\n'
+  fi
+  tip+=$'\n'"comprobado $(hace "${comprobado}") · clic: actualizar · clic derecho: comprobar ahora"
+  printf '{"text": "<span color=\\"#5bbfc4\\">upd</span> %s", "tooltip": "%s", "class": "%s"}\n' \
+    "${total}" "$(printf '%s' "${tip}" | pango | json)" "${clase}"
+}
+
+avisar() { # avisar <texto> [urgencia]; sustituye al aviso anterior de este programa
+  notify-send --app-name "command os" --icon command-os --urgency "${2:-normal}" \
+    --hint "string:x-canonical-private-synchronous:${TAG}" "actualizaciones" "$1" 2>/dev/null || true
+}
+
+actualizar() {
+  if pgrep -u "$(id -u)" -f -- '--class command-os-update' >/dev/null; then
+    avisar "ya hay una actualización en marcha"
+    return
+  fi
+  # La terminal se queda abierta al terminar para leer el resultado; sudo pide la contraseña y
+  # pacman pregunta antes de instalar: no cambia nada sin que se confirme.
+  exec kitty --class command-os-update --title "actualizar command os" \
+    sh -c 'command-os-update; rc=$?; echo; printf "pulsa intro para cerrar "; read -r _; exit "$rc"'
+}
+
+comprobar() {
+  avisar "buscando actualizaciones…" low
+  if systemctl start command-os-check-updates@manual.service 2>/dev/null; then
+    pkill "-RTMIN+${SIGNAL}" -u "$(id -u)" -x waybar 2>/dev/null
+    if leer && { [[ -n "${nuevo}" ]] || (( otros > 0 )); }; then
+      avisar "hay actualizaciones: clic en la barra para instalarlas"
+    else
+      avisar "el sistema está al día"
+    fi
+  else
+    avisar "no se pudo comprobar (¿sin red?)"
+  fi
+}
+
+# Una vez por versión nueva de command-os (queda anotada en el estado de la cuenta). Solo ella: los
+# paquetes sueltos de Arch no avisan, solo salen en la barra. Con --wait la llamada espera a que el
+# aviso se cierre: el clic sobre él es la acción por defecto y abre la actualización.
+notificar() {
+  leer && [[ -n "${nuevo}" ]] || return 0
+  [[ "$(cat "${NOTIFIED}" 2>/dev/null)" == "${nuevo}" ]] && return 0
+  (
+    respuesta=$(notify-send --app-name "command os" --icon command-os --urgency normal --wait \
+      --action "default=actualizar" --hint "string:x-canonical-private-synchronous:${TAG}" \
+      "actualización disponible" "command-os ${nuevo} · clic para actualizar") || exit 0
+    mkdir -p "$(dirname "${NOTIFIED}")" && printf '%s\n' "${nuevo}" > "${NOTIFIED}"
+    [[ "${respuesta}" == default ]] && actualizar
+  ) &
+}
+
+vigilar() {
+  # Una sola instancia por sesión; el primer vistazo espera a que mako y Waybar estén listos.
+  exec 9> "${XDG_RUNTIME_DIR:-/tmp}/command-os-updates.lock"
+  flock -n 9 || exit 0
+  sleep 45
+  while :; do
+    notificar
+    sleep 600
+  done
+}
+
+case "${1:-}" in
+  status) estado ;;
+  update) actualizar ;;
+  check) comprobar ;;
+  notify) notificar; wait ;;
+  watch) vigilar ;;
+  *) echo "uso: command-os-updates <status|update|check|notify|watch>" >&2; exit 2 ;;
+esac

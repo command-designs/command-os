@@ -4,12 +4,6 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 `docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
 de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
-6. **Aviso de actualizaciones en el escritorio.** Hoy solo se actualiza con `update` en una terminal.
-   Comprobar en segundo plano (temporizador de systemd, sin tocar el sistema) si hay versión nueva de
-   `command-os` o de Arch, enseñarlo en la barra (Waybar) y, al pulsarlo, actualizar con
-   `command-os-update` en una terminal o un panel. Decidir antes: cada cuánto se mira y si se avisa
-   también con una notificación.
-   _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (módulo de Waybar y un temporizador).
 7. **Command OS como sistema principal** (disco entero, sin Windows). Hoy hay imagen para grabar en
    USB (`build-image.sh`) y dual boot (`install-dualboot.sh`), pero no un instalador al disco interno
    del equipo. Un modo «disco entero» del instalador (borra el disco, con confirmación clara), y probar
@@ -36,6 +30,9 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - Oír los sonidos (solo se ha verificado que no saturan).
 - Dual boot en un portátil real (entrada UEFI, BitLocker): `docs/dualboot.md`.
 - Diseño del objeto y anclas 6–8 de la marca: dependen del hardware.
+- Aviso de actualizaciones: un panel gráfico de actualización (hoy se abre `command-os-update` en una
+  terminal; ver `docs/decisiones.md`) y comprobar en un equipo con instantáneas que el aviso cuenta bien
+  tras volver atrás con `command-os-rollback`.
 - Cuentas (fuera del punto del primer arranque, `docs/cuentas.md`): cifrado de disco, añadir y
   gestionar más cuentas desde el escritorio, zona horaria en el asistente y un panel para cambiar la
   contraseña.

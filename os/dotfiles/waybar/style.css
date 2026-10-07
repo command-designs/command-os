@@ -135,16 +135,21 @@ tooltip label {
     color: @bone;
 }
 
-#network, #pulseaudio, #battery, #cpu, #temperature, #memory, #tray {
+#network, #pulseaudio, #battery, #cpu, #temperature, #memory, #tray, #custom-updates {
     transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1), background 200ms cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0 10px;
     color: @ash;
     border-left: 1px solid @steel;
 }
 
-#network:hover, #pulseaudio:hover, #cpu:hover, #memory:hover {
+#network:hover, #pulseaudio:hover, #cpu:hover, #memory:hover, #custom-updates:hover {
     color: @bone;
     background: @graphite;
+}
+
+/* Actualizaciones: apagado con paquetes sueltos, ámbar (aviso) con una versión nueva de command-os. */
+#custom-updates.nueva {
+    color: @yellow;
 }
 
 /* Umbrales: ámbar de aviso, rojo crítico. */

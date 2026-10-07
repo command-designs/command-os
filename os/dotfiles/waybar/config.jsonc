@@ -4,7 +4,7 @@
     "height": 30,
     "modules-left": ["custom/logo", "wlr/taskbar"],
     "modules-center": ["clock"],
-    "modules-right": ["ext/workspaces", "cpu", "temperature", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
+    "modules-right": ["custom/updates", "ext/workspaces", "cpu", "temperature", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
 
     // Etiqueta en cian (dato) + valor en hueso. Colores de docs/DISENO.md.
     // Logo como fondo CSS (#custom-logo en style.css): el módulo `image` de Waybar 0.15 se
@@ -13,6 +13,18 @@
         "format": " ",
         "tooltip-format": "aplicaciones",
         "on-click": "command-os-launcher"
+    },
+    // Aviso de actualizaciones: oculto si no hay nada (el script devuelve texto vacío). Solo lee el
+    // archivo que deja la comprobación del sistema (lib/check-updates, cada 6 horas y tras cada
+    // operación de pacman): cada minuto no cuesta nada. La señal 8 lo refresca al momento. Clic: actualizar en una terminal; clic derecho: comprobar ahora.
+    "custom/updates": {
+        "exec": "command-os-updates status",
+        "return-type": "json",
+        "format": "{}",
+        "interval": 60,
+        "signal": 8,
+        "on-click": "command-os-updates update",
+        "on-click-right": "command-os-updates check"
     },
     // Escritorios por el protocolo estándar ext-workspace (labwc lo implementa). Solo se ven si hay
     // más de uno (style.css oculta el botón cuando está solo); se crean y quitan con

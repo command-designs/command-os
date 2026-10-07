@@ -1,0 +1,11 @@
+// Command OS: quien está sentado en el equipo (sesión local y activa) puede pedir una comprobación de
+// actualizaciones a mano, sin contraseña: solo esa unidad y solo «start». Instalar de verdad sigue
+// pidiendo sudo (command-os-update).
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.systemd1.manage-units" &&
+        action.lookup("unit") == "command-os-check-updates@manual.service" &&
+        action.lookup("verb") == "start" &&
+        subject.local && subject.active) {
+        return polkit.Result.YES;
+    }
+});
