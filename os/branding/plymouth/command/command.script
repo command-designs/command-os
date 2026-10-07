@@ -97,7 +97,8 @@ fun push_line(msg) {
 
 Plymouth.SetMessageFunction(push_line);
 Plymouth.SetUpdateStatusFunction(push_line);
-push_line("cmd-os: iniciando sistema");
+# Neutra (como cpu, mem o net en la barra): el tema no sabe el idioma; el resto de líneas son de systemd.
+push_line("cmd-os: init");
 
 fun boot_progress_callback(time, progress) {
     if (!booting) return;
@@ -134,15 +135,20 @@ Plymouth.SetKeyboardInputFunction(key_callback);
 # --- Contraseña del disco cifrado ---------------------------------------------------
 # La pide el gancho command-os-cifrado del initramfs (os/initcpio). En el sitio de la consola: el
 # texto, una línea de campo y un cuadradito hueso por carácter (no se ve cuántos hay a partir de
-# DOT_MAX) con el cursor cian detrás. Los dos textos del gancho van como imágenes en JetBrains Mono
-# (build/make-plymouth-textos.py): en el initramfs, Image.Text pinta la ñ y las tildes como cuadrados.
-# Se reconocen por su contenido («incorrecta», «del disco»); cualquier otro, con Image.Text.
+# DOT_MAX) con el cursor cian detrás. Los dos textos del gancho van como imágenes en JetBrains Mono,
+# una por idioma (build/make-plymouth-textos.py): en el initramfs, Image.Text pinta la ñ y las tildes
+# como cuadrados. Plymouth no sabe el idioma: el gancho manda el texto en el del sistema (parámetro
+# command-os.idioma=) y aquí se reconoce por su contenido; cualquier otro, con Image.Text.
 px_bone = Image("px-bone.png");
 px_cyan = Image("px-cyan.png");
-src = Image("texto-clave.png");
-img_prompt = src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
-src = Image("texto-clave-mala.png");
-img_wrong = src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
+fun texto_imagen(nombre) {
+    src = Image(nombre);
+    return src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
+}
+img_prompt_es = texto_imagen("texto-clave.es.png");
+img_wrong_es = texto_imagen("texto-clave-mala.es.png");
+img_prompt_en = texto_imagen("texto-clave.en.png");
+img_wrong_en = texto_imagen("texto-clave-mala.en.png");
 DOT = Math.Int(7 * K + 0.5);
 DOT_GAP = DOT;
 DOT_MAX = Math.Int(logo_w / (DOT + DOT_GAP)) - 2;
@@ -175,10 +181,15 @@ fun contains(text, word) {
 
 fun display_password_callback(prompt, bullets) {
     show_log(0);
+    # Los textos de os/initcpio/hooks/command-os-cifrado (textos_cifrado), en cada idioma.
     if (contains(prompt, "incorrecta")) {
-        prompt_sprite.SetImage(img_wrong);
+        prompt_sprite.SetImage(img_wrong_es);
+    } else if (contains(prompt, "Wrong password")) {
+        prompt_sprite.SetImage(img_wrong_en);
+    } else if (contains(prompt, "Disk password")) {
+        prompt_sprite.SetImage(img_prompt_en);
     } else if (prompt == "" || contains(prompt, "del disco")) {
-        prompt_sprite.SetImage(img_prompt);
+        prompt_sprite.SetImage(img_prompt_es);
     } else {
         if (prompt.Length() > LOG_MAX) prompt = prompt.SubString(0, LOG_MAX);
         prompt_sprite.SetImage(Image.Text(prompt, 0.93, 0.92, 0.90, 1, FONT));

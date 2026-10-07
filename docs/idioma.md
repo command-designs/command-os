@@ -17,9 +17,9 @@ asistente de primer arranque o cualquier texto que se traduzca.
   mensajes de `crear-cuenta`, **el escritorio entero** (barra y su aviso de actualizaciones, menús de
   labwc, paneles «atajos», «acerca de» y energía, fondos, pantalla de bloqueo, notificaciones de
   capturas, escritorios y bloqueo fallido), **las órdenes de terminal** (`command-os-update`,
-  `-rollback`, `-login`, `-idioma`: sus mensajes salen en el idioma de la sesión que las lanza) y los
-  programas que traen su propia traducción (GTK, Firefox…). Sigue en castellano lo que está en
-  `ROADMAP.md` (el texto del splash y el instalador), el `motd` (no se ve: las cuentas llevan
+  `-rollback`, `-login`, `-idioma`: sus mensajes salen en el idioma de la sesión que las lanza), **la
+  contraseña del disco cifrado en el splash** y los programas que traen su propia traducción (GTK,
+  Firefox…). Sigue en castellano lo que está en `ROADMAP.md` (el instalador), el `motd` (no se ve: las cuentas llevan
   `.hushlogin`) y los registros y diagnósticos de administración (`logger`, avisos de `apply-*`, uso de
   las órdenes internas).
 - **Confirmar un `command-os-rollback`:** se escribe la palabra que dice el aviso: `SI` en castellano,
@@ -35,7 +35,9 @@ asistente de primer arranque o cualquier texto que se traduzca.
 | `command-os-idioma` | La única forma de cambiar el idioma. Lista de idiomas, genera el locale si falta (`/etc/locale.gen` + `locale-gen`), cambia `LANG` en `/etc/locale.conf` (conserva el resto; nunca lo deja a medias) y ejecuta `apply-boot`. |
 | `lib/crear-cuenta --idioma` | El asistente pasa el idioma elegido; se aplica después de crear la cuenta y, si falla, la cuenta se deshace. |
 | `lib/entorno-grafico` | Lee `LANG` y `LC_*` de `/etc/locale.conf` al abrir cada pantalla (asistente, inicio de sesión, sesión). systemd solo lo lee al arrancar. |
-| `lib/apply-boot` | Genera el menú de GRUB con el `LANG` del sistema («Opciones avanzadas…») y los textos del tema (cuenta atrás y ayuda de teclas) traducidos. |
+| `lib/apply-boot` | Genera el menú de GRUB con el `LANG` del sistema («Opciones avanzadas…») y los textos del tema (cuenta atrás y ayuda de teclas) traducidos, y pone `command-os.idioma=es\|en` en `GRUB_CMDLINE_LINUX` (la Pi, aparcada, no lo lleva: sale en castellano). |
+| `initcpio/hooks/command-os-cifrado` | Lee `command-os.idioma=` de la línea del kernel (el initramfs no tiene `locale.conf` ni gettext) y pide la contraseña del disco en ese idioma; sin el parámetro, en castellano. Sus textos van escritos en cada idioma (`textos_cifrado`). |
+| `branding/plymouth/command/texto-clave*.<idioma>.png` | Los textos de la contraseña en el splash, como imágenes (la ñ y las tildes no se ven en el initramfs). Los genera `build/make-plymouth-textos.py` desde `os/po/`; `command.script` elige la del idioma por el texto que le manda el gancho. |
 | `os/po/<idioma>.po` | Las traducciones. El `PKGBUILD` las compila a `/usr/share/locale/<idioma>/LC_MESSAGES/command-os.mo`. |
 | `lib/textos.sh` | `t` y `tn` para los scripts de shell (bash y sh). Se carga con `source`. |
 | `lib/traducir.py` | Traductor sin GTK: `traductor()` para Python y dos modos para archivos de configuración que no pueden llamar a gettext: `plantilla` (los `{{textos}}`) y `etiquetas` (los `label="…"` de un menú XML). |
@@ -67,6 +69,9 @@ en los archivos de configuración, `{{texto}}` (Waybar, hyprlock) o la propia et
 2. `os/po/<código>.po` (copiar `en.po`, cambiar `Language:` y traducir).
 3. Generar su locale en los instaladores (`build/x86/lib.sh`, `build/x86/build-image.sh`) para que
    elegirlo en el asistente no tarde. Si no, `command-os-idioma` lo genera al elegirlo (unos segundos).
+4. Splash del disco cifrado: `python build/make-plymouth-textos.py` (sus imágenes) y los textos del
+   idioma en `textos_cifrado` de `os/initcpio/hooks/command-os-cifrado`, con una palabra que
+   `command.script` reconozca (`display_password_callback`). `tests/idioma.sh` lo comprueba.
 
 ## Cómo se ha probado
 
@@ -85,6 +90,11 @@ en los archivos de configuración, `{{texto}}` (Waybar, hyprlock) o la propia et
   `lib/menus-labwc`, `t`/`tn` en los dos idiomas y el aviso de actualizaciones. Las órdenes de
   terminal, con `LANG` en cada idioma: errores y estado de `command-os-idioma`, modo de
   `command-os-login`, error de `command-os-rollback` (sin instantáneas) y su palabra de confirmación.
+- Splash del disco cifrado (2026-10-07), VM `command-os-instalador` instalando en un disco temporal
+  con cifrado: sin el parámetro, «contraseña del disco · o la clave de recuperación» y
+  «desbloqueando el disco»; tras elegir inglés en el asistente, `command-os.idioma=en` en
+  `GRUB_CMDLINE_LINUX` y, al reiniciar, «disk password · or the recovery key», «wrong password · type
+  it again» con una mala, «unlocking the disk» y arranque hasta la pantalla de inicio de sesión.
 - Sin probar: verlo en un PC real (lo mismo que la VM salvo la pantalla).
 
 **Decisiones** (con lo descartado, en `docs/decisiones.md`): gettext y no un diccionario propio;

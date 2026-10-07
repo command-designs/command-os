@@ -37,6 +37,12 @@ t() {  # t TEXTO -> traducido al idioma del sistema (os/po/) o el original
   LC_ALL=${LANG_SISTEMA:-C} LANGUAGE="" TEXTDOMAIN=command-os TEXTDOMAINDIR=/usr/share/locale \
     gettext -- "$1" 2>/dev/null || printf '%s' "$1"
 }
+# El gancho del disco cifrado (os/initcpio/hooks/command-os-cifrado) pide la contraseña en el idioma
+# del sistema, pero el initramfs no lee locale.conf (y rehacerlo en cada cambio de idioma tarda): se le
+# pasa en la línea del kernel, command-os.idioma=es|en. Sin el parámetro, castellano.
+idioma=${LANG_SISTEMA%%_*}
+[[ "${idioma}" =~ ^[a-z]{2,3}$ ]] || idioma=es
+IDIOMA_ARG="command-os.idioma=${idioma}"
 THEME_FONT=/usr/share/fonts/TTF/JetBrainsMonoNLNerdFont-Regular.ttf
 # Latín, puntuación, flechas y cajas (el editor y la consola de GRUB dibujan recuadros).
 FONT_RANGES=0x20-0x7E,0xA0-0x17F,0x2010-0x2027,0x2190-0x2193,0x2500-0x257F
@@ -147,6 +153,16 @@ add_args() {  # add_args "línea actual" -> añade los SILENT_ARGS que falten (n
   printf '%s' "${line}"
 }
 
+con_idioma() {  # con_idioma "línea" -> la línea con un solo command-os.idioma=, el del sistema
+  local -a args
+  local arg out=""
+  read -ra args <<< "$1"
+  for arg in "${args[@]}"; do
+    [[ "${arg}" == command-os.idioma=* ]] || out="${out:+${out} }${arg}"
+  done
+  printf '%s' "${out:+${out} }${IDIOMA_ARG}"
+}
+
 if [[ -f /etc/default/grub ]]; then
   set_grub() {  # set_grub CLAVE 'valor' — reemplaza o añade
     if grep -qE "^#?${1}=" /etc/default/grub; then
@@ -199,6 +215,10 @@ if [[ -f /etc/default/grub ]]; then
   set_grub GRUB_COLOR_HIGHLIGHT '"light-red/black"'
   current=$(sed -nE 's/^GRUB_CMDLINE_LINUX_DEFAULT="(.*)"/\1/p' /etc/default/grub)
   set_grub GRUB_CMDLINE_LINUX_DEFAULT "\"$(add_args "${current}")\""
+  # El idioma, en GRUB_CMDLINE_LINUX (como cryptdevice=): también lo llevan las entradas de
+  # recuperación y las de las instantáneas, que también piden la contraseña del disco.
+  current=$(sed -nE 's/^GRUB_CMDLINE_LINUX="(.*)"/\1/p' /etc/default/grub)
+  set_grub GRUB_CMDLINE_LINUX "\"$(con_idioma "${current}")\""
   # Sin "Loading Linux ..." / "Loading initial ramdisk ...".
   if [[ -f /etc/grub.d/10_linux ]]; then
     sed -i '/echo.*"\$message"/d' /etc/grub.d/10_linux

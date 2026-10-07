@@ -95,6 +95,15 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   (`LANG` de quien las lanza; sudo lo conserva). La confirmación de `command-os-rollback` es una palabra
   traducida (`SI`/`YES`) que se enseña en el mismo aviso: no se acepta la de otro idioma, para que lo
   que se pide y lo que se compara no puedan desparejarse. El `motd` queda sin traducir: no se muestra.
+- **El idioma del splash va en la línea del kernel (`command-os.idioma=`), no en el initramfs.** El
+  gancho del disco cifrado lo lee de `/proc/cmdline` y pide la contraseña en ese idioma; el tema lleva
+  las imágenes de todos los idiomas y elige por el texto que recibe. Cambiar de idioma solo rehace el
+  menú de GRUB, que `command-os-idioma` ya rehacía. Va en `GRUB_CMDLINE_LINUX` (como `cryptdevice=`)
+  para que también lo lleven las entradas de recuperación y de instantáneas. Descartado: copiar la
+  imagen del idioma al tema y rehacer el initramfs (sobrescribe archivos del paquete y tarda decenas
+  de segundos en cada cambio, también en el asistente) y que Plymouth lo averigüe (su lenguaje no
+  lee archivos ni la línea del kernel). Las imágenes salen de `os/po/` con
+  `build/make-plymouth-textos.py`, así `tests/idioma.sh` también vigila esas traducciones.
 - **Las capturas pasan de un `sh -c` incrustado en `rc.xml` a `command-os-captura`**, para poder
   traducir el aviso (y porque el XML escapado era ilegible).
 

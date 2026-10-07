@@ -13,7 +13,7 @@ set -euo pipefail
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 PO="${REPO}/os/po"
 # Archivos con textos traducibles: Python con _() y N_(); shell con t y tn (lib/textos.sh).
-PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py)
+PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py build/make-plymouth-textos.py)
 SHELL_=(
   os/lib/crear-cuenta os/lib/apply-boot
   os/bin/command-os-{about,captura,desktops,idioma,keys,lock,login,power,rollback,status,update,updates,wallpaper}
