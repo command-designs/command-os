@@ -42,4 +42,19 @@ fi
 /usr/lib/command-os/apply-login || warn "no se pudo configurar la entrada al equipo"
 # Fecha validada de Arch y repositorio de Command OS (la fecha puede venir nueva con el paquete).
 /usr/lib/command-os/apply-repos || warn "no se pudieron ajustar los repositorios"
+
+# Comprobación periódica de actualizaciones: se activa una sola vez (marca en /var/lib/command-os);
+# si el usuario la desactiva con `systemctl disable`, una actualización no la vuelve a activar. Solo se
+# arranca con systemd en marcha y fuera de un chroot (allí `systemctl` hablaría con el anfitrión).
+if [[ ! -e /var/lib/command-os/aviso-actualizaciones ]]; then
+  if systemctl enable command-os-check-updates.timer >/dev/null 2>&1; then
+    install -d /var/lib/command-os
+    touch /var/lib/command-os/aviso-actualizaciones
+    if [[ -d /run/systemd/system ]] && ! systemd-detect-virt --chroot --quiet; then
+      systemctl start --no-block command-os-check-updates.timer >/dev/null 2>&1 || true
+    fi
+  else
+    warn "no se pudo activar la comprobación de actualizaciones"
+  fi
+fi
 exit 0

@@ -51,6 +51,9 @@ jobs:
       - name: Entrada al equipo (cuentas, greetd, migración)
         run: bash tests/cuentas.sh
 
+      - name: Aviso de actualizaciones (barra, comprobación, unidades)
+        run: bash tests/actualizaciones.sh
+
       - name: Resultados (registros y captura)
         if: always()
         uses: actions/upload-artifact@v4

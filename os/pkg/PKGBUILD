@@ -97,5 +97,13 @@ package() {
   install -Dm 440 "${s}/system/sudoers-wheel" "${d}/etc/sudoers.d/10-command-os-wheel"
   install -Dm 644 "${s}/branding/greeter/command.css" "${d}/usr/share/command-os/greeter/command.css"
 
+  # --- Aviso de actualizaciones: comprobación periódica (systemd) y permiso de polkit para la manual ---
+  install -Dm 644 "${s}/system/command-os-check-updates@.service" \
+    "${d}/usr/lib/systemd/system/command-os-check-updates@.service"
+  install -Dm 644 "${s}/system/command-os-check-updates.timer" \
+    "${d}/usr/lib/systemd/system/command-os-check-updates.timer"
+  install -Dm 644 "${s}/system/polkit-check-updates.rules" \
+    "${d}/usr/share/polkit-1/rules.d/50-command-os-check-updates.rules"
+
   echo "${pkgver}" > "${d}/usr/share/command-os/version"
 }

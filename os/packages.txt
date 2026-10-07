@@ -39,6 +39,8 @@ swaylock
 btrfs-progs
 snapper
 snap-pac
+# checkupdates: mira si hay actualizaciones sin tocar la base de datos de pacman (aviso del escritorio).
+pacman-contrib
 wlopm
 # Teclado virtual: command-os-desktops lo usa para saltar al escritorio recién creado.
 wtype

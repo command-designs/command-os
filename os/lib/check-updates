@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Command OS — mira si hay actualizaciones, sin tocar el sistema. Lo lanza el temporizador
+# command-os-check-updates.timer (modo «auto»), el gancho de pacman tras cada operación («auto») y
+# el clic derecho del aviso del escritorio («manual»). Corre como root dentro de la unidad de systemd
+# (command-os-check-updates@.service, con el sistema de archivos de solo lectura salvo su estado).
+#
+#   check-updates [auto|manual]
+#   auto    no hace nada con una conexión de datos medidos (NetworkManager la marca como medida o
+#           «probablemente medida»): una comprobación gasta poco, pero no se gasta sin que lo pidan.
+#   manual  comprueba siempre.
+#
+# `checkupdates` (pacman-contrib) sincroniza una copia de la base de datos de pacman, no la real, así
+# que no mezcla paquetes de días distintos ni deja el equipo a medias. Con la fecha validada de Arch
+# (docs/actualizaciones.md) lee los repositorios de esa fecha más el repositorio de Command OS: una
+# versión nueva de command-os es la que trae la fecha nueva.
+#
+# Resultado: $DIR/updates, escrito de golpe: primera línea la hora de la comprobación (segundos
+# desde 1970) y después una línea «paquete versión-actual -> versión-nueva» por actualización.
+# Lo lee command-os-updates (barra de Waybar y notificación).
+set -uo pipefail
+
+modo=${1:-auto}
+DIR=${COMMAND_OS_UPDATES_DIR:-/var/lib/command-os}
+export CHECKUPDATES_DB=${CHECKUPDATES_DB:-/var/cache/command-os/checkup-db}
+
+case "${modo}" in auto | manual) ;; *) echo "uso: check-updates [auto|manual]" >&2; exit 2 ;; esac
+
+if [[ "${modo}" == auto ]]; then
+  # Metered de NetworkManager: 1 = sí, 3 = probablemente sí.
+  medida=$(busctl get-property org.freedesktop.NetworkManager /org/freedesktop/NetworkManager \
+    org.freedesktop.NetworkManager Metered 2>/dev/null | awk '{ print $2 }')
+  if [[ "${medida}" == 1 || "${medida}" == 3 ]]; then
+    echo "command-os: conexión de datos medidos; no se comprueba (clic derecho en el aviso para hacerlo a mano)"
+    exit 0
+  fi
+fi
+
+install -d -m 755 "${DIR}" "$(dirname "${CHECKUPDATES_DB}")"
+tmp=$(mktemp "${DIR}/.updates.XXXXXX")
+trap 'rm -f "${tmp}"' EXIT
+
+buscar() {
+  date +%s > "${tmp}"
+  timeout 240 checkupdates --nocolor >> "${tmp}"
+}
+
+buscar
+rc=$?
+if (( rc == 1 )); then
+  # Sin red también da 1, pero una copia de la base de datos dañada o de otro servidor (firmas de un
+  # repositorio anterior) falla igual para siempre: se borra y se prueba una vez más de cero.
+  rm -rf "${CHECKUPDATES_DB}"
+  buscar
+  rc=$?
+fi
+case ${rc} in
+  0 | 2) ;; # 0: hay actualizaciones; 2: no hay
+  124) echo "command-os: la comprobación tardó demasiado" >&2; exit 1 ;;
+  *) echo "command-os: no se pudo comprobar (¿sin red?); se conserva el resultado anterior" >&2; exit 1 ;;
+esac
+
+chmod 644 "${tmp}"
+mv -f "${tmp}" "${DIR}/updates"
+trap - EXIT

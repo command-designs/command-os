@@ -1,0 +1,13 @@
+# Command OS: comprobar actualizaciones 10 minutos después de arrancar y cada 6 horas. El retraso al
+# azar evita que todos los equipos pregunten a la vez. Se activa con lib/apply-system.
+[Unit]
+Description=Command OS: comprobar actualizaciones cada 6 horas
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=6h
+RandomizedDelaySec=15min
+Unit=command-os-check-updates@auto.service
+
+[Install]
+WantedBy=timers.target
