@@ -20,7 +20,9 @@ while :; do
   source /usr/lib/command-os/entorno-grafico
   # Sin teclado elegido aún, el mismo que propone el asistente (lib/primer-arranque.py).
   export XKB_DEFAULT_LAYOUT=${XKB_DEFAULT_LAYOUT:-es}
-  cage -s -d -- python3 /usr/lib/command-os/primer-arranque.py
+  # Antes de abrir la ventana, la escala de la pantalla (alta densidad, command-os-pantallas).
+  cage -s -d -- sh -c 'command-os-pantallas aplicar; command-os-pantallas vigilar &
+exec python3 /usr/lib/command-os/primer-arranque.py'
   codigo=$?
   [[ ${codigo} -eq 3 ]] || break
 done

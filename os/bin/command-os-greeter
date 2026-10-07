@@ -4,4 +4,6 @@
 set -uo pipefail
 source /usr/lib/command-os/entorno-grafico
 export GTK_THEME=adw-gtk3:dark
-exec cage -s -d -- python3 /usr/lib/command-os/greeter.py
+# Antes de abrir la ventana, la escala de la pantalla (alta densidad, command-os-pantallas).
+exec cage -s -d -- sh -c 'command-os-pantallas aplicar; command-os-pantallas vigilar &
+exec python3 /usr/lib/command-os/greeter.py'

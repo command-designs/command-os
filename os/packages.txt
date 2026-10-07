@@ -45,6 +45,8 @@ wlopm
 # Teclado virtual: command-os-desktops lo usa para saltar al escritorio recién creado.
 wtype
 wdisplays
+# Escala de alta densidad y fondo según la pantalla (command-os-pantallas).
+wlr-randr
 swayosd
 cliphist
 playerctl

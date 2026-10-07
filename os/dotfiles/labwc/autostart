@@ -4,6 +4,9 @@
 # (si existe) o la de serie del paquete.
 
 # La cuenta la prepara command-os-session (command-os-user-setup) antes de lanzar labwc.
+# Primero la escala de cada pantalla: la barra y el fondo arrancan ya con su tamaño final.
+command-os-pantallas aplicar
+COMMAND_OS_FONDO=1 command-os-pantallas vigilar &
 command-os-wallpaper
 waybar --config "$(command-os-config waybar/config.jsonc)" --style "$(command-os-config waybar/style.css)" &
 mako --config "$(command-os-config mako/config)" &
