@@ -37,6 +37,21 @@ if [[ -f /etc/default/grub ]]; then
   for k in GRUB_DISABLE_BOOTNEXT=true GRUB_TIMEOUT_STYLE=hidden 'GRUB_DISTRIBUTOR="Command OS"'; do
     if grep -qxF "${k}" /etc/default/grub; then ok "GRUB: ${k}"; else mal "GRUB: falta ${k}"; fi
   done
+  # Tema de GRUB a la medida de la pantalla (sin pantalla en el contenedor: medidas de 1080 px).
+  tema=/boot/grub/themes/command
+  if [[ -s "${tema}/theme.txt" && -s "${tema}/cmd-menu.pf2" && -s "${tema}/logo.png" ]] \
+      && grep -qxF "GRUB_THEME=\"${tema}/theme.txt\"" /etc/default/grub; then
+    ok "GRUB: tema de Command OS"
+  else
+    mal "GRUB: falta el tema (${tema})"
+  fi
+  if COMMAND_OS_PANTALLA=2560x1600 /usr/lib/command-os/apply-boot \
+      && grep -q 'pantallas de 1600 px' "${tema}/theme.txt" && grep -qxF 'GRUB_GFXMODE=2560x1600,auto' /etc/default/grub; then
+    ok "GRUB: tema y modo para 2560x1600"
+  else
+    mal "GRUB: tema o modo para 2560x1600"
+  fi
+  /usr/lib/command-os/apply-boot
 else
   mal "no hay /etc/default/grub (falta grub en el contenedor)"
 fi
@@ -69,8 +84,27 @@ if grep -aqiE '\[error\]|critical' "${SALIDA}/labwc.log"; then
   if [[ -s "${SALIDA}/errores-programas.txt" ]]; then mal "errores de programas (ver errores-programas.txt)"; fi
 fi
 
-# Captura de la sesión para revisarla a ojo en los artefactos de GitHub Actions.
 display=$(basename "$(ls "${run}"/wayland-* 2>/dev/null | grep -v '\.lock$' | head -1)")
+
+# Escala de las pantallas (command-os-pantallas): la ve, y la configuración de hyprlock escalada a 2
+# es válida para hyprlock (si no, el bloqueo pasaría a la de emergencia).
+if [[ -n "${display}" ]]; then
+  pantalla=$(como env WAYLAND_DISPLAY="${display}" command-os-pantallas lista 2>&1 | head -1)
+  if [[ "${pantalla}" =~ ^[A-Za-z0-9-]+\ [0-9]+\ [0-9]+\ 1$ ]]; then ok "pantallas: ${pantalla}"; else mal "pantallas: ${pantalla}"; fi
+  como env WAYLAND_DISPLAY="${display}" wlr-randr --output "${pantalla%% *}" --scale 2 >/dev/null 2>&1
+  como env WAYLAND_DISPLAY="${display}" command-os-pantallas hyprlock /etc/xdg/hypr/hyprlock.conf \
+    > "${run}/hyprlock-escalado.conf" 2>"${SALIDA}/hyprlock-escalado.txt"
+  if grep -q 'font_size = 128' "${run}/hyprlock-escalado.conf" \
+      && ! (ulimit -c 0; exec 2>&1; WAYLAND_DISPLAY=sin-pantalla exec hyprlock --config "${run}/hyprlock-escalado.conf") \
+        | grep 'Config error' >> "${SALIDA}/hyprlock-escalado.txt"; then
+    ok "hyprlock: configuración escalada a 2"
+  else
+    mal "hyprlock: configuración escalada (ver hyprlock-escalado.txt)"
+  fi
+  como env WAYLAND_DISPLAY="${display}" wlr-randr --output "${pantalla%% *}" --scale 1 >/dev/null 2>&1
+fi
+
+# Captura de la sesión para revisarla a ojo en los artefactos de GitHub Actions.
 if [[ -n "${display}" ]] && como env WAYLAND_DISPLAY="${display}" grim "${run}/escritorio.png" \
     && cp "${run}/escritorio.png" "${SALIDA}/"; then
   ok "captura: escritorio.png"
