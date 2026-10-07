@@ -23,7 +23,9 @@ roturas, Arch de una fecha validada (x86), btrfs con instantáneas y pruebas aut
 Actions. **Cómo funciona y por qué: `docs/actualizaciones.md` (leerlo antes de tocar la
 instalación).** Desde el 2026-10-07 no hay cuenta de serie: greetd con asistente de primer arranque,
 pantalla de inicio de sesión propia e inicio automático opcional (`docs/cuentas.md`). La barra avisa
-de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualizaciones.md` § 7). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualizaciones.md` § 7). Se ve
+igual en 16:9 y 16:10 con escala automática de alta densidad y tema de GRUB propio
+(`docs/notas/pantallas.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -35,6 +37,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos | `docs/instalacion.md` (§ 3: lo que protege del borrado) |
 | splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
+| resoluciones, 16:9/16:10, alta densidad (escala), fondos, tema de GRUB, tamaño del splash | `docs/notas/pantallas.md` |
 | VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
 | por qué se decidió algo (y qué se descartó) | `docs/decisiones.md` |
 | qué viene ahora | `ROADMAP.md` (se quita cada punto al terminarlo y verificarlo) |
@@ -65,6 +68,9 @@ usuario); ARM, aparcado hasta tener la placa.
   Las comprobaciones de `disk_problems`/`confirm_erase` (`build/x86/lib.sh`) no se relajan sin una
   prueba nueva en `tests/discos.sh`. VM de pruebas: `command-os-instalador` (`docs/testing.md`).
   `grub-install` no actualiza una entrada UEFI con su misma ruta: `forget_nvram_entries` va antes.
+- Pantallas: hyprlock ignora la escala (la de serie se escala en `command-os-lock`) y GRUB no escala
+  imágenes ni fuentes (tema generado por `apply-boot`). En VirtualBox, `setvideomodehint` no va (usar
+  `wlr-randr` dentro) y 1366x768 sale roto en `screenshotpng` (capturar con `grim`).
 - VirtualBox: **nunca `snapshot take --live`** con la VM encendida: la deja congelada (pasó con
   `command-os-x86`). Instantáneas con la VM apagada.
 

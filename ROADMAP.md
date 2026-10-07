@@ -4,12 +4,6 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 `docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
 de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
-8. **Pantallas 16:9 y 16:10 perfectas** (petición del usuario). Que todo se vea bien y sin recortes
-   raros en 16:9 (1920x1080, 1366x768, 2560x1440) y 16:10 (1920x1200, 1280x800, 2560x1600): fondo de
-   escritorio (hoy en 4:3 corta el logo por la derecha), splash de arranque, asistente de primer
-   arranque, pantalla de inicio de sesión, bloqueo, barra, menús y escalado en pantallas de alta
-   densidad. Probar cada resolución en la VM (`VBoxManage controlvm … setvideomodehint`) con capturas.
-   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo medio (varias piezas visuales y criterio de diseño).
 9. **Cifrado de disco** (LUKS) al instalar en disco entero y en dual boot, con la contraseña dentro del
    splash y compatible con las instantáneas (grub-btrfs).
    _Modelo y esfuerzo recomendados:_ Opus, esfuerzo alto (arranque e initramfs; un fallo deja el equipo sin arrancar).
@@ -23,6 +17,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - PC real (bare metal x86, GPU NVIDIA).
 - Instalar en un PC real con `build/x86/instalar.sh` (dual boot o disco entero; `docs/instalacion.md`):
   arranque desde la entrada UEFI, wifi y gráfica concretos.
+- Escala automática en un portátil de alta densidad y con un segundo monitor conectado en marcha
+  (`docs/notas/pantallas.md`; la VM no da tamaño físico).
 
 ## Aparcado hasta tener el hardware ARM del cyberdeck
 
@@ -43,6 +39,10 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - Aviso de actualizaciones: un panel gráfico de actualización (hoy se abre `command-os-update` en una
   terminal; ver `docs/decisiones.md`) y comprobar en un equipo con instantáneas que el aviso cuenta bien
   tras volver atrás con `command-os-rollback`.
+- **Idioma del sistema**: los equipos se instalan con `LANG=en_US.UTF-8` (`build/x86/lib.sh`), así
+  que el menú de GRUB y los programas sin traducción propia salen en inglés. Decidir si se instala en
+  castellano o se elige en el asistente (GRUB ya sigue el idioma del sistema).
+- Probar el asistente de primer arranque en varias resoluciones (VM `command-os-instalador`).
 - Cuentas (fuera del punto del primer arranque, `docs/cuentas.md`): cifrado de disco, añadir y
   gestionar más cuentas desde el escritorio, zona horaria en el asistente y un panel para cambiar la
   contraseña.
