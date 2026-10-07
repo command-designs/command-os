@@ -80,6 +80,9 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
   necesita el initramfs clásico; install.sh lo cambia). Si todo va bien, `command-os-rollback` la
   deja como sistema y se reinicia. Sin arrancarla: `command-os-rollback N` (`--lista` para verlas).
 - `/home` no retrocede: los archivos del usuario se quedan.
+- `/boot/grub` tampoco: `command-os-rollback` pone en el sistema recuperado el del anterior. El de la
+  instantánea tiene la lista del menú desfasada, módulos que pueden no casar con el GRUB de la
+  partición EFI (que no retrocede) y, en las instantáneas de la imagen, ni existe.
 - Las instalaciones antiguas en ext4 no tienen instantáneas (convertirlas exige reinstalar).
 - Raspberry Pi: no hay GRUB; `command-os-rollback N` funciona, pero el kernel está en la partición
   de arranque, fuera de las instantáneas.

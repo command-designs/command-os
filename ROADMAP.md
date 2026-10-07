@@ -3,10 +3,6 @@
 Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle queda en `AGENTS.md`,
 `docs/` y el historial de git). Todo cambio vale a la vez para x86 (GRUB) y ARM/Pi 5 (`cmdline.txt`).
 
-1. **Lista de instantáneas de GRUB al día tras un retroceso.** Tras `command-os-rollback`, el
-   `grub-btrfs.cfg` del sistema recuperado está desfasado hasta la siguiente instantánea:
-   regenerarlo en el primer arranque. Solo x86 (el Pi no tiene GRUB). Verificar en la VM btrfs.
-   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo medio (btrfs y GRUB: un fallo deja el equipo sin arrancar).
 2. **Splash que se pueda saltar** con una tecla (Esc sigue siendo el modo detalles) y medir la
    duración real de la animación. Ancla 2 de `docs/DISENO.md`.
    _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo medio (script de Plymouth acotado).
