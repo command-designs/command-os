@@ -21,6 +21,8 @@ from gi.repository import GLib, Gtk
 
 CREAR = "/usr/lib/command-os/crear-cuenta"
 MIN_CONTRASENA = 8
+# Ancho máximo (en caracteres) de los textos largos: sin él, una traducción más larga ensancha el panel.
+TEXTO_MAX = 50
 ELEGIDO = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/run/command-os-primer-arranque"), "idioma")
 
 
@@ -79,7 +81,7 @@ class Asistente(Gtk.ApplicationWindow):
         # Si el instalador dejó otra distribución (us-intl, de(nodeadkeys)…), sale la primera y
         # seleccionada: la lista nunca enseña un teclado distinto del que se está usando.
         self.teclados = list(TECLADOS)
-        if self.teclado not in [c for c, _ in self.teclados]:
+        if self.teclado not in [c for c, _n in self.teclados]:
             self.teclados.insert(0, (self.teclado, None))
         self.construir()
         self.nombre.grab_focus()
@@ -97,16 +99,19 @@ class Asistente(Gtk.ApplicationWindow):
         titulo.add_css_class("titulo")
         caja.append(titulo)
         intro = Gtk.Label(
-            label=_("crea la cuenta con la que vas a usar este equipo."), xalign=0, wrap=True
+            label=_("crea la cuenta con la que vas a usar este equipo."), xalign=0, wrap=True,
+            max_width_chars=TEXTO_MAX,
         )
         intro.add_css_class("tenue")
         caja.append(intro)
 
         # Idioma y teclado: lo primero, para que el resto ya salga en ese idioma y se escriba con él.
+        # En la misma fila: el asistente cabe entero en pantallas de 720 px de alto.
+        idioma_teclado = Gtk.Box(spacing=12, homogeneous=True)
         self.combo_idioma = Gtk.DropDown.new_from_strings([n for _c, n in self.idiomas])
         self.combo_idioma.set_selected([c for c, _n in self.idiomas].index(self.idioma))
         self.combo_idioma.connect("notify::selected", self.on_idioma)
-        caja.append(fila(_("idioma"), self.combo_idioma))
+        idioma_teclado.append(fila(_("idioma"), self.combo_idioma))
 
         nombres = [
             _(n) if n else _("{teclado} (del instalador)").format(teclado=c) for c, n in self.teclados
@@ -114,7 +119,8 @@ class Asistente(Gtk.ApplicationWindow):
         self.combo = Gtk.DropDown.new_from_strings(nombres)
         self.combo.set_selected([c for c, _n in self.teclados].index(self.teclado))
         self.combo.connect("notify::selected", self.on_teclado)
-        caja.append(fila(_("teclado"), self.combo))
+        idioma_teclado.append(fila(_("teclado"), self.combo))
+        caja.append(idioma_teclado)
 
         self.nombre = Gtk.Entry(placeholder_text=_("opcional"))
         self.nombre.connect("changed", self.on_nombre)
@@ -138,6 +144,7 @@ class Asistente(Gtk.ApplicationWindow):
                     "con tu contraseña."),
             xalign=0,
             wrap=True,
+            max_width_chars=TEXTO_MAX,
         )
         admin.add_css_class("dato")
         caja.append(admin)

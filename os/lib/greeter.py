@@ -143,7 +143,7 @@ class Pantalla(Gtk.ApplicationWindow):
         self.fecha.set_text(time.strftime("%a %-d %b", t).replace(".", "").lower())
         return True
 
-    def on_entrar(self, *_):
+    def on_entrar(self, *_args):
         if not self.personas:
             self.error.set_text(_("no hay ninguna cuenta en este equipo."))
             return

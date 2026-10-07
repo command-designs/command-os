@@ -25,6 +25,13 @@ fi
 for f in /usr/lib/command-os/{comun,greeter,primer-arranque}.py; do
   python3 -m py_compile "${f}" 2>/dev/null && ok "compila $(basename "${f}")" || mal "no compila ${f}"
 done
+# Un parámetro llamado _ tapa la función de traducción: _("…") falla y la ventana se queda a medias
+# (pasó en la pantalla de inicio de sesión al pulsar «entrar»).
+if grep -nE '(def [a-z_]+\(|lambda )[^)]*\b_\b *[,):=]' /usr/lib/command-os/{greeter,primer-arranque}.py; then
+  mal "un parámetro llamado _ tapa la traducción (arriba)"
+else
+  ok "ningún parámetro tapa _()"
+fi
 traducido() {  # traducido IDIOMA TEXTO
   PYTHONPATH=/usr/lib/command-os python3 -c \
     'import sys; from comun import traductor; print(traductor(sys.argv[1])(sys.argv[2]))' "$1" "$2"
