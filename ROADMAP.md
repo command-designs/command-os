@@ -1,7 +1,8 @@
 # Command OS — hoja de ruta
 
 Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle queda en `AGENTS.md`,
-`docs/` y el historial de git). Todo cambio vale a la vez para x86 (GRUB) y ARM/Pi 5 (`cmdline.txt`).
+`docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
+de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 6. **Aviso de actualizaciones en el escritorio.** Hoy solo se actualiza con `update` en una terminal.
    Comprobar en segundo plano (temporizador de systemd, sin tocar el sistema) si hay versión nueva de
@@ -14,15 +15,17 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
    del equipo. Un modo «disco entero» del instalador (borra el disco, con confirmación clara), y probar
    el recorrido completo en la VM: USB → instalar → primer arranque → actualizar.
    _Modelo y esfuerzo recomendados:_ Opus, esfuerzo alto (particiones y borrado de disco: un fallo es irreversible).
-8. **Imagen ARM con btrfs para la Pi 5.** No hay script de construcción para ARM todavía: crearlo
-   (Arch Linux ARM, subvolúmenes, `rootflags=subvol=@` en `cmdline.txt`, snapper) y validar los
-   paquetes en aarch64. Primero que se construya; el arranque, en la placa. Con la variante del
-   cyberdeck (`os/variants/<v>/inicio-automatico-de-serie`: el asistente propone entrar sin contraseña).
-   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo alto (script nuevo desde cero, sin placa para probar).
 
 ## Lo prueba el usuario
 
-- PC real (bare metal x86, GPU NVIDIA) y la Pi 5 cuando esté.
+- PC real (bare metal x86, GPU NVIDIA).
+
+## Aparcado hasta tener el hardware ARM del cyberdeck
+
+- **Imagen ARM con btrfs** (antes punto 8): script de construcción para ARM (subvolúmenes, snapper,
+  arranque de la placa que se elija) y validar los paquetes en aarch64, con la variante del cyberdeck
+  (`os/variants/<v>/inicio-automatico-de-serie`: el asistente propone entrar sin contraseña). Se
+  retoma cuando se sepa la placa; no tiene por qué ser una Raspberry Pi 5.
 
 ## Otros pendientes
 

@@ -8,6 +8,11 @@ ARM en el hardware real (Raspberry Pi 5) — modelo Omarchy, pero sobre una
 base aarch64 oficial en vez de x86_64. Un colega hace el hardware, este repo
 es la parte de software/SO. Ver `README.md` para la estructura del repo.
 
+**Prioridad: x86** (decisión del usuario, 2026-10-07). Todavía no se sabe qué hardware ARM llevará
+el cyberdeck, así que se trabaja y se prueba en x86_64 (PC y VM). Command OS sigue siendo para las
+dos arquitecturas (paquete `any`, scripts sin nada propio de x86 si no hace falta), pero **no se hace
+nada específico de hardware ARM** (Raspberry Pi 5, `cmdline.txt`, imagen ARM) hasta tener la placa.
+
 Ecosistema Command: sigue `ESTANDAR.md` de `command-web`
 (https://github.com/command-designs/command-web/blob/main/ESTANDAR.md) en lo que aplique a un proyecto
 que no es web (§ 12 para dispositivos).
@@ -18,7 +23,7 @@ roturas, Arch de una fecha validada (x86), btrfs con instantáneas y pruebas aut
 Actions. **Cómo funciona y por qué: `docs/actualizaciones.md` (leerlo antes de tocar la
 instalación).** Desde el 2026-10-07 no hay cuenta de serie: greetd con asistente de primer arranque,
 pantalla de inicio de sesión propia e inicio automático opcional (`docs/cuentas.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
-usuario) y Arch Linux ARM.
+usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
 
@@ -46,7 +51,9 @@ usuario) y Arch Linux ARM.
 - WSL cierra los procesos `setsid nohup` al terminar `wsl.exe`: para construir imágenes, `wsl.exe` en primer plano.
 - Plymouth no se puede probar en WSL: probar en la VM. Al iterar con labwc, `kill -HUP $(pidof labwc)`;
   reiniciar hypridle por SSH lo deja escuchando la sesión SSH, no la de tty1.
-- Cada cambio vale a la vez para x86 (GRUB, `/etc/default/grub`) y ARM/Pi 5 (`cmdline.txt`).
+- Prioridad x86: los cambios se hacen y se prueban en x86 (GRUB, `/etc/default/grub`). Que no rompan
+  ARM (nada que dependa de x86 sin necesidad), pero sin trabajo ni pruebas propias de ARM/Pi hasta
+  tener el hardware del cyberdeck. Lo ya escrito para el Pi (`cmdline.txt`) se deja como está.
 - tty1 es de greetd: para una sesión nueva, `systemctl restart greetd` (no `getty@tty1`). Si la entrada
   falla, tty2 es la consola de emergencia. `deck`/`deck` es solo de desarrollo (`COMMAND_OS_DEV_USER`).
 - VirtualBox: **nunca `snapshot take --live`** con la VM encendida: la deja congelada (pasó con
@@ -103,7 +110,7 @@ Ver `docs/testing.md` para comandos exactos. Resumen:
 ## Convenciones del repo
 
 - `os/` es el producto real (paquetes, install.sh, dotfiles) — arquitectura
-  agnóstico, se usa igual en la VM x86_64 y (a futuro) en ARM/Pi.
+  agnóstico, se usa igual en la VM x86_64 y (cuando haya hardware) en ARM.
 - `build/packer/` es solo tooling de desarrollo para levantar la VM de
   pruebas rápido, no es parte del producto.
 - Scripts `.sh` deben mantenerse con line endings LF (forzado por
