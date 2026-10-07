@@ -129,6 +129,9 @@ done
 k1=$(new_recovery_key) k2=$(new_recovery_key)
 [[ "${k1}" =~ ^[0-9]{48}$ && "${k1}" != "${k2}" ]] && ok "clave de recuperación: 48 cifras al azar" \
   || mal "clave de recuperación mal generada: ${k1}"
+# Con set -e y pipefail, como en los instaladores (tr | head acabaría con SIGPIPE).
+( set -e; k=$(new_recovery_key); [[ ${#k} == 48 ]] ) && ok "new_recovery_key funciona con set -e y pipefail" \
+  || mal "new_recovery_key falla con set -e y pipefail"
 # Clave fija (el grupo N son seis N) y RANDOM con semilla: se sabe qué dos grupos va a pedir (bash
 # vuelve a sembrar RANDOM en cada subshell: la semilla va dentro, justo antes).
 CLAVE_FIJA=111111222222333333444444555555666666777777888888
@@ -151,8 +154,14 @@ CIFRADA=$(part_path "${LIMPIO}" 3)
 CLAVE_RECUPERACION=$(new_recovery_key)
 recuperacion=${CLAVE_RECUPERACION}
 CLAVE_DISCO="clave de prueba"
-( luks_root "${CIFRADA}" ) >/dev/null 2>&1 && [[ -b "/dev/mapper/${LUKS_NAME}" ]] \
-  && ok "luks_root cifra y abre /dev/mapper/${LUKS_NAME}" || mal "luks_root falló"
+# Sin subshell: luks_root deja la marca para que close_luks sepa que el volumen es suyo (si falla,
+# die cierra la prueba entera).
+luks_root "${CIFRADA}" >/dev/null 2>&1
+[[ -b "/dev/mapper/${LUKS_NAME}" && -z "${CLAVE_DISCO:-}${CLAVE_RECUPERACION:-}" ]] \
+  && ok "luks_root cifra, abre /dev/mapper/${LUKS_NAME} y olvida las claves" || mal "luks_root falló"
+CLAVE_DISCO=x CLAVE_RECUPERACION=y
+( luks_root "${CIFRADA}" ) >/dev/null 2>&1 && mal "luks_root pisa un ${LUKS_NAME} ya abierto" \
+  || ok "luks_root no sigue si ${LUKS_NAME} ya está abierto"
 unset CLAVE_DISCO CLAVE_RECUPERACION
 volcado=$(cryptsetup luksDump "${CIFRADA}" 2>/dev/null)
 grep -qE '^Version:[[:space:]]*2$' <<< "${volcado}" && ok "LUKS2" || mal "no es LUKS2"
@@ -168,7 +177,12 @@ umount "${T}/raiz"
 tiene "$(problemas "${LIMPIO}")" "volumen cifrado abierto" && ok "con el volumen abierto, el disco se rechaza" \
   || mal "acepta borrar un disco con el volumen cifrado abierto"
 close_luks
-[[ -b "/dev/mapper/${LUKS_NAME}" ]] && mal "close_luks no lo cierra" || ok "close_luks"
+[[ -b "/dev/mapper/${LUKS_NAME}" ]] && mal "close_luks no lo cierra" || ok "close_luks cierra el que abrió luks_root"
+printf '%s' "clave de prueba" | cryptsetup open --key-file=- "${CIFRADA}" "${LUKS_NAME}" 2>/dev/null
+close_luks
+[[ -b "/dev/mapper/${LUKS_NAME}" ]] && ok "close_luks no cierra uno que ya estaba abierto" \
+  || mal "close_luks cierra un volumen que no abrió"
+cryptsetup close "${LUKS_NAME}" 2>/dev/null
 printf '%s' "clave de prueba" | cryptsetup open --test-passphrase --key-file=- "${CIFRADA}" 2>/dev/null \
   && ok "abre con la contraseña" || mal "no abre con la contraseña"
 printf '%s' "${recuperacion}" | cryptsetup open --test-passphrase --key-file=- "${CIFRADA}" 2>/dev/null \
@@ -211,6 +225,13 @@ for concha in "${conchas[@]}"; do
     fi
   done
 done
+# Sin poder preguntar (la consola sin entrada), tras 5 intentos lo deja al gancho encrypt: el
+# arranque no se queda colgado en el splash.
+if gancho bash </dev/null; then
+  [[ -b /dev/mapper/prueba-cifrado ]] && mal "abre sin contraseña" || ok "sin poder preguntar, cede el paso a encrypt"
+else
+  mal "sin poder preguntar, el gancho no termina"
+fi
 grep -qE '^ +hooks="HOOKS=\(base udev plymouth keyboard autodetect .*keymap block command-os-cifrado encrypt filesystems' \
   "${REPO}/os/install.sh" && ok "install.sh: plymouth, teclado y keymap antes del gancho, y este antes de encrypt" \
   || mal "install.sh: orden de los ganchos del disco cifrado"

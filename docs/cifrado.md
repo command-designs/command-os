@@ -12,6 +12,8 @@ Antes de la confirmación del borrado (después ya no se pregunta nada):
 
 1. **Contraseña del disco**, dos veces. Al menos 8 caracteres y **sin ñ ni tildes**: se teclea al
    encender, antes de que arranque el sistema, y si el teclado no diera esas letras no se podría entrar.
+   Antes de pedirla, el instalador pone en la consola la distribución de `KB_LAYOUT` (la que tendrá el
+   splash): así una contraseña con símbolos se escribe igual al instalar que al encender.
 2. **Clave de recuperación**: 48 cifras en 8 grupos (`412787-352309-…`), generadas en el equipo al azar.
    Se enseñan una sola vez y, para seguir, hay que escribir dos grupos elegidos al azar. Después se
    borran de la pantalla y del historial de la terminal. **No se guarda en ningún sitio**: ni en el
@@ -73,6 +75,8 @@ Una clave de recuperación nueva: `tr -dc 0-9 < /dev/urandom | head -c 48` da la
   ask-for-password` en castellano y sin límite de intentos, y abre el volumen. El gancho `encrypt` de
   Arch lo ve abierto y no hace nada: de él solo se usan cryptsetup y los módulos. Sin Plymouth, pregunta
   en la consola. (El `encrypt` de Arch pide en inglés y, tras 3 fallos, deja una consola de emergencia.)
+  Si no puede preguntar 5 veces seguidas (Plymouth no atiende, consola sin entrada), cede el paso a
+  `encrypt`, que acaba en la consola de emergencia: el arranque nunca se queda colgado en el splash.
 - El tema del splash (`command.script`) dibuja el campo: el texto, una línea y un cuadradito hueso por
   carácter, con el cursor cian. Los dos textos del gancho («contraseña del disco · o la clave de
   recuperación» y el de contraseña incorrecta, en rojo) son **imágenes** en JetBrains Mono
@@ -87,8 +91,9 @@ Una clave de recuperación nueva: `tr -dc 0-9 < /dev/urandom | head -c 48` da la
 Con `/boot` aparte, **el kernel no entra en las instantáneas** (sin cifrar sí, porque va en `@`):
 
 - **`command-os-rollback`** lo compensa: pone en `/boot` el kernel de la instantánea (Arch lo guarda
-  junto a sus módulos en `/usr/lib/modules/<versión>/vmlinuz`) y rehace su initramfs con la
-  configuración del sistema recuperado. Si algo falla, deja el sistema como estaba.
+  junto a sus módulos en `/usr/lib/modules/<versión>/vmlinuz`; solo el que es de un paquete) y rehace
+  su initramfs con la configuración del sistema recuperado. Si es el mismo kernel que ya hay en `/boot`,
+  no toca nada. Si algo falla, deja el sistema como estaba.
 - **Arrancar una instantánea desde el menú** (Esc → instantáneas) usa el kernel de `/boot`, el más
   nuevo. Si se actualizó el kernel después de la instantánea, arranca con lo que hay en el initramfs
   (disco, pantalla, teclado) pero sin los demás módulos (wifi, sonido): basta para lanzar
@@ -107,7 +112,8 @@ Con `/boot` aparte, **el kernel no entra en las instantáneas** (sin cifrar sí,
     arranque. Dentro: ganchos en orden, `cryptdevice=` en el menú y en las entradas de instantáneas.
   - **Volver atrás con otro kernel**: actualizar de 7.2.8 a 7.2.9 (snap-pac guarda la instantánea antes)
     y `command-os-rollback` a esa instantánea: `/boot` vuelve al 7.2.8 y el sistema recuperado arranca
-    con sus módulos (vídeo, sonido, VirtualBox).
+    con sus módulos (vídeo, sonido, VirtualBox). En disco entero y en dual boot; volver otra vez a la
+    misma instantánea (mismo kernel) no rehace nada.
   - **Dual boot cifrado** junto a una tabla como la de Windows (EFI con `bootmgfw.efi`, MSR, NTFS):
     Windows queda igual (tabla, MSR, NTFS y los archivos de su EFI); menú de GRUB con su tema, desde el
     `/boot` sin cifrar, y la entrada de Windows; Esc en el campo pasa al modo detalles y la pide igual.

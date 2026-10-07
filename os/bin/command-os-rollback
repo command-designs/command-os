@@ -57,9 +57,11 @@ undo() {
 # no entra en las instantáneas y el de /boot puede ser más nuevo que los módulos del sistema
 # recuperado. Se pone el de la instantánea (Arch lo guarda junto a sus módulos, en
 # /usr/lib/modules/<versión>/vmlinuz) y se rehace su initramfs con el mkinitcpio y la configuración
-# del sistema recuperado. Primero se generan los archivos nuevos y solo al final se cambian.
+# del sistema recuperado. Primero se generan los archivos nuevos y solo al final se cambian. Solo los
+# kernels de un paquete (no restos de una actualización a medias), y los que ya coinciden con el de
+# /boot se dejan como están.
 restore_kernel() {
-  local new="${top}/@" m ver base f ok=1 nuevos=()
+  local new="${top}/@" m ver base f ok=1 nuevos=() vistos=" "
   local montajes=(dev proc sys boot)
   mount --bind /dev "${new}/dev" && mount -t proc proc "${new}/proc" && mount -t sysfs sys "${new}/sys" \
     && mount --bind /boot "${new}/boot" || ok=0
@@ -67,6 +69,17 @@ restore_kernel() {
     for m in "${new}"/usr/lib/modules/*/; do
       [[ -f "${m}vmlinuz" && -f "${m}pkgbase" ]] || continue
       ver=$(basename "${m}") base=$(<"${m}pkgbase")
+      chroot "${new}" pacman -Qqo "/usr/lib/modules/${ver}/vmlinuz" >/dev/null 2>&1 || continue
+      if [[ "${vistos}" == *" ${base} "* ]]; then
+        echo "error: la instantánea tiene dos kernels ${base}" >&2
+        ok=0
+        break
+      fi
+      vistos+="${base} "
+      if [[ -f "/boot/vmlinuz-${base}" && "$(sha256sum < "${m}vmlinuz")" == "$(sha256sum < "/boot/vmlinuz-${base}")" ]]; then
+        echo "Kernel ${base} ${ver}: es el mismo que hay en /boot."
+        continue
+      fi
       echo "Kernel ${base} ${ver} del sistema recuperado: rehaciendo su initramfs…"
       chroot "${new}" mkinitcpio -k "${ver}" -g "/boot/initramfs-${base}.img.nuevo" >/dev/null 2>&1 || { ok=0; break; }
       nuevos+=("/boot/initramfs-${base}.img")
@@ -80,13 +93,15 @@ restore_kernel() {
     done
   fi
   for f in "${montajes[@]}"; do mountpoint -q "${new}/${f}" && umount "${new}/${f}"; done
-  if (( ok )) && (( ${#nuevos[@]} )); then
-    for f in "${nuevos[@]}"; do mv "${f}.nuevo" "${f}"; done
-    return 0
+  if (( ! ok )); then
+    rm -f /boot/*.nuevo
+    return 1
   fi
-  rm -f /boot/*.nuevo
-  (( ok )) || return 1
-  echo "aviso: la instantánea no tiene ningún kernel; se queda el de /boot" >&2
+  for f in "${nuevos[@]}"; do mv "${f}.nuevo" "${f}" || return 1; done
+  if [[ "${vistos}" == " " ]]; then
+    echo "aviso: la instantánea no tiene ningún kernel; se queda el de /boot" >&2
+  fi
+  return 0
 }
 
 if mountpoint -q /boot && [[ -d /boot/grub ]]; then

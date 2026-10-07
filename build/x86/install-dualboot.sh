@@ -54,6 +54,10 @@ FREE_GB=$(( ${FREE_SECTORS:-0} * SECTOR / 1024 / 1024 / 1024 ))
 
 # Cifrado, contraseña y clave de recuperación: todo antes de la confirmación.
 prepare_encryption
+# Cifrado, /boot ocupa 1 GiB del hueco: el sistema tiene que seguir teniendo el mínimo.
+if [[ "$CIFRADO" == si ]] && (( FREE_GB < MIN_GB + 1 )); then
+  die "con el disco cifrado hacen falta $(( MIN_GB + 1 )) GB libres (1 para /boot); hay ${FREE_GB}"
+fi
 
 echo
 lsblk -o NAME,SIZE,FSTYPE,LABEL,PARTLABEL "$DISK"

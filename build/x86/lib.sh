@@ -345,9 +345,15 @@ ask_disk_password() {
   done
 }
 
-# new_recovery_key — 48 cifras al azar (/dev/urandom: cada byte que es una cifra vale igual).
+# new_recovery_key — 48 cifras al azar (/dev/urandom: cada byte que es una cifra vale igual). Lee
+# un bloque fijo y recorta en bash: `tr < /dev/urandom | head` acaba con SIGPIPE y, con pipefail,
+# la función fallaría.
 new_recovery_key() {
-  LC_ALL=C tr -dc 0-9 < /dev/urandom | head -c "${RECOVERY_DIGITS}"
+  local d=""
+  while (( ${#d} < RECOVERY_DIGITS )); do
+    d+=$(head -c 4096 /dev/urandom | LC_ALL=C tr -dc 0-9)
+  done
+  printf '%s' "${d:0:RECOVERY_DIGITS}"
 }
 
 # recovery_group CLAVE N — el grupo N (1–8) de 6 cifras.
@@ -388,10 +394,18 @@ EOF
   CLAVE_RECUPERACION=${k}
 }
 
-# prepare_encryption — pregunta si cifrar y, si sí, la contraseña y la clave de recuperación.
+# prepare_encryption — pregunta si cifrar y, si sí, la contraseña y la clave de recuperación. La
+# contraseña se escribe con la distribución de KB_LAYOUT, la misma que tendrá el splash al encender
+# (keymap de /etc/vconsole.conf): si la consola en vivo tuviera otra, una contraseña con símbolos
+# no se podría volver a escribir.
 prepare_encryption() {
   ask_encryption || die "cancelado: no se ha tocado nada"
   [[ "${CIFRADO}" == si ]] || return 0
+  if [[ -t 0 ]] && command -v loadkeys >/dev/null; then
+    loadkeys "${KB_LAYOUT}" >/dev/null 2>&1 \
+      || die "no se pudo poner el teclado ${KB_LAYOUT} (KB_LAYOUT) para escribir la contraseña"
+  fi
+  echo "Teclado: ${KB_LAYOUT} (el mismo con el que se escribirá la contraseña al encender)."
   ask_disk_password || die "cancelado: no se ha tocado nada"
   show_recovery_key || die "cancelado: no se ha tocado nada"
 }
@@ -403,18 +417,24 @@ prepare_encryption() {
 luks_root() {
   local part=$1
   [[ -n "${CLAVE_DISCO:-}" && -n "${CLAVE_RECUPERACION:-}" ]] || die "luks_root: faltan las claves"
+  [[ ! -e "/dev/mapper/${LUKS_NAME}" ]] \
+    || die "ya hay un volumen abierto como ${LUKS_NAME}: ciérralo (cryptsetup close ${LUKS_NAME}) y vuelve a empezar"
   printf '%s' "${CLAVE_DISCO}" | cryptsetup luksFormat --batch-mode --type luks2 --pbkdf argon2id \
     --label command-os --key-file=- "${part}" || die "no se pudo cifrar ${part}"
   printf '%s' "${CLAVE_DISCO}" | cryptsetup luksAddKey --batch-mode --pbkdf argon2id --key-file=- \
     "${part}" <(printf '%s' "${CLAVE_RECUPERACION}") || die "no se pudo añadir la clave de recuperación"
   printf '%s' "${CLAVE_DISCO}" | cryptsetup open --allow-discards --persistent --key-file=- \
     "${part}" "${LUKS_NAME}" || die "no se pudo abrir ${part}"
+  LUKS_ABIERTO=1
   unset CLAVE_DISCO CLAVE_RECUPERACION
 }
 
-# close_luks — cierra /dev/mapper/${LUKS_NAME} si está abierto (limpieza de los instaladores).
+# close_luks — cierra /dev/mapper/${LUKS_NAME} si lo abrió luks_root (limpieza de los instaladores);
+# uno que ya estuviera abierto no se toca.
 close_luks() {
-  [[ -b "/dev/mapper/${LUKS_NAME}" ]] && cryptsetup close "${LUKS_NAME}"
+  if [[ -n "${LUKS_ABIERTO:-}" && -b "/dev/mapper/${LUKS_NAME}" ]]; then
+    cryptsetup close "${LUKS_NAME}" && LUKS_ABIERTO=
+  fi
   return 0
 }
 

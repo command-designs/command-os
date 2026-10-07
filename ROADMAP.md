@@ -49,6 +49,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - Probar el asistente de primer arranque en varias resoluciones (VM `command-os-instalador`).
 - Cuentas (fuera del punto del primer arranque, `docs/cuentas.md`): añadir y gestionar más cuentas
   desde el escritorio, zona horaria en el asistente y un panel para cambiar la contraseña.
+- Prueba automática de `command-os-rollback` (sin y con `/boot` aparte, y que deshace todo si falla):
+  hoy solo se prueba a mano en la VM, porque el script actúa sobre la raíz del sistema en marcha.
 - Disco cifrado (`docs/cifrado.md`): un panel para cambiar la contraseña del disco y la clave de
   recuperación (hoy, `cryptsetup` en una terminal) y, con el disco cifrado, que el asistente de primer
   arranque proponga entrar sin contraseña (para no escribir dos al encender).

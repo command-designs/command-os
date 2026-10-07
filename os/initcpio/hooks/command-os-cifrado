@@ -44,14 +44,14 @@ cifrado_pedir() {
     else
         printf '\n%s: ' "$1" >&2
         # shellcheck disable=SC3045  # el ash de busybox sí tiene read -s (sin eco)
-        read -rs clave
+        read -rs clave || return 1
         printf '\n' >&2
         printf '%s' "${clave}"
     fi
 }
 
 run_hook() {
-    local dispositivo nombre texto clave
+    local dispositivo nombre texto clave fallos=0
     [ -n "${cryptdevice}" ] || return 0
     IFS=: read -r dispositivo nombre _ <<EOF
 $cryptdevice
@@ -63,11 +63,20 @@ EOF
 
     texto="Contraseña del disco (o clave de recuperación)"
     while :; do
-        clave=$(cifrado_pedir "${texto}") || clave=""
-        if [ -z "${clave}" ]; then
+        # Si no se puede preguntar (Plymouth no atiende, consola sin entrada) 5 veces seguidas, lo
+        # deja al gancho encrypt de Arch: pregunta a su manera y, si tampoco puede, deja una consola
+        # de emergencia. Sin esto, el arranque se quedaría en el splash para siempre.
+        if ! clave=$(cifrado_pedir "${texto}"); then
+            fallos=$((fallos + 1))
+            if [ "${fallos}" -ge 5 ]; then
+                echo "command-os-cifrado: no se puede pedir la contraseña; sigue el gancho encrypt" >&2
+                return 0
+            fi
             sleep 1
             continue
         fi
+        fallos=0
+        [ -n "${clave}" ] || continue
         con_splash && plymouth display-message --text="cmd-os: desbloqueando el disco"
         if cifrado_abrir "${dispositivo}" "${nombre}" "${clave}"; then
             break
