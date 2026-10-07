@@ -35,7 +35,7 @@ jobs:
             echo "Server = https://archive.archlinux.org/repos/$fecha/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist
           fi
           echo "Arch: ${fecha:-del día}"
-          pacman -Syu --noconfirm base-devel git libxml2 grim
+          pacman -Syu --noconfirm base-devel git libxml2 grim grub
 
       - name: Paquete command-os
         run: |

@@ -1,5 +1,9 @@
 # Dual boot con Windows (PC/portátil x86_64)
 
+> Guía general de instalación (también como sistema principal, en el disco entero):
+> [`instalacion.md`](instalacion.md). Lo más cómodo es el asistente `build/x86/instalar.sh`, que llama
+> a este script; aquí está lo propio del dual boot.
+
 Instala Command OS en el disco interno **junto a Windows**: al encender sale un menú de GRUB para
 elegir Command OS o Windows. El script (`build/x86/install-dualboot.sh`) solo crea una partición
 nueva en el espacio libre y añade GRUB a la partición EFI que ya existe; no formatea ni mueve
@@ -87,5 +91,7 @@ Al terminar: `reboot`, y quita el USB cuando se apague la pantalla.
 El script se ha probado en WSL sobre un disco simulado con la misma tabla que un Windows real
 (partición EFI con un `bootmgfw.efi` falso, MSR, partición de datos y hueco libre): crea la
 partición en el hueco sin tocar las demás, instala todo, deja GRUB en `EFI/command-os/` sin tocar
-`EFI/Microsoft` ni `EFI/Boot`, y el menú tiene la entrada de Windows. **No se ha probado todavía en un portátil real** (registro de la entrada UEFI, BitLocker,
+`EFI/Microsoft` ni `EFI/Boot`, y el menú tiene la entrada de Windows. El 2026-10-07 también en la VM
+`command-os-instalador` desde el USB en vivo, arrancando el resultado (`docs/instalacion.md`).
+**No se ha probado todavía en un portátil real** (registro de la entrada UEFI, BitLocker,
 drivers de wifi/gráfica concretos).

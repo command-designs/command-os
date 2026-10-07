@@ -32,6 +32,14 @@ for cfg in /etc/xdg/hypr/hyprlock.conf /usr/share/command-os/config/hypr/hyprloc
     ok "hyprlock: ${cfg}"
   fi
 done
+# Arranque (lib/apply-boot, al instalarse el paquete): menú oculto y sin las entradas «EFI BootNext».
+if [[ -f /etc/default/grub ]]; then
+  for k in GRUB_DISABLE_BOOTNEXT=true GRUB_TIMEOUT_STYLE=hidden 'GRUB_DISTRIBUTOR="Command OS"'; do
+    if grep -qxF "${k}" /etc/default/grub; then ok "GRUB: ${k}"; else mal "GRUB: falta ${k}"; fi
+  done
+else
+  mal "no hay /etc/default/grub (falta grub en el contenedor)"
+fi
 for f in /etc/xdg/labwc/rc.xml /etc/xdg/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
 done

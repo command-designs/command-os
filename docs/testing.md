@@ -190,3 +190,24 @@ Comandos desde el anfitrión con `S="ssh -i build/packer/keys/packer_build_key -
 - **Clic derecho en el escritorio**: no se puede simular sin ratón virtual; el menú `client-menu`
   (Alt+Espacio) usa el mismo tema y sí se puede ver.
 - kitty abre siempre a 100x30 celdas (`remember_window_size no`), no con el tamaño de la última.
+
+## Instalador en la VM `command-os-instalador` (2026-10-07)
+
+Para probar `build/x86/instalar.sh` (dual boot y disco entero) de principio a fin **sin tocar ningún
+disco real**. Todo vive en `build/x86/vbox/instalador/` (ignorado por git):
+
+- `usb.vdi`: la ISO de Arch convertida en disco (`VBoxManage convertfromraw build/iso/archlinux-x86_64.iso
+  usb.vdi`): arranca como un USB de verdad, con la etiqueta `ARCH_AAAAMM` que el instalador rechaza.
+- `disco.vdi` (40 GB, vacío): donde se instala. `senuelo.vdi` (4 GB): ext4 con archivos; se toma su
+  `sha256sum` antes y se compara después.
+- `cidata.vdi`: disco FAT `CIDATA` con `meta-data` y `user-data` de cloud-init (la llave
+  `build/packer/keys/packer_build_key.pub` para root). La ISO de Arch trae cloud-init: al arrancar,
+  SSH en `127.0.0.1:2903` como root, sin teclear nada en la consola. Se genera en WSL con
+  `mkfs.fat -n CIDATA` sobre un archivo y un loop.
+- VM: EFI, ICH9, 4 vCPU con `--cpu-hotplug on`, 4 GB, `vboxsvga`, NAT con `2903 → 22`. Puertos SATA:
+  0 USB, 1 disco, 2 señuelo, 3 CIDATA. Se instala con `VARIANT=vbox` (utilidades de invitado).
+- Copiar el repositorio: `git ls-files -co --exclude-standard os build/x86 | tar -czf - -T - | ssh … 'tar
+  -xzf - -C /root/command-os'` (nunca `tar` de `build/x86` entero: arrastra los discos de las VM).
+- Tras instalar: apagar, quitar `usb.vdi` y `cidata.vdi` y arrancar. El asistente de primer arranque se
+  maneja con `VBoxManage controlvm command-os-instalador keyboardputstring` y capturas
+  (`screenshotpng`); después, `VBoxManage guestcontrol … run --username <cuenta>` para mirar dentro.

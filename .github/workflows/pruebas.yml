@@ -1,5 +1,6 @@
 # Command OS — pruebas en cada cambio y cada día.
 #   - scripts: sintaxis y errores graves (shellcheck) de todos los scripts.
+#   - discos: el instalador en disco entero rechaza lo que no debe borrar (tests/discos.sh).
 #   - escritorio con el Arch de la fecha validada: lo que tienen los equipos.
 #   - escritorio con el Arch del día: avisa antes de que una actualización de Arch rompa algo; si
 #     falla, no se valida una fecha nueva hasta arreglarlo (docs/actualizaciones.md).
@@ -25,6 +26,16 @@ jobs:
       - name: shellcheck (solo errores)
         run: |
           shellcheck -S error -e SC1090,SC1091 os/install.sh $(find os/lib -maxdepth 1 -type f ! -name '*.py') os/bin/* build/x86/*.sh tests/*.sh
+
+  # Seguridad del instalador en disco entero, con discos loop (nunca discos reales del ejecutor).
+  discos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Herramientas
+        run: sudo apt-get update -q && sudo apt-get install -yq gdisk dosfstools ntfs-3g
+      - name: Qué discos rechaza, confirmación y particionado
+        run: sudo bash tests/discos.sh
 
   escritorio-validada:
     uses: ./.github/workflows/escritorio.yml
