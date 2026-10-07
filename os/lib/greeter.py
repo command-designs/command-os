@@ -5,7 +5,8 @@
 #
 # La comprobación de la contraseña la hace greetd con PAM: aquí solo se habla con greetd por su
 # socket ($GREETD_SOCK; mensajes JSON precedidos de su longitud en 4 bytes) y la contraseña no se
-# guarda ni se registra en ningún sitio.
+# guarda ni se registra en ningún sitio. La conversación va en un hilo aparte: PAM tarda (unos 2 s
+# tras un fallo) y la ventana no debe congelarse.
 import json
 import os
 import pwd
@@ -13,31 +14,19 @@ import socket
 import struct
 import subprocess
 import sys
+import threading
 import time
 
-import gi
+from comun import CONF, cargar_tema, fila, leer, logo, panel
+from gi.repository import GLib, Gtk
 
-gi.require_version("Gtk", "4.0")
-from gi.repository import Gdk, GdkPixbuf, GLib, Gtk  # noqa: E402
-
-CONF = "/etc/command-os"
-CSS = "/usr/share/command-os/greeter/command.css"
-LOGO = "/usr/share/command-os/logo/command-wordmark-white.png"
 SESION = ["command-os-session"]
 DIAS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
 MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 
 
-def leer(ruta, defecto=""):
-    try:
-        with open(ruta, encoding="utf-8") as f:
-            return f.read().strip()
-    except OSError:
-        return defecto
-
-
 def cuentas():
-    """Cuentas de personas: uid >= 1000 con un shell de verdad."""
+    """Cuentas de personas: uid entre 1000 y 60000 con un shell de verdad."""
     malos = ("nologin", "false")
     lista = [
         p for p in pwd.getpwall()
@@ -86,7 +75,10 @@ def entrar(usuario, contrasena):
             return None
     g.pedir({"type": "cancel_session"})
     if r.get("error_type") == "auth_error":
-        return "contraseña incorrecta."
+        # pam_faillock bloquea la cuenta unos minutos tras varios fallos seguidos: entonces también
+        # falla la contraseña buena, y PAM no lo distingue de una contraseña mal escrita.
+        return ("contraseña incorrecta. tras varios intentos fallidos la cuenta se bloquea unos "
+                "minutos: espera y vuelve a probar.")
     return "no se pudo entrar: " + (r.get("description") or "error desconocido") + "."
 
 
@@ -94,13 +86,7 @@ class Pantalla(Gtk.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title="cmd-os")
         self.personas = cuentas()
-
-        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
-        caja.add_css_class("panel")
-        caja.set_halign(Gtk.Align.CENTER)
-        caja.set_hexpand(True)
-        caja.set_valign(Gtk.Align.CENTER)
-        caja.set_size_request(420, -1)
+        fondo, caja = panel(420)
 
         self.hora = Gtk.Label(xalign=0.5)
         self.hora.add_css_class("hora")
@@ -111,13 +97,9 @@ class Pantalla(Gtk.ApplicationWindow):
         self.reloj()
         GLib.timeout_add_seconds(5, self.reloj)
 
-        if os.path.exists(LOGO):
-            # Escalado de antemano: a tamaño natural, el wordmark ensancharía todo el panel.
-            imagen = GdkPixbuf.Pixbuf.new_from_file_at_scale(LOGO, 400, 36, True)
-            logo = Gtk.Picture.new_for_paintable(Gdk.Texture.new_for_pixbuf(imagen))
-            logo.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
-            logo.set_halign(Gtk.Align.CENTER)
-            caja.append(logo)
+        marca = logo(36)
+        if marca:
+            caja.append(marca)
 
         nombres = [
             f"{p.pw_gecos.split(',')[0]}  ·  {p.pw_name}" if p.pw_gecos.split(",")[0] else p.pw_name
@@ -128,13 +110,13 @@ class Pantalla(Gtk.ApplicationWindow):
         for i, p in enumerate(self.personas):
             if p.pw_name == principal:
                 self.lista.set_selected(i)
-        caja.append(self.fila("cuenta", self.lista))
+        caja.append(fila("cuenta", self.lista))
 
         self.clave = Gtk.PasswordEntry(show_peek_icon=True)
         self.clave.connect("activate", self.on_entrar)
-        caja.append(self.fila("contraseña", self.clave))
+        caja.append(fila("contraseña", self.clave))
 
-        self.error = Gtk.Label(xalign=0, wrap=True)
+        self.error = Gtk.Label(xalign=0, wrap=True, max_width_chars=44)
         self.error.add_css_class("error")
         caja.append(self.error)
 
@@ -151,19 +133,8 @@ class Pantalla(Gtk.ApplicationWindow):
             energia.append(b)
         caja.append(energia)
 
-        fondo = Gtk.Box(hexpand=True)
-        fondo.add_css_class("fondo")
-        fondo.append(caja)
         self.set_child(fondo)
         self.clave.grab_focus()
-
-    def fila(self, etiqueta, widget):
-        fila = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        texto = Gtk.Label(label=etiqueta, xalign=0)
-        texto.add_css_class("etiqueta")
-        fila.append(texto)
-        fila.append(widget)
-        return fila
 
     def reloj(self):
         t = time.localtime()
@@ -175,21 +146,30 @@ class Pantalla(Gtk.ApplicationWindow):
         if not self.personas:
             self.error.set_text("no hay ninguna cuenta en este equipo.")
             return
+        if not self.boton.get_sensitive():
+            return  # ya hay un intento en marcha
         self.boton.set_sensitive(False)
-        self.error.set_text("")
+        self.error.set_text("comprobando…")
         usuario = self.personas[self.lista.get_selected()].pw_name
         clave = self.clave.get_text()
         self.clave.set_text("")
+        threading.Thread(target=self.intento, args=(usuario, clave), daemon=True).start()
+
+    def intento(self, usuario, clave):
         try:
             fallo = entrar(usuario, clave)
-        except (OSError, ValueError, KeyError) as e:
+        except (OSError, ValueError, KeyError, struct.error) as e:
             fallo = f"no se pudo hablar con greetd ({e})."
+        GLib.idle_add(self.resultado, fallo)
+
+    def resultado(self, fallo):
         if fallo is None:
             self.get_application().quit()
-            return
+            return False
         self.error.set_text(fallo)
         self.boton.set_sensitive(True)
         self.clave.grab_focus()
+        return False
 
 
 class App(Gtk.Application):
@@ -197,12 +177,7 @@ class App(Gtk.Application):
         super().__init__(application_id="dev.commandlab.Greeter")
 
     def do_activate(self):
-        css = Gtk.CssProvider()
-        if os.path.exists(CSS):
-            css.load_from_path(CSS)
-        Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_USER
-        )
+        cargar_tema()
         ventana = Pantalla(self)
         ventana.fullscreen()
         ventana.present()

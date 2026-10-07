@@ -44,6 +44,7 @@ la contraseña (pendiente en `ROADMAP.md`).
 | `command-os-primer-arranque` + `lib/primer-arranque.py` | Asistente (GTK 4 en `cage`, como root) mientras no existe `/var/lib/command-os/configurado`. Código 3 = cambio de teclado: se reabre `cage` con la distribución nueva. |
 | `lib/crear-cuenta` | Crea la cuenta (wheel), fija la contraseña por stdin, bloquea root, guarda teclado y marca el equipo como configurado. Si falla, no deja nada a medias. |
 | `command-os-greeter` + `lib/greeter.py` | Pantalla de inicio de sesión (GTK 4 en `cage`, usuario `greeter`). Habla con greetd por `$GREETD_SOCK`; PAM lo hace greetd. |
+| `lib/comun.py`, `lib/entorno-grafico` | Lo común de las dos ventanas (tema, logo, filas) y de los tres lanzadores (VM, teclado). |
 | `command-os-session` | La sesión: prepara la cuenta (`command-os-user-setup`) y lanza labwc. Vale para cualquier cuenta. |
 | `command-os-login` | Inicio automático (`initial_session`) o pedir contraseña. |
 
@@ -52,7 +53,7 @@ Estado: `/etc/command-os/cuenta-principal`, `/etc/command-os/inicio-automatico` 
 `os/variants/<v>/inicio-automatico-de-serie` hace que el asistente proponga el inicio automático (para
 el cyberdeck).
 
-**Decisiones** (2026-10-07):
+**Decisiones** (2026-10-07; con lo descartado, en `docs/decisiones.md`):
 - Asistente de primer arranque en vez de preguntar al instalar: la misma imagen vale para cualquier
   equipo y la cuenta la elige quien lo recibe.
 - Pedir contraseña de serie, inicio automático opcional: Command OS también se instala en PCs

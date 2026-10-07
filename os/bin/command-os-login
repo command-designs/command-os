@@ -30,7 +30,9 @@ if [[ "$1" == auto ]]; then
   usuario=${2:-$(cat "${CONF}/cuenta-principal" 2>/dev/null || true)}
   [[ -n "${usuario}" ]] || die "indica el usuario: command-os-login auto USUARIO"
   getent passwd "${usuario}" >/dev/null || die "no existe el usuario ${usuario}"
-  [[ "$(getent passwd "${usuario}" | cut -d: -f3)" -ge 1000 ]] || die "${usuario} no es una cuenta de persona"
+  IFS=: read -r _ _ uid _ _ _ shell < <(getent passwd "${usuario}")
+  [[ "${uid}" -ge 1000 && "${uid}" -lt 60000 && "${shell}" != */nologin && "${shell}" != */false ]] \
+    || die "${usuario} no es una cuenta de persona"
   echo "${usuario}" > "${CONF}/inicio-automatico"
   echo "hecho: al encender entrará solo como ${usuario} (la pantalla se sigue bloqueando con contraseña)"
 else

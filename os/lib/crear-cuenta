@@ -35,9 +35,11 @@ done
 [[ "${usuario}" =~ ^[a-z][a-z0-9_-]{0,31}$ ]] \
   || die "nombre de usuario no válido: minúsculas, números, - o _, empezando por una letra"
 getent passwd "${usuario}" >/dev/null && die "ya existe un usuario llamado ${usuario}"
+getent group "${usuario}" >/dev/null && die "${usuario} es un nombre reservado del sistema: elige otro"
 [[ "${nombre}" != *:* && "${nombre}" != *$'\n'* ]] || die "el nombre completo no puede llevar ':'"
 if [[ -n "${teclado}" ]]; then
-  [[ "${teclado}" =~ ^[a-z]{2,8}$ ]] || die "distribución de teclado no válida"
+  # Distribución de xkb, con variante opcional: es, latam, us-intl, de(nodeadkeys)…
+  [[ "${teclado}" =~ ^[a-z][a-z0-9_-]{1,15}(\([a-z0-9_-]+\))?$ ]] || die "distribución de teclado no válida"
 fi
 
 IFS= read -r contrasena || true
@@ -57,7 +59,7 @@ if [[ -n "${teclado}" ]]; then
   echo "${teclado}" > "${CONF}/kb_layout"
   # Consola (tty2 de emergencia): el mapa equivalente, si existe (los nombres no coinciden con xkb).
   case "${teclado}" in
-    gb) mapa=uk ;; latam) mapa=la-latin1 ;; br) mapa=br-abnt2 ;; pt) mapa=pt-latin1 ;; *) mapa=${teclado} ;;
+    gb) mapa=uk ;; latam) mapa=la-latin1 ;; br) mapa=br-abnt2 ;; pt) mapa=pt-latin1 ;; *) mapa=${teclado%%(*} ;;
   esac
   if [[ -n "$(find /usr/share/kbd/keymaps -name "${mapa}.map.gz" -print -quit 2>/dev/null)" ]]; then
     touch /etc/vconsole.conf

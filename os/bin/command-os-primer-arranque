@@ -11,17 +11,15 @@ if [[ -e /var/lib/command-os/configurado ]]; then
   exit 0
 fi
 
-if systemd-detect-virt --quiet --vm; then
-  export WLR_NO_HARDWARE_CURSORS=1 WLR_RENDERER_ALLOW_SOFTWARE=1
-fi
 export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/command-os-primer-arranque}
 install -d -m 700 "${XDG_RUNTIME_DIR}"
-export GTK_THEME=adw-gtk3:dark XCURSOR_THEME=Adwaita XCURSOR_SIZE=24
+export GTK_THEME=adw-gtk3:dark
 
 # Código 3: se ha cambiado el teclado; cage se vuelve a abrir con la distribución nueva.
 while :; do
-  XKB_DEFAULT_LAYOUT=$(tr -d '[:space:]' < /etc/command-os/kb_layout 2>/dev/null || echo es)
-  export XKB_DEFAULT_LAYOUT
+  source /usr/lib/command-os/entorno-grafico
+  # Sin teclado elegido aún, el mismo que propone el asistente (lib/primer-arranque.py).
+  export XKB_DEFAULT_LAYOUT=${XKB_DEFAULT_LAYOUT:-es}
   cage -s -d -- python3 /usr/lib/command-os/primer-arranque.py
   codigo=$?
   [[ ${codigo} -eq 3 ]] || break

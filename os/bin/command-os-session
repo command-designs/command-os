@@ -2,13 +2,7 @@
 # Command OS — la sesión de escritorio (labwc). La lanza greetd al entrar, con contraseña o con
 # inicio automático (/etc/command-os/greetd.toml). Vale para cualquier cuenta del equipo.
 set -uo pipefail
-
-# GPU virtual (VirtualBox, QEMU sin 3D): wlroots necesita permiso para el render por software y
-# cursor por software. En hardware real (Raspberry Pi 5, PC) no se tocan.
-if systemd-detect-virt --quiet --vm; then
-  export WLR_NO_HARDWARE_CURSORS=1
-  export WLR_RENDERER_ALLOW_SOFTWARE=1
-fi
+source /usr/lib/command-os/entorno-grafico
 export XDG_CURRENT_DESKTOP=labwc:wlroots XDG_SESSION_TYPE=wayland
 
 # Cuenta lista antes de que labwc lea su configuración: la primera vez, tras una actualización, y
