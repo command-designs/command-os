@@ -3,13 +3,6 @@
 Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle queda en `AGENTS.md`,
 `docs/` y el historial de git). Todo cambio vale a la vez para x86 (GRUB) y ARM/Pi 5 (`cmdline.txt`).
 
-0. **Primera publicación del paquete.** La Release `repo` de `command-designs/command-os-versions`
-   todavía no existe: revisar el error de la ejecución de `publicar` en Actions (o lanzarla a mano
-   con Run workflow). Cuando salga, comprobar en la VM que `update` (`command-os-update`) añade el
-   repositorio `[command-os]`, importa la clave y actualiza el paquete desde ahí.
-   También: **autorizar Context7** (hoy `claude mcp list` lo marca «Needs authentication»): abrir `claude` en una
-   terminal, `/mcp`, elegir `context7` y autenticar. Se hace una sola vez y vale para todos los proyectos.
-   _Modelo y esfuerzo recomendados:_ Sonnet, esfuerzo bajo (es revisar un error de Actions; sube a medio si hay que tocar el flujo).
 1. **Lista de instantáneas de GRUB al día tras un retroceso.** Tras `command-os-rollback`, el
    `grub-btrfs.cfg` del sistema recuperado está desfasado hasta la siguiente instantánea:
    regenerarlo en el primer arranque. Solo x86 (el Pi no tiene GRUB). Verificar en la VM btrfs.
@@ -37,6 +30,8 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 
 ## Otros pendientes
 
+- **Autorizar Context7** (`claude mcp list` lo marca «Needs authentication»): abrir `claude` en una
+  terminal, `/mcp`, elegir `context7` y autenticar. Una sola vez, vale para todos los proyectos.
 - Probar en la VM lo configurado y no verificado: apagado de pantalla a los 10 min, portapapeles,
   teclas de volumen y brillo, clic derecho en el escritorio (no se simula sin ratón virtual).
 - Oír los sonidos (solo se ha verificado que no saturan).
