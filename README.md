@@ -6,6 +6,9 @@ mantenida por terceros — Arch Linux ARM en el hardware real (Raspberry Pi 5),
 Arch Linux x86_64 en la VM de desarrollo. No reinventamos kernel ni
 infraestructura de paquetes: usamos pacman tal cual.
 
+**Instalar:** [`INSTALAR.md`](INSTALAR.md), con todas las formas (PC junto a Windows o en el disco
+entero, máquina virtual, sobre un Arch ya instalado, imagen USB…).
+
 ## Objetivo y por qué esta base
 
 La meta original era **CachyOS + Omarchy corriendo en ARM** (Raspberry Pi 5).
