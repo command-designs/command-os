@@ -20,7 +20,8 @@ IDIOMAS=(
   "en_US.UTF-8 English"
 )
 
-actual() { sed -nE 's/^LANG=//p' "${LOCALE_CONF}" 2>/dev/null | tr -d '"' | tail -n1; }
+# actual — LANG de locale.conf, sin comillas (nada si no hay archivo: no es un error).
+actual() { { sed -nE 's/^LANG=//p' "${LOCALE_CONF}" 2>/dev/null || true; } | tr -d "\"'" | tail -n1; }
 
 # normalizar es|en|es_ES|es_ES.UTF-8|es_ES.utf8 -> es_ES.UTF-8 (nada si no es de la lista)
 normalizar() {

@@ -71,6 +71,12 @@ echo "==> Entorno de las ventanas (lib/entorno-grafico)"
 printf 'LANG="en_US.UTF-8"\nLC_TIME=C.UTF-8\n' > /etc/locale.conf
 [[ "$(env -u LANG bash -c 'source /usr/lib/command-os/entorno-grafico; echo "${LANG}|${LC_TIME}"')" \
   == 'en_US.UTF-8|C.UTF-8' ]] && ok "lee LANG y LC_* de locale.conf" || mal "entorno-grafico no lee el idioma"
+printf "LANG='en_US.UTF-8'\n" > /etc/locale.conf
+[[ "$(env -u LANG bash -c 'source /usr/lib/command-os/entorno-grafico; echo "${LANG}"')" == en_US.UTF-8 ]] \
+  && ok "comillas simples en locale.conf" || mal "entorno-grafico con comillas simples"
+command-os-idioma | grep -q English && ok "command-os-idioma con comillas simples" || mal "command-os-idioma con comillas"
+rm /etc/locale.conf
+command-os-idioma | grep -q 'sin definir' && ok "sin locale.conf: «sin definir»" || mal "command-os-idioma sin locale.conf"
 printf 'LANG=es_ES.UTF-8\n' > /etc/locale.conf
 
 echo

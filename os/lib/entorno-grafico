@@ -16,7 +16,9 @@ export XCURSOR_THEME=Adwaita XCURSOR_SIZE=24
 # lo lee al arrancar, y así un cambio de idioma llega ya a la siguiente pantalla sin reiniciar.
 if [[ -r /etc/locale.conf ]]; then
   while IFS='=' read -r _clave _valor; do
-    [[ "${_clave}" =~ ^(LANG|LC_[A-Z]+)$ ]] && export "${_clave}=${_valor//\"/}"
+    [[ "${_clave}" =~ ^(LANG|LC_[A-Z]+)$ ]] || continue
+    _valor=${_valor//[\"\']/}   # el valor puede ir entre comillas dobles o simples
+    export "${_clave}=${_valor}"
   done < /etc/locale.conf
   unset _clave _valor
 fi
