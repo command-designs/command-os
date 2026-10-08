@@ -83,7 +83,8 @@ Al terminar: `reboot`, y quita el USB cuando se apague la pantalla.
   administrador: `bcdedit /set "{bootmgr}" path \EFI\command-os\grubx64.efi`. Se deshace con
   `bcdedit /set "{bootmgr}" path \EFI\Microsoft\Boot\bootmgfw.efi`.
 - **El reloj de Windows se desfasa**: no debería; el instalador deja Linux con el reloj del equipo
-  en hora local, como Windows (`/etc/adjtime` → `LOCAL`).
+  en hora local, como Windows (`/etc/adjtime` → `LOCAL`). La zona horaria se elige en el asistente de
+  primer arranque y el cambio respeta la hora que dejó Windows ([`cuentas.md`](cuentas.md) § «Hora»).
 - **Volver a dejar solo Windows**: en Administración de discos, borrar la partición `command-os` (y
   `command-os-boot` si se cifró);
   en PowerShell como administrador, `mountvol S: /s` y borrar `S:\EFI\command-os`.

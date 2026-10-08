@@ -21,6 +21,8 @@ greetd
 cage
 gtk4
 python-gobject
+# Nombres de países traducidos para buscar la zona horaria en el asistente (lib/zonas.py).
+iso-codes
 # Traducciones de Command OS (docs/idioma.md): `gettext` en los scripts (tema de GRUB).
 gettext
 

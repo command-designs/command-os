@@ -3,7 +3,7 @@
 # (command-os-primer-arranque) y, en las imágenes de desarrollo, install.sh. Solo root.
 #
 #   crear-cuenta --usuario NOMBRE [--nombre "Nombre completo"] [--teclado es] [--idioma es_ES.UTF-8]
-#                [--inicio-auto]
+#                [--zona Europe/Madrid] [--inicio-auto]
 #
 # La contraseña llega por la entrada estándar (una línea), nunca como argumento ni variable: así
 # no queda en la lista de procesos, en el historial ni en ningún registro. Se guarda solo como
@@ -11,8 +11,9 @@
 #
 # La cuenta es la administradora del equipo (grupo wheel: sudo con su propia contraseña) y root
 # queda bloqueado: toda la administración pasa por sudo. Si algo falla, no queda nada a medias.
-# El idioma (command-os-idioma) se aplica después de crear la cuenta; si falla, se deshace. Los
-# mensajes salen en el idioma de LANG (el asistente lo pone con el idioma elegido).
+# La zona horaria (command-os-zona-horaria) y el idioma (command-os-idioma) se aplican después de
+# crear la cuenta; si algo falla, se deshace todo, zona incluida. Los mensajes salen en el idioma de
+# LANG (el asistente lo pone con el idioma elegido).
 set -uo pipefail
 
 ESTADO=/var/lib/command-os
@@ -31,13 +32,14 @@ t() {
 die() { echo "crear-cuenta: $*" >&2; exit 1; }
 [[ "$(id -u)" -eq 0 ]] || die "$(t 'hay que ejecutarlo como root')"
 
-usuario="" nombre="" teclado="" idioma="" auto=0
+usuario="" nombre="" teclado="" idioma="" zona="" auto=0
 while (( $# )); do
   case "$1" in
     --usuario) usuario=${2:-}; shift 2 ;;
     --nombre) nombre=${2:-}; shift 2 ;;
     --teclado) teclado=${2:-}; shift 2 ;;
     --idioma) idioma=${2:-}; shift 2 ;;
+    --zona) zona=${2:-}; shift 2 ;;
     --inicio-auto) auto=1; shift ;;
     *) die "$(t 'opción desconocida: %s' "$1")" ;;
   esac
@@ -58,15 +60,39 @@ fi
 if [[ -n "${idioma}" ]] && ! command-os-idioma lista | cut -d' ' -f1 | grep -qxF -- "${idioma}"; then
   die "$(t 'idioma no disponible: %s' "${idioma}")"
 fi
+# Solo una zona de la lista de command-os-zona-horaria (zone.tab y UTC), escrita tal cual.
+if [[ -n "${zona}" ]]; then
+  zonas=$(command-os-zona-horaria lista)
+  grep -qxF -- "${zona}" <<< "${zonas}" || die "$(t 'zona horaria no disponible: %s' "${zona}")"
+fi
 
 IFS= read -r contrasena || true
 [[ ${#contrasena} -ge ${MIN_CONTRASENA} ]] \
   || die "$(t 'la contraseña tiene que tener al menos %s caracteres' "${MIN_CONTRASENA}")"
 
-deshacer() { userdel -r "${usuario}" >/dev/null 2>&1; die "$1"; }
+zona_antes=""
+deshacer() {
+  # La zona de antes, con la misma orden: si el reloj del equipo va en hora local, lo vuelve a leer
+  # con ella y la hora del sistema queda como estaba.
+  if [[ -n "${zona_antes}" ]]; then
+    command-os-zona-horaria "${zona_antes}" >/dev/null 2>&1 \
+      || echo "crear-cuenta: aviso: no se pudo volver a la zona horaria ${zona_antes}" >&2
+  fi
+  userdel -r "${usuario}" >/dev/null 2>&1
+  die "$1"
+}
 useradd -m -G wheel -s /bin/bash -c "${nombre}" "${usuario}" || die "$(t 'no se pudo crear la cuenta')"
 printf '%s:%s\n' "${usuario}" "${contrasena}" | chpasswd || deshacer "$(t 'no se pudo fijar la contraseña')"
 unset contrasena
+
+# Zona horaria (con el reloj del equipo en hora local, se vuelve a leer con la zona nueva).
+if [[ -n "${zona}" ]]; then
+  # Por su nombre (UTC si no había ninguna); vacío si no se sabe (/etc/localtime copiado): entonces no
+  # hay a qué volver.
+  antes=$(command-os-zona-horaria actual)
+  command-os-zona-horaria "${zona}" >/dev/null || deshacer "$(t 'no se pudo aplicar la zona horaria %s' "${zona}")"
+  zona_antes=${antes}
+fi
 
 # Idioma del sistema y menú de arranque en ese idioma (unos segundos: rehace GRUB).
 if [[ -n "${idioma}" ]]; then

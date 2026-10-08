@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# Command OS — zona horaria del equipo.
+#
+#   command-os-zona-horaria          muestra la zona actual y la hora
+#   command-os-zona-horaria lista    las zonas que se pueden elegir (zone.tab de tzdata y UTC)
+#   command-os-zona-horaria actual   solo el nombre de la actual, para otros programas (nada si no
+#                                    se sabe: /etc/localtime copiado en vez de enlazado)
+#   command-os-zona-horaria ZONA     la cambia: Europe/Madrid, America/New_York, UTC…
+#
+# La usan el asistente de primer arranque (crear-cuenta --zona) y las personas. Cambia
+# /etc/localtime sin dejarlo nunca a medias y, si el reloj del equipo va en hora local (dual boot
+# con Windows, /etc/adjtime → LOCAL), decide qué reloj manda (docs/cuentas.md § «Hora»):
+#   - hora del sistema sin sincronizar (primer arranque, sin red): manda el reloj del equipo, que
+#     Windows deja en la hora de pared; se vuelve a leer con la zona nueva (hwclock --hctosys).
+#   - hora sincronizada por la red (NTP): manda el sistema; timedatectl cambia la zona y escribe
+#     el reloj del equipo en la hora local nueva.
+# Con el reloj del equipo en UTC (disco entero, imagen) no se toca.
+#
+# Para las pruebas (tests/zona-horaria.sh): COMMAND_OS_ZONEINFO, _LOCALTIME, _ADJTIME, _RTC,
+# _HWCLOCK y _TIMEDATECTL cambian las rutas y las órdenes.
+set -euo pipefail
+
+ZONEINFO=${COMMAND_OS_ZONEINFO:-/usr/share/zoneinfo}
+LOCALTIME=${COMMAND_OS_LOCALTIME:-/etc/localtime}
+ADJTIME=${COMMAND_OS_ADJTIME:-/etc/adjtime}
+RTC=${COMMAND_OS_RTC:-/dev/rtc0}
+HWCLOCK=${COMMAND_OS_HWCLOCK:-hwclock}
+TIMEDATECTL=${COMMAND_OS_TIMEDATECTL:-timedatectl}
+source /usr/lib/command-os/textos.sh
+die() { echo "command-os-zona-horaria: $*" >&2; exit 1; }
+aviso() { echo "command-os-zona-horaria: $*" >&2; }
+
+lista() {
+  echo UTC
+  { grep -v '^#' "${ZONEINFO}/zone.tab" 2>/dev/null || true; } | cut -f3 | sort -u
+}
+
+# actual — la zona de /etc/localtime: UTC si no hay (es lo que usa glibc) o es un sinónimo de UTC, y
+# nada si no se sabe (un archivo copiado en vez de un enlace a zoneinfo). lib/zonas.py la usa.
+actual() {
+  local destino zona
+  [[ -e "${LOCALTIME}" || -L "${LOCALTIME}" ]] || { echo UTC; return; }
+  destino=$(readlink "${LOCALTIME}" 2>/dev/null) || true
+  [[ "${destino}" == *zoneinfo/* ]] || { echo; return; }
+  zona=${destino#*zoneinfo/}
+  case "${zona}" in
+    UTC|UCT|Universal|Zulu|GMT|Greenwich|Etc/UTC|Etc/UCT|Etc/Universal|Etc/Zulu|Etc/GMT|Etc/GMT0|Etc/Greenwich) echo UTC ;;
+    *) echo "${zona}" ;;
+  esac
+}
+
+reloj_local() { [[ "$(sed -n 3p "${ADJTIME}" 2>/dev/null)" == LOCAL ]]; }
+sincronizada() { [[ "$("${TIMEDATECTL}" show -p NTPSynchronized --value 2>/dev/null)" == yes ]]; }
+
+# enlazar ZONA — /etc/localtime apuntando a la zona: enlace temporal al lado y mv (atómico).
+enlazar() {
+  local tmp="${LOCALTIME}.command-os.$$"
+  ln -sfn "${ZONEINFO}/$1" "${tmp}"
+  mv -Tf "${tmp}" "${LOCALTIME}"
+}
+
+case "${1:-}" in
+  "")
+    a=$(actual)
+    echo "$(t 'zona horaria: %s (son las %s)' "${a:-$(t 'sin definir')}" "$(date +%H:%M)")"
+    exit 0 ;;
+  lista) lista; exit 0 ;;
+  actual) actual; exit 0 ;;
+  -*) die "$(t 'uso: command-os-zona-horaria [lista | ZONA]')" ;;
+esac
+
+zona=$1
+# Solo una zona de la lista, escrita tal cual: nada de rutas (../) ni zonas a medias.
+# (La lista entera en una variable: con pipefail, grep -q cortaría la tubería al encontrarla.)
+zonas=$(lista)
+grep -qxF -- "${zona}" <<< "${zonas}" \
+  || die "$(t 'zona horaria no disponible: %s (las que hay: command-os-zona-horaria lista)' "${zona}")"
+[[ -e "${ZONEINFO}/${zona}" ]] || die "$(t 'falta el archivo de la zona %s (paquete tzdata)' "${zona}")"
+[[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
+
+if [[ "$(actual)" == "${zona}" ]]; then
+  echo "$(t 'la zona horaria ya es %s' "${zona}")"
+  exit 0
+fi
+
+if reloj_local && sincronizada; then
+  "${TIMEDATECTL}" set-timezone "${zona}" || die "$(t 'no se pudo cambiar la zona horaria')"
+else
+  enlazar "${zona}" || die "$(t 'no se pudo cambiar la zona horaria')"
+  if reloj_local && [[ -e "${RTC}" ]]; then
+    "${HWCLOCK}" --hctosys || aviso "$(t 'aviso: no se pudo leer la hora del reloj del equipo')"
+  fi
+fi
+
+# La barra calcula la hora con la zona que leyó al arrancar: se reinicia la de cada sesión abierta.
+# Si no hay sesión (asistente de primer arranque), no hace falta.
+if pgrep -x waybar >/dev/null 2>&1; then
+  pkill -USR2 -x waybar 2>/dev/null || true
+fi
+echo "$(t 'hecho: la zona horaria es %s (son las %s).' "${zona}" "$(date +%H:%M)")"
