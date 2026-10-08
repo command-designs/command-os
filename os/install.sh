@@ -20,9 +20,13 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEV_USER="${COMMAND_OS_DEV_USER:-}"
 VARIANT="${COMMAND_OS_VARIANT:-}"
+# Mensajes (docs/idioma.md). Desde el instalador del PC (build/x86/lib.sh: configure_system), el
+# catálogo que compiló para su idioma: el paquete aún no está instalado.
+source "${REPO_DIR}/lib/textos.sh"
+[[ -n "${COMMAND_OS_LOCALE_DIR:-}" ]] && export TEXTDOMAINDIR=${COMMAND_OS_LOCALE_DIR}
 
 if [[ "$(id -u)" -ne 0 ]]; then
-  echo "Ejecutar como root (pacman, usuarios, servicios)." >&2
+  echo "$(t 'Ejecutar como root (pacman, usuarios, servicios).')" >&2
   exit 1
 fi
 # runuser conserva el entorno de root: HOME y XDG_CONFIG_HOME tienen que ser los del usuario.
@@ -36,7 +40,7 @@ root_is_encrypted() { lsblk -nso TYPE "$(findmnt -nvo SOURCE /)" 2>/dev/null | g
 # sabe en qué hardware acabará el sistema: se trata como hardware real.
 is_vm() { ! systemd-detect-virt --quiet --chroot && systemd-detect-virt --quiet --vm; }
 
-echo "==> Repositorios (en x86_64, Arch de la fecha validada: os/pacman/snapshot-date)"
+echo "==> $(t 'Repositorios (en x86_64, Arch de la fecha validada: os/pacman/snapshot-date)')"
 COMMAND_OS_PACMAN_DIR="${REPO_DIR}/pacman" bash "${REPO_DIR}/lib/apply-repos"
 pacman -Syu --noconfirm
 # Para construir el paquete: base-devel (makepkg) y git.
@@ -45,7 +49,7 @@ pacman -S --needed --noconfirm base-devel git
 # Cuenta de desarrollo (VM de pruebas): se crea antes del paquete para que apply-login la tome como
 # la cuenta principal con inicio automático y no aparezca el asistente.
 if [[ -n "${DEV_USER}" ]]; then
-  echo "==> Cuenta de desarrollo: ${DEV_USER} (contraseña '${DEV_USER}'; solo para pruebas)"
+  echo "==> $(t 'Cuenta de desarrollo: %s (contraseña «%s»; solo para pruebas)' "${DEV_USER}" "${DEV_USER}")"
   if ! id "${DEV_USER}" &>/dev/null; then
     useradd -m -G wheel -s /bin/bash "${DEV_USER}"
     echo "${DEV_USER}:${DEV_USER}" | chpasswd
@@ -71,12 +75,12 @@ OVERWRITE=(
 if [[ "${COMMAND_OS_PAQUETE:-}" == repo ]]; then
   # Instalador publicado (build/x86/instalar-command-os.sh): el paquete firmado del repositorio, el
   # mismo del que se actualizará el equipo. pacman comprueba la firma (SigLevel = Required).
-  echo "==> Paquete command-os (del repositorio firmado)"
+  echo "==> $(t 'Paquete command-os (del repositorio firmado)')"
   grep -q '^\[command-os\]$' /etc/pacman.conf \
-    || { echo "No se pudo configurar el repositorio de Command OS (¿sin internet?)." >&2; exit 1; }
+    || { echo "$(t 'No se pudo configurar el repositorio de Command OS (¿sin internet?).')" >&2; exit 1; }
   pacman -S --noconfirm "${OVERWRITE[@]}" command-os   # bases de datos ya al día (-Syu de arriba)
 else
-  echo "==> Paquete command-os (construido desde este árbol)"
+  echo "==> $(t 'Paquete command-os (construido desde este árbol)')"
   BUILD=$(mktemp -d)
   trap 'rm -rf "${BUILD}"; userdel command-os-build 2>/dev/null || true' EXIT
   cp -r "${REPO_DIR}" "${BUILD}/os"
@@ -143,17 +147,17 @@ setup_snapshots() {
   fi
 }
 if [[ "$(findmnt -no FSTYPE /)" == btrfs ]]; then
-  echo "==> Instantáneas del sistema (btrfs + snapper)"
+  echo "==> $(t 'Instantáneas del sistema (btrfs + snapper)')"
   setup_snapshots
 else
-  echo "==> Instantáneas: la raíz no es btrfs; sin instantáneas (solo en instalaciones nuevas)."
+  echo "==> $(t 'Instantáneas: la raíz no es btrfs; sin instantáneas (solo en instalaciones nuevas).')"
 fi
 
 # Variante de hardware (p. ej. COMMAND_OS_VARIANT=pc-nvidia): paquetes extra de os/variants/.
 if [[ -n "${VARIANT}" ]]; then
   VARIANT_PKGS="${REPO_DIR}/variants/${VARIANT}/packages.txt"
-  [[ -f "${VARIANT_PKGS}" ]] || { echo "Variante desconocida: ${VARIANT}" >&2; exit 1; }
-  echo "==> Variante: ${VARIANT}"
+  [[ -f "${VARIANT_PKGS}" ]] || { echo "$(t 'Variante desconocida: %s' "${VARIANT}")" >&2; exit 1; }
+  echo "==> $(t 'Variante: %s' "${VARIANT}")"
   mapfile -t VARIANT_PACKAGES < <(grep -vE '^\s*(#|$)' "${VARIANT_PKGS}")
   pacman -S --needed --noconfirm "${VARIANT_PACKAGES[@]}"
   if [[ "${VARIANT}" == "vbox" ]]; then
@@ -171,7 +175,7 @@ EOF
   fi
 fi
 
-echo "==> Servicios"
+echo "==> $(t 'Servicios')"
 systemctl enable seatd.service NetworkManager.service
 # Acceso remoto: apagado en el producto (un aparato de cliente no debe exponer SSH). Solo en la VM
 # de pruebas (variante vbox) o si se pide con COMMAND_OS_SSH=1 (imágenes de desarrollo).
@@ -183,10 +187,10 @@ fi
 # Audio: PipeWire por socket para todos los usuarios (sesión gráfica incluida).
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
-echo "==> Entrada al equipo: greetd (asistente de primer arranque, inicio de sesión o inicio automático)"
+echo "==> $(t 'Entrada al equipo: greetd (asistente de primer arranque, inicio de sesión o inicio automático)')"
 /usr/lib/command-os/apply-login
 if [[ -n "${DEV_USER}" ]]; then
   as_user "${DEV_USER}" command-os-user-setup
 fi
 
-echo "==> Command OS instalado ($(cat /usr/share/command-os/version))."
+echo "==> $(t 'Command OS instalado (%s).' "$(cat /usr/share/command-os/version)")"

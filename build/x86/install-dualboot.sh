@@ -8,7 +8,8 @@
 # (Command OS / Windows). No toca ninguna partición existente. Con el disco cifrado (lo pregunta,
 # sí por defecto), en el hueco van dos: /boot de 1 GiB sin cifrar y el resto en LUKS2.
 # CIFRADO=si|no no pregunta si cifrar (la contraseña y la clave de recuperación se piden siempre).
-# Variables: KB_LAYOUT (teclado, default es), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
+# Variables: COMMAND_OS_IDIOMA (es|en, mensajes e idioma del sistema; default es), KB_LAYOUT
+# (teclado; default es, o us en inglés), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
 # (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (hueco mínimo, 30),
 # NO_NVRAM=1 (no registra la entrada UEFI; solo para pruebas sobre un disco loop, junto con
 # COMMAND_OS_FUERA_DEL_USB=1, que deja ejecutarlo fuera del USB en vivo),
@@ -17,8 +18,9 @@ set -euo pipefail
 
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
 source "${REPO}/build/x86/lib.sh"
+cargar_idioma
 DISK=${1:-}
-KB_LAYOUT=${KB_LAYOUT:-es}
+KB_LAYOUT=${KB_LAYOUT:-${KB_DEFECTO}}
 TIMEZONE=${TIMEZONE:-Europe/Madrid}
 HOSTNAME_NEW=${HOSTNAME_NEW:-command-os}
 MIN_GB=${MIN_GB:-30}
@@ -29,12 +31,12 @@ die() { echo "error: $*" >&2; exit 1; }
 cleanup() { set +e; mountpoint -q "$MNT" && umount -R "$MNT"; close_luks; }
 trap cleanup EXIT
 
-[[ $(id -u) -eq 0 ]] || die "ejecutar como root"
+[[ $(id -u) -eq 0 ]] || die "$(t 'ejecutar como root')"
 require_live_usb
-[[ -b "$DISK" ]] || die "uso: $0 /dev/<disco>   (ver discos con: lsblk -o NAME,SIZE,MODEL)"
+[[ -b "$DISK" ]] || die "$(t 'uso: %s /dev/<disco>   (ver discos con: lsblk -o NAME,SIZE,MODEL)' "$0")"
 [[ -n "${NO_NVRAM:-}" || -d /sys/firmware/efi ]] \
-  || die "el USB no arrancó en modo UEFI (desactiva CSM/Legacy en la BIOS)"
-[[ $(lsblk -dno PTTYPE "$DISK") == gpt ]] || die "$DISK no es GPT (Windows en UEFI siempre usa GPT)"
+  || die "$(t 'el USB no arrancó en modo UEFI (desactiva CSM/Legacy en la BIOS)')"
+[[ $(lsblk -dno PTTYPE "$DISK") == gpt ]] || die "$(t '%s no es GPT (Windows en UEFI siempre usa GPT)' "$DISK")"
 
 pacman -Sy --needed --noconfirm arch-install-scripts gptfdisk dosfstools btrfs-progs cryptsetup >/dev/null
 
@@ -43,34 +45,31 @@ parts() { sfdisk -d "$DISK" | grep '^/dev/'; }
 
 # Partición EFI existente (la de Windows): se comparte, no se formatea.
 ESP=$(parts | grep -i "type=$ESP_GUID" | head -1 | cut -d' ' -f1)
-[[ -n "$ESP" ]] || die "no hay partición EFI en $DISK"
+[[ -n "$ESP" ]] || die "$(t 'no hay partición EFI en %s' "$DISK")"
 
 # Mayor hueco libre del disco (el que se liberó al encoger C: en Windows).
 FREE_SECTORS=$(sfdisk --list-free "$DISK" \
   | awk '$1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ {print $3}' | sort -n | tail -1)
 SECTOR=$(blockdev --getss "$DISK")
 FREE_GB=$(( ${FREE_SECTORS:-0} * SECTOR / 1024 / 1024 / 1024 ))
-(( FREE_GB >= MIN_GB )) || die "solo hay ${FREE_GB} GB libres sin particionar en $DISK (mínimo ${MIN_GB}); encoge C: en Windows primero"
+(( FREE_GB >= MIN_GB )) || die "$(t 'solo hay %s GB libres sin particionar en %s (mínimo %s); encoge C: en Windows primero' "${FREE_GB}" "$DISK" "${MIN_GB}")"
 
 # Cifrado, contraseña y clave de recuperación: todo antes de la confirmación.
 prepare_encryption
 # Cifrado, /boot ocupa 1 GiB del hueco: el sistema tiene que seguir teniendo el mínimo.
 if [[ "$CIFRADO" == si ]] && (( FREE_GB < MIN_GB + 1 )); then
-  die "con el disco cifrado hacen falta $(( MIN_GB + 1 )) GB libres (1 para /boot); hay ${FREE_GB}"
+  die "$(t 'con el disco cifrado hacen falta %s GB libres (1 para /boot); hay %s' "$(( MIN_GB + 1 ))" "${FREE_GB}")"
 fi
 
 echo
 lsblk -o NAME,SIZE,FSTYPE,LABEL,PARTLABEL "$DISK"
 echo
 if [[ "$CIFRADO" == si ]]; then
-  echo "Se crearán dos particiones en el espacio libre de $DISK (${FREE_GB} GB): /boot de 1 GB y el"
-  echo "resto cifrado. Se añadirá GRUB a la partición EFI $ESP. Windows y sus particiones no se tocan."
+  parrafo "$(t 'Se crearán dos particiones en el espacio libre de %s (%s GB): /boot de 1 GB y el resto cifrado. Se añadirá GRUB a la partición EFI %s. Windows y sus particiones no se tocan.' "$DISK" "${FREE_GB}" "$ESP")"
 else
-  echo "Se creará una partición nueva de ${FREE_GB} GB en el espacio libre de $DISK"
-  echo "y se añadirá GRUB a la partición EFI $ESP. Windows y sus particiones no se tocan."
+  parrafo "$(t 'Se creará una partición nueva de %s GB en el espacio libre de %s y se añadirá GRUB a la partición EFI %s. Windows y sus particiones no se tocan.' "${FREE_GB}" "$DISK" "$ESP")"
 fi
-read -rp "Escribe SI para continuar: " ok
-[[ "$ok" == SI ]] || die "cancelado"
+confirmar_si || die "$(t 'cancelado')"
 
 # new_partition TAMAÑO TIPO NOMBRE — crea una partición al principio del mayor hueco libre (inicio
 # 0 = ese hueco; TAMAÑO 0 = hasta su final) e imprime su ruta.
@@ -80,7 +79,7 @@ new_partition() {
   sgdisk -n "0:0:$1" -t "0:$2" -c "0:$3" "$DISK" >/dev/null
   partprobe "$DISK"; udevadm settle 2>/dev/null || sleep 2
   dev=$(comm -13 <(echo "$before") <(parts | cut -d' ' -f1 | sort) | head -1)
-  [[ -b "$dev" ]] || die "no se encontró la partición nueva"
+  [[ -b "$dev" ]] || die "$(t 'no se encontró la partición nueva')"
   echo "$dev"
 }
 
@@ -89,21 +88,21 @@ if [[ "$CIFRADO" == si ]]; then
   # /boot sin cifrar (8300; GRUB lee de aquí el kernel) y el resto en LUKS (8309).
   BOOT=$(new_partition +1G 8300 command-os-boot)
   ROOT=$(new_partition 0 8309 command-os)
-  echo "==> Particiones nuevas: $BOOT (/boot) y $ROOT (cifrada)"
-  echo "==> Cifrando la partición (LUKS2)"
+  echo "==> $(t 'Particiones nuevas: %s (/boot) y %s (cifrada)' "$BOOT" "$ROOT")"
+  echo "==> $(t 'Cifrando la partición (LUKS2)')"
   luks_root "$ROOT"
   btrfs_root "/dev/mapper/$LUKS_NAME" "$MNT"
   boot_partition "$BOOT" "$MNT"
 else
   # Tipo 8304 = raíz Linux x86-64.
   ROOT=$(new_partition 0 8304 command-os)
-  echo "==> Partición nueva: $ROOT"
+  echo "==> $(t 'Partición nueva: %s' "$ROOT")"
   btrfs_root "$ROOT" "$MNT"
 fi
 mkdir -p "$MNT/efi"
 mount "$ESP" "$MNT/efi"
 ESP_FREE_MB=$(( $(df --output=avail -k "$MNT/efi" | tail -1) / 1024 ))
-(( ESP_FREE_MB >= 10 )) || die "la partición EFI solo tiene ${ESP_FREE_MB} MB libres"
+(( ESP_FREE_MB >= 10 )) || die "$(t 'la partición EFI solo tiene %s MB libres' "${ESP_FREE_MB}")"
 
 detect_variant
 
@@ -131,21 +130,21 @@ menuentry 'Windows' --class windows --class os {
 EOF
   chmod 755 "$MNT/etc/grub.d/35_command-os-windows"
 else
-  echo "aviso: no hay EFI/Microsoft/Boot/bootmgfw.efi en $ESP; GRUB no tendrá entrada de Windows" >&2
+  echo "$(t 'aviso: no hay EFI/Microsoft/Boot/bootmgfw.efi en %s; GRUB no tendrá entrada de Windows' "$ESP")" >&2
 fi
 
 # Sin --removable: no se pisa EFI/BOOT/BOOTX64.EFI (el arranque de reserva de Windows).
 configure_system "$MNT" compartida "$DISK"
 
 if grep -q "menuentry 'Windows" "$MNT/boot/grub/grub.cfg"; then
-  echo "==> GRUB tiene entrada para Windows"
+  echo "==> $(t 'GRUB tiene entrada para Windows')"
 else
-  echo "aviso: GRUB no tiene entrada de Windows (sigue en el menú de arranque de la BIOS)" >&2
+  echo "$(t 'aviso: GRUB no tiene entrada de Windows (sigue en el menú de arranque de la BIOS)')" >&2
 fi
 
 sync
 echo
-echo "==> Command OS instalado en $ROOT."
-[[ "$CIFRADO" == si ]] && echo "    Disco cifrado: al encender, escribe su contraseña en la pantalla de arranque."
-echo "    Al encender, el asistente de primer arranque te pide crear tu cuenta."
-echo "    Quita el USB y reinicia: sale el menú de GRUB (Command OS / Windows)."
+echo "==> $(t 'Command OS instalado en %s.' "$ROOT")"
+[[ "$CIFRADO" == si ]] && echo "    $(t 'Disco cifrado: al encender, escribe su contraseña en la pantalla de arranque.')"
+echo "    $(t 'Al encender, el asistente de primer arranque te pide crear tu cuenta.')"
+echo "    $(t 'Quita el USB y reinicia: sale el menú de GRUB (Command OS / Windows).')"

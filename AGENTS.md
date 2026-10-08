@@ -73,6 +73,8 @@ usuario); ARM, aparcado hasta tener la placa.
   Las comprobaciones de `disk_problems`/`confirm_erase` (`build/x86/lib.sh`) no se relajan sin una
   prueba nueva en `tests/discos.sh`. VM de pruebas: `command-os-instalador` (`docs/testing.md`).
   `grub-install` no actualiza una entrada UEFI con su misma ruta: `forget_nvram_entries` va antes.
+  Sus mensajes van traducidos (`t`, `COMMAND_OS_IDIOMA`): nunca decidir buscando palabras en ellos
+  (`disk_is_live_usb`, `disk_runs_system`), y las confirmaciones son las del idioma elegido, solo esas.
 - Pantallas: hyprlock ignora la escala (la de serie se escala en `command-os-lock`) y GRUB no escala
   imágenes ni fuentes (tema generado por `apply-boot`). En VirtualBox, `setvideomodehint` no va (usar
   `wlr-randr` dentro) y 1366x768 sale roto en `screenshotpng` (capturar con `grim`).

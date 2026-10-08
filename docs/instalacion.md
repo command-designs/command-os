@@ -49,8 +49,11 @@ hace lo mismo pero construye el paquete desde el árbol `os/`.
 
 El asistente pregunta:
 
-1. **Cómo instalar:** junto a Windows o como sistema principal.
-2. **En qué disco:** enseña los discos del equipo con su tamaño y modelo. El USB de instalación no
+1. **Idioma / Language:** castellano (por defecto) o inglés: el de las preguntas y el del sistema
+   instalado (`locale.conf`, menú de GRUB y contraseña del disco en el splash). Lo pregunta
+   `instalar-command-os.sh` antes de descargar nada; `COMMAND_OS_IDIOMA=es|en` lo da sin preguntar.
+2. **Cómo instalar:** junto a Windows o como sistema principal.
+3. **En qué disco:** enseña los discos del equipo con su tamaño y modelo. El USB de instalación no
    aparece. En el modo sistema principal, los discos que no se pueden usar salen sin número y con el
    motivo.
 
@@ -59,7 +62,7 @@ contraseña del disco y la **clave de recuperación**, que hay que apuntar ([`ci
 Por último enseña el disco y lo que contiene y pide confirmación: hasta ahí no se ha tocado nada.
 Tarda 10–20 min (descarga unos 2 GB). Al terminar: `reboot` y quita el USB cuando se apague la pantalla.
 
-Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash instalar-command-os.sh`): `KB_LAYOUT` (teclado, `es`),
+Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash instalar-command-os.sh`): `COMMAND_OS_IDIOMA` (`es`/`en`, no pregunta el idioma), `KB_LAYOUT` (teclado, `es`; `us` en inglés),
 `TIMEZONE` (`Europe/Madrid`), `HOSTNAME_NEW` (`command-os`), `VARIANT` (`pc-nvidia` si hay GPU
 NVIDIA, solo; vacío en Intel/AMD) y `CIFRADO` (`si`/`no`: no pregunta si cifrar).
 
@@ -75,7 +78,8 @@ se cumple (`build/x86/lib.sh`, probado en `tests/discos.sh` en cada cambio):
   vez de un disco, un disco de solo lectura o de menos de 30 GB.
 - Enseña modelo, tamaño, número de serie y particiones, y avisa si hay **Windows**.
 - La confirmación es **escribir el nombre exacto del disco** (por ejemplo `/dev/nvme0n1`); si tiene
-  Windows, además `BORRAR WINDOWS`. Un Intro, un «sí» o el nombre de otro disco cancelan sin tocar nada.
+  Windows, además `BORRAR WINDOWS` (en inglés, `ERASE WINDOWS`: solo la del idioma elegido, la que se
+  enseña). Un Intro, un «sí» o el nombre de otro disco cancelan sin tocar nada.
 - Solo ese disco se modifica: los demás discos del equipo no se tocan.
 
 ## 4. Cómo queda el disco (sistema principal)

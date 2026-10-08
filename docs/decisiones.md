@@ -104,6 +104,13 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   de segundos en cada cambio, también en el asistente) y que Plymouth lo averigüe (su lenguaje no
   lee archivos ni la línea del kernel). Las imágenes salen de `os/po/` con
   `build/make-plymouth-textos.py`, así `tests/idioma.sh` también vigila esas traducciones.
+- **El instalador también se traduce, y el idioma se pregunta antes que nada** (en el script del
+  USB, antes de descargar). Es lo primero que ve quien instala y decide el idioma del sistema. El
+  catálogo sale de `os/po/` del árbol firmado que se descarga (no se añade nada al paquete) y se
+  compila en el USB; como el USB solo trae `C.UTF-8`, se genera el locale con `localedef`. Descartado:
+  deducirlo del locale del USB (siempre es `C.UTF-8`) y un diccionario propio en bash (dos sistemas de
+  traducción). Las palabras de confirmación del borrado son las del idioma elegido y solo esas: aceptar
+  las de los dos idiomas relajaría la confirmación. Al elegir inglés, el teclado de serie es `us`.
 - **Las capturas pasan de un `sh -c` incrustado en `rc.xml` a `command-os-captura`**, para poder
   traducir el aviso (y porque el XML escapado era ilegible).
 

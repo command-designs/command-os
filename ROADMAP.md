@@ -4,13 +4,7 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 `docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
 de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
-12. **Instalador en inglés** (decidir antes). Corre en la ISO de Arch, antes de Command OS: habría que
-   llevar los `.mo` dentro del paquete firmado y elegir el idioma a partir del de la ISO. La
-   confirmación de borrado se teclea («Escribe SI…»): traducirla exige una prueba nueva en
-   `tests/discos.sh` (`AGENTS.md`: no se relaja sin ella).
-   Además, `configure_system` (`build/x86/lib.sh`) reescribe `GRUB_CMDLINE_LINUX` con solo
-   `cryptdevice=`: tendrá que conservar `command-os.idioma=` (hoy da igual: instala en castellano).
-   _Modelo y esfuerzo recomendados:_ Opus, esfuerzo alto (borrado de discos).
+No queda ningún punto numerado: lo siguiente sale de «Otros pendientes» (abajo) cuando se decida.
 
 ## Lo prueba el usuario
 

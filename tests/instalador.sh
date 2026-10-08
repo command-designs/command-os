@@ -60,7 +60,8 @@ otra=$(nueva_clave otra)
 [[ -n "${buena}" && -n "${otra}" ]] || { echo "no se pudieron generar las claves de prueba" >&2; exit 1; }
 # Un instalador de mentira: dice que se ha ejecutado y con qué argumentos.
 install -d "${tmp}/falso/command-os/build/x86"
-printf '#!/usr/bin/env bash\necho "INSTALADOR EJECUTADO $*"\n' > "${tmp}/falso/command-os/build/x86/instalar.sh"
+printf '#!/usr/bin/env bash\necho "INSTALADOR EJECUTADO $* idioma=${COMMAND_OS_IDIOMA:-}"\n' \
+  > "${tmp}/falso/command-os/build/x86/instalar.sh"
 echo 2026.01.01.0000 > "${tmp}/falso/command-os/PUBLICADO"
 tar -czf "${tmp}/falso.tar.gz" -C "${tmp}/falso" command-os
 # El script del USB, con la huella de la clave de prueba buena.
@@ -78,16 +79,30 @@ publicar() {  # publicar DIR CLAVE_QUE_FIRMA CLAVE_PUBLICADA [alterar|sin-firma]
     sin-firma) rm -f "${d}/command-os-instalador.tar.gz.sig" ;;
   esac
 }
-probar() {  # probar DIR -> salida del script del USB (con un anillo de claves vacío, como en el USB)
+probar() {  # probar DIR [IDIOMA] -> salida del script del USB (con un anillo de claves vacío, como
+  # en el USB). Sin IDIOMA, contesta la pregunta del idioma por la entrada estándar (entrada aparte).
   rm -rf "${tmp}/destino"
-  env -u GNUPGHOME COMMAND_OS_FUERA_DEL_USB=1 COMMAND_OS_INSTALADOR_URL="file://$1" \
+  env -u GNUPGHOME COMMAND_OS_FUERA_DEL_USB=1 COMMAND_OS_INSTALADOR_URL="file://$1" ${2:+COMMAND_OS_IDIOMA=$2} \
     COMMAND_OS_INSTALADOR_DIR="${tmp}/destino" bash "${tmp}/arranque.sh" uno dos 2>&1
 }
 
 publicar "${tmp}/p1" "${buena}" "${buena}"
-salida=$(probar "${tmp}/p1")
-grep -q 'INSTALADOR EJECUTADO uno dos' <<< "${salida}" && ok "firma buena: lo ejecuta (con sus argumentos)" \
+salida=$(probar "${tmp}/p1" es </dev/null)
+grep -q 'INSTALADOR EJECUTADO uno dos idioma=es' <<< "${salida}" && ok "firma buena: lo ejecuta (con sus argumentos)" \
   || mal "firma buena: no lo ejecuta: ${salida}"
+# El idioma se pregunta antes de nada y pasa al asistente; sus mensajes ya salen en ese idioma.
+salida=$(probar "${tmp}/p1" <<< "2")
+grep -q 'Downloading the Command OS installer' <<< "${salida}" && grep -q 'INSTALADOR EJECUTADO uno dos idioma=en' <<< "${salida}" \
+  && ok "idioma elegido (2: English): mensajes en inglés y COMMAND_OS_IDIOMA=en al asistente" \
+  || mal "elegir el idioma: ${salida}"
+salida=$(probar "${tmp}/p1" <<< "")
+grep -q 'Descargando el instalador' <<< "${salida}" && grep -q 'idioma=es' <<< "${salida}" \
+  && ok "idioma por defecto (Intro): castellano" || mal "idioma por defecto: ${salida}"
+salida=$(probar "${tmp}/p1" </dev/null)
+grep -q 'could not read the answer' <<< "${salida}" && ! grep -q 'INSTALADOR EJECUTADO' <<< "${salida}" \
+  && ok "sin poder leer la respuesta: lo dice y no sigue" || mal "sin entrada: ${salida}"
+salida=$(probar "${tmp}/p1" fr </dev/null)
+grep -q 'INSTALADOR EJECUTADO' <<< "${salida}" && mal "acepta COMMAND_OS_IDIOMA=fr" || ok "rechaza COMMAND_OS_IDIOMA=fr"
 
 for caso in alterar sin-firma otra-clave; do
   if [[ "${caso}" == otra-clave ]]; then
@@ -95,13 +110,30 @@ for caso in alterar sin-firma otra-clave; do
   else
     publicar "${tmp}/p2" "${buena}" "${buena}" "${caso}"
   fi
-  salida=$(probar "${tmp}/p2")
+  salida=$(probar "${tmp}/p2" es </dev/null)
   if grep -q 'INSTALADOR EJECUTADO' <<< "${salida}" || [[ -e "${tmp}/destino/command-os" ]]; then
     mal "${caso}: lo ejecuta o lo extrae"
   else
     ok "${caso}: no ejecuta ni extrae nada"
   fi
 done
+
+echo "==> Mensajes del instalador en inglés"
+# Como en el USB de Arch: solo el locale C.UTF-8 (con él gettext no traduce) y sin el catálogo de un
+# Command OS instalado. cargar_idioma genera el locale y compila el de os/po/ de este árbol.
+# LANGUAGE=es (un entorno en castellano) no puede tapar el idioma elegido.
+salida=$(env -i PATH="${PATH}" LANG=C.UTF-8 LANGUAGE=es COMMAND_OS_LOCALE_DIR="${tmp}/locale" bash -c '
+  source "$1/build/x86/lib.sh"
+  COMMAND_OS_IDIOMA=en cargar_idioma
+  echo "$(t "cancelado: no se ha tocado nada")|$(t "SI")|${IDIOMA}|${KB_DEFECTO}"' _ "${REPO}" 2>&1)
+[[ "${salida}" == "cancelled: nothing has been touched|YES|en_US.UTF-8|us" ]] \
+  && ok "en inglés: mensajes traducidos, sistema en_US.UTF-8 y teclado us" || mal "en inglés: ${salida}"
+# En castellano no traduce aunque el entorno esté en inglés y ya haya un catálogo compilado (el de arriba).
+salida=$(env -i PATH="${PATH}" LANG=en_US.UTF-8 COMMAND_OS_LOCALE_DIR="${tmp}/locale" bash -c '
+  source "$1/build/x86/lib.sh"; cargar_idioma
+  echo "$(t "cancelado: no se ha tocado nada")|${IDIOMA}|${KB_DEFECTO}"' _ "${REPO}" 2>&1)
+[[ "${salida}" == "cancelado: no se ha tocado nada|es_ES.UTF-8|es" ]] \
+  && ok "sin idioma: castellano, es_ES.UTF-8 y teclado es" || mal "sin idioma: ${salida}"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi
