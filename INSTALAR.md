@@ -76,7 +76,7 @@ Tarda 10–20 min (descarga unos 2 GB). Al terminar: `reboot` y quita el USB.
 | --- | --- | --- |
 | `COMMAND_OS_IDIOMA` | Idioma (`es` o `en`) sin preguntarlo | se pregunta |
 | `KB_LAYOUT` | Teclado de la consola y de la contraseña del disco | `es` (`us` en inglés) |
-| `TIMEZONE` | Zona horaria | `Europe/Madrid` |
+| `TIMEZONE` | Zona horaria de partida (se elige en el asistente de primer arranque) | `Europe/Madrid` (`UTC` en inglés) |
 | `HOSTNAME_NEW` | Nombre del equipo en la red | `command-os` |
 | `VARIANT` | `pc-nvidia` (drivers NVIDIA), `vbox` (VirtualBox) o vacío (Intel/AMD) | `pc-nvidia` si detecta GPU NVIDIA |
 | `CIFRADO` | `si` / `no`: no pregunta si cifrar | pregunta |

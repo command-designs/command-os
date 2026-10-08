@@ -38,17 +38,20 @@ elegir_idioma() {
   export COMMAND_OS_IDIOMA
 }
 
-# cargar_idioma — aplica COMMAND_OS_IDIOMA (es por defecto): IDIOMA del sistema instalado, teclado de
-# serie (KB_DEFECTO) y los mensajes. El USB de Arch solo trae el locale C.UTF-8, con el que gettext no
-# traduce: se genera el del idioma (localedef, un segundo) y se compila su catálogo (msgfmt).
+# cargar_idioma — aplica COMMAND_OS_IDIOMA (es por defecto): IDIOMA del sistema instalado, teclado y zona
+# horaria de serie (KB_DEFECTO, TIMEZONE: Europe/Madrid en castellano, UTC en inglés; una TIMEZONE ya
+# fijada manda; la zona se elige luego en el asistente de primer arranque) y los mensajes. El USB de
+# Arch solo trae el locale C.UTF-8, con el que gettext no traduce: se genera el del idioma (localedef,
+# un segundo) y se compila su catálogo (msgfmt).
 cargar_idioma() {
   local codigo=${COMMAND_OS_IDIOMA:-es}
   case "${codigo}" in
-    es) IDIOMA=es_ES.UTF-8 KB_DEFECTO=es ;;
-    en) IDIOMA=en_US.UTF-8 KB_DEFECTO=us ;;
+    es) IDIOMA=es_ES.UTF-8 KB_DEFECTO=es ZONA_DEFECTO=Europe/Madrid ;;
+    en) IDIOMA=en_US.UTF-8 KB_DEFECTO=us ZONA_DEFECTO=UTC ;;
     *) die "COMMAND_OS_IDIOMA: es o en (no ${codigo})" ;;
   esac
   export COMMAND_OS_IDIOMA=${codigo}
+  TIMEZONE=${TIMEZONE:-${ZONA_DEFECTO}}
   [[ "${codigo}" == es ]] && return 0
   if ! locale -a 2>/dev/null | grep -qix "${IDIOMA%%.*}.utf-\?8"; then
     localedef -i "${IDIOMA%%.*}" -f UTF-8 "${IDIOMA}" 2>/dev/null \

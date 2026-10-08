@@ -116,6 +116,15 @@ done
   exit "${fallos}"
 ) || fallos=$((fallos + $?))
 
+echo "==> Zona horaria de serie según el idioma"
+# cargar_idioma en un subproceso (en inglés compila el catálogo y define gettext): el resto sigue en castellano.
+zona_de() { ( unset TIMEZONE; [[ -n "${2:-}" ]] && export TIMEZONE=$2; COMMAND_OS_IDIOMA=$1 cargar_idioma 2>/dev/null; echo "${TIMEZONE}" ); }
+[[ "$(zona_de es)" == Europe/Madrid ]] && ok "en castellano: Europe/Madrid" || mal "en castellano: $(zona_de es)"
+[[ "$(zona_de en)" == UTC ]] && ok "en inglés: UTC" || mal "en inglés: $(zona_de en)"
+[[ "$(zona_de es America/Bogota)" == America/Bogota ]] && ok "TIMEZONE manda en castellano" || mal "TIMEZONE no manda en castellano"
+[[ "$(zona_de en Asia/Tokyo)" == Asia/Tokyo ]] && ok "TIMEZONE manda en inglés" || mal "TIMEZONE no manda en inglés"
+grep -q 'Europe/Madrid}' "${REPO}"/build/x86/install-{disco,dualboot}.sh   && mal "un instalador vuelve a fijar la zona" || ok "los instaladores no fijan la zona por su cuenta"
+
 echo "==> Rutas de las particiones"
 for par in /dev/sda:/dev/sda1 /dev/nvme0n1:/dev/nvme0n1p1 /dev/mmcblk0:/dev/mmcblk0p1 /dev/loop7:/dev/loop7p1; do
   [[ "$(part_path "${par%%:*}" 1)" == "${par#*:}" ]] && ok "part_path ${par%%:*} → ${par#*:}" || mal "part_path ${par%%:*}"

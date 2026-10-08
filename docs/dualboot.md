@@ -57,7 +57,7 @@ Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash ...`):
 | Variable | Por defecto | Qué hace |
 |---|---|---|
 | `KB_LAYOUT` | `es` | Teclado en el escritorio (labwc) y en la consola |
-| `TIMEZONE` | `Europe/Madrid` | Zona horaria |
+| `TIMEZONE` | `Europe/Madrid` (`UTC` en inglés) | Zona horaria de partida; se elige en el asistente |
 | `HOSTNAME_NEW` | `command-os` | Nombre del equipo |
 | `VARIANT` | auto | `pc-nvidia` si hay GPU NVIDIA; vacío en Intel/AMD |
 | `CIFRADO` | pregunta | `si` o `no`: no pregunta si cifrar |
