@@ -32,6 +32,8 @@ jobs:
         run: bash tests/pantallas.sh
       - name: Instalador publicado (contenido y firma)
         run: |
+          # msgfmt compila el catálogo del instalador en inglés (cargar_idioma); Ubuntu solo trae gettext-base.
+          command -v msgfmt >/dev/null || { sudo apt-get update -q && sudo apt-get install -yq gettext; }
           sudo git config --global --add safe.directory "$PWD"
           sudo bash tests/instalador.sh
 
@@ -41,7 +43,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Herramientas
-        run: sudo apt-get update -q && sudo apt-get install -yq gdisk dosfstools ntfs-3g cryptsetup-bin busybox
+        # gettext: msgfmt, para las confirmaciones en inglés (cargar_idioma compila os/po/en.po).
+        run: sudo apt-get update -q && sudo apt-get install -yq gdisk dosfstools ntfs-3g cryptsetup-bin busybox gettext
       - name: Qué discos rechaza, confirmación, particionado y cifrado
         run: sudo bash tests/discos.sh
 
