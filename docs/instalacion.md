@@ -63,7 +63,7 @@ Por último enseña el disco y lo que contiene y pide confirmación: hasta ahí 
 Tarda 10–20 min (descarga unos 2 GB). Al terminar: `reboot` y quita el USB cuando se apague la pantalla.
 
 Opciones (variables antes del comando, ej. `KB_LAYOUT=us bash instalar-command-os.sh`): `COMMAND_OS_IDIOMA` (`es`/`en`, no pregunta el idioma), `KB_LAYOUT` (teclado, `es`; `us` en inglés),
-`TIMEZONE` (`Europe/Madrid`), `HOSTNAME_NEW` (`command-os`), `VARIANT` (`pc-nvidia` si hay GPU
+`TIMEZONE` (zona de partida, que se elige en el asistente de primer arranque: `Europe/Madrid`; `UTC` en inglés), `HOSTNAME_NEW` (`command-os`), `VARIANT` (`pc-nvidia` si hay GPU
 NVIDIA, solo; vacío en Intel/AMD) y `CIFRADO` (`si`/`no`: no pregunta si cifrar).
 
 ## 3. Qué protege al instalador del disco entero
@@ -128,4 +128,8 @@ Instalador publicado (2026-10-07): `tests/instalador.sh` en cada cambio (huella,
 ejecuta nada con la firma alterada, sin firma o de otra clave) y, en la misma VM, el USB en vivo **sin
 clon del repositorio**: `instalar-command-os.sh` comprobó la firma (clave de prueba), instaló en disco
 entero el paquete publicado validado por firma (`pacman -Qi`: «Signature») y arrancó hasta el asistente.
+Zona de serie (2026-10-08): `tests/discos.sh` comprueba `Europe/Madrid` en castellano, `UTC` en inglés y que
+`TIMEZONE` manda; en la VM, dos discos temporales (`NO_NVRAM=1`): `/etc/localtime` y `locale.conf` de cada
+uno y, al arrancar, el asistente con UTC marcada en inglés y Madrid en castellano.
+
 **No se ha probado en un PC real.**

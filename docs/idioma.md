@@ -70,7 +70,8 @@ Command OS. `instalar-command-os.sh` pregunta el idioma antes de descargar nada 
 van escritos en los dos idiomas, porque aún no tiene el catálogo) y lo pasa como `COMMAND_OS_IDIOMA`.
 `cargar_idioma` (`build/x86/lib.sh`) genera el locale (`localedef`, un segundo), compila
 `os/po/<idioma>.po` del mismo árbol (`msgfmt`) y deja `IDIOMA` (el `LANG` del sistema instalado) y el
-teclado de serie (`us` en inglés). `configure_system` pasa ese catálogo a `os/install.sh`, que corre
+teclado de serie (`us` en inglés) y la zona horaria de serie (`Europe/Madrid` en castellano, `UTC` en inglés;
+`TIMEZONE` manda; el instalador no la pregunta, la elige el asistente de primer arranque). `configure_system` pasa ese catálogo a `os/install.sh`, que corre
 dentro del sistema nuevo antes de que esté el paquete (`COMMAND_OS_LOCALE_DIR`). Las traducciones salen
 siempre del árbol del instalador, nunca de un
 Command OS instalado; en castellano no se traduce aunque el entorno esté en otro idioma. Las

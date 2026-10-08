@@ -12,8 +12,8 @@
 # lectura; enseña lo que hay y pide escribir el nombre exacto del disco (y BORRAR WINDOWS si lo tiene).
 #
 # Variables: COMMAND_OS_IDIOMA (es|en, mensajes e idioma del sistema; default es), KB_LAYOUT
-# (teclado; default es, o us en inglés), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
-# (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (disco mínimo, 30),
+# (teclado; default es, o us en inglés), TIMEZONE (default Europe/Madrid, o UTC en inglés: la zona
+# se elige luego en el asistente de primer arranque), HOSTNAME_NEW (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (disco mínimo, 30),
 # CIFRADO=si|no (no pregunta si cifrar; la contraseña y la clave de recuperación se piden siempre),
 # ROLLING=1 (Arch del día en vez de la fecha validada). Solo para pruebas en una VM: NO_NVRAM=1
 # (no registra la entrada UEFI), COMMAND_OS_SSH=1 (servidor SSH encendido), COMMAND_OS_FUERA_DEL_USB=1
@@ -25,7 +25,6 @@ source "${REPO}/build/x86/lib.sh"
 cargar_idioma
 DISK=${1:-}
 KB_LAYOUT=${KB_LAYOUT:-${KB_DEFECTO}}
-TIMEZONE=${TIMEZONE:-Europe/Madrid}
 HOSTNAME_NEW=${HOSTNAME_NEW:-command-os}
 MNT=/mnt/command-os
 

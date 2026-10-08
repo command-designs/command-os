@@ -9,8 +9,8 @@
 # sí por defecto), en el hueco van dos: /boot de 1 GiB sin cifrar y el resto en LUKS2.
 # CIFRADO=si|no no pregunta si cifrar (la contraseña y la clave de recuperación se piden siempre).
 # Variables: COMMAND_OS_IDIOMA (es|en, mensajes e idioma del sistema; default es), KB_LAYOUT
-# (teclado; default es, o us en inglés), TIMEZONE (default Europe/Madrid), HOSTNAME_NEW
-# (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (hueco mínimo, 30),
+# (teclado; default es, o us en inglés), TIMEZONE (default Europe/Madrid, o UTC en inglés: la zona
+# se elige luego en el asistente de primer arranque), HOSTNAME_NEW (default command-os), VARIANT (auto: pc-nvidia si hay GPU NVIDIA), MIN_GB (hueco mínimo, 30),
 # NO_NVRAM=1 (no registra la entrada UEFI; solo para pruebas sobre un disco loop, junto con
 # COMMAND_OS_FUERA_DEL_USB=1, que deja ejecutarlo fuera del USB en vivo),
 # ROLLING=1 (Arch del día en vez de la fecha validada).
@@ -21,7 +21,6 @@ source "${REPO}/build/x86/lib.sh"
 cargar_idioma
 DISK=${1:-}
 KB_LAYOUT=${KB_LAYOUT:-${KB_DEFECTO}}
-TIMEZONE=${TIMEZONE:-Europe/Madrid}
 HOSTNAME_NEW=${HOSTNAME_NEW:-command-os}
 MIN_GB=${MIN_GB:-30}
 MNT=/mnt/command-os

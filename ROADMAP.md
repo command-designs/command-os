@@ -4,10 +4,6 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 `docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
 de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
-13. **Zona horaria en el instalador** (lo del asistente ya está: `docs/cuentas.md` § «Hora»). Zona de
-    serie según el idioma (`Europe/Madrid` en castellano, `UTC` en inglés; `TIMEZONE` la sigue
-    fijando) e `INSTALAR.md` al día. Sonnet, esfuerzo bajo/medio: cambio pequeño en `build/x86/`.
-
 ## Lo prueba el usuario
 
 - PC real (bare metal x86, GPU NVIDIA).
