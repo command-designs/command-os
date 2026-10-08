@@ -57,4 +57,27 @@ if [[ ! -e /var/lib/command-os/aviso-actualizaciones ]]; then
     warn "no se pudo activar la comprobación de actualizaciones"
   fi
 fi
+
+# Hora por la red (systemd-timesyncd, servidores de Arch): sin ella, un reloj del equipo que va mal
+# (pila gastada, otra zona) no se corrige nunca. Una sola vez, como la de arriba: si alguien la
+# desactiva, una actualización no la vuelve a activar. Si el equipo ya usa otro cliente de hora
+# (chrony, ntpd, openntpd), se respeta: chronyd y timesyncd se excluyen y se pararían el uno al otro.
+otro_ntp=""
+for s in chronyd ntpd openntpd; do
+  systemctl is-enabled --quiet "${s}.service" 2>/dev/null && otro_ntp=${s}
+done
+if [[ ! -e /var/lib/command-os/hora-por-red && -n "${otro_ntp}" ]]; then
+  install -d /var/lib/command-os
+  touch /var/lib/command-os/hora-por-red
+elif [[ ! -e /var/lib/command-os/hora-por-red ]]; then
+  if systemctl enable systemd-timesyncd.service >/dev/null 2>&1; then
+    install -d /var/lib/command-os
+    touch /var/lib/command-os/hora-por-red
+    if [[ -d /run/systemd/system ]] && ! systemd-detect-virt --chroot --quiet; then
+      systemctl start --no-block systemd-timesyncd.service >/dev/null 2>&1 || true
+    fi
+  else
+    warn "no se pudo activar la hora por la red (systemd-timesyncd)"
+  fi
+fi
 exit 0

@@ -3,6 +3,31 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-08 — Zona horaria y hora (`docs/cuentas.md` § «Hora»)
+
+- **La zona se elige en el asistente de primer arranque** (decisión del usuario), como el idioma: la
+  elige quien recibe el equipo y se aplica al crear la cuenta. Descartado: dejarla fija del
+  instalador (quien instala fuera de España quedaba con la hora mal y solo se cambiaba en una terminal).
+- **Un botón con buscador y no región → ciudad ni un mapa.** Casi todo el mundo busca su país, no
+  su ciudad, y no sabe que Canarias está en «Atlántico»; un mapa no cabe en 720 px ni se usa bien con
+  teclado. Se busca por comienzo de palabra (si no, «utc» encuentra «Dutch»).
+- **Países traducidos con `iso-codes`; ciudades tal cual, en inglés.** Traducir ~400 ciudades en
+  `os/po/` sería mucho texto que nadie revisa; buscar el país en tu idioma ya encuentra tu zona.
+- **Sin red, la zona propuesta es la del instalador, y un teclado de un país con una sola zona propone
+  la suya** (solo si no se ha elegido otra a mano). Descartado: deducirla del idioma (el inglés no dice
+  el país), geolocalizar por IP (necesita red y saca la ubicación del equipo) y sugerir con `us`,
+  `latam` o `br` (países con varias zonas: adivinar sería peor que no proponer).
+- **Una sola orden cambia la zona (`command-os-zona-horaria`)**, la del asistente y la de las
+  personas, igual que `command-os-idioma`.
+- **Dual boot: el reloj del equipo sigue en hora local (`LOCAL`) y manda el reloj que es fiable.** Sin
+  hora de la red, el reloj del equipo (Windows lo deja en la hora de pared) se vuelve a leer con la
+  zona nueva; con ella, se reescribe el del equipo. Descartado: `timedatectl set-timezone` siempre
+  (escribe en el reloj del equipo la hora del sistema, que en el primer arranque se calculó con la zona
+  del instalador: dejaría la hora mal también en Windows) y pasar Windows a UTC (`RealTimeIsUniversal`
+  toca el registro de Windows, fuera de lo que hace el instalador).
+- **Hora por la red (`systemd-timesyncd`) de serie, activada una sola vez.** Sin ella, un reloj que va
+  mal no se corrige nunca. Es poco tráfico, así que también se usa con datos medidos.
+
 ## 2026-10-07 — Cifrado del disco (`docs/cifrado.md`)
 
 - **Opcional y marcado por defecto, en disco entero y en dual boot.** En un portátil con Windows

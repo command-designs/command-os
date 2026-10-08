@@ -83,6 +83,23 @@ entry:focus-within {
     box-shadow: inset 3px 0 0 #d13449;
 }
 
+/* Asistente: lista de zonas horarias (desplegable con buscador). */
+.zonas row {
+    padding: 6px 10px;
+    border-radius: 0;
+}
+
+.zonas row:selected,
+.zonas row:hover {
+    background-color: #2b1118;
+}
+
+.desfase {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: #a8a2a6;
+}
+
 button.suggested-action {
     background-color: #d13449;
     color: #edebe6;

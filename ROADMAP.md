@@ -4,7 +4,9 @@ Por orden. Cuando algo se termina y se verifica, se quita de aquí (el detalle q
 `docs/` y el historial de git). **Prioridad x86**: se trabaja y se prueba en x86; nada específico
 de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
-No queda ningún punto numerado: lo siguiente sale de «Otros pendientes» (abajo) cuando se decida.
+13. **Zona horaria en el instalador** (lo del asistente ya está: `docs/cuentas.md` § «Hora»). Zona de
+    serie según el idioma (`Europe/Madrid` en castellano, `UTC` en inglés; `TIMEZONE` la sigue
+    fijando) e `INSTALAR.md` al día. Sonnet, esfuerzo bajo/medio: cambio pequeño en `build/x86/`.
 
 ## Lo prueba el usuario
 
@@ -14,6 +16,8 @@ No queda ningún punto numerado: lo siguiente sale de «Otros pendientes» (abaj
 - Disco cifrado en un PC real (`docs/cifrado.md`): la contraseña en el splash con el teclado del
   portátil y con uno USB, una contraseña con símbolos (en la VM solo se teclean letras, cifras y
   espacios) y el splash con gráfica NVIDIA.
+- Hora en un dual boot con Windows de verdad (`docs/cuentas.md` § «Hora»): elegir otra zona en el
+  asistente sin red y que Windows y Command OS sigan con la misma hora.
 - Escala automática en un portátil de alta densidad y con un segundo monitor conectado en marcha
   (`docs/notas/pantallas.md`; la VM no da tamaño físico).
 
@@ -36,8 +40,8 @@ No queda ningún punto numerado: lo siguiente sale de «Otros pendientes» (abaj
   tras volver atrás con `command-os-rollback`.
 - Probar el asistente de primer arranque en varias resoluciones (VM `command-os-instalador`).
 - Cuentas (fuera del punto del primer arranque, `docs/cuentas.md`): añadir y gestionar más cuentas
-  desde el escritorio (con idioma propio de cada cuenta), zona horaria en el asistente y un panel para
-  cambiar la contraseña y el idioma.
+  desde el escritorio (con idioma propio de cada cuenta) y un panel para cambiar la contraseña, el
+  idioma y la zona horaria.
 - Prueba automática de `command-os-rollback` (sin y con `/boot` aparte, y que deshace todo si falla):
   hoy solo se prueba a mano en la VM, porque el script actúa sobre la raíz del sistema en marcha.
 - Disco cifrado (`docs/cifrado.md`): un panel para cambiar la contraseña del disco y la clave de

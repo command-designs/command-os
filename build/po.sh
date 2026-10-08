@@ -13,10 +13,10 @@ set -euo pipefail
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 PO="${REPO}/os/po"
 # Archivos con textos traducibles: Python con _() y N_(); shell con t y tn (lib/textos.sh).
-PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py build/make-plymouth-textos.py)
+PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py os/lib/zonas.py build/make-plymouth-textos.py)
 SHELL_=(
   os/install.sh os/lib/crear-cuenta os/lib/apply-boot
-  os/bin/command-os-{about,captura,desktops,idioma,keys,lock,login,power,rollback,status,update,updates,wallpaper}
+  os/bin/command-os-{about,captura,desktops,idioma,keys,lock,login,power,rollback,status,update,updates,wallpaper,zona-horaria}
   build/x86/{instalar,lib,install-disco,install-dualboot}.sh
 )
 # Archivos de configuración que no pueden llamar a gettext (lib/traducir.py, docs/idioma.md): los

@@ -29,13 +29,25 @@ echo "${CLAVE}" | "${CREAR}" --usuario root >/dev/null 2>&1 && mal "acepta root"
 echo "corta" | "${CREAR}" --usuario ana >/dev/null 2>&1 && mal "acepta una contraseña corta" || ok "rechaza contraseña corta"
 echo "${CLAVE}" | "${CREAR}" --usuario ana --teclado 'es;rm' >/dev/null 2>&1 && mal "acepta un teclado raro" || ok "rechaza teclado no válido"
 echo "${CLAVE}" | "${CREAR}" --usuario ana --idioma fr_FR.UTF-8 >/dev/null 2>&1 && mal "acepta un idioma que no está en la lista" || ok "rechaza idiomas que no están en la lista"
+echo "${CLAVE}" | "${CREAR}" --usuario ana --zona ../../etc/passwd >/dev/null 2>&1 && mal "acepta una zona que no es de la lista" || ok "rechaza zonas que no están en la lista"
+# Si falla un paso después de la zona (aquí, el idioma), la zona vuelve a la de antes.
+command-os-zona-horaria Europe/Madrid >/dev/null
+falso=$(mktemp -d)
+printf '#!/bin/sh\n[ "$1" = lista ] && exec /usr/bin/command-os-idioma lista\nexit 1\n' > "${falso}/command-os-idioma"
+chmod +x "${falso}/command-os-idioma"
+echo "${CLAVE}" | PATH="${falso}:${PATH}" "${CREAR}" --usuario ana --zona America/New_York --idioma en_US.UTF-8 >/dev/null 2>&1 \
+  && mal "crea la cuenta aunque falle el idioma" || ok "si falla el idioma, no crea la cuenta"
+[[ "$(command-os-zona-horaria actual)" == Europe/Madrid ]] && ok "y la zona vuelve a la de antes" \
+  || mal "la zona quedó en $(command-os-zona-horaria actual) tras el fallo"
+rm -rf "${falso}"
 echo "${CLAVE}" | "${CREAR}" --usuario video >/dev/null 2>&1 && mal "acepta un nombre de grupo del sistema"   || ok "rechaza nombres de grupos del sistema"
 getent passwd video >/dev/null && mal "quedó la cuenta video"
 getent passwd ana >/dev/null && mal "quedó una cuenta a medias" || ok "no quedan cuentas a medias"
 [[ -e /var/lib/command-os/configurado ]] && mal "se marcó como configurado tras un error" || ok "sigue sin configurar"
 
 echo "==> Cuenta principal"
-if echo "${CLAVE}" | "${CREAR}" --usuario ana --nombre 'Ana López' --teclado 'de(nodeadkeys)' --idioma en_US.UTF-8 >/dev/null; then
+if echo "${CLAVE}" | "${CREAR}" --usuario ana --nombre 'Ana López' --teclado 'de(nodeadkeys)' --idioma en_US.UTF-8 \
+    --zona America/New_York >/dev/null; then
   ok "crear-cuenta ana"
 else
   mal "crear-cuenta ana"
@@ -50,6 +62,7 @@ else
 fi
 [[ "$(cat /etc/command-os/kb_layout)" == 'de(nodeadkeys)' ]] && ok "teclado con variante guardado" || mal "teclado"
 grep -qx 'LANG=en_US.UTF-8' /etc/locale.conf && ok "idioma elegido en locale.conf" || mal "no se aplicó el idioma"
+[[ "$(readlink /etc/localtime)" == */zoneinfo/America/New_York ]] && ok "zona horaria elegida" || mal "no se aplicó la zona horaria"
 grep -q 'command = "command-os-greeter"' "${TOML}" && ok "greetd: pantalla de inicio de sesión" || mal "greetd sin pantalla de inicio de sesión"
 grep -q initial_session "${TOML}" && mal "inicio automático sin pedirlo" || ok "pide contraseña (por defecto)"
 echo "${CLAVE}" | "${CREAR}" --usuario luis >/dev/null 2>&1 && mal "se puede repetir el primer arranque" || ok "no se repite"

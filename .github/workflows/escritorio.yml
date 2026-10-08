@@ -57,6 +57,8 @@ jobs:
 
       - name: Idioma del sistema (traducciones, command-os-idioma, tema de GRUB)
         run: bash tests/idioma.sh
+      - name: Zona horaria (command-os-zona-horaria, búsqueda del asistente, hora por la red)
+        run: bash tests/zona-horaria.sh
 
       - name: Aviso de actualizaciones (barra, comprobación, unidades)
         run: bash tests/actualizaciones.sh

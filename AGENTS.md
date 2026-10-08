@@ -27,7 +27,7 @@ de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualiza
 igual en 16:9 y 16:10 con escala automática de alta densidad y tema de GRUB propio
 (`docs/notas/pantallas.md`). Al instalar en un PC, el disco se cifra (LUKS2, sí por defecto) con la
 contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). En castellano de serie, con
-el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`). La zona horaria también se elige en el asistente, con hora por la red (`docs/cuentas.md` § «Hora»). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -35,7 +35,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | Si vas a tocar… | Lee |
 | --- | --- |
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
-| cuentas, contraseñas, primer arranque, inicio de sesión, greetd | `docs/cuentas.md` |
+| cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |

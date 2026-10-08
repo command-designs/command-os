@@ -98,14 +98,17 @@ msgstr "{teclado} (from the installer)"
 msgid "teclado"
 msgstr "keyboard"
 
+msgid "zona horaria"
+msgstr "time zone"
+
 msgid "opcional"
 msgstr "optional"
 
-msgid "tu nombre"
-msgstr "your name"
-
 msgid "minúsculas, sin espacios"
 msgstr "lowercase, no spaces"
+
+msgid "tu nombre"
+msgstr "your name"
 
 msgid "usuario"
 msgstr "username"
@@ -134,6 +137,12 @@ msgstr ""
 msgid "crear cuenta"
 msgstr "create account"
 
+msgid "busca tu ciudad o tu país"
+msgstr "search for your city or country"
+
+msgid "sin resultados"
+msgstr "no results"
+
 msgid "usuario: minúsculas, números, - o _, empezando por una letra."
 msgstr "username: lowercase letters, numbers, - or _, starting with a letter."
 
@@ -154,6 +163,39 @@ msgstr "could not create the account."
 msgid "cuenta {usuario} creada. entrando…"
 msgstr "account {usuario} created. signing in…"
 
+msgid "África"
+msgstr "Africa"
+
+msgid "América"
+msgstr "America"
+
+msgid "Antártida"
+msgstr "Antarctica"
+
+msgid "Ártico"
+msgstr "Arctic"
+
+msgid "Asia"
+msgstr "Asia"
+
+msgid "Atlántico"
+msgstr "Atlantic"
+
+msgid "Australia"
+msgstr "Australia"
+
+msgid "Europa"
+msgstr "Europe"
+
+msgid "Índico"
+msgstr "Indian"
+
+msgid "Pacífico"
+msgstr "Pacific"
+
+msgid "tiempo universal coordinado"
+msgstr "coordinated universal time"
+
 msgid "contraseña del disco  ·  o la clave de recuperación"
 msgstr "disk password  ·  or the recovery key"
 
@@ -165,7 +207,9 @@ msgstr "Run it as root (pacman, users, services)."
 
 msgid ""
 "Repositorios (en x86_64, Arch de la fecha validada: os/pacman/snapshot-date)"
-msgstr "Repositories (on x86_64, Arch from the validated date: os/pacman/snapshot-date)"
+msgstr ""
+"Repositories (on x86_64, Arch from the validated date: os/pacman/snapshot-"
+"date)"
 
 #, python-format
 msgid "Cuenta de desarrollo: %s (contraseña «%s»; solo para pruebas)"
@@ -186,7 +230,8 @@ msgstr "System snapshots (btrfs + snapper)"
 msgid ""
 "Instantáneas: la raíz no es btrfs; sin instantáneas (solo en instalaciones "
 "nuevas)."
-msgstr "Snapshots: the root is not btrfs; no snapshots (only on new installations)."
+msgstr ""
+"Snapshots: the root is not btrfs; no snapshots (only on new installations)."
 
 #, python-format
 msgid "Variante desconocida: %s"
@@ -243,6 +288,10 @@ msgid "idioma no disponible: %s"
 msgstr "language not available: %s"
 
 #, python-format
+msgid "zona horaria no disponible: %s"
+msgstr "time zone not available: %s"
+
+#, python-format
 msgid "la contraseña tiene que tener al menos %s caracteres"
 msgstr "the password must be at least %s characters long"
 
@@ -251,6 +300,10 @@ msgstr "could not create the account"
 
 msgid "no se pudo fijar la contraseña"
 msgstr "could not set the password"
+
+#, python-format
+msgid "no se pudo aplicar la zona horaria %s"
+msgstr "could not apply the time zone %s"
 
 #, python-format
 msgid "no se pudo aplicar el idioma %s"
@@ -680,6 +733,36 @@ msgstr "core"
 
 msgid "placa"
 msgstr "board"
+
+#, python-format
+msgid "zona horaria: %s (son las %s)"
+msgstr "time zone: %s (it is %s)"
+
+msgid "uso: command-os-zona-horaria [lista | ZONA]"
+msgstr "usage: command-os-zona-horaria [lista | ZONE]"
+
+#, python-format
+msgid ""
+"zona horaria no disponible: %s (las que hay: command-os-zona-horaria lista)"
+msgstr "time zone not available: %s (to see them all: command-os-zona-horaria lista)"
+
+#, python-format
+msgid "falta el archivo de la zona %s (paquete tzdata)"
+msgstr "the file for time zone %s is missing (tzdata package)"
+
+#, python-format
+msgid "la zona horaria ya es %s"
+msgstr "the time zone is already %s"
+
+msgid "no se pudo cambiar la zona horaria"
+msgstr "could not change the time zone"
+
+msgid "aviso: no se pudo leer la hora del reloj del equipo"
+msgstr "warning: could not read the time from the hardware clock"
+
+#, python-format
+msgid "hecho: la zona horaria es %s (son las %s)."
+msgstr "done: the time zone is %s (it is %s)."
 
 msgid "ejecutar como root"
 msgstr "run it as root"
