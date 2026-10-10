@@ -16,11 +16,11 @@ import re
 import subprocess
 import sys
 import threading
-import unicodedata
 
 import zonas
-from comun import CONF, cargar_tema, disco_cifrado, fila, leer, logo, panel, traductor
-from gi.repository import GLib, Gtk, Pango
+from comun import CONF, cargar_tema, disco_cifrado, fila, leer, logo, panel, traductor, usuario_desde
+from selector_zona import SelectorZona
+from gi.repository import GLib, Gtk
 
 CREAR = "/usr/lib/command-os/crear-cuenta"
 MIN_CONTRASENA = 8
@@ -79,11 +79,6 @@ def guardar(ruta, texto):
         pass  # solo se perdería al cambiar de teclado
 
 
-def usuario_desde(nombre):
-    """«Daniel Infante» -> «daniel»: primera palabra, sin tildes, en minúsculas."""
-    plano = unicodedata.normalize("NFKD", nombre).encode("ascii", "ignore").decode()
-    palabra = (plano.lower().split() or [""])[0]
-    return re.sub(r"[^a-z0-9_-]", "", palabra)[:32]
 
 
 class Asistente(Gtk.ApplicationWindow):
@@ -108,7 +103,7 @@ class Asistente(Gtk.ApplicationWindow):
         self.pared = de_antes if zonas.reloj_local() and not zonas.sincronizada() else None
         self.catalogos = {}
         self.construir()
-        GLib.timeout_add_seconds(20, self.poner_hora)
+        GLib.timeout_add_seconds(20, lambda: self.selector_zona.poner_hora())
         self.nombre.grab_focus()
 
     def construir(self, valores=None):
@@ -223,93 +218,16 @@ class Asistente(Gtk.ApplicationWindow):
         return self.catalogos[self.idioma]
 
     def construir_zona(self):
-        """Botón con la zona elegida que abre un desplegable con buscador: se busca por ciudad,
-        país (en el idioma de la ventana) o nombre de la zona, sin tildes."""
-        _ = self._
-        self.boton_zona = Gtk.MenuButton(hexpand=True)
-        self.texto_zona = Gtk.Label(xalign=0, hexpand=True, ellipsize=Pango.EllipsizeMode.END)
-        self.boton_zona.set_child(self.texto_zona)
+        """El selector de zona compartido (lib/selector_zona.py)."""
+        self.selector_zona = self.boton_zona = SelectorZona(
+            self.catalogo(), self._, self.zona, self.on_zona, self.pared
+        )
+        return self.selector_zona
 
-        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        self.buscar = Gtk.SearchEntry(placeholder_text=_("busca tu ciudad o tu país"))
-        self.buscar.connect("search-changed", lambda _e: self.lista_zonas.invalidate_filter())
-        self.buscar.connect("activate", self.on_buscar_intro)
-        caja.append(self.buscar)
-
-        self.lista_zonas = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE)
-        self.lista_zonas.add_css_class("zonas")
-        nada = Gtk.Label(label=_("sin resultados"), margin_top=12)
-        nada.add_css_class("tenue")
-        self.lista_zonas.set_placeholder(nada)
-        self.filas_zona = {}
-        for z in self.catalogo():
-            fila_zona = Gtk.ListBoxRow()
-            fila_zona.zona = z
-            linea = Gtk.Box(spacing=12)
-            linea.append(Gtk.Label(label=f"{z.ciudad} · {z.pais}", xalign=0, hexpand=True,
-                                   ellipsize=Pango.EllipsizeMode.END))
-            fila_zona.desfase = Gtk.Label(xalign=1)
-            fila_zona.desfase.add_css_class("desfase")
-            linea.append(fila_zona.desfase)
-            fila_zona.set_child(linea)
-            self.lista_zonas.append(fila_zona)
-            self.filas_zona[z.zona] = fila_zona
-        self.lista_zonas.set_filter_func(lambda f: f.zona.coincide(self.buscar.get_text()))
-        self.lista_zonas.connect("row-activated", self.on_zona)
-        # Tamaño fijo: con el de la lista, las etiquetas recortadas lo dejarían estrecho.
-        desliza = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER)
-        desliza.set_size_request(420, 300)
-        desliza.set_child(self.lista_zonas)
-        caja.append(desliza)
-
-        popover = Gtk.Popover(child=caja)
-        popover.connect("show", self.on_abrir_zonas)
-        self.boton_zona.set_popover(popover)
-        self.poner_hora()
-        return self.boton_zona
-
-    def texto_de_zona(self, zona):
-        """«UTC+2 · 14:32»."""
-        hora = zonas.hora(zona, self.pared)
-        return " · ".join(p for p in (zonas.diferencia(zona), hora) if p)
-
-    def poner_hora(self):
-        fila_zona = self.filas_zona.get(self.zona)
-        nombre = f"{fila_zona.zona.ciudad} · {fila_zona.zona.pais}" if fila_zona else self.zona
-        self.texto_zona.set_text(f"{nombre} — {self.texto_de_zona(self.zona)}")
-        return True  # cada 20 s, para que la hora del botón no se quede atrás
-
-    def on_abrir_zonas(self, _popover):
-        for zona, fila_zona in self.filas_zona.items():
-            fila_zona.desfase.set_text(self.texto_de_zona(zona))
-        self.buscar.set_text("")
-        elegida = self.filas_zona.get(self.zona)
-        if elegida:
-            self.lista_zonas.select_row(elegida)
-        GLib.idle_add(self.enfocar_zona, elegida)
-
-    def enfocar_zona(self, elegida):
-        """Lleva la lista hasta la zona elegida y deja el cursor en el buscador. Al terminar de
-        abrirse el desplegable: antes, la lista no tiene tamaño para desplazarse."""
-        if elegida:
-            elegida.grab_focus()
-        self.buscar.grab_focus()
-        return False
-
-    def on_buscar_intro(self, _entrada):
-        """Intro en el buscador elige la primera zona que se ve."""
-        fila_zona = self.lista_zonas.get_first_child()
-        while fila_zona is not None and not fila_zona.get_child_visible():
-            fila_zona = fila_zona.get_next_sibling()
-        if isinstance(fila_zona, Gtk.ListBoxRow):
-            self.on_zona(self.lista_zonas, fila_zona)
-
-    def on_zona(self, _lista, fila_zona):
-        self.zona = fila_zona.zona.zona
+    def on_zona(self, zona):
+        self.zona = zona
         guardar(ZONA, self.zona)
         guardar(ZONA_TOCADA, "1")
-        self.poner_hora()
-        self.boton_zona.popdown()
 
     def on_idioma(self, combo, _param):
         codigo = self.idiomas[combo.get_selected()][0]

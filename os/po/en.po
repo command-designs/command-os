@@ -144,12 +144,6 @@ msgstr ""
 msgid "crear cuenta"
 msgstr "create account"
 
-msgid "busca tu ciudad o tu país"
-msgstr "search for your city or country"
-
-msgid "sin resultados"
-msgstr "no results"
-
 msgid "usuario: minúsculas, números, - o _, empezando por una letra."
 msgstr "username: lowercase letters, numbers, - or _, starting with a letter."
 
@@ -202,6 +196,265 @@ msgstr "Pacific"
 
 msgid "tiempo universal coordinado"
 msgstr "coordinated universal time"
+
+msgid "busca tu ciudad o tu país"
+msgstr "search for your city or country"
+
+msgid "sin resultados"
+msgstr "no results"
+
+msgid "cmd-os · actualizaciones"
+msgstr "cmd-os · updates"
+
+msgid "› actualizaciones"
+msgstr "› updates"
+
+msgid "no hay una comprobación reciente: pulsa «comprobar ahora»."
+msgstr "no recent check: press “check now”."
+
+msgid "el sistema está al día."
+msgstr "the system is up to date."
+
+msgid ""
+"al actualizar se aplica también la fecha de Arch validada con esa versión"
+msgstr "updating also applies the Arch date validated with that version"
+
+#, python-brace-format
+msgid "paquetes de Arch: {n}"
+msgstr "Arch packages: {n}"
+
+#, python-brace-format
+msgid "comprobado {hace}"
+msgstr "checked {hace}"
+
+msgid "cerrar"
+msgstr "close"
+
+msgid "comprobar ahora"
+msgstr "check now"
+
+msgid "actualizar"
+msgstr "update"
+
+msgid "buscando actualizaciones…"
+msgstr "checking for updates…"
+
+msgid "no se pudo comprobar (¿sin red?)"
+msgstr "could not check (no network?)"
+
+msgid "cmd-os · cuentas"
+msgstr "cmd-os · accounts"
+
+msgid "ya existe una cuenta con ese usuario."
+msgstr "an account with that username already exists."
+
+msgid "ese nombre está reservado por el sistema: elige otro."
+msgstr "that name is reserved by the system: choose another."
+
+msgid "el nombre no puede llevar «:»."
+msgstr "the name cannot contain “:”."
+
+msgid "no se puede hacer con tu propia cuenta."
+msgstr "this cannot be done with your own account."
+
+msgid "esa cuenta tiene la sesión abierta: cierra la sesión antes."
+msgstr "that account is signed in: sign out first."
+
+msgid "tiene que quedar al menos una cuenta administradora."
+msgstr "at least one administrator account must remain."
+
+msgid "esa cuenta ya no existe."
+msgstr "that account no longer exists."
+
+msgid "ese idioma no está disponible."
+msgstr "that language is not available."
+
+msgid "esa zona horaria no está disponible."
+msgstr "that time zone is not available."
+
+msgid "no se pudo comprobar la contraseña de administrador."
+msgstr "could not verify the administrator password."
+
+msgid "la contraseña actual no es correcta."
+msgstr "the current password is not correct."
+
+msgid "no se pudo completar la operación."
+msgstr "the operation could not be completed."
+
+msgid "› cuentas"
+msgstr "› accounts"
+
+msgid "mi cuenta"
+msgstr "my account"
+
+msgid "administrador"
+msgstr "administrator"
+
+msgid "cuenta normal"
+msgstr "standard account"
+
+msgid "idioma de mi cuenta"
+msgstr "language of my account"
+
+msgid "zona horaria (de todo el equipo)"
+msgstr "time zone (for the whole computer)"
+
+msgid "cuentas del equipo"
+msgstr "accounts on this computer"
+
+msgid "añadir cuenta"
+msgstr "add account"
+
+msgid "cambiar mi contraseña"
+msgstr "change my password"
+
+msgid "el del equipo"
+msgstr "the computer's"
+
+msgid "tú"
+msgstr "you"
+
+msgid "principal"
+msgstr "main"
+
+msgid "quitar admin"
+msgstr "remove admin"
+
+msgid "hacer admin"
+msgstr "make admin"
+
+msgid "borrar"
+msgstr "delete"
+
+msgid "contraseña actual"
+msgstr "current password"
+
+msgid "contraseña nueva"
+msgstr "new password"
+
+msgid "cambiar"
+msgstr "change"
+
+msgid "contraseña cambiada."
+msgstr "password changed."
+
+msgid "se aplica al volver a entrar."
+msgstr "applies the next time you sign in."
+
+msgid "conservar su carpeta personal"
+msgstr "keep their home folder"
+
+#, python-brace-format
+msgid "se borrará la cuenta {usuario}. no se puede deshacer."
+msgstr "the account {usuario} will be deleted. this cannot be undone."
+
+#, python-brace-format
+msgid "cuenta {usuario} borrada."
+msgstr "account {usuario} deleted."
+
+msgid "borrar cuenta"
+msgstr "delete account"
+
+#, python-brace-format
+msgid "contraseña de {usuario} cambiada."
+msgstr "password for {usuario} changed."
+
+#, python-brace-format
+msgid "contraseña nueva para {usuario}."
+msgstr "new password for {usuario}."
+
+msgid "contraseña de otra cuenta"
+msgstr "password of another account"
+
+msgid "puede administrar el equipo"
+msgstr "can administer this computer"
+
+msgid "idioma de la cuenta"
+msgstr "account language"
+
+#, python-brace-format
+msgid "cuenta {usuario} creada."
+msgstr "account {usuario} created."
+
+msgid "cmd-os · disco cifrado"
+msgstr "cmd-os · encrypted disk"
+
+msgid "este equipo no tiene el disco cifrado."
+msgstr "this computer's disk is not encrypted."
+
+msgid ""
+"la contraseña actual del disco no es correcta (la clave de recuperación no "
+"vale aquí)."
+msgstr ""
+"the current disk password is not correct (the recovery key does not work "
+"here)."
+
+msgid "solo letras sin tilde, cifras, espacios y símbolos (sin ñ ni tildes)"
+msgstr "only plain letters, digits, spaces and symbols (no accents)"
+
+msgid ""
+"el disco tiene más claves de las dos habituales: se gestionan a mano con "
+"cryptsetup."
+msgstr ""
+"the disk has more keys than the usual two: manage them by hand with "
+"cryptsetup."
+
+msgid "› disco cifrado"
+msgstr "› encrypted disk"
+
+msgid "este equipo no tiene el disco cifrado. se elige al instalar."
+msgstr "this computer's disk is not encrypted. that is chosen when installing."
+
+msgid ""
+"la contraseña del disco se escribe al encender. la clave de recuperación se "
+"guarda en papel, fuera del equipo, por si se olvida."
+msgstr ""
+"the disk password is typed at power on. the recovery key is kept on paper, "
+"away from the computer, in case the password is forgotten."
+
+msgid "cambiar la contraseña del disco"
+msgstr "change the disk password"
+
+msgid "generar una clave de recuperación nueva"
+msgstr "generate a new recovery key"
+
+msgid "contraseña actual del disco"
+msgstr "current disk password"
+
+msgid ""
+"se pide al encender, antes de que arranque el sistema: al menos 8 "
+"caracteres, sin ñ ni tildes."
+msgstr ""
+"asked at power on, before the system starts: at least 8 characters, no "
+"accents or ñ."
+
+msgid "contraseña del disco"
+msgstr "disk password"
+
+msgid "contraseña del disco cambiada. se pide la nueva al encender."
+msgstr "disk password changed. the new one is asked at power on."
+
+#, python-brace-format
+msgid "grupo {n}"
+msgstr "group {n}"
+
+msgid ""
+"apunta esta clave en papel y guárdala fuera del equipo: es la única forma de "
+"entrar si se olvida la contraseña. se enseña una sola vez. la clave de "
+"recuperación anterior dejará de valer."
+msgstr ""
+"write this key down on paper and keep it away from the computer: it is the "
+"only way in if the password is forgotten. it is shown only once. the "
+"previous recovery key will stop working."
+
+msgid "los grupos no coinciden con la clave: vuelve a mirarla."
+msgstr "the groups do not match the key: look at it again."
+
+msgid "clave de recuperación cambiada: la anterior ya no vale."
+msgstr "recovery key changed: the previous one no longer works."
+
+msgid "clave de recuperación"
+msgstr "recovery key"
 
 msgid "contraseña del disco  ·  o la clave de recuperación"
 msgstr "disk password  ·  or the recovery key"
@@ -336,9 +589,6 @@ msgstr "up to date (no fixed date)"
 msgid "validado"
 msgstr "validated"
 
-msgid "administrador"
-msgstr "administrator"
-
 msgid "sí (command-os-rollback)"
 msgstr "yes (command-os-rollback)"
 
@@ -414,13 +664,13 @@ msgstr "language: %s (%s)"
 msgid "sin definir"
 msgstr "not set"
 
-msgid "uso: command-os-idioma [lista | IDIOMA]"
-msgstr "usage: command-os-idioma [lista | LANGUAGE]"
-
 #, python-format
 msgid "idioma no disponible: %s (los que hay: command-os-idioma lista)"
 msgstr ""
 "language not available: %s (the ones there are: command-os-idioma lista)"
+
+msgid "uso: command-os-idioma [lista | IDIOMA]"
+msgstr "usage: command-os-idioma [lista | LANGUAGE]"
 
 #, python-format
 msgid "el idioma ya es %s"
@@ -683,10 +933,6 @@ msgid_plural "y %d paquetes más"
 msgstr[0] "and %d more package"
 msgstr[1] "and %d more packages"
 
-msgid ""
-"al actualizar se aplica también la fecha de Arch validada con esa versión"
-msgstr "updating also applies the Arch date validated with that version"
-
 #, python-format
 msgid "%d paquete de Arch"
 msgid_plural "%d paquetes de Arch"
@@ -698,8 +944,8 @@ msgid "… y %d más"
 msgstr "… and %d more"
 
 #, python-format
-msgid "comprobado %s · clic: actualizar · clic derecho: comprobar ahora"
-msgstr "checked %s · click: update · right click: check now"
+msgid "comprobado %s · clic: ver y actualizar · clic derecho: comprobar ahora"
+msgstr "checked %s · click: review and update · right click: check now"
 
 msgid "actualizaciones"
 msgstr "updates"
@@ -713,20 +959,11 @@ msgstr "update command os"
 msgid "pulsa intro para cerrar"
 msgstr "press enter to close"
 
-msgid "buscando actualizaciones…"
-msgstr "checking for updates…"
-
 msgid "hay actualizaciones: clic en la barra para instalarlas"
 msgstr "updates available: click the bar to install them"
 
 msgid "el sistema está al día"
 msgstr "the system is up to date"
-
-msgid "no se pudo comprobar (¿sin red?)"
-msgstr "could not check (no network?)"
-
-msgid "actualizar"
-msgstr "update"
 
 msgid "actualización disponible"
 msgstr "update available"
@@ -928,9 +1165,6 @@ msgstr "Encrypt the disk? [Y/n]:"
 
 msgid "tiene que tener al menos 8 caracteres"
 msgstr "it must have at least 8 characters"
-
-msgid "solo letras sin tilde, cifras, espacios y símbolos (sin ñ ni tildes)"
-msgstr "only plain letters, digits, spaces and symbols (no accents)"
 
 msgid ""
 "La contraseña del disco: al menos 8 caracteres, sin ñ ni tildes. No se "
@@ -1175,6 +1409,12 @@ msgstr "sound"
 msgid "red"
 msgstr "network"
 
+msgid "cuentas"
+msgstr "accounts"
+
+msgid "disco cifrado"
+msgstr "encrypted disk"
+
 msgid "recargar escritorio"
 msgstr "reload desktop"
 
@@ -1193,5 +1433,6 @@ msgstr "on all desktops"
 msgid "mover a escritorio"
 msgstr "move to desktop"
 
-msgid "cerrar"
-msgstr "close"
+#, fuzzy
+#~ msgid "contraseña del disco cambiada. Se pide la nueva al encender."
+#~ msgstr "disk password  ·  or the recovery key"

@@ -194,7 +194,12 @@ Comandos desde el anfitrión con `S="ssh -i build/packer/keys/packer_build_key -
   113 silencio, 114 y 115 volumen, 224 y 225 brillo. Clic derecho: llevar el puntero a la esquina con
   movimientos relativos (`REL_X/REL_Y`), mover hasta el punto y pulsar `BTN_RIGHT` (0x111). Va como root
   (`sudo`). VirtualBox no tiene retroiluminación: del brillo solo se ve que el OSD recibe la orden
-  (`labwc.log`: «BrightnessCtl Backend»).
+  (`labwc.log`: «BrightnessCtl Backend»). **El puntero virtual se acelera** y no llega adonde se pide
+  (un clic en la esquina de una ventana cayó en el botón de energía): para manejar ventanas, el
+  teclado (Tab y Intro con `keyboardputscancode 0f 8f` / `1c 9c`; Alt+Tab `38 0f 8f b8`). Los paneles
+  GTK se abren desde una terminal de la sesión (Super+Intro y `sh archivo.sh` con la orden: con
+  `keyboardputstring` solo salen bien letras, cifras, espacios y el punto), no por SSH: polkit solo
+  autentica y deja comprobar actualizaciones a la sesión local activa.
 - **Inactividad**: bloquea a los 5 min y apaga la pantalla a los 10 (`wlopm` la muestra `on`/`off`). Un
   `ssh` largo se corta: lanzar un script con `setsid nohup` que apunte `wlopm` y `pgrep hyprlock` cada
   5 s en un archivo y mirarlo después. Una tecla la enciende (queda bloqueada hasta teclear la contraseña).

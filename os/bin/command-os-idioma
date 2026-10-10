@@ -4,6 +4,8 @@
 #   command-os-idioma           muestra el idioma actual
 #   command-os-idioma lista     los idiomas que se pueden elegir (código y nombre)
 #   command-os-idioma IDIOMA    lo cambia: es, en (o es_ES.UTF-8, en_US.UTF-8)
+#   command-os-idioma generar IDIOMA   solo genera el locale, sin cambiar el del sistema (root; el
+#                               idioma propio de una cuenta, lib/gestionar-cuentas)
 #
 # Genera el locale si falta, escribe /etc/locale.conf y rehace el arranque (apply-boot: menú y tema
 # de GRUB en el idioma nuevo). Lo usa el asistente de primer arranque (crear-cuenta --idioma). Las
@@ -66,6 +68,14 @@ case "${1:-}" in
     exit 0 ;;
   lista)
     for linea in "${IDIOMAS[@]}"; do echo "${linea}"; done
+    exit 0 ;;
+  generar)
+    # Solo genera el locale (sin cambiar el del sistema): lo usa gestionar-cuentas para el idioma
+    # propio de una cuenta. Idempotente.
+    loc=$(normalizar "${2:-}")
+    [[ -n "${loc}" ]] || die "$(t 'idioma no disponible: %s (los que hay: command-os-idioma lista)' "${2:-}")"
+    [[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
+    generado "${loc}" || generar "${loc}"
     exit 0 ;;
   -*) die "$(t 'uso: command-os-idioma [lista | IDIOMA]')" ;;
 esac

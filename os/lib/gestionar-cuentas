@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+# Command OS — lo que el panel de cuentas (lib/panel-cuentas.py) hace como root. Se lanza con pkexec
+# (polkit pide la contraseña de un administrador; system/polkit-gestionar-cuentas.policy), nunca
+# directamente. No tiene textos traducidos: contesta con códigos y el panel los cuenta en su idioma.
+#
+#   gestionar-cuentas anadir USUARIO [--nombre "Nombre"] [--admin] [--idioma es_ES.UTF-8]
+#   gestionar-cuentas borrar USUARIO [--conservar-home]
+#   gestionar-cuentas admin USUARIO si|no
+#   gestionar-cuentas clave USUARIO
+#   gestionar-cuentas idioma USUARIO es_ES.UTF-8|sistema
+#   gestionar-cuentas zona Europe/Madrid
+#
+# Las contraseñas llegan por la entrada estándar (una línea), nunca como argumento: no quedan en la
+# lista de procesos ni en ningún registro. Éxito: sale con 0. Error: «error: CÓDIGO» por la salida de
+# errores y sale con 3 (códigos al final de la cabecera de cada función y en docs/cuentas.md).
+set -uo pipefail
+
+MIN_CONTRASENA=8
+CONF=/etc/command-os
+fallo() { echo "error: $1" >&2; exit 3; }
+[[ "$(id -u)" -eq 0 ]] || fallo sin_permiso
+[[ -n "${PKEXEC_UID:-}" ]] || fallo sin_permiso  # solo vía pkexec (polkit ya ha autenticado)
+quien=$(getent passwd "${PKEXEC_UID}" | cut -d: -f1)
+
+# Cuentas de personas: uid de 1000 a 59999 y un shell de verdad (como las que enseña el panel).
+persona() {
+  local linea uid shell
+  linea=$(getent passwd "$1") || return 1
+  IFS=: read -r _ _ uid _ _ _ shell <<< "${linea}"
+  [[ "${uid}" -ge 1000 && "${uid}" -lt 60000 && "${shell}" != */nologin && "${shell}" != */false ]]
+}
+administradores() { getent group wheel | cut -d: -f4 | tr ',' '\n' | grep -v '^$'; }
+es_admin() { administradores | grep -qx -- "$1"; }
+leer_clave() {
+  local clave
+  IFS= read -r clave || true
+  [[ ${#clave} -ge ${MIN_CONTRASENA} ]] || fallo clave_corta
+  CLAVE=${clave}
+}
+validar_usuario() {
+  # Nombres de usuario de Linux: minúsculas, números, - y _, empezando por letra (como crear-cuenta).
+  [[ "$1" =~ ^[a-z][a-z0-9_-]{0,31}$ ]] || fallo usuario_invalido
+}
+hogar() { getent passwd "$1" | cut -d: -f6; }
+
+# idioma_de USUARIO LOCALE|sistema — ~/.config/locale.conf de la cuenta, que lee lib/entorno-grafico al
+# abrir su sesión. Genera el locale si falta (command-os-idioma generar). Códigos: idioma_no_disponible.
+idioma_de() {
+  local usuario=$1 loc=$2 casa
+  casa=$(hogar "${usuario}")
+  # Se escribe como la propia cuenta (runuser), no como root: así un enlace simbólico en su carpeta
+  # no puede llevar la escritura a otro sitio.
+  if [[ "${loc}" == sistema ]]; then
+    runuser -u "${usuario}" -- rm -f "${casa}/.config/locale.conf"
+    return 0
+  fi
+  command-os-idioma lista | cut -d' ' -f1 | grep -qxF -- "${loc}" || fallo idioma_no_disponible
+  command-os-idioma generar "${loc}" >/dev/null 2>&1 || fallo idioma_no_disponible
+  runuser -u "${usuario}" -- sh -c 'umask 022 && mkdir -p "$1" && printf "LANG=%s\n" "$2" > "$1/locale.conf"' sh \
+    "${casa}/.config" "${loc}" || fallo fallo
+}
+
+# anadir — códigos: usuario_invalido, usuario_existe, nombre_reservado, nombre_invalido, clave_corta,
+# idioma_no_disponible, fallo.
+anadir() {
+  local usuario=${1:-} nombre="" admin=0 idioma=""
+  shift
+  while (( $# )); do
+    case "$1" in
+      --nombre) nombre=${2:-}; shift 2 ;;
+      --admin) admin=1; shift ;;
+      --idioma) idioma=${2:-}; shift 2 ;;
+      *) fallo fallo ;;
+    esac
+  done
+  validar_usuario "${usuario}"
+  getent passwd "${usuario}" >/dev/null && fallo usuario_existe
+  getent group "${usuario}" >/dev/null && fallo nombre_reservado
+  [[ "${nombre}" != *:* && "${nombre}" != *$'\n'* ]] || fallo nombre_invalido
+  if [[ -n "${idioma}" ]]; then
+    # Todo lo que puede fallar del idioma, antes de crear nada: así no queda una cuenta a medias.
+    command-os-idioma lista | cut -d' ' -f1 | grep -qxF -- "${idioma}" || fallo idioma_no_disponible
+    command-os-idioma generar "${idioma}" >/dev/null 2>&1 || fallo idioma_no_disponible
+  fi
+  leer_clave
+  local grupos=()
+  (( admin )) && grupos=(-G wheel)
+  useradd -m "${grupos[@]}" -s /bin/bash -c "${nombre}" "${usuario}" || fallo fallo
+  printf '%s:%s\n' "${usuario}" "${CLAVE}" | chpasswd || { userdel -r "${usuario}" >/dev/null 2>&1; fallo fallo; }
+  CLAVE=""
+  [[ -z "${idioma}" ]] || idioma_de "${usuario}" "${idioma}"
+}
+
+# borrar — no borra a quien lo pide, ni una cuenta con la sesión abierta, ni al último administrador.
+# Códigos: no_existe, es_la_propia, sesion_abierta, ultimo_admin, fallo.
+borrar() {
+  local usuario=${1:-} conservar=0
+  [[ "${2:-}" == --conservar-home ]] && conservar=1
+  validar_usuario "${usuario}"
+  persona "${usuario}" || fallo no_existe
+  [[ "${usuario}" != "${quien}" ]] || fallo es_la_propia
+  if loginctl list-sessions --no-legend 2>/dev/null | awk '{ print $3 }' | grep -qx -- "${usuario}"; then
+    fallo sesion_abierta
+  fi
+  if es_admin "${usuario}" && [[ "$(administradores | grep -cvx -- "${usuario}")" -eq 0 ]]; then
+    fallo ultimo_admin
+  fi
+  if (( conservar )); then userdel "${usuario}" || fallo fallo; else userdel -r "${usuario}" >/dev/null 2>&1 || fallo fallo; fi
+  # Si era la cuenta principal (o la de inicio automático), el equipo queda con la primera administradora.
+  if [[ "$(cat "${CONF}/cuenta-principal" 2>/dev/null)" == "${usuario}" ]]; then
+    local otra
+    otra=$(administradores | head -n 1)
+    if [[ -n "${otra}" ]]; then echo "${otra}" > "${CONF}/cuenta-principal"; else rm -f "${CONF}/cuenta-principal"; fi
+  fi
+  [[ "$(cat "${CONF}/inicio-automatico" 2>/dev/null)" == "${usuario}" ]] && rm -f "${CONF}/inicio-automatico"
+  /usr/lib/command-os/apply-login >/dev/null 2>&1 || true
+}
+
+# admin — códigos: no_existe, es_la_propia (no se quita a uno mismo), ultimo_admin, fallo.
+admin() {
+  local usuario=${1:-} modo=${2:-}
+  validar_usuario "${usuario}"
+  persona "${usuario}" || fallo no_existe
+  case "${modo}" in
+    si) gpasswd -a "${usuario}" wheel >/dev/null || fallo fallo ;;
+    no)
+      [[ "${usuario}" != "${quien}" ]] || fallo es_la_propia
+      if es_admin "${usuario}" && [[ "$(administradores | grep -cvx -- "${usuario}")" -eq 0 ]]; then fallo ultimo_admin; fi
+      gpasswd -d "${usuario}" wheel >/dev/null || fallo fallo ;;
+    *) fallo fallo ;;
+  esac
+}
+
+# clave — fija la contraseña de otra cuenta (la nueva por la entrada estándar). Códigos: no_existe,
+# clave_corta, fallo.
+clave() {
+  local usuario=${1:-}
+  validar_usuario "${usuario}"
+  persona "${usuario}" || fallo no_existe
+  leer_clave
+  printf '%s:%s\n' "${usuario}" "${CLAVE}" | chpasswd || fallo fallo
+  CLAVE=""
+}
+
+# zona — la zona horaria del equipo (command-os-zona-horaria valida contra su lista). Código:
+# zona_no_disponible.
+zona() {
+  local z=${1:-}
+  command-os-zona-horaria lista | grep -qxF -- "${z}" || fallo zona_no_disponible
+  command-os-zona-horaria "${z}" >/dev/null 2>&1 || fallo fallo
+}
+
+orden=${1:-}
+shift || true
+case "${orden}" in
+  anadir) anadir "$@" ;;
+  borrar) borrar "$@" ;;
+  admin) admin "$@" ;;
+  clave) clave "$@" ;;
+  idioma)
+    validar_usuario "${1:-}"
+    persona "${1}" || fallo no_existe
+    idioma_de "$1" "${2:-}" ;;
+  zona) zona "$@" ;;
+  *) fallo fallo ;;
+esac
+exit 0

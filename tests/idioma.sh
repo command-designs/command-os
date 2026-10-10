@@ -24,12 +24,12 @@ else
 fi
 [[ -s /usr/share/locale/en/LC_MESSAGES/command-os.mo ]] && ok "catálogo en inglés instalado" \
   || mal "falta /usr/share/locale/en/LC_MESSAGES/command-os.mo"
-for f in /usr/lib/command-os/{comun,greeter,primer-arranque,panel-actualizaciones}.py; do
+for f in /usr/lib/command-os/{comun,greeter,primer-arranque,selector_zona,panel-actualizaciones,panel-cuentas,panel-disco}.py; do
   python3 -m py_compile "${f}" 2>/dev/null && ok "compila $(basename "${f}")" || mal "no compila ${f}"
 done
 # Un parámetro llamado _ tapa la función de traducción: _("…") falla y la ventana se queda a medias
 # (pasó en la pantalla de inicio de sesión al pulsar «entrar»).
-if grep -nE '(def [a-z_]+\(|lambda )[^)]*\b_\b *[,):=]' /usr/lib/command-os/{greeter,primer-arranque,panel-actualizaciones}.py; then
+if grep -nE '(def [a-z_]+\(|lambda )[^)]*\b_\b *[,):=]' /usr/lib/command-os/{greeter,primer-arranque,selector_zona,panel-actualizaciones,panel-cuentas,panel-disco}.py; then
   mal "un parámetro llamado _ tapa la traducción (arriba)"
 else
   ok "ningún parámetro tapa _()"

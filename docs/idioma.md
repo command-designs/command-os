@@ -35,7 +35,7 @@ asistente de primer arranque o cualquier texto que se traduzca.
 | --- | --- |
 | `command-os-idioma` | La única forma de cambiar el idioma. Lista de idiomas, genera el locale si falta (`/etc/locale.gen` + `locale-gen`), cambia `LANG` en `/etc/locale.conf` (conserva el resto; nunca lo deja a medias) y ejecuta `apply-boot`. |
 | `lib/crear-cuenta --idioma` | El asistente pasa el idioma elegido; se aplica después de crear la cuenta y, si falla, la cuenta se deshace. |
-| `lib/entorno-grafico` | Lee `LANG` y `LC_*` de `/etc/locale.conf` al abrir cada pantalla (asistente, inicio de sesión, sesión). systemd solo lo lee al arrancar. |
+| `lib/entorno-grafico` | Lee `LANG` y `LC_*` de `/etc/locale.conf` al abrir cada pantalla (asistente, inicio de sesión, sesión) y, después, de `~/.config/locale.conf` si la cuenta tiene idioma propio (gana al del equipo). systemd solo lo lee al arrancar. |
 | `lib/apply-boot` | Genera el menú de GRUB con el `LANG` del sistema («Opciones avanzadas…») y los textos del tema (cuenta atrás y ayuda de teclas) traducidos, y pone `command-os.idioma=es\|en` en `GRUB_CMDLINE_LINUX` (la Pi, aparcada, no lo lleva: sale en castellano). |
 | `initcpio/hooks/command-os-cifrado` | Lee `command-os.idioma=` de la línea del kernel (el initramfs no tiene `locale.conf` ni gettext) y pide la contraseña del disco en ese idioma; sin el parámetro, en castellano. Sus textos van escritos en cada idioma (`textos_cifrado`). |
 | `branding/plymouth/command/texto-clave*.<idioma>.png` | Los textos de la contraseña en el splash, como imágenes (la ñ y las tildes no se ven en el initramfs). Los genera `build/make-plymouth-textos.py` desde `os/po/`; `command.script` elige la del idioma por el texto que le manda el gancho. |
@@ -120,4 +120,7 @@ confirmaciones que se teclean (`BORRAR WINDOWS`, `SI`) son las del idioma elegid
 - Sin probar: verlo en un PC real (lo mismo que la VM salvo la pantalla).
 
 **Decisiones** (con lo descartado, en `docs/decisiones.md`): gettext y no un diccionario propio;
-castellano como texto original; idioma por equipo, no por cuenta.
+castellano como texto original; idioma del equipo, con un idioma propio opcional por cuenta
+(`~/.config/locale.conf`, que escribe el panel de cuentas, [`cuentas.md`](cuentas.md) § «El panel de
+cuentas»; lo lee `lib/entorno-grafico` al abrir la sesión). GRUB, el splash y la pantalla de inicio de
+sesión siguen siendo del equipo.

@@ -54,8 +54,8 @@ def comprobar():
 
 class Panel:
     def __init__(self, app):
-        self._ = traductor()
-        self.ventana, self.caja = ventana(app, self._("cmd-os · actualizaciones"), ANCHO)
+        self._ = _ = traductor()
+        self.ventana, self.caja = ventana(app, _("cmd-os · actualizaciones"), ANCHO)
         teclas = Gtk.EventControllerKey()
         teclas.connect("key-pressed", self.tecla)
         self.ventana.add_controller(teclas)

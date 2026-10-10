@@ -117,3 +117,11 @@ button.suggested-action:hover {
     border-top: 3px solid #d13449;
     padding: 22px 26px;
 }
+
+/* Un dato que se lee con calma, como la clave de recuperación (comun.Dialogo, destacado). */
+.clave {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 17px;
+    color: #edebe6;
+    padding: 6px 0;
+}

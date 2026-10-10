@@ -28,6 +28,46 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **Hora por la red (`systemd-timesyncd`) de serie, activada una sola vez.** Sin ella, un reloj que va
   mal no se corrige nunca. Es poco tráfico, así que también se usa con datos medidos.
 
+## 2026-10-10 — Paneles del escritorio: actualizaciones, cuentas y disco cifrado
+
+- **El panel de actualizaciones solo informa y lanza; no instala.** Enseña lo pendiente y abre
+  `command-os-update` en una terminal, como antes. Instalar desde el panel exigiría resolver a ciegas
+  las preguntas de pacman (conflictos, sustituciones) y, si sale mal, el equipo queda a medias.
+  Descartado: instalar con `--noconfirm` desde un botón. Gana lo que se ve (versiones, paquetes, cuándo
+  se comprobó) sin cambiar quién decide.
+- **Todo lo que necesita root va a un ayudante pequeño lanzado con `pkexec`, y el panel nunca ve la
+  contraseña del administrador.** Había ya un agente de polkit en la sesión (`polkit-gnome`), así que
+  la autenticación es la del sistema y el panel no maneja la contraseña de nadie. Cada ayudante
+  (`gestionar-cuentas`, `gestionar-disco`) valida todo lo que recibe, recibe las contraseñas por la
+  entrada estándar (nunca como argumento) y contesta con códigos de error que el panel traduce. Cada
+  uno tiene su propia acción de polkit que solo deja lanzar ese programa. Descartado: `sudo -S` con una
+  contraseña de administrador escrita en el panel (el panel la vería y habría que dársela a sudo por una
+  tubería) y un demonio propio (más superficie y un proceso residente).
+- **La contraseña propia se cambia sin root**, con `passwd` en un pseudoterminal: PAM comprueba la
+  actual y no hace falta ayudante. Descartado: un ayudante de root que verifique la actual (un camino
+  más con privilegios para algo que el sistema ya sabe hacer).
+- **Cuentas nuevas: normales de serie; el permiso de administrar se da aparte.** Y límites duros en el
+  ayudante, no solo en la pantalla: no se borra ni se quita el permiso a quien lo pide, no se borra una
+  cuenta con la sesión abierta y siempre queda una administradora. Si se borra la cuenta principal o la
+  de inicio automático, el equipo pasa a la primera administradora.
+- **Borrar una cuenta pregunta si se conserva su carpeta personal.** Por defecto se borra; el interruptor
+  la conserva. Descartado: conservarla siempre (se llena el disco de carpetas de cuentas que ya no
+  existen) y borrarla sin preguntar (no se puede deshacer).
+- **El idioma de una cuenta es `~/.config/locale.conf`** y `lib/entorno-grafico` lo lee después del del
+  equipo. Se escribe como la propia cuenta (`runuser`), no como root, para que un enlace simbólico en su
+  carpeta no pueda desviar la escritura (probado en `tests/cuentas.sh`). Si el locale no está generado,
+  un ayudante de root lo genera (`command-os-idioma generar`).
+- **La zona horaria se cambia desde el panel de cuentas, pero sigue siendo del equipo**: pide la
+  contraseña de un administrador y el selector es el mismo del asistente (`lib/selector_zona.py`),
+  extraído para no duplicarlo.
+- **Disco cifrado: el panel genera la clave de recuperación, la enseña una vez y no cambia nada hasta
+  que se comprueban dos grupos.** Misma garantía que el instalador (se ha apuntado antes de que valga).
+  El ayudante añade la clave nueva en una ranura libre, comprueba que abre y solo entonces quita la
+  vieja: el disco nunca se queda sin clave de recuperación. La contraseña actual tiene que abrir la
+  ranura 0 (si fuera la de recuperación, cambiarla sustituiría la ranura equivocada), y con más de dos
+  claves no se toca nada (quien las puso a mano usa `cryptsetup`). Descartado: generar la clave en el
+  ayudante y devolverla por pantalla (el cambio ya estaría hecho sin saber si se apuntó).
+
 ## 2026-10-10 — Una sola contraseña con el disco cifrado (`docs/cifrado.md`)
 
 - **El asistente propone «entrar sin contraseña al encender» activado si el disco está cifrado.** Con
@@ -102,7 +142,8 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   sistema no se toca hasta el final: si se apaga a medias, no queda nada cambiado.
 - **Idioma por equipo, no por cuenta.** GRUB, el splash y la pantalla de inicio de sesión son del
   equipo, y hoy hay una sola cuenta. Si se añaden cuentas desde el escritorio, se podrá dar a cada una
-  el suyo (`~/.config/locale.conf`).
+  el suyo (`~/.config/locale.conf`). *(Hecho el 2026-10-10 con el panel de cuentas: ver «Paneles del
+  escritorio». El equipo sigue teniendo uno y cada cuenta puede tener el suyo encima.)*
 - **El idioma no cambia el teclado.** Quien elige inglés en España sigue con teclado español; el
   teclado tiene su propia fila.
 - **Las ventanas leen `/etc/locale.conf` al abrirse** (`entorno-grafico`): systemd solo lo lee al
