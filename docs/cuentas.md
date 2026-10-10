@@ -8,7 +8,8 @@ pantalla de inicio de sesión, `greetd` o la creación de cuentas.
 - **Primer arranque.** Un equipo nuevo no trae ninguna cuenta. Al encenderlo por primera vez, el
   asistente pide idioma (castellano o inglés; [`idioma.md`](idioma.md)), teclado, zona horaria
   (abajo, «Hora»), tu nombre (opcional), usuario y contraseña (al menos 8 caracteres, dos veces) y
-  si quieres entrar sin contraseña al encender.
+  si quieres entrar sin contraseña al encender (con el disco cifrado viene activado: ya se escribe la
+  contraseña del disco al encender, `docs/cifrado.md`).
 - **Tu cuenta administra el equipo.** La primera cuenta está en el grupo `wheel`: instala programas,
   actualiza y cambia el sistema con `sudo` y **su propia contraseña**. La cuenta `root` está
   bloqueada; toda la administración pasa por `sudo`. Lo dice el asistente y «acerca de cmd-os»

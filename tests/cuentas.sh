@@ -96,6 +96,18 @@ else
   ok ".bash_profile: fuera solo el bloque de labwc"
 fi
 
+echo "==> Disco cifrado: el asistente propone entrar sin contraseña (lib/comun.py disco_cifrado)"
+cifrado() { PYTHONPATH=/usr/lib/command-os python3 -W ignore -c 'import sys; from comun import disco_cifrado; print(disco_cifrado(sys.argv[1]))' "$1" 2>/dev/null; }
+CMD=$(mktemp)
+echo 'BOOT_IMAGE=/vmlinuz-linux root=UUID=x rw cryptdevice=UUID=abc:command-os root=/dev/mapper/command-os quiet' > "${CMD}"
+[[ "$(cifrado "${CMD}")" == True ]] && ok "con cryptdevice= en la línea del kernel: cifrado" || mal "no detecta el disco cifrado"
+echo 'BOOT_IMAGE=/vmlinuz-linux root=UUID=x rw quiet command-os.idioma=es' > "${CMD}"
+[[ "$(cifrado "${CMD}")" == False ]] && ok "sin cryptdevice=: no cifrado" || mal "da por cifrado un disco que no lo está"
+echo 'root=UUID=x notcryptdevice=1' > "${CMD}"
+[[ "$(cifrado "${CMD}")" == False ]] && ok "una palabra que solo lo contiene no cuenta" || mal "detecta cryptdevice= dentro de otra palabra"
+[[ "$(cifrado /no/existe)" == False ]] && ok "sin línea del kernel legible: no cifrado" || mal "falla sin /proc/cmdline"
+rm -f "${CMD}"
+
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi
 echo "==> Todo bien"
