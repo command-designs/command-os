@@ -3,6 +3,8 @@
 #   - pantallas: la escala de alta densidad y la configuración de hyprlock escalada (tests/pantallas.sh).
 #   - instalador publicado: lo que lleva y que solo se ejecuta con una firma buena (tests/instalador.sh).
 #   - discos: el instalador en disco entero rechaza lo que no debe borrar (tests/discos.sh).
+#   - rollback: command-os-rollback sobre un btrfs en un disco loop, con y sin /boot aparte y con un
+#     fallo a medias que debe deshacerlo todo (tests/rollback.sh).
 #   - escritorio con el Arch de la fecha validada: lo que tienen los equipos.
 #   - escritorio con el Arch del día: avisa antes de que una actualización de Arch rompa algo; si
 #     falla, no se valida una fecha nueva hasta arreglarlo (docs/actualizaciones.md).
@@ -47,6 +49,19 @@ jobs:
         run: sudo apt-get update -q && sudo apt-get install -yq gdisk dosfstools ntfs-3g cryptsetup-bin busybox gettext
       - name: Qué discos rechaza, confirmación, particionado y cifrado
         run: sudo bash tests/discos.sh
+
+  # command-os-rollback sobre un btrfs en un disco loop (nunca discos reales del ejecutor).
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Herramientas
+        # busybox-static: el chroot de la prueba lleva su propio sh (restore_kernel).
+        run: sudo apt-get update -q && sudo apt-get install -yq btrfs-progs busybox-static
+      - name: Volver a una instantánea, kernel en /boot y deshacer si falla
+        run: |
+          sudo modprobe btrfs || true
+          sudo bash tests/rollback.sh
 
   escritorio-validada:
     uses: ./.github/workflows/escritorio.yml
