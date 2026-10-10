@@ -241,3 +241,21 @@ disco real**. Todo vive en `build/x86/vbox/instalador/` (ignorado por git):
   `command-os` vieja, que apunta a una partición que ya no existe: así se prueba `forget_nvram_entries`.
 - Si `startvm` falla con «The VM session was closed before any attempt to power it on», quedan procesos
   `VBoxHeadless` de una sesión anterior bloqueando `VBoxHardening.log`: cerrar el padre (la VM apagada).
+
+### Asistente de primer arranque en la VM (en `command-os-instalador`)
+
+Para ver el asistente con un disco que ya tiene cuenta, sin tocar el disco real: **instantánea con la VM
+apagada** (`snapshot take`) y, al terminar, `snapshot restore` + `snapshot delete`.
+
+1. Arrancar el USB en vivo (con `usb.vdi` y `cidata.vdi` conectados; el firmware arranca antes el disco
+   instalado: Esc al encender → Boot Manager → la entrada del USB, la anterior a la de CIDATA).
+2. En el USB: `cryptsetup open /dev/sdb5 cos` (contraseña del disco), montar con `-o subvol=@`, borrar
+   `/var/lib/command-os/configurado` y cambiar `/etc/command-os/greetd.toml` a
+   `command-os-primer-arranque` con `user = "root"`. Para controlarlo sin consola: la llave de
+   `build/packer/keys/packer_build_key.pub` en `/root/.ssh/authorized_keys`, `root:*:` en `shadow` y
+   `sshd.service` activado (SSH en `127.0.0.1:2903`). Si el sistema es antiguo, `install.sh` encima
+   (puede haber un `db.lck` viejo en `/var/lib/pacman`).
+3. Desconectar `usb.vdi` y `cidata.vdi`, arrancar, teclear la contraseña del disco y ya sale el asistente.
+   Dentro, como root: `XDG_RUNTIME_DIR=/run/user/0 WAYLAND_DISPLAY=wayland-0 wlr-randr --output VGA-1
+   --custom-mode 1024x600` y `grim captura.png`. La rueda (para probar el desplazamiento) se simula con
+   `/dev/uinput` (`REL_WHEEL`, como las teclas en «labwc en la VM»).
