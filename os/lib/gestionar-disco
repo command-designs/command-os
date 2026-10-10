@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# Command OS — lo que el panel del disco cifrado (lib/panel-disco.py) hace como root. Se lanza con
+# pkexec (polkit pide la contraseña de un administrador; system/polkit-gestionar-disco.policy). Como
+# lib/gestionar-cuentas, contesta con códigos («error: CÓDIGO» y sale con 3) y las contraseñas llegan
+# por la entrada estándar, nunca como argumento. docs/cifrado.md.
+#
+#   gestionar-disco contrasena      stdin: contraseña actual del disco y la nueva (una por línea)
+#   gestionar-disco recuperacion    stdin: contraseña actual y la clave de recuperación nueva (48 cifras)
+#
+# El volumen es el de `cryptdevice=UUID=…` en la línea del kernel (COMMAND_OS_LUKS_DEV lo cambia solo
+# para tests/discos.sh). El disco tiene dos ranuras de LUKS: la 0 con la contraseña y otra con la clave
+# de recuperación. Códigos: no_cifrado, clave_incorrecta, clave_corta, clave_no_ascii, clave_invalida,
+# ranuras (hay más claves que las dos de siempre: se gestionan a mano con cryptsetup), fallo.
+set -uo pipefail
+
+fallo() { echo "error: $1" >&2; exit 3; }
+[[ "$(id -u)" -eq 0 ]] || fallo sin_permiso
+
+dispositivo() {
+  if [[ -n "${COMMAND_OS_LUKS_DEV:-}" ]]; then
+    echo "${COMMAND_OS_LUKS_DEV}"
+    return 0
+  fi
+  local uuid
+  uuid=$(tr ' ' '\n' < /proc/cmdline | sed -n 's/^cryptdevice=UUID=\([^:]*\):.*/\1/p' | head -n 1)
+  [[ -n "${uuid}" ]] || return 1
+  blkid -U "${uuid}"
+}
+
+# Sin tildes ni ñ: se teclea antes de que arranque el sistema y, si el teclado no las diera, no se
+# podría entrar (la misma regla que el instalador, build/x86/lib.sh password_problem).
+comprobar_contrasena() {
+  local LC_ALL=C
+  (( ${#1} >= 8 )) || fallo clave_corta
+  [[ "$1" =~ ^[\ -~]+$ ]] || fallo clave_no_ascii
+}
+
+# ranuras_usadas DISPOSITIVO — los números de las ranuras ocupadas, uno por línea.
+ranuras_usadas() {
+  cryptsetup luksDump "$1" 2>/dev/null | awk '/^Keyslots:/ { k = 1; next } /^[A-Za-z]/ { k = 0 } k && /^  [0-9]+: / { sub(":", "", $1); print $1 }'
+}
+
+# La clave tiene que abrir la ranura 0 (la de la contraseña): si fuera la de recuperación, cambiarla
+# sustituiría la ranura equivocada.
+comprobar_actual() {
+  printf '%s' "$2" | cryptsetup open --test-passphrase --key-slot 0 --key-file=- "$1" >/dev/null 2>&1 || fallo clave_incorrecta
+}
+
+dev=$(dispositivo) || fallo no_cifrado
+[[ -b "${dev}" ]] || fallo no_cifrado
+IFS= read -r actual || true
+IFS= read -r nueva || true
+
+case "${1:-}" in
+  contrasena)
+    comprobar_contrasena "${nueva}"
+    comprobar_actual "${dev}" "${actual}"
+    cryptsetup luksChangeKey --batch-mode --pbkdf argon2id --key-slot 0 --key-file=<(printf '%s' "${actual}") \
+      "${dev}" <(printf '%s' "${nueva}") >/dev/null 2>&1 || fallo fallo ;;
+  recuperacion)
+    [[ "${nueva}" =~ ^[0-9]{48}$ ]] || fallo clave_invalida
+    comprobar_actual "${dev}" "${actual}"
+    mapfile -t usadas < <(ranuras_usadas "${dev}")
+    [[ ${#usadas[@]} -eq 2 ]] || fallo ranuras
+    vieja=""
+    for r in "${usadas[@]}"; do [[ "${r}" != 0 ]] && vieja=${r}; done
+    [[ -n "${vieja}" ]] || fallo ranuras
+    # La nueva en una ranura libre, comprobada, y solo entonces se quita la vieja: nunca se queda el
+    # disco sin una clave de recuperación que funcione.
+    libre=""
+    for r in 1 2 3 4 5 6 7; do
+      if ! printf '%s\n' "${usadas[@]}" | grep -qx -- "${r}"; then libre=${r}; break; fi
+    done
+    [[ -n "${libre}" ]] || fallo ranuras
+    cryptsetup luksAddKey --batch-mode --pbkdf argon2id --key-slot "${libre}" --key-file=<(printf '%s' "${actual}") \
+      "${dev}" <(printf '%s' "${nueva}") >/dev/null 2>&1 || fallo fallo
+    if ! printf '%s' "${nueva}" | cryptsetup open --test-passphrase --key-slot "${libre}" --key-file=- "${dev}" >/dev/null 2>&1; then
+      cryptsetup luksKillSlot --batch-mode --key-file=<(printf '%s' "${actual}") "${dev}" "${libre}" >/dev/null 2>&1
+      fallo fallo
+    fi
+    cryptsetup luksKillSlot --batch-mode --key-file=<(printf '%s' "${actual}") "${dev}" "${vieja}" >/dev/null 2>&1 \
+      || fallo fallo ;;
+  *) fallo fallo ;;
+esac
+exit 0

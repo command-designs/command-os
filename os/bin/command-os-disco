@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Command OS — panel de disco (ventana GTK 4 del escritorio; ajustes → disco). Una sola ventana por sesión.
+export GTK_THEME=${GTK_THEME:-adw-gtk3:dark}
+PYTHONPATH=/usr/lib/command-os exec python3 /usr/lib/command-os/panel-disco.py

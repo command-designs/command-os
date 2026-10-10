@@ -113,6 +113,12 @@ package() {
   install -Dm 644 "${s}/system/polkit-check-updates.rules" \
     "${d}/usr/share/polkit-1/rules.d/50-command-os-check-updates.rules"
 
+  # --- Panel de cuentas: acción de polkit para lib/gestionar-cuentas (pkexec pide la contraseña de un administrador) ---
+  install -Dm 644 "${s}/system/polkit-gestionar-cuentas.policy" \
+    "${d}/usr/share/polkit-1/actions/dev.commandlab.command-os.gestionar-cuentas.policy"
+  install -Dm 644 "${s}/system/polkit-gestionar-disco.policy" \
+    "${d}/usr/share/polkit-1/actions/dev.commandlab.command-os.gestionar-disco.policy"
+
   # --- Traducciones (os/po/<idioma>.po, docs/idioma.md): el texto original es el castellano ---
   for f in "${s}"/po/*.po; do
     install -d "${d}/usr/share/locale/$(basename "${f}" .po)/LC_MESSAGES"

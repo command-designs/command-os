@@ -130,7 +130,14 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
   versión nueva de command-os. Tooltip con las versiones, la lista de paquetes y cuándo se comprobó.
   Si pacman cambió algo **después** de la comprobación, el módulo se oculta hasta la siguiente (lo que
   decía ya no vale).
-- **Clic:** abre kitty con `command-os-update` (`sudo` pide la contraseña, pacman pregunta antes de
+- **Panel de actualizaciones** (`command-os-updates panel`, `lib/panel-actualizaciones.py`): el clic en
+  el aviso de la barra (y menú → ajustes → actualizaciones) abre una ventana con la versión nueva de
+  command-os, la lista de paquetes de Arch (con desplazamiento), cuándo se comprobó y dos botones:
+  «comprobar ahora» (la comprobación manual, polkit) y «actualizar», que abre lo de siempre, abajo. **No
+  instala nada por sí mismo** (`docs/decisiones.md`). Lee `command-os-updates datos` (líneas con
+  tabuladores, con la misma regla que la barra: una comprobación anterior a un cambio de pacman no vale).
+  Una sola ventana por sesión. El clic sobre la notificación sigue yendo directo a actualizar.
+- **«Actualizar»** abre kitty con `command-os-update` (`sudo` pide la contraseña, pacman pregunta antes de
   instalar, la terminal espera Intro para cerrarse; si ya hay una abierta, avisa). **Clic derecho:**
   comprueba ahora y lo cuenta en una notificación.
 - **Notificación:** una sola por cada versión nueva de command-os (la última avisada queda en

@@ -96,6 +96,103 @@ else
   ok ".bash_profile: fuera solo el bloque de labwc"
 fi
 
+echo "==> Gestionar cuentas (lib/gestionar-cuentas, lo que hace el panel de cuentas)"
+GC=/usr/lib/command-os/gestionar-cuentas
+uid_ana=$(id -u ana)
+# gc QUIEN ENTRADA ARGS… — ejecuta el ayudante como lo lanzaría pkexec (PKEXEC_UID = quien lo pide), con la
+# entrada por stdin; deja «ok» o el código de error en $R.
+gc() {
+  local quien=$1 entrada=$2 e rc
+  shift 2
+  e=$(printf '%s' "${entrada}" | PKEXEC_UID=${quien} "${GC}" "$@" 2>&1 >/dev/null)
+  rc=$?
+  if (( rc == 0 )); then R=ok; else R=$(sed -n 's/^error: //p' <<< "${e}"); fi
+}
+espero() { [[ "${R}" == "$1" ]] && ok "$2" || mal "$2 (salió «${R}», se esperaba «$1»)"; }
+CLAVE2='otra-clave-9f3'
+R=$(printf '' | env -u PKEXEC_UID "${GC}" zona UTC 2>&1 >/dev/null | sed -n 's/^error: //p')
+espero sin_permiso "sin pkexec (PKEXEC_UID) no hace nada"
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir 'Luis Pérez';            espero usuario_invalido "usuario con espacios o tildes: rechazado"
+gc "${uid_ana}" $'corta\n' anadir luis;                         espero clave_corta "contraseña corta: rechazada"
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir ana;                     espero usuario_existe "usuario que ya existe: rechazado"
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir video;                   espero nombre_reservado "nombre de grupo del sistema: rechazado"
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir luis --idioma fr_FR.UTF-8; espero idioma_no_disponible "idioma que no está en la lista: rechazado"
+getent passwd luis >/dev/null && mal "quedó la cuenta luis tras un idioma inválido" || ok "no queda ninguna cuenta a medias"
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir luis --nombre 'Luis Pérez' --idioma es_ES.UTF-8; espero ok "crea una cuenta normal con idioma propio"
+id -nG luis 2>/dev/null | grep -qw wheel && mal "la cuenta nueva es administradora sin pedirlo" || ok "la cuenta nueva no es administradora de serie"
+[[ "$(getent passwd luis | cut -d: -f5)" == 'Luis Pérez' ]] && ok "guarda el nombre completo" || mal "nombre completo"
+[[ "$(getent shadow luis | cut -d: -f2)" == \$y\$* ]] && ok "contraseña guardada como hash" || mal "hash de la contraseña de luis"
+[[ "$(cat /home/luis/.config/locale.conf 2>/dev/null)" == 'LANG=es_ES.UTF-8' && "$(stat -c %U /home/luis/.config/locale.conf)" == luis ]] \
+  && ok "idioma propio: ~/.config/locale.conf de la cuenta" || mal "no se escribió el idioma propio"
+# La sesión de luis (lib/entorno-grafico) usa su idioma, no el del sistema (en_US en este equipo).
+[[ "$(HOME=/home/luis bash -c '. /usr/lib/command-os/entorno-grafico; echo "${LANG}"')" == es_ES.UTF-8 ]] \
+  && ok "la sesión usa el idioma propio de la cuenta" || mal "entorno-grafico no aplica el idioma de la cuenta"
+[[ "$(HOME=/home/nadie bash -c '. /usr/lib/command-os/entorno-grafico; echo "${LANG}"')" == en_US.UTF-8 ]] \
+  && ok "sin idioma propio, el del sistema" || mal "sin idioma propio no sale el del sistema"
+gc "${uid_ana}" "" idioma luis sistema;                         espero ok "idioma «del sistema»"
+[[ ! -e /home/luis/.config/locale.conf ]] && ok "quita el archivo del idioma propio" || mal "queda el idioma propio"
+gc "${uid_ana}" "" idioma luis fr_FR.UTF-8;                     espero idioma_no_disponible "idioma propio inválido"
+gc "${uid_ana}" "" idioma nadie es_ES.UTF-8;                    espero no_existe "idioma de una cuenta que no existe"
+# Un enlace simbólico en la carpeta de la cuenta no puede llevar la escritura fuera de ella: el archivo
+# se escribe como la propia cuenta, no como root.
+rm -rf /home/luis/.config
+ln -s /etc/command-os /home/luis/.config
+gc "${uid_ana}" "" idioma luis es_ES.UTF-8;                     espero fallo "un enlace simbólico en su carpeta no desvía la escritura"
+[[ ! -e /etc/command-os/locale.conf ]] && ok "no se escribió nada fuera de la carpeta de la cuenta" || mal "escribió a través del enlace"
+rm -f /home/luis/.config
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir marta --admin;           espero ok "crea una cuenta administradora"
+id -nG marta 2>/dev/null | grep -qw wheel && ok "marta está en wheel" || mal "marta no es administradora"
+gc "${uid_ana}" "" admin luis si;                               espero ok "dar permiso de administrar"
+id -nG luis | grep -qw wheel && ok "luis ahora es administrador" || mal "luis no entró en wheel"
+gc "${uid_ana}" "" admin luis no;                               espero ok "quitar el permiso"
+id -nG luis | grep -qw wheel && mal "luis sigue en wheel" || ok "luis ya no es administrador"
+gc "${uid_ana}" "" admin ana no;                                espero es_la_propia "no se quita el permiso a uno mismo"
+gc "${uid_ana}" "${CLAVE2}"$'\n' clave luis;                    espero ok "poner otra contraseña a una cuenta"
+gc "${uid_ana}" $'corta\n' clave luis;                          espero clave_corta "contraseña corta en el cambio"
+gc "${uid_ana}" "${CLAVE2}"$'\n' clave root;                    espero no_existe "root no es una cuenta de personas"
+gc "${uid_ana}" "" borrar ana;                                  espero es_la_propia "no se borra la cuenta de quien lo pide"
+gc "${uid_ana}" "" borrar nobody;                               espero no_existe "no se borran cuentas del sistema"
+# Sin más administradores que ana, ni se le quita el permiso ni se borra (lo pide otra cuenta).
+gc "${uid_ana}" "" admin marta no;                              espero ok "quita a marta (queda ana)"
+gc "${uid_ana}" "" admin viejo no;                              espero ok "quita a viejo (queda ana)"
+uid_luis=$(id -u luis)
+gc "${uid_luis}" "" admin ana no;                               espero ultimo_admin "no se quita al último administrador"
+gc "${uid_luis}" "" borrar ana;                                 espero ultimo_admin "no se borra al último administrador"
+gc "${uid_ana}" "" borrar luis --conservar-home;                espero ok "borrar conservando la carpeta personal"
+getent passwd luis >/dev/null && mal "luis sigue existiendo" || ok "la cuenta ya no existe"
+[[ -d /home/luis ]] && ok "su carpeta personal se conserva" || mal "se borró la carpeta aunque se pidió conservarla"
+# Su UID queda libre y una cuenta nueva puede recibirlo: la carpeta conservada no puede seguir con él.
+[[ "$(stat -c '%U %a' /home/luis)" == 'root 700' ]] && ok "la carpeta conservada pasa a root (700): una cuenta nueva con el mismo UID no la hereda" \
+  || mal "la carpeta conservada sigue accesible ($(stat -c '%U %a' /home/luis))"
+[[ -z "$(find /home/luis -not -user root 2>/dev/null | head -n 1)" ]] && ok "y nada dentro sigue con el UID de la cuenta borrada" || mal "quedan archivos con el UID viejo"
+gc "${uid_ana}" "" borrar marta;                                espero ok "borrar con la carpeta"
+[[ ! -d /home/marta ]] && ok "se borra su carpeta personal" || mal "queda la carpeta de marta"
+gc "${uid_ana}" "" borrar marta;                                espero no_existe "borrar una cuenta que ya no está"
+# Una carpeta conservada fuera de /home también se cede a root (el UID puede reutilizarse igual).
+mkdir -p /srv/h7
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir prueba7;                 espero ok "cuenta con la carpeta en otra ruta"
+usermod -d /srv/h7 prueba7 && echo dato > /srv/h7/x && chown -R prueba7: /srv/h7
+gc "${uid_ana}" "" borrar prueba7 --conservar-home;             espero ok "borrar conservando una carpeta fuera de /home"
+[[ "$(stat -c '%U %a' /srv/h7)" == 'root 700' && "$(stat -c %U /srv/h7/x)" == root ]] \
+  && ok "también pasa a root (700)" || mal "la carpeta de fuera de /home sigue accesible"
+rm -rf /srv/h7
+# Si el idioma falla después de crear la cuenta, no queda a medias (aquí /home no deja entrar a la cuenta).
+chmod 000 /home
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir prueba8 --idioma es_ES.UTF-8; espero idioma_no_disponible "idioma que falla al escribirse: error"
+chmod 755 /home
+getent passwd prueba8 >/dev/null && mal "quedó la cuenta prueba8 a medias" || ok "y no queda la cuenta creada"
+# Si se borra la cuenta principal, el equipo pasa a la primera administradora y greetd lo sigue.
+gc "${uid_ana}" "" admin viejo si;                              espero ok "viejo vuelve a ser administrador"
+command-os-login auto ana >/dev/null
+gc "$(id -u viejo)" "" borrar ana;                              espero ok "viejo borra la cuenta principal"
+[[ "$(cat /etc/command-os/cuenta-principal)" == viejo ]] && ok "la cuenta principal pasa a viejo" || mal "cuenta-principal no se actualizó"
+[[ ! -s /etc/command-os/inicio-automatico ]] && ok "se quita el inicio automático de la cuenta borrada" || mal "queda el inicio automático de ana"
+grep -q 'user = "ana"' "${TOML}" && mal "greetd sigue usando a ana" || ok "greetd ya no usa la cuenta borrada"
+gc "$(id -u viejo)" "" zona Europe/Madrid;                      espero ok "cambiar la zona horaria"
+[[ "$(command-os-zona-horaria actual)" == Europe/Madrid ]] && ok "la zona queda aplicada" || mal "no se aplicó la zona"
+gc "$(id -u viejo)" "" zona Mars/Olympus;                       espero zona_no_disponible "zona que no existe"
+gc "$(id -u viejo)" "" nada;                                    espero fallo "orden desconocida"
+
 echo "==> Disco cifrado: el asistente propone entrar sin contraseña (lib/comun.py disco_cifrado)"
 cifrado() { PYTHONPATH=/usr/lib/command-os python3 -W ignore -c 'import sys; from comun import disco_cifrado; print(disco_cifrado(sys.argv[1]))' "$1" 2>/dev/null; }
 CMD=$(mktemp)

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!--
+  Command OS: el panel del disco cifrado (lib/panel-disco.py) pide a pkexec que lance solo
+  lib/gestionar-disco, que cambia la contraseña del disco o su clave de recuperación. Hace falta la
+  contraseña de un administrador cada vez (no se recuerda) y, además, la contraseña actual del disco.
+-->
+<policyconfig>
+  <vendor>Command OS</vendor>
+  <vendor_url>https://github.com/command-designs/command-os</vendor_url>
+  <action id="dev.commandlab.command-os.gestionar-disco">
+    <description>Change the password or recovery key of the encrypted disk</description>
+    <description xml:lang="es">Cambiar la contraseña o la clave de recuperación del disco cifrado</description>
+    <message>Authentication is required to change the disk password or recovery key</message>
+    <message xml:lang="es">Hace falta autenticarse para cambiar la contraseña o la clave de recuperación del disco</message>
+    <icon_name>drive-harddisk</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/command-os/gestionar-disco</annotate>
+  </action>
+</policyconfig>

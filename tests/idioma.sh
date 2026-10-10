@@ -24,12 +24,12 @@ else
 fi
 [[ -s /usr/share/locale/en/LC_MESSAGES/command-os.mo ]] && ok "catálogo en inglés instalado" \
   || mal "falta /usr/share/locale/en/LC_MESSAGES/command-os.mo"
-for f in /usr/lib/command-os/{comun,greeter,primer-arranque}.py; do
+for f in /usr/lib/command-os/{comun,greeter,primer-arranque,selector_zona,panel-actualizaciones,panel-cuentas,panel-disco}.py; do
   python3 -m py_compile "${f}" 2>/dev/null && ok "compila $(basename "${f}")" || mal "no compila ${f}"
 done
 # Un parámetro llamado _ tapa la función de traducción: _("…") falla y la ventana se queda a medias
 # (pasó en la pantalla de inicio de sesión al pulsar «entrar»).
-if grep -nE '(def [a-z_]+\(|lambda )[^)]*\b_\b *[,):=]' /usr/lib/command-os/{greeter,primer-arranque}.py; then
+if grep -nE '(def [a-z_]+\(|lambda )[^)]*\b_\b *[,):=]' /usr/lib/command-os/{greeter,primer-arranque,selector_zona,panel-actualizaciones,panel-cuentas,panel-disco}.py; then
   mal "un parámetro llamado _ tapa la traducción (arriba)"
 else
   ok "ningún parámetro tapa _()"
@@ -186,7 +186,7 @@ export COMMAND_OS_UPDATES_STATE="${T}/updates" COMMAND_OS_PACMAN_LOCAL="${T}/loc
 mkdir -p "${COMMAND_OS_PACMAN_LOCAL}"; touch -d '1 hour ago' "${COMMAND_OS_PACMAN_LOCAL}"
 printf '%s\ncommand-os 1-1 -> 2-1\nmesa 1-1 -> 2-1\n' "$(date +%s)" > "${COMMAND_OS_UPDATES_STATE}"
 LANG=en_US.UTF-8 command-os-updates status | grep -q 'and 1 more package' \
-  && LANG=en_US.UTF-8 command-os-updates status | grep -q 'click: update' \
+  && LANG=en_US.UTF-8 command-os-updates status | grep -q 'click: review and update' \
   && ok "aviso de actualizaciones en inglés" || mal "el aviso de actualizaciones no sale en inglés"
 unset COMMAND_OS_UPDATES_STATE COMMAND_OS_PACMAN_LOCAL XDG_RUNTIME_DIR XDG_CONFIG_HOME
 

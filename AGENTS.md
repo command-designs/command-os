@@ -34,13 +34,13 @@ usuario); ARM, aparcado hasta tener la placa.
 
 | Si vas a tocar… | Lee |
 | --- | --- |
-| paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
-| cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP | `docs/cuentas.md` |
+| paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso y panel de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
+| cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
-| cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
+| cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, panel del disco, `gestionar-disco`, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
 | splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | resoluciones, 16:9/16:10, alta densidad (escala), fondos, tema de GRUB, tamaño del splash | `docs/notas/pantallas.md` |
 | VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
@@ -99,6 +99,13 @@ usuario); ARM, aparcado hasta tener la placa.
   de su `sh -c` puede quedársela (`pantallas.py vigilar` cierra los descriptores heredados) o la pantalla
   se queda en negro tras el asistente o el inicio de sesión.
 - Nunca `rm -rf` de un chroot con montajes `--rbind` (/dev, /run…): entra en ellos y borra los del sistema.
+- Paneles del escritorio (`lib/panel-*.py`, `comun.ventana`/`Dialogo`): lo que necesita root va a
+  `lib/gestionar-*` con `pkexec` (nunca `sudo -S` con una contraseña escrita en el panel); esos
+  ayudantes contestan con códigos y reciben las contraseñas por la entrada estándar. Un texto de
+  Python va con `_("…")` (no `self._("…")`: xgettext no lo ve) y cada archivo nuevo entra en `PYTHON` de
+  `build/po.sh`. Probando en la VM por SSH: nunca `pkill -f <nombre>` desde la propia línea de SSH (se
+  mata a sí misma), el ratón virtual se acelera (usar teclado: Tab/Intro) y `polkit` solo deja
+  comprobar actualizaciones a la sesión local activa, no a un proceso lanzado por SSH.
 
 ## Qué se probó y qué se descartó (no repetir)
 

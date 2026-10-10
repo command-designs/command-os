@@ -38,6 +38,16 @@
         <action name="Execute" command="kitty --class btop -e btop" />
       </item>
       <separator />
+      <item label="actualizaciones" icon="software-update-available">
+        <action name="Execute" command="command-os-updates panel" />
+      </item>
+      <item label="cuentas" icon="system-users">
+        <action name="Execute" command="command-os-cuentas" />
+      </item>
+      <item label="disco cifrado" icon="drive-harddisk">
+        <action name="Execute" command="command-os-disco" />
+      </item>
+      <separator />
       <item label="recargar escritorio" icon="view-refresh">
         <action name="Reconfigure" />
       </item>

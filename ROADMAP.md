@@ -15,6 +15,10 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - Disco cifrado en un PC real (`docs/cifrado.md`): la contraseña en el splash con el teclado del
   portátil y con uno USB, una contraseña con símbolos (en la VM solo se teclean letras, cifras y
   espacios) y el splash con gráfica NVIDIA.
+- Paneles de actualizaciones, cuentas y disco cifrado (menú → ajustes) en un PC real: el diálogo de
+  polkit y, con el disco cifrado, cambiar la contraseña y la clave de recuperación y **reiniciar** para
+  comprobar que el splash pide la nueva (en la VM cifrada se comprobó que la contraseña nueva y la clave
+  nueva abren el disco, pero no el arranque con ellas) y que la clave vieja ya no entra.
 - Hora en un dual boot con Windows de verdad (`docs/cuentas.md` § «Hora»): elegir otra zona en el
   asistente sin red y que Windows y Command OS sigan con la misma hora.
 - Escala automática en un portátil de alta densidad y con un segundo monitor conectado en marcha
@@ -30,10 +34,4 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Diseños (se plantean y esperan el visto bueno antes de escribir código). *Opus, alto.*
-   - Cuentas (`docs/cuentas.md`): añadir y gestionar más cuentas desde el escritorio (con idioma propio
-     de cada cuenta) y un panel para cambiar la contraseña, el idioma y la zona horaria.
-   - Disco cifrado (`docs/cifrado.md`): un panel para cambiar la contraseña del disco y la clave de
-     recuperación (hoy, `cryptsetup` en una terminal).
-   - Aviso de actualizaciones: un panel gráfico de actualización (hoy se abre `command-os-update` en
-     una terminal; ver `docs/decisiones.md`).
+Ninguno de desarrollo: lo que queda lo prueba el usuario (arriba) o espera al hardware (aparcado).

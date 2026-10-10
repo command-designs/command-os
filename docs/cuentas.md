@@ -19,13 +19,47 @@ pantalla de inicio de sesión, `greetd` o la creación de cuentas.
   Para cambiarlo: `command-os-login auto` o `command-os-login pedir` (sin argumentos, dice el modo
   actual). Se aplica en el siguiente arranque. Al cerrar sesión siempre aparece la pantalla de
   inicio de sesión.
-- **Cambiar la contraseña:** `passwd` en una terminal. Es la misma para entrar, desbloquear y `sudo`.
-- **Si la olvidas:** otra cuenta administradora la restablece con `sudo passwd tu-usuario`. Si no
+- **Cambiar la contraseña:** el panel de cuentas (menú del escritorio → ajustes → cuentas) o `passwd`
+  en una terminal. Es la misma para entrar, desbloquear y `sudo`.
+- **Si la olvidas:** otra cuenta administradora la restablece desde el panel de cuentas («contraseña»
+  en la fila de esa cuenta) o con `sudo passwd tu-usuario`. Si no
   hay otra, desde un USB de Arch Linux: montar la raíz (en btrfs, `-o subvol=@`), `arch-chroot` y
   `passwd tu-usuario`. No hay puerta trasera de recuperación a propósito: sería un agujero.
 - **Si la pantalla de inicio de sesión falla:** Ctrl+Alt+F2 abre una consola normal (tty2) donde
   entrar con usuario y contraseña y arreglarlo (`sudo systemctl restart greetd`, `journalctl -u
   greetd`).
+
+## El panel de cuentas
+
+Menú del escritorio → ajustes → cuentas (`command-os-cuentas`). Una ventana por sesión.
+
+- **Para cualquiera:** cambiar su contraseña (pide la actual; PAM la comprueba, sin root), elegir el
+  **idioma de su cuenta** (el del equipo o uno de la lista) y la **zona horaria del equipo**.
+- **Idioma de la cuenta:** `~/.config/locale.conf` con `LANG=…`. `lib/entorno-grafico` lo lee al abrir la
+  sesión y gana al de `/etc/locale.conf`, así que ventanas, barra y menús de esa cuenta salen en su idioma
+  sin tocar el de las demás ni el del equipo (GRUB, splash y pantalla de inicio de sesión son del equipo,
+  [`idioma.md`](idioma.md)). Se aplica al volver a entrar. Si el locale no está generado, lo genera
+  `command-os-idioma generar` (root, con la contraseña de un administrador).
+- **Zona horaria:** es del equipo, no de la cuenta: cambiarla pide la contraseña de un administrador y
+  usa el mismo selector con buscador que el asistente (`lib/selector_zona.py`).
+- **Solo para administradores** (los demás no ven los botones): ver las cuentas, **añadir** una (nombre,
+  usuario, contraseña, «puede administrar el equipo» e idioma propio), **dar o quitar** el permiso de
+  administrar, **poner otra contraseña** a una cuenta y **borrar** una (con o sin su carpeta personal).
+  Las cuentas nuevas son normales de serie.
+- **Límites que pone el ayudante:** no se borra ni se quita el permiso a quien lo pide, ni se borra una
+  cuenta con la sesión abierta, y siempre queda al menos una administradora. Si se borra la cuenta
+  principal o la de inicio automático, el equipo pasa a la primera administradora y greetd lo sigue.
+  Con «conservar su carpeta personal», la carpeta pasa a **root con modo 700**: sus archivos seguirían con
+  el UID de la cuenta borrada y una cuenta nueva puede recibir ese mismo UID (heredaría los datos).
+- **Cómo se pide el permiso:** lo que necesita root lo hace `lib/gestionar-cuentas`, lanzado con
+  `pkexec`: el agente de polkit de la sesión (`polkit-gnome`) pide la contraseña de un administrador, en
+  una ventana propia, y el panel nunca la ve. Se pide **cada vez**, sin recordarla: el ayudante puede crear
+  administradoras y, si polkit la recordara unos minutos, cualquier proceso de la sesión podría usarlos
+  para llegar a root. Las contraseñas de las cuentas
+  nuevas van al ayudante por la entrada estándar, nunca como argumento. El ayudante contesta con códigos
+  de error (`usuario_existe`, `ultimo_admin`…) y el panel los cuenta en el idioma de la sesión.
+  `tests/cuentas.sh` ejercita el ayudante entero, también un enlace simbólico malicioso en la carpeta de
+  la cuenta (el archivo de idioma se escribe como la propia cuenta, no como root).
 
 ## Hora
 
@@ -80,6 +114,8 @@ el cifrado del disco, que el instalador propone de serie ([`cifrado.md`](cifrado
 | `lib/comun.py`, `lib/entorno-grafico` | Lo común de las dos ventanas (tema, logo, filas, traducciones) y de los tres lanzadores (VM, teclado, idioma). |
 | `command-os-session` | La sesión: prepara la cuenta (`command-os-user-setup`) y lanza labwc. Vale para cualquier cuenta. |
 | `command-os-login` | Inicio automático (`initial_session`) o pedir contraseña. |
+| `command-os-cuentas` + `lib/panel-cuentas.py` | El panel de cuentas (arriba). Ventana GTK 4 normal sobre `comun.ventana`; lanza `gestionar-cuentas` con `pkexec`. |
+| `lib/gestionar-cuentas` + `system/polkit-gestionar-cuentas.policy` | Lo que el panel hace como root: añadir, borrar, administrador sí/no, contraseña de otra cuenta, idioma de una cuenta y zona. Valida todo lo que recibe y contesta con códigos. La acción de polkit solo deja lanzar ese programa. |
 
 Estado: `/etc/command-os/cuenta-principal`, `/etc/command-os/inicio-automatico` (usuario, si lo hay),
 `/etc/command-os/kb_layout` y `/var/lib/command-os/configurado`. Una variante con

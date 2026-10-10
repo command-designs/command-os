@@ -317,6 +317,57 @@ tiene "${salida}" "cancelado: no se ha tocado nada" && ok "una confirmación mal
 
 [[ "$(sha256sum < "${SENUELO}")" == "${huella_senuelo}" ]] && ok "el disco señuelo no se ha tocado" || mal "SE TOCÓ EL DISCO SEÑUELO"
 
+echo "==> Cambiar la contraseña y la clave de recuperación (lib/gestionar-disco, el panel del disco cifrado)"
+GD="${REPO}/os/lib/gestionar-disco"
+DISCOCIF=$(nuevo_loop cifrado 200M); LOOPS+=("${DISCOCIF}")
+CLAVE_A='clave del disco 1!'
+RECUP_A=$(printf '1234567890%.0s' 1 2 3 4 5 | head -c 48)
+RECUP_B=$(printf '9876543210%.0s' 1 2 3 4 5 | head -c 48)
+printf '%s' "${CLAVE_A}" | cryptsetup luksFormat --batch-mode --type luks2 --pbkdf pbkdf2 --pbkdf-force-iterations 1000 \
+  --key-file=- "${DISCOCIF}" >/dev/null 2>&1
+printf '%s' "${CLAVE_A}" | cryptsetup luksAddKey --batch-mode --pbkdf pbkdf2 --pbkdf-force-iterations 1000 --key-file=- \
+  "${DISCOCIF}" <(printf '%s' "${RECUP_A}") >/dev/null 2>&1
+abre() { printf '%s' "$2" | cryptsetup open --test-passphrase --key-file=- "${DISCOCIF}" >/dev/null 2>&1; }
+# gd ENTRADA ARGS… — deja «ok» o el código de error en $R.
+gd() {
+  local entrada=$1 e rc
+  shift
+  e=$(printf '%s' "${entrada}" | COMMAND_OS_LUKS_DEV="${DISCOCIF}" "${GD}" "$@" 2>&1 >/dev/null)
+  rc=$?
+  if (( rc == 0 )); then R=ok; else R=$(sed -n 's/^error: //p' <<< "${e}"); fi
+}
+espero() { [[ "${R}" == "$1" ]] && ok "$2" || mal "$2 (salió «${R}», se esperaba «$1»)"; }
+abre x "${CLAVE_A}" && abre x "${RECUP_A}" && ok "el disco de prueba abre con la contraseña y con la clave de recuperación" \
+  || mal "el disco de prueba no se montó bien"
+gd $'mala\nnueva-clave-1\n' contrasena;                         espero clave_incorrecta "contraseña actual equivocada: rechazada"
+gd "${RECUP_A}"$'\nnueva-clave-1\n' contrasena;                espero clave_incorrecta "la clave de recuperación no vale como actual (cambiaría su ranura)"
+gd "${CLAVE_A}"$'\ncorta\n' contrasena;                         espero clave_corta "contraseña nueva corta: rechazada"
+gd "${CLAVE_A}"$'\nclave con ñ y tildes\n' contrasena;          espero clave_no_ascii "contraseña nueva con ñ o tildes: rechazada"
+abre x "${CLAVE_A}" && ok "tras los rechazos, la contraseña de siempre sigue valiendo" || mal "un rechazo cambió el disco"
+CLAVE_B='otra clave 2 con espacios'
+gd "${CLAVE_A}"$'\n'"${CLAVE_B}"$'\n' contrasena;               espero ok "cambiar la contraseña del disco"
+abre x "${CLAVE_B}" && ok "la contraseña nueva abre el disco" || mal "la contraseña nueva no abre"
+abre x "${CLAVE_A}" && mal "la contraseña vieja sigue abriendo" || ok "la contraseña vieja ya no abre"
+abre x "${RECUP_A}" && ok "la clave de recuperación sigue valiendo" || mal "el cambio de contraseña rompió la clave de recuperación"
+gd "${CLAVE_B}"$'\nabcdef\n' recuperacion;                       espero clave_invalida "clave de recuperación que no son 48 cifras: rechazada"
+gd $'mala\n'"${RECUP_B}"$'\n' recuperacion;                     espero clave_incorrecta "recuperación con la contraseña equivocada: rechazada"
+abre x "${RECUP_A}" && ok "tras el rechazo, la clave de recuperación vieja sigue valiendo" || mal "un rechazo quitó la clave vieja"
+gd "${CLAVE_B}"$'\n'"${RECUP_B}"$'\n' recuperacion;             espero ok "generar una clave de recuperación nueva"
+abre x "${RECUP_B}" && ok "la clave nueva abre el disco" || mal "la clave nueva no abre"
+abre x "${RECUP_A}" && mal "la clave de recuperación vieja sigue abriendo" || ok "la clave vieja ya no abre"
+abre x "${CLAVE_B}" && ok "la contraseña sigue valiendo" || mal "cambiar la clave de recuperación rompió la contraseña"
+[[ "$(cryptsetup luksDump "${DISCOCIF}" | grep -cE '^  [0-9]+: luks2')" == 2 ]] && ok "siguen siendo dos ranuras" || mal "cambió el número de ranuras"
+RECUP_C=$(printf '1357913579%.0s' 1 2 3 4 5 | head -c 48)
+gd "${CLAVE_B}"$'\n'"${RECUP_C}"$'\n' recuperacion;             espero ok "y otra vez (la ranura libre va rotando)"
+abre x "${RECUP_C}" && ! abre x "${RECUP_B}" && ok "solo vale la última" || mal "tras regenerar dos veces valen claves de más"
+printf '%s' "${CLAVE_B}" | cryptsetup luksAddKey --batch-mode --pbkdf pbkdf2 --pbkdf-force-iterations 1000 --key-file=- \
+  "${DISCOCIF}" <(printf '%s' "una tercera clave") >/dev/null 2>&1
+gd "${CLAVE_B}"$'\n'"${RECUP_A}"$'\n' recuperacion;             espero ranuras "con una tercera clave puesta a mano, no toca nada"
+abre x "una tercera clave" && ok "y esa clave sigue valiendo" || mal "se perdió la tercera clave"
+gd "${CLAVE_B}"$'\n'"${RECUP_A}"$'\n' nada;                     espero fallo "orden desconocida"
+R=$(printf 'x\nx\n' | env -u COMMAND_OS_LUKS_DEV "${GD}" contrasena 2>&1 >/dev/null | sed -n 's/^error: //p')
+espero no_cifrado "sin disco cifrado en la línea del kernel, no hace nada"
+
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi
 echo "==> Todo correcto"

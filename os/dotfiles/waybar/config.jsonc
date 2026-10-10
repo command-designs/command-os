@@ -17,14 +17,14 @@
     },
     // Aviso de actualizaciones: oculto si no hay nada (el script devuelve texto vacío). Solo lee el
     // archivo que deja la comprobación del sistema (lib/check-updates, cada 6 horas y tras cada
-    // operación de pacman): cada minuto no cuesta nada. La señal 8 lo refresca al momento. Clic: actualizar en una terminal; clic derecho: comprobar ahora.
+    // operación de pacman): cada minuto no cuesta nada. La señal 8 lo refresca al momento. Clic: el panel de actualizaciones (qué hay y un botón para actualizar en una terminal); clic derecho: comprobar ahora.
     "custom/updates": {
         "exec": "command-os-updates status",
         "return-type": "json",
         "format": "{}",
         "interval": 60,
         "signal": 8,
-        "on-click": "command-os-updates update",
+        "on-click": "command-os-updates panel",
         "on-click-right": "command-os-updates check"
     },
     // Escritorios por el protocolo estándar ext-workspace (labwc lo implementa). Solo se ven si hay

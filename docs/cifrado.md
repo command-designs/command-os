@@ -43,7 +43,26 @@ sabe que el disco está cifrado por `cryptdevice=` en la línea del kernel (`com
 
 ## Cambiar la contraseña o la clave de recuperación
 
-Por ahora en una terminal (un panel está en el roadmap). La partición cifrada es la de nombre
+**Con el panel** (menú del escritorio → ajustes → disco cifrado, `command-os-disco`; solo con el disco
+cifrado):
+
+- **Cambiar la contraseña del disco:** pide la contraseña actual del disco y la nueva (dos veces; al
+  menos 8 caracteres, sin ñ ni tildes: se teclea antes de que arranque el sistema).
+- **Generar una clave de recuperación nueva:** el panel genera 48 cifras, **las enseña una sola vez** y
+  hasta que se escriben dos de sus grupos al azar (como en el instalador) no se cambia nada; además pide
+  la contraseña actual del disco. La anterior deja de valer.
+- Las dos acciones piden también la contraseña de un administrador (polkit, cada vez). Lo hace
+  `lib/gestionar-disco`, lanzado con `pkexec`; las contraseñas van por la entrada estándar. El volumen es
+  el de `cryptdevice=UUID=…` de la línea del kernel.
+- El disco tiene **dos ranuras**: la contraseña en la 0 y la clave de recuperación en otra. La
+  contraseña actual tiene que abrir la ranura 0 (si fuera la clave de recuperación, cambiarla
+  sustituiría la ranura equivocada). Para la clave nueva se usa una ranura libre, se comprueba que abre
+  y solo entonces se quita la vieja: el disco nunca se queda sin una clave de recuperación que
+  funcione. Si hay más claves de las dos (puestas a mano), el panel no toca nada y avisa.
+- `tests/discos.sh` lo prueba con un LUKS de verdad en un disco loop (contraseña mala, clave de
+  recuperación como actual, ñ, claves cortas, ranuras de más…).
+
+**A mano**, en una terminal. La partición cifrada es la de nombre
 `command-os` (`lsblk -o NAME,PARTLABEL,FSTYPE`; por ejemplo `/dev/nvme0n1p3`):
 
 ```sh

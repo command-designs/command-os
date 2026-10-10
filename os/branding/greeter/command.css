@@ -110,3 +110,18 @@ button.suggested-action {
 button.suggested-action:hover {
     background-color: #e8607a;
 }
+
+/* Paneles del escritorio (comun.ventana): actualizaciones, cuentas y disco. */
+.panel-ventana {
+    background-color: #0d0b0e;
+    border-top: 3px solid #d13449;
+    padding: 22px 26px;
+}
+
+/* Un dato que se lee con calma, como la clave de recuperación (comun.Dialogo, destacado). */
+.clave {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 17px;
+    color: #edebe6;
+    padding: 6px 0;
+}
