@@ -66,5 +66,11 @@ arranque escala igual.
   2560x1600` con la VM apagada (quitarlo después, sin valor), `COMMAND_OS_PANTALLA=… apply-boot` y,
   solo para la prueba, en `/boot/grub/grub.cfg`: `video=…`, `timeout_style=menu` y un `timeout` largo.
 - La VM no da tamaño físico: la escala automática es 1. Para ver la alta densidad, escala a mano.
-- **No verificado**: la escala automática con un panel real de alta densidad y el asistente de
-  primer arranque en cada resolución (usa el mismo panel y la misma escala que el inicio de sesión).
+- **Asistente de primer arranque y pantalla de inicio de sesión** (verificados en 1024x600, 1024x768,
+  1280x720, 1366x768, 1920x1080, 1920x1200 y 2560x1600): el panel (`comun.panel`) va en un
+  `ScrolledWindow`, así que en una pantalla baja (1024x600, la de muchas pantallas pequeñas) se
+  desplaza en vez de dejar el botón fuera de la pantalla; si cabe, se ve igual y centrado. El logo lleva
+  `set_can_shrink(False)`: sin eso se encoge a 0 px y el panel se comprime en vez de desplazarse. Las
+  capturas de la prueba se hacen con `grim` dentro de la VM tras `wlr-randr --custom-mode` en el `cage`
+  del asistente (`docs/testing.md` § «Asistente de primer arranque en la VM»).
+- **No verificado**: la escala automática con un panel real de alta densidad.
