@@ -161,6 +161,10 @@ gc "${uid_luis}" "" borrar ana;                                 espero ultimo_ad
 gc "${uid_ana}" "" borrar luis --conservar-home;                espero ok "borrar conservando la carpeta personal"
 getent passwd luis >/dev/null && mal "luis sigue existiendo" || ok "la cuenta ya no existe"
 [[ -d /home/luis ]] && ok "su carpeta personal se conserva" || mal "se borró la carpeta aunque se pidió conservarla"
+# Su UID queda libre y una cuenta nueva puede recibirlo: la carpeta conservada no puede seguir con él.
+[[ "$(stat -c '%U %a' /home/luis)" == 'root 700' ]] && ok "la carpeta conservada pasa a root (700): una cuenta nueva con el mismo UID no la hereda" \
+  || mal "la carpeta conservada sigue accesible ($(stat -c '%U %a' /home/luis))"
+[[ -z "$(find /home/luis -not -user root 2>/dev/null | head -n 1)" ]] && ok "y nada dentro sigue con el UID de la cuenta borrada" || mal "quedan archivos con el UID viejo"
 gc "${uid_ana}" "" borrar marta;                                espero ok "borrar con la carpeta"
 [[ ! -d /home/marta ]] && ok "se borra su carpeta personal" || mal "queda la carpeta de marta"
 gc "${uid_ana}" "" borrar marta;                                espero no_existe "borrar una cuenta que ya no está"

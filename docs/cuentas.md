@@ -49,9 +49,13 @@ Menú del escritorio → ajustes → cuentas (`command-os-cuentas`). Una ventana
 - **Límites que pone el ayudante:** no se borra ni se quita el permiso a quien lo pide, ni se borra una
   cuenta con la sesión abierta, y siempre queda al menos una administradora. Si se borra la cuenta
   principal o la de inicio automático, el equipo pasa a la primera administradora y greetd lo sigue.
+  Con «conservar su carpeta personal», la carpeta pasa a **root con modo 700**: sus archivos seguirían con
+  el UID de la cuenta borrada y una cuenta nueva puede recibir ese mismo UID (heredaría los datos).
 - **Cómo se pide el permiso:** lo que necesita root lo hace `lib/gestionar-cuentas`, lanzado con
   `pkexec`: el agente de polkit de la sesión (`polkit-gnome`) pide la contraseña de un administrador, en
-  una ventana propia, y el panel nunca la ve (se recuerda unos minutos). Las contraseñas de las cuentas
+  una ventana propia, y el panel nunca la ve. Se pide **cada vez**, sin recordarla: el ayudante puede crear
+  administradoras y, si polkit la recordara unos minutos, cualquier proceso de la sesión podría usarlos
+  para llegar a root. Las contraseñas de las cuentas
   nuevas van al ayudante por la entrada estándar, nunca como argumento. El ayudante contesta con códigos
   de error (`usuario_existe`, `ultimo_admin`…) y el panel los cuenta en el idioma de la sesión.
   `tests/cuentas.sh` ejercita el ayudante entero, también un enlace simbólico malicioso en la carpeta de

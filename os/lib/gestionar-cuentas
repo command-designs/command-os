@@ -105,7 +105,19 @@ borrar() {
   if es_admin "${usuario}" && [[ "$(administradores | grep -cvx -- "${usuario}")" -eq 0 ]]; then
     fallo ultimo_admin
   fi
-  if (( conservar )); then userdel "${usuario}" || fallo fallo; else userdel -r "${usuario}" >/dev/null 2>&1 || fallo fallo; fi
+  local casa
+  casa=$(hogar "${usuario}")
+  if (( conservar )); then
+    userdel "${usuario}" || fallo fallo
+    # Los archivos conservados siguen con el UID de la cuenta borrada, y una cuenta nueva puede recibir
+    # ese mismo UID: pasarían a ser suyos. Se entregan a root (-h: sin seguir enlaces) y solo él entra;
+    # quien administre el equipo los recupera desde ahí.
+    if [[ -d "${casa}" && "${casa}" == /home/* ]]; then
+      chown -hR root:root "${casa}" && chmod 700 "${casa}" || fallo fallo
+    fi
+  else
+    userdel -r "${usuario}" >/dev/null 2>&1 || fallo fallo
+  fi
   # Si era la cuenta principal (o la de inicio automático), el equipo queda con la primera administradora.
   if [[ "$(cat "${CONF}/cuenta-principal" 2>/dev/null)" == "${usuario}" ]]; then
     local otra

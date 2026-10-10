@@ -40,7 +40,10 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   la autenticación es la del sistema y el panel no maneja la contraseña de nadie. Cada ayudante
   (`gestionar-cuentas`, `gestionar-disco`) valida todo lo que recibe, recibe las contraseñas por la
   entrada estándar (nunca como argumento) y contesta con códigos de error que el panel traduce. Cada
-  uno tiene su propia acción de polkit que solo deja lanzar ese programa. Descartado: `sudo -S` con una
+  uno tiene su propia acción de polkit que solo deja lanzar ese programa, y **la contraseña de
+  administrador se pide cada vez** (nada de `auth_admin_keep`): el ayudante de cuentas puede crear
+  administradoras, y con la autenticación recordada cualquier proceso de la sesión podría usar esos
+  minutos para llegar a root (revisión de seguridad). Descartado: `sudo -S` con una
   contraseña de administrador escrita en el panel (el panel la vería y habría que dársela a sudo por una
   tubería) y un demonio propio (más superficie y un proceso residente).
 - **La contraseña propia se cambia sin root**, con `passwd` en un pseudoterminal: PAM comprueba la
@@ -51,8 +54,10 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   cuenta con la sesión abierta y siempre queda una administradora. Si se borra la cuenta principal o la
   de inicio automático, el equipo pasa a la primera administradora.
 - **Borrar una cuenta pregunta si se conserva su carpeta personal.** Por defecto se borra; el interruptor
-  la conserva. Descartado: conservarla siempre (se llena el disco de carpetas de cuentas que ya no
-  existen) y borrarla sin preguntar (no se puede deshacer).
+  la conserva, pero **pasa a root con modo 700**: sus archivos seguirían con el UID de la cuenta borrada
+  y una cuenta nueva puede recibir ese mismo UID (heredaría los datos; lo señaló la revisión de
+  seguridad). Descartado: conservarla con su dueño (esa herencia), conservarla siempre (se llena el
+  disco de carpetas de cuentas que ya no existen) y borrarla sin preguntar (no se puede deshacer).
 - **El idioma de una cuenta es `~/.config/locale.conf`** y `lib/entorno-grafico` lo lee después del del
   equipo. Se escribe como la propia cuenta (`runuser`), no como root, para que un enlace simbólico en su
   carpeta no pueda desviar la escritura (probado en `tests/cuentas.sh`). Si el locale no está generado,
