@@ -29,7 +29,14 @@ persona() {
   IFS=: read -r _ _ uid _ _ _ shell <<< "${linea}"
   [[ "${uid}" -ge 1000 && "${uid}" -lt 60000 && "${shell}" != */nologin && "${shell}" != */false ]]
 }
-administradores() { getent group wheel | cut -d: -f4 | tr ',' '\n' | grep -v '^$'; }
+# Administradoras: las que están en wheel como miembro y las que lo tienen de grupo primario (lo mismo
+# que cuenta el panel, lib/panel-cuentas.py).
+administradores() {
+  local gid
+  gid=$(getent group wheel | cut -d: -f3)
+  { getent group wheel | cut -d: -f4 | tr ',' '\n'; getent passwd | awk -F: -v g="${gid}" '$4 == g { print $1 }'; } \
+    | grep -v '^$' | sort -u
+}
 es_admin() { administradores | grep -qx -- "$1"; }
 leer_clave() {
   local clave
@@ -88,7 +95,11 @@ anadir() {
   useradd -m "${grupos[@]}" -s /bin/bash -c "${nombre}" "${usuario}" || fallo fallo
   printf '%s:%s\n' "${usuario}" "${CLAVE}" | chpasswd || { userdel -r "${usuario}" >/dev/null 2>&1; fallo fallo; }
   CLAVE=""
-  [[ -z "${idioma}" ]] || idioma_de "${usuario}" "${idioma}"
+  # En un subshell: idioma_de sale con `fallo` y, si falla ahora, la cuenta no puede quedarse a medias.
+  if [[ -n "${idioma}" ]] && ! ( idioma_de "${usuario}" "${idioma}" ) 2>/dev/null; then
+    userdel -r "${usuario}" >/dev/null 2>&1
+    fallo idioma_no_disponible
+  fi
 }
 
 # borrar — no borra a quien lo pide, ni una cuenta con la sesión abierta, ni al último administrador.
@@ -112,7 +123,8 @@ borrar() {
     # Los archivos conservados siguen con el UID de la cuenta borrada, y una cuenta nueva puede recibir
     # ese mismo UID: pasarían a ser suyos. Se entregan a root (-h: sin seguir enlaces) y solo él entra;
     # quien administre el equipo los recupera desde ahí.
-    if [[ -d "${casa}" && "${casa}" == /home/* ]]; then
+    # Cualquiera que sea su ruta (no solo bajo /home): nunca la raíz ni /home entero.
+    if [[ -d "${casa}" && "${casa}" == /?* && "${casa}" != /home && "${casa}" != /home/ ]]; then
       chown -hR root:root "${casa}" && chmod 700 "${casa}" || fallo fallo
     fi
   else

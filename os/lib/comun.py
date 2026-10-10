@@ -214,9 +214,6 @@ class Dialogo(Gtk.Window):
         self.error.set_text(texto)
         self.boton.set_sensitive(True)
 
-    def poner(self, clave, texto):
-        self.widgets[clave][1].set_text(texto)
-
 
 def cargar_tema():
     css = Gtk.CssProvider()

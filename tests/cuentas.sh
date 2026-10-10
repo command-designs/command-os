@@ -168,6 +168,19 @@ getent passwd luis >/dev/null && mal "luis sigue existiendo" || ok "la cuenta ya
 gc "${uid_ana}" "" borrar marta;                                espero ok "borrar con la carpeta"
 [[ ! -d /home/marta ]] && ok "se borra su carpeta personal" || mal "queda la carpeta de marta"
 gc "${uid_ana}" "" borrar marta;                                espero no_existe "borrar una cuenta que ya no está"
+# Una carpeta conservada fuera de /home también se cede a root (el UID puede reutilizarse igual).
+mkdir -p /srv/h7
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir prueba7;                 espero ok "cuenta con la carpeta en otra ruta"
+usermod -d /srv/h7 prueba7 && echo dato > /srv/h7/x && chown -R prueba7: /srv/h7
+gc "${uid_ana}" "" borrar prueba7 --conservar-home;             espero ok "borrar conservando una carpeta fuera de /home"
+[[ "$(stat -c '%U %a' /srv/h7)" == 'root 700' && "$(stat -c %U /srv/h7/x)" == root ]] \
+  && ok "también pasa a root (700)" || mal "la carpeta de fuera de /home sigue accesible"
+rm -rf /srv/h7
+# Si el idioma falla después de crear la cuenta, no queda a medias (aquí /home no deja entrar a la cuenta).
+chmod 000 /home
+gc "${uid_ana}" "${CLAVE}"$'\n' anadir prueba8 --idioma es_ES.UTF-8; espero idioma_no_disponible "idioma que falla al escribirse: error"
+chmod 755 /home
+getent passwd prueba8 >/dev/null && mal "quedó la cuenta prueba8 a medias" || ok "y no queda la cuenta creada"
 # Si se borra la cuenta principal, el equipo pasa a la primera administradora y greetd lo sigue.
 gc "${uid_ana}" "" admin viejo si;                              espero ok "viejo vuelve a ser administrador"
 command-os-login auto ana >/dev/null

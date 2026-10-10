@@ -337,7 +337,8 @@ class Panel:
 
         def hecho(codigo):
             if codigo:
-                self.pintar(self.motivo(codigo))
+                # Cancelar el diálogo de polkit no es un error: se vuelve al idioma de antes sin avisos.
+                self.pintar("" if codigo == "cancelado" else self.motivo(codigo))
             else:
                 self.estado.remove_css_class("error")
                 self.estado.add_css_class("dato")
