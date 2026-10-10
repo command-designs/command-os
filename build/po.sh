@@ -16,7 +16,7 @@ PO="${REPO}/os/po"
 PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py os/lib/zonas.py build/make-plymouth-textos.py)
 SHELL_=(
   os/install.sh os/lib/crear-cuenta os/lib/apply-boot
-  os/bin/command-os-{about,captura,desktops,idioma,keys,lock,login,power,rollback,status,update,updates,wallpaper,zona-horaria}
+  os/bin/command-os-{about,captura,clipboard,desktops,idioma,keys,launcher,lock,login,power,rollback,status,update,updates,wallpaper,zona-horaria}
   build/x86/{instalar,lib,install-disco,install-dualboot}.sh
 )
 # Archivos de configuración que no pueden llamar a gettext (lib/traducir.py, docs/idioma.md): los
@@ -91,6 +91,11 @@ case "${1:-}" in
     done ;;
   comprobar)
     fallos=0
+    # Un script que carga textos.sh y no está en SHELL_ no saca sus textos: saldrían sin traducir.
+    cd "${REPO}"
+    for f in $(grep -slE '^\s*(source|\.)\s+\S*textos\.sh' os/install.sh os/bin/* os/lib/* build/x86/*.sh); do
+      [[ " ${SHELL_[*]} " == *" ${f} "* ]] || { echo "${f}: usa textos.sh y no está en SHELL_ (build/po.sh)"; fallos=1; }
+    done
     for f in "${PO}"/*.po; do
       nombre=${f#"${REPO}/"}
       msgfmt --check -o /dev/null "${f}" || { echo "${nombre}: no compila"; fallos=1; }

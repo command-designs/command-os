@@ -189,8 +189,18 @@ Comandos desde el anfitrión con `S="ssh -i build/packer/keys/packer_build_key -
   Desbloquear: `wtype deck; wtype -k Return`.
 - **Capturas**: `VBoxManage controlvm command-os-x86 screenshotpng <ruta.png>` (también durante el
   arranque, para ver splash → escritorio).
-- **Clic derecho en el escritorio**: no se puede simular sin ratón virtual; el menú `client-menu`
-  (Alt+Espacio) usa el mismo tema y sí se puede ver.
+- **Teclas multimedia y clic derecho**: un dispositivo virtual de `/dev/uinput` (Python con `fcntl.ioctl`,
+  sin instalar nada: `UI_SET_EVBIT/KEYBIT/RELBIT`, `UI_DEV_CREATE`, y eventos `input_event`). Teclas:
+  113 silencio, 114 y 115 volumen, 224 y 225 brillo. Clic derecho: llevar el puntero a la esquina con
+  movimientos relativos (`REL_X/REL_Y`), mover hasta el punto y pulsar `BTN_RIGHT` (0x111). Va como root
+  (`sudo`). VirtualBox no tiene retroiluminación: del brillo solo se ve que el OSD recibe la orden
+  (`labwc.log`: «BrightnessCtl Backend»).
+- **Inactividad**: bloquea a los 5 min y apaga la pantalla a los 10 (`wlopm` la muestra `on`/`off`). Un
+  `ssh` largo se corta: lanzar un script con `setsid nohup` que apunte `wlopm` y `pgrep hyprlock` cada
+  5 s en un archivo y mirarlo después. Una tecla la enciende (queda bloqueada hasta teclear la contraseña).
+- **Portapapeles**: `wl-copy` por SSH se queda esperando (hay que lanzarlo con `>/dev/null 2>&1`). Super+V
+  (`wtype` o `keyboardputscancode e0 5b 2f af e0 db`) abre el historial. Con el buscador o el
+  portapapeles abiertos, otro `command-os-clipboard` solo lo cierra (es un interruptor).
 - kitty abre siempre a 100x30 celdas (`remember_window_size no`), no con el tamaño de la última.
 
 ## Instalador en la VM `command-os-instalador` (2026-10-07)

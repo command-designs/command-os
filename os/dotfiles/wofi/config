@@ -2,7 +2,6 @@ width=520
 height=360
 location=center
 show=drun
-prompt=buscar
 allow_images=true
 image_size=24
 no_actions=true

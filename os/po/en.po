@@ -374,6 +374,9 @@ msgstr "area screenshot copied"
 msgid "captura de pantalla copiada"
 msgstr "screen screenshot copied"
 
+msgid "portapapeles"
+msgstr "clipboard"
+
 #, python-format
 msgid "escritorio %02d"
 msgstr "desktop %02d"
@@ -437,9 +440,6 @@ msgstr "files"
 
 msgid "navegador"
 msgstr "browser"
-
-msgid "portapapeles"
-msgstr "clipboard"
 
 msgid "cerrar ventana"
 msgstr "close window"
@@ -521,6 +521,9 @@ msgstr "this help"
 
 msgid "acerca de cmd-os"
 msgstr "about cmd-os"
+
+msgid "buscar"
+msgstr "search"
 
 msgid "la sesión no se ha podido bloquear"
 msgstr "the session could not be locked"
@@ -744,7 +747,8 @@ msgstr "usage: command-os-zona-horaria [lista | ZONE]"
 #, python-format
 msgid ""
 "zona horaria no disponible: %s (las que hay: command-os-zona-horaria lista)"
-msgstr "time zone not available: %s (to see them all: command-os-zona-horaria lista)"
+msgstr ""
+"time zone not available: %s (to see them all: command-os-zona-horaria lista)"
 
 #, python-format
 msgid "falta el archivo de la zona %s (paquete tzdata)"

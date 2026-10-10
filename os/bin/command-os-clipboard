@@ -1,7 +1,8 @@
 #!/bin/sh
 # Command OS — historial del portapapeles (Super+V): elige una entrada y queda copiada.
+. /usr/lib/command-os/textos.sh
 pkill -x wofi 2>/dev/null && exit 0
 cliphist list \
-  | wofi --dmenu --prompt portapapeles --conf "$(command-os-config wofi/config)" \
+  | wofi --dmenu --prompt "$(t 'portapapeles')" --conf "$(command-os-config wofi/config)" \
       --style "$(command-os-config wofi/style.css)" \
   | cliphist decode | wl-copy

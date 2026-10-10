@@ -1,6 +1,8 @@
 #!/bin/sh
 # Command OS — lanzador de aplicaciones (Super, el logo de la barra, el menú del escritorio).
 # Si ya está abierto, lo cierra. Usa la configuración del usuario o la de serie (command-os-config).
+# El texto del buscador va aquí y no en wofi/config, que no se traduce.
+. /usr/lib/command-os/textos.sh
 pkill -x wofi 2>/dev/null && exit 0
 exec wofi --conf "$(command-os-config wofi/config)" --style "$(command-os-config wofi/style.css)" \
-  --show drun "$@"
+  --prompt "$(t 'buscar')" --show drun "$@"
