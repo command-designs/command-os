@@ -3,7 +3,10 @@
 # sistema (lib/check-updates, cada 6 horas); no toca pacman.
 #
 #   command-os-updates status   JSON para el módulo de Waybar (custom/updates): vacío si no hay nada
-#   command-os-updates update   abre una terminal con command-os-update (clic en la barra o en el aviso)
+#   command-os-updates panel    abre el panel de actualizaciones (clic en la barra): qué hay y un botón
+#                               para actualizar
+#   command-os-updates datos    lo mismo que enseña el panel, en líneas con tabuladores (lo lee el panel)
+#   command-os-updates update   abre una terminal con command-os-update (el botón del panel y el aviso)
 #   command-os-updates check    comprueba ahora y lo cuenta (clic derecho en la barra)
 #   command-os-updates notify   notifica una vez cada versión nueva de command-os
 #   command-os-updates watch    lo anterior cada 10 minutos (lo lanza el autostart de labwc)
@@ -73,9 +76,40 @@ estado() {
     tip+=$(printf '%s' "${lista}" | head -n 8)$'\n'
     (( otros > 8 )) && tip+="$(t '… y %d más' $(( otros - 8 )))"$'\n'
   fi
-  tip+=$'\n'"$(t 'comprobado %s · clic: actualizar · clic derecho: comprobar ahora' "$(hace "${comprobado}")")"
+  tip+=$'\n'"$(t 'comprobado %s · clic: ver y actualizar · clic derecho: comprobar ahora' "$(hace "${comprobado}")")"
   printf '{"text": "<span color=\\"#5bbfc4\\">upd</span> %s", "tooltip": "%s", "class": "%s"}\n' \
     "${total}" "$(printf '%s' "${tip}" | pango | json)" "${clase}"
+}
+
+# Lo que enseña el panel (lib/panel-actualizaciones.py), una cosa por línea y con tabuladores:
+#   nada                                  no hay comprobación válida o no hay nada que instalar
+#   hace<TAB>texto                        cuándo se comprobó, ya traducido
+#   command-os<TAB>actual<TAB>nuevo       solo si hay versión nueva de command-os
+#   arch<TAB>1|0                          si al actualizar se aplica una fecha nueva de Arch validada
+#   paquete<TAB>nombre<TAB>antes<TAB>después   uno por cada paquete de Arch
+# Con una comprobación que ya no vale (pacman cambió algo después) sale «nada», igual que la barra.
+datos() {
+  if ! leer || { [[ -z "${nuevo}" ]] && (( otros == 0 )); }; then
+    # Si hay una comprobación válida pero sin novedades, el panel dice «al día» y cuándo se miró.
+    if leer; then printf 'hace\t%s\n' "$(hace "${comprobado}")"; fi
+    echo nada
+    return
+  fi
+  printf 'hace\t%s\n' "$(hace "${comprobado}")"
+  [[ -n "${nuevo}" ]] && printf 'command-os\t%s\t%s\n' "${actual}" "${nuevo}"
+  local fecha=0
+  [[ -n "${nuevo}" && "$(uname -m)" == x86_64 && ! -e /etc/command-os/rolling ]] && fecha=1
+  printf 'arch\t%s\n' "${fecha}"
+  local nombre antes _flecha despues
+  while read -r nombre antes _flecha despues; do
+    [[ -n "${nombre}" ]] && printf 'paquete\t%s\t%s\t%s\n' "${nombre}" "${antes}" "${despues}"
+  done <<< "${lista}"
+}
+
+# El panel gráfico (una sola instancia: la aplicación GTK es única por sesión).
+panel() {
+  export GTK_THEME=${GTK_THEME:-adw-gtk3:dark}
+  PYTHONPATH=/usr/lib/command-os exec python3 /usr/lib/command-os/panel-actualizaciones.py
 }
 
 avisar() { # avisar <texto> [urgencia]; sustituye al aviso anterior de este programa
@@ -137,8 +171,10 @@ vigilar() {
 case "${1:-}" in
   status) estado ;;
   update) actualizar ;;
+  panel) panel ;;
+  datos) datos ;;
   check) comprobar ;;
   notify) notificar; wait ;;
   watch) vigilar ;;
-  *) echo "uso: command-os-updates <status|update|check|notify|watch>" >&2; exit 2 ;;
+  *) echo "uso: command-os-updates <status|panel|datos|update|check|notify|watch>" >&2; exit 2 ;;
 esac

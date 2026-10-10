@@ -4,6 +4,7 @@ import os
 
 import gi
 
+gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gdk, GdkPixbuf, Gtk  # noqa: E402
 from traducir import DOMINIO, LOCALES, traductor  # noqa: E402,F401
@@ -73,6 +74,27 @@ def panel(ancho):
     fondo.add_css_class("fondo")
     fondo.append(desliza)
     return fondo, caja
+
+
+def ventana(app, titulo, ancho, alto_max=640):
+    """Ventana normal (no a pantalla completa) con el tema de Command OS: devuelve (ventana, caja).
+    Paneles del escritorio (actualizaciones, cuentas, disco). Si el contenido es más alto que la
+    pantalla, se desplaza (como `panel`)."""
+    v = Gtk.ApplicationWindow(application=app, title=titulo)
+    v.set_default_size(ancho, -1)
+    v.set_resizable(False)
+    caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
+    caja.add_css_class("panel-ventana")
+    caja.set_size_request(ancho, -1)
+    desliza = Gtk.ScrolledWindow(
+        hscrollbar_policy=Gtk.PolicyType.NEVER,
+        vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+        propagate_natural_height=True,
+        max_content_height=alto_max,
+    )
+    desliza.set_child(caja)
+    v.set_child(desliza)
+    return v, caja
 
 
 def cargar_tema():

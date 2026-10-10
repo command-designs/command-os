@@ -49,6 +49,25 @@ echo 'basura' > "${COMMAND_OS_UPDATES_STATE}"
 [[ "$(clase)" == ninguna ]] && ok "archivo corrupto: oculto" || mal "un archivo corrupto no debe romper la barra"
 command-os-updates nada >/dev/null 2>&1 && mal "acepta una orden desconocida" || ok "rechaza una orden desconocida"
 
+echo "==> Lo que lee el panel (command-os-updates datos)"
+datos() { command-os-updates datos; }
+touch -d '1 hour ago' "${COMMAND_OS_PACMAN_LOCAL}"
+rm -f "${COMMAND_OS_UPDATES_STATE}"
+[[ "$(datos)" == nada ]] && ok "sin comprobación: «nada» y sin hora" || mal "sin comprobación debe salir solo «nada»"
+echo "${ahora}" > "${COMMAND_OS_UPDATES_STATE}"
+[[ "$(datos | tail -n 1)" == nada ]] && datos | grep -q "^hace$(printf '\t')" \
+  && ok "al día: «nada» con la hora de la comprobación" || mal "al día debe dar la hora y «nada»"
+printf '%s\ncommand-os 2026.10.07.0803-1 -> 2026.10.08.1200-1\nlinux 7.2.7.arch1-1 -> 7.2.8.arch1-2\nmesa 26.1.0-1 -> 26.1.1-1\n' "${ahora}" > "${COMMAND_OS_UPDATES_STATE}"
+TAB=$(printf '\t')
+datos | grep -qx "command-os${TAB}2026.10.07.0803${TAB}2026.10.08.1200" && ok "versiones de command-os (sin el -1)" || mal "faltan las versiones de command-os"
+datos | grep -qx "paquete${TAB}linux${TAB}7.2.7.arch1-1${TAB}7.2.8.arch1-2" && ok "un paquete por línea, sin la flecha" || mal "línea de paquete mal formada"
+[[ "$(datos | grep -c '^paquete')" == 2 ]] && ok "cuenta los paquetes de Arch (2)" || mal "debe haber 2 paquetes"
+datos | grep -q "^arch${TAB}[01]$" && ok "dice si se aplica una fecha de Arch" || mal "falta la línea «arch»"
+datos | grep -qx nada && mal "con novedades no debe salir «nada»" || ok "con novedades no sale «nada»"
+printf '%s\nlinux 7.2.7.arch1-1 -> 7.2.8.arch1-2\n' "$((ahora - 3600))" > "${COMMAND_OS_UPDATES_STATE}"
+touch -d '10 minutes ago' "${COMMAND_OS_PACMAN_LOCAL}"
+[[ "$(datos)" == nada ]] && ok "comprobación anterior a un cambio de pacman: «nada»" || mal "una comprobación vieja no debe enseñarse en el panel"
+
 echo "==> La comprobación (lib/check-updates)"
 CHECK=/usr/lib/command-os/check-updates
 FALSO="${T}/falso"
