@@ -28,6 +28,18 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **Hora por la red (`systemd-timesyncd`) de serie, activada una sola vez.** Sin ella, un reloj que va
   mal no se corrige nunca. Es poco tráfico, así que también se usa con datos medidos.
 
+## 2026-10-10 — Una sola contraseña con el disco cifrado (`docs/cifrado.md`)
+
+- **El asistente propone «entrar sin contraseña al encender» activado si el disco está cifrado.** Con
+  el cifrado ya se teclea una contraseña en el splash; pedir otra al instante es fricción que lleva a
+  contraseñas flojas o a desactivar el cifrado. La cuenta sigue protegida donde importa: la pantalla se
+  bloquea con su contraseña y, sin la del disco, no se pasa del splash. Es una propuesta, no una
+  imposición (se apaga en el mismo asistente o después con `command-os-login pedir`). Descartado: dejarlo
+  apagado con un aviso (casi nadie lo cambiaría) y forzarlo sin interruptor (un equipo compartido con el
+  disco ya abierto no debe dejar entrar a cualquiera).
+- **Se detecta por `cryptdevice=` en `/proc/cmdline`**, que ponen el instalador de PC y
+  `command-os-rollback`; no por un archivo de estado aparte que podría desparejarse del disco real.
+
 ## 2026-10-07 — Cifrado del disco (`docs/cifrado.md`)
 
 - **Opcional y marcado por defecto, en disco entero y en dual boot.** En un portátil con Windows

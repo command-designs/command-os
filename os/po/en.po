@@ -129,6 +129,13 @@ msgstr ""
 
 msgid ""
 "entrar sin contraseña al encender\n"
+"(el disco ya la pide; la pantalla se sigue bloqueando)"
+msgstr ""
+"sign in without a password at startup\n"
+"(the disk already asks for one; the screen still locks)"
+
+msgid ""
+"entrar sin contraseña al encender\n"
 "(la pantalla se sigue bloqueando con ella)"
 msgstr ""
 "sign in without a password at startup\n"

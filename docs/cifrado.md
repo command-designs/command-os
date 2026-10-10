@@ -28,6 +28,13 @@ escribir sin límite de intentos. La clave de recuperación se escribe en el mis
 guiones o espacios. Esc pasa al modo detalles de Plymouth (texto, para soporte técnico): la pide igual,
 aunque ahí el texto sale sin la ñ ni las tildes (consola del initramfs).
 
+**Una sola contraseña al encender.** Con el disco cifrado, el asistente de primer arranque
+(`docs/cuentas.md`) propone «entrar sin contraseña al encender» ya activado, con el texto «el disco ya
+la pide»: así no se escriben dos contraseñas seguidas. Es solo la propuesta (el interruptor se puede
+apagar, o `command-os-login pedir` después). La pantalla sigue bloqueándose con la contraseña de la
+cuenta (inactividad, Super+L, tapa), y quien no sepa la del disco no pasa del splash. El asistente
+sabe que el disco está cifrado por `cryptdevice=` en la línea del kernel (`comun.disco_cifrado`).
+
 ## Si se pierde la contraseña
 
 - Se entra con la **clave de recuperación** y se pone una contraseña nueva (abajo).

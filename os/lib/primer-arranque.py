@@ -19,7 +19,7 @@ import threading
 import unicodedata
 
 import zonas
-from comun import CONF, cargar_tema, fila, leer, logo, panel, traductor
+from comun import CONF, cargar_tema, disco_cifrado, fila, leer, logo, panel, traductor
 from gi.repository import GLib, Gtk, Pango
 
 CREAR = "/usr/lib/command-os/crear-cuenta"
@@ -181,9 +181,14 @@ class Asistente(Gtk.ApplicationWindow):
         caja.append(admin)
 
         self.auto = Gtk.Switch(valign=Gtk.Align.CENTER)
-        self.auto.set_active(os.path.exists(f"{CONF}/inicio-automatico-de-serie"))
+        # Con el disco cifrado ya se escribe una contraseña al encender (en el splash): se propone no
+        # pedir otra. Es solo la propuesta: el interruptor se puede apagar (docs/cuentas.md).
+        cifrado = disco_cifrado()
+        self.auto.set_active(cifrado or os.path.exists(f"{CONF}/inicio-automatico-de-serie"))
         auto_texto = Gtk.Label(
-            label=_("entrar sin contraseña al encender\n(la pantalla se sigue bloqueando con ella)"),
+            label=_("entrar sin contraseña al encender\n(el disco ya la pide; la pantalla se sigue bloqueando)")
+            if cifrado
+            else _("entrar sin contraseña al encender\n(la pantalla se sigue bloqueando con ella)"),
             xalign=0,
             hexpand=True,
         )

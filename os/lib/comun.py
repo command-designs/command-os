@@ -21,6 +21,12 @@ def leer(ruta, defecto=""):
         return defecto
 
 
+def disco_cifrado(cmdline="/proc/cmdline"):
+    """True si el sistema arrancó desde un disco cifrado (`cryptdevice=` en la línea del kernel, que
+    ponen el instalador de PC y command-os-rollback; docs/cifrado.md)."""
+    return any(p.startswith("cryptdevice=") for p in leer(cmdline).split())
+
+
 def fila(etiqueta, widget):
     """Etiqueta en cian encima del campo."""
     caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)

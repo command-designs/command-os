@@ -30,9 +30,7 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Disco cifrado: que el asistente de primer arranque proponga entrar sin contraseña (para no escribir
-   dos al encender). *Opus, medio.*
-2. Diseños (se plantean y esperan el visto bueno antes de escribir código). *Opus, alto.*
+1. Diseños (se plantean y esperan el visto bueno antes de escribir código). *Opus, alto.*
    - Cuentas (`docs/cuentas.md`): añadir y gestionar más cuentas desde el escritorio (con idioma propio
      de cada cuenta) y un panel para cambiar la contraseña, el idioma y la zona horaria.
    - Disco cifrado (`docs/cifrado.md`): un panel para cambiar la contraseña del disco y la clave de
