@@ -11,12 +11,16 @@
 # Con el disco cifrado (/boot en una partición aparte), además pone en /boot el kernel de la instantánea.
 set -euo pipefail
 
-source /usr/lib/command-os/textos.sh
-die() { echo "error: $*" >&2; exit 1; }
+# Las tres rutas se pueden cambiar por entorno solo para tests/rollback.sh (disco loop): no se usan así.
+LIB=${COMMAND_OS_LIB:-/usr/lib/command-os}
+SNAPSHOTS=${COMMAND_OS_SNAPSHOTS:-/.snapshots}
+BOOT=${COMMAND_OS_BOOT:-/boot}
+source "${LIB}/textos.sh"
+die(){ echo "error: $*" >&2; exit 1; }
 [[ "$(id -u)" -eq 0 ]] || exec sudo "$0" "$@"
 
 [[ "${1:-}" == "--lista" ]] && exec snapper -c root list
-mountpoint -q /.snapshots || die "$(t 'no hay instantáneas: la raíz no es btrfs con snapper')"
+mountpoint -q "${SNAPSHOTS}" || die "$(t 'no hay instantáneas: la raíz no es btrfs con snapper')"
 
 if [[ -n "${1:-}" ]]; then
   [[ "$1" =~ ^[0-9]+$ ]] || die "$(t 'uso: command-os-rollback [N | --lista]')"
@@ -27,7 +31,7 @@ else
     || die "$(t 'no se ha arrancado una instantánea; indica el número (command-os-rollback --lista)')"
 fi
 
-dev=$(findmnt -nvo SOURCE /.snapshots)
+dev=$(findmnt -nvo SOURCE "${SNAPSHOTS}")
 top=$(mktemp -d /run/command-os-top.XXXX)
 mount -o subvolid=5 "${dev}" "${top}"
 trap 'umount "${top}"; rmdir "${top}"' EXIT
@@ -67,7 +71,7 @@ restore_kernel() {
   local new="${top}/@" m ver base f ok=1 nuevos=() vistos=" "
   local montajes=(dev proc sys boot)
   mount --bind /dev "${new}/dev" && mount -t proc proc "${new}/proc" && mount -t sysfs sys "${new}/sys" \
-    && mount --bind /boot "${new}/boot" || ok=0
+    && mount --bind "${BOOT}" "${new}/boot" || ok=0
   if (( ok )); then
     for m in "${new}"/usr/lib/modules/*/; do
       [[ -f "${m}vmlinuz" && -f "${m}pkgbase" ]] || continue
@@ -79,25 +83,25 @@ restore_kernel() {
         break
       fi
       vistos+="${base} "
-      if [[ -f "/boot/vmlinuz-${base}" && "$(sha256sum < "${m}vmlinuz")" == "$(sha256sum < "/boot/vmlinuz-${base}")" ]]; then
+      if [[ -f "${BOOT}/vmlinuz-${base}" && "$(sha256sum < "${m}vmlinuz")" == "$(sha256sum < "${BOOT}/vmlinuz-${base}")" ]]; then
         echo "$(t 'Kernel %s %s: es el mismo que hay en /boot.' "${base}" "${ver}")"
         continue
       fi
       echo "$(t 'Kernel %s %s del sistema recuperado: rehaciendo su initramfs…' "${base}" "${ver}")"
       chroot "${new}" mkinitcpio -k "${ver}" -g "/boot/initramfs-${base}.img.nuevo" >/dev/null 2>&1 || { ok=0; break; }
-      nuevos+=("/boot/initramfs-${base}.img")
-      if [[ -f "/boot/initramfs-${base}-fallback.img" ]]; then
+      nuevos+=("${BOOT}/initramfs-${base}.img")
+      if [[ -f "${BOOT}/initramfs-${base}-fallback.img" ]]; then
         chroot "${new}" mkinitcpio -k "${ver}" -S autodetect -g "/boot/initramfs-${base}-fallback.img.nuevo" \
           >/dev/null 2>&1 || { ok=0; break; }
-        nuevos+=("/boot/initramfs-${base}-fallback.img")
+        nuevos+=("${BOOT}/initramfs-${base}-fallback.img")
       fi
-      install -m 644 "${m}vmlinuz" "/boot/vmlinuz-${base}.nuevo" || { ok=0; break; }
-      nuevos+=("/boot/vmlinuz-${base}")
+      install -m 644 "${m}vmlinuz" "${BOOT}/vmlinuz-${base}.nuevo" || { ok=0; break; }
+      nuevos+=("${BOOT}/vmlinuz-${base}")
     done
   fi
   for f in "${montajes[@]}"; do mountpoint -q "${new}/${f}" && umount "${new}/${f}"; done
   if (( ! ok )); then
-    rm -f /boot/*.nuevo
+    rm -f "${BOOT}"/*.nuevo
     return 1
   fi
   for f in "${nuevos[@]}"; do mv "${f}.nuevo" "${f}" || return 1; done
@@ -107,7 +111,7 @@ restore_kernel() {
   return 0
 }
 
-if mountpoint -q /boot && [[ -d /boot/grub ]]; then
+if mountpoint -q "${BOOT}" && [[ -d "${BOOT}/grub" ]]; then
   restore_kernel || undo "$(t 'no se pudo poner el kernel de la instantánea en /boot')"
 else
   # /boot/grub va dentro de @ y la instantánea trae el suyo: desfasado (la lista de instantáneas del
@@ -117,7 +121,7 @@ else
   # arrancó una instantánea, ese es ${old}; si ya se había vuelto atrás sin reiniciar, el que está en
   # marcha. Solo x86 (la Pi no tiene GRUB). Con /boot aparte, GRUB no está en @ y no hace falta.
   grub=""
-  for g in "${top}/${old}/boot/grub" /boot/grub; do
+  for g in "${top}/${old}/boot/grub" "${BOOT}/grub"; do
     [[ -f "${g}/grub.cfg" ]] && { grub="${g}"; break; }
   done
   if [[ -n "${grub}" ]]; then

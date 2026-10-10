@@ -83,6 +83,15 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
 - `/boot/grub` tampoco: `command-os-rollback` pone en el sistema recuperado el del anterior. El de la
   instantánea tiene la lista del menú desfasada, módulos que pueden no casar con el GRUB de la
   partición EFI (que no retrocede) y, en las instantáneas de la imagen, ni existe.
+- **Prueba automática de `command-os-rollback`** (`tests/rollback.sh`, trabajo `rollback` de la CI): un
+  btrfs de verdad en un disco loop, con una raíz mínima (busybox estático y un `pacman` y un `mkinitcpio`
+  de mentira para el chroot). Cubre volver sin y con `/boot` aparte (el kernel de la instantánea y su
+  initramfs vuelven a `/boot`; si el kernel ya coincide no se rehace nada), que un fallo a medias
+  (`mkinitcpio` que falla) deja la raíz, `/boot` y las copias como estaban, y que la confirmación
+  equivocada, una instantánea inexistente, un argumento inválido y la falta de `/.snapshots` no tocan
+  nada. El script lee `COMMAND_OS_LIB`, `COMMAND_OS_SNAPSHOTS` y `COMMAND_OS_BOOT` solo para eso (por
+  defecto, las rutas del sistema). Lo que **no** cubre: el arranque real desde GRUB y el reinicio (se
+  prueba a mano en `command-os-btrfs`, `docs/notas/estabilidad.md`) ni los kernels de varios paquetes.
 - Las instalaciones antiguas en ext4 no tienen instantáneas (convertirlas exige reinstalar).
 - Raspberry Pi: no hay GRUB; `command-os-rollback N` funciona, pero el kernel está en la partición
   de arranque, fuera de las instantáneas.
@@ -145,4 +154,5 @@ el fondo arrancan; las configuraciones de hyprlock son válidas; captura de pant
 artefactos). Se ejecuta contra el Arch de la fecha validada (lo que tienen los equipos) y contra el
 Arch del día (lo que llegará): si la del día falla, no se valida una fecha nueva hasta arreglarlo.
 Además: `tests/cuentas.sh` (entrada al equipo) y `tests/actualizaciones.sh` (lo que enseña la barra, la
-comprobación con un `checkupdates` de mentira, las unidades de systemd), sin red ni pantalla.
+comprobación con un `checkupdates` de mentira, las unidades de systemd), sin red ni pantalla, y
+`tests/rollback.sh` (`command-os-rollback` sobre un btrfs en un disco loop, ver § 5).
