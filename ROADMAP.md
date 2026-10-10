@@ -30,19 +30,16 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Probar en la VM `command-os-x86` lo configurado y no verificado: apagado de pantalla a los 10 min,
-   portapapeles, teclas de volumen y brillo (que lancen la orden) y clic derecho en el escritorio
-   (con un ratón virtual por uinput). *Opus, medio: depurar en la VM.*
-2. Probar el asistente de primer arranque en varias resoluciones (VM `command-os-instalador`, con una
+1. Probar el asistente de primer arranque en varias resoluciones (VM `command-os-instalador`, con una
    instantánea apagada que se restaura al terminar). *Opus, medio: puede haber arreglos de GTK.*
-3. Comprobar en un equipo con instantáneas que el aviso de actualizaciones cuenta bien tras volver
+2. Comprobar en un equipo con instantáneas que el aviso de actualizaciones cuenta bien tras volver
    atrás con `command-os-rollback`. *Opus, medio.*
-4. Prueba automática de `command-os-rollback` (sin y con `/boot` aparte, y que deshace todo si falla):
+3. Prueba automática de `command-os-rollback` (sin y con `/boot` aparte, y que deshace todo si falla):
    hoy solo se prueba a mano en la VM, porque el script actúa sobre la raíz del sistema en marcha.
    *Opus, alto: aislar bien la raíz.*
-5. Disco cifrado: que el asistente de primer arranque proponga entrar sin contraseña (para no escribir
+4. Disco cifrado: que el asistente de primer arranque proponga entrar sin contraseña (para no escribir
    dos al encender). *Opus, medio.*
-6. Diseños (se plantean y esperan el visto bueno antes de escribir código). *Opus, alto.*
+5. Diseños (se plantean y esperan el visto bueno antes de escribir código). *Opus, alto.*
    - Cuentas (`docs/cuentas.md`): añadir y gestionar más cuentas desde el escritorio (con idioma propio
      de cada cuenta) y un panel para cambiar la contraseña, el idioma y la zona horaria.
    - Disco cifrado (`docs/cifrado.md`): un panel para cambiar la contraseña del disco y la clave de
