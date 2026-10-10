@@ -5,7 +5,9 @@
 #
 # Se ejecuta en un Arch con el paquete instalado (GitHub Actions, ver .github/workflows/escritorio.yml).
 # No toca el sistema: todo va a una carpeta temporal. Sale con 1 si algo falla.
-set -uo pipefail
+# Sin pipefail a propósito: con `orden | grep -q texto`, grep sale al encontrar el texto y la orden de
+# la izquierda puede morir por SIGPIPE si aún escribe; con pipefail eso daba fallos intermitentes.
+set -u
 
 fallos=0
 ok() { echo "  ok   $*"; }
