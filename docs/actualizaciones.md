@@ -131,6 +131,15 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
   los paquetes de esa fecha solo se ven tras instalarla; el tooltip lo dice.
 - **Al terminar `command-os-update`** avisa si hay que reiniciar (los módulos del kernel en marcha ya
   no están en el disco).
+- **Tras volver atrás con `command-os-rollback`** el aviso sigue siendo correcto sin hacer nada. El
+  resultado (`/var/lib/command-os/updates`) y la base de datos de pacman van dentro de `@`, así que
+  vuelven juntos, y la instantánea conserva las fechas de los archivos: la regla «la comprobación tiene
+  que ser posterior al último cambio de pacman» se cumple o no con el estado recuperado, nunca con uno
+  mezclado. Si la instantánea no trae un resultado válido, la barra se oculta hasta la siguiente
+  comprobación (10 min tras arrancar). `/home` no vuelve atrás: si se vuelve de una versión nueva de
+  command-os que ya se había avisado, no se avisa otra vez de ella (`updates-notified`). Verificado en
+  `command-os-btrfs` con un `checkupdates` de mentira, instalando un paquete y volviendo a la
+  instantánea anterior a la instalación, a la posterior y a una anterior a toda la prueba.
 - **Probar a mano:** `systemctl start command-os-check-updates@manual.service` y `cat
   /var/lib/command-os/updates`. Para simular una versión nueva, construir dos versiones con
   `COMMAND_OS_PKGVER` y poner la nueva en un repositorio local fuera de `/tmp` (la unidad tiene su
