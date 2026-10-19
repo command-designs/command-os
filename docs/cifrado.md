@@ -104,8 +104,9 @@ Una clave de recuperación nueva: `tr -dc 0-9 < /dev/urandom | head -c 48` da la
   en la consola. (El `encrypt` de Arch pide en inglés y, tras 3 fallos, deja una consola de emergencia.)
   Si no puede preguntar 5 veces seguidas (Plymouth no atiende, consola sin entrada), cede el paso a
   `encrypt`, que acaba en la consola de emergencia: el arranque nunca se queda colgado en el splash.
-- El tema del splash (`command.script`) dibuja el campo: el texto, una línea y un cuadradito hueso por
-  carácter, con el cursor Red Hot. Los dos textos del gancho («contraseña del disco · o la clave de
+- El tema del splash (`command.script`) dibuja el campo en el sitio de la lista de comprobaciones: el
+  texto, una línea y un cuadradito hueso por carácter, con el cursor Red Hot. Al abrir el disco, el
+  gancho marca «disco del sistema» en curso en la lista (`docs/notas/arranque-e-imagenes.md`). Los dos textos del gancho («contraseña del disco · o la clave de
   recuperación» en Ash, y el de contraseña incorrecta, en Red Hot) son **imágenes** en JetBrains Mono, una por
   idioma (`texto-clave.es.png`, `.en.png`…; `build/make-plymouth-textos.py`, con los textos de
   `os/po/`): en el initramfs Plymouth solo tiene `label-freetype`, que sin un locale UTF-8 pinta la ñ

@@ -69,8 +69,8 @@ BitLocker). No aplica al Pi (sin GRUB); las ramas nuevas de `install.sh` solo se
 
 ## Arranque silencioso para clientes (2026-10-04)
 
-Del encendido al escritorio solo se ve el splash, con una consola de 6 líneas de servicios bajo la
-barra (a petición del usuario, el mismo 2026-10-04: los logs solo dentro de la animación). Todo en `os/install.sh`, sección "Silent boot", para las dos plataformas:
+Del encendido al escritorio solo se ve el splash: la firma de Command y, debajo, las comprobaciones
+de arranque (desde el 2026-10-19, marca v2; antes, una consola de 6 líneas con los servicios). Todo en `os/install.sh`, sección "Silent boot", para las dos plataformas:
 - **Kernel**: `quiet splash loglevel=3 rd.udev.log_level=3 systemd.show_status=auto
   rd.systemd.show_status=auto vt.global_cursor_default=0`. x86 → `GRUB_CMDLINE_LINUX_DEFAULT`
   (`build/x86/build-image.sh` ya no la pisa, solo añade lo de NVIDIA). Pi → `/boot/cmdline.txt` con
@@ -80,18 +80,34 @@ barra (a petición del usuario, el mismo 2026-10-04: los logs solo dentro de la 
   "Loading Linux…/initial ramdisk" (se borran los `echo "$message"` de `/etc/grub.d/10_linux`; una
   actualización de `grub` los restaura hasta volver a correr `install.sh`). `install.sh` ahora
   ejecuta `grub-mkconfig` si existe `/boot/grub/grub.cfg`.
-- **Splash** (`command.script`): wordmark animado + barra fina + consola de servicios (systemd los
-  manda a Plymouth aunque el arranque sea silencioso; verificado en VM); al apagar, sin barra. **Esc** pasa al
-  modo detalles de Plymouth (soporte técnico; `details.so` va en el initramfs). Cualquier tecla salta la
-  animación del wordmark (`Plymouth.SetKeyboardInputFunction`: va al último fotograma, el arranque no se
-  toca). Medido en la VM el 2026-10-07 con capturas cada ~80 ms: la animación dura ~1,1 s (de la
-  primera letra al último fotograma estable); con una tecla, el último fotograma sale en ~0,15 s.
-  Para repetirlo: `controlvm screenshotpng` en bucle tras `systemctl reboot` y contar píxeles claros del wordmark.
+- **Splash** (`command.script`, marca v2): la firma corta (el símbolo se traza y se rellena, su barra
+  con halo, el wordmark con cabezal Red Hot; `build/make-plymouth.py` dibuja los 42 fotogramas del
+  símbolo y el script destapa el wordmark con una tapa Void), la lista de comprobaciones y el medidor
+  (`docs/DISENO.md` § «Movimiento»). Al apagar, solo el logo completo. **Esc** pasa al modo detalles de
+  Plymouth (soporte técnico; `details.so` va en el initramfs). Cualquier tecla salta la firma
+  (`Plymouth.SetKeyboardInputFunction`: va al final, el arranque no se toca). Medido en la VM el
+  2026-10-19 con capturas cada ~90 ms: ~2,8 s del primer fotograma al logo completo; con una tecla
+  pulsada al aparecer, el primer fotograma ya sale completo. Para repetirlo: `controlvm screenshotpng`
+  en bucle tras `systemctl reboot` y comparar la mitad de arriba de cada captura.
+- **Comprobaciones de arranque** (`lib/diagnostico-arranque`, `command-os-diagnostico.service`, activada
+  en el paquete con un enlace en `sysinit.target.wants`): arranca sin dependencias de serie y cada 0,1 s
+  mira con `systemctl is-active` seis unidades (`-.mount`, `local-fs.target`,
+  `systemd-udev-trigger.service`, `basic.target`, `NetworkManager.service`, `greetd.service`) y manda
+  los estados con `plymouth update --status="cmd-diag IDIOMA ESTADOS"` (un carácter por comprobación).
+  Por `update --status` y no por `display-message`: el modo detalles escribe en pantalla los mensajes,
+  pero no los estados (por ahí manda systemd los nombres de sus unidades, que el tema descarta). Con el
+  disco cifrado, el gancho del initramfs marca «disco del sistema» en curso al abrirlo. Plymouth se va
+  justo antes de que arranque greetd: «inicio de sesión» se queda en curso, que es lo que está pasando.
+  Si cambia la lista, se cambian a la vez el servicio, `ROWS` de `command.script`, los textos de
+  `build/make-plymouth-textos.py` y el mensaje del gancho (`tests/marca.sh` lo comprueba).
 - **Paso al escritorio**: `plymouth quit --retain-splash` (drop-in de `plymouth-quit.service`) y greetd
   en tty1 (asistente, inicio de sesión o inicio automático: `docs/cuentas.md`); hasta el 2026-10-07 era
   agetty con `--autologin`. `labwc` (`command-os-session`) escribe en
   `$XDG_RUNTIME_DIR/labwc.log` (no a tty1). labwc reutiliza el modo del splash
   (`<reuseOutputMode>`); en VirtualBox hay ~2 s de negro por el cambio a 1280x720.
-- **Verificado en la VM x86** con capturas cada segundo de arranque y reinicio.
+- **Verificado en la VM x86** con capturas cada segundo de arranque y reinicio (la firma v2, la lista,
+  saltar con una tecla, Esc y el apagado, el 2026-10-19). La VM `command-os-x86` tarda ~90 s más en
+  arrancar porque su `fstab` cita un disco que no existe (`c71d5864…`): la lista lo enseña con
+  «sistemas de archivos» en curso todo ese rato.
 - Plymouth no se puede probar en WSL (el daemon se cuelga sin tty): probar en la VM
   (`VBoxManage controlvm command-os-x86 screenshotpng` durante el arranque).

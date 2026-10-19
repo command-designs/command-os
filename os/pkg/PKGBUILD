@@ -112,6 +112,12 @@ package() {
   install -Dm 644 "${s}/system/dconf/db/local.d/00-command-os" "${d}/etc/dconf/db/local.d/00-command-os"
   install -Dm 644 "${s}/system/plymouth-quit-retain-splash.conf" \
     "${d}/usr/lib/systemd/system/plymouth-quit.service.d/command-os-retain-splash.conf"
+  # Comprobaciones de arranque en el splash (lib/diagnostico-arranque), activadas de serie.
+  install -Dm 644 "${s}/system/command-os-diagnostico.service" \
+    "${d}/usr/lib/systemd/system/command-os-diagnostico.service"
+  install -d "${d}/usr/lib/systemd/system/sysinit.target.wants"
+  ln -s ../command-os-diagnostico.service \
+    "${d}/usr/lib/systemd/system/sysinit.target.wants/command-os-diagnostico.service"
 
   # --- Entrada al equipo: greetd con el asistente de primer arranque, el inicio de sesión o el automático ---
   install -Dm 644 "${s}/system/greetd-command-os.conf" \

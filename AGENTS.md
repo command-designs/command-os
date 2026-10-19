@@ -43,7 +43,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
 | cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, panel del disco, `gestionar-disco`, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
-| splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
+| splash, firma de arranque, comprobaciones de arranque (`lib/diagnostico-arranque`), GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | resoluciones, 16:9/16:10, alta densidad (escala), fondos, tema de GRUB, tamaño del splash | `docs/notas/pantallas.md` |
 | VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
 | por qué se decidió algo (y qué se descartó) | `docs/decisiones.md` |
@@ -98,6 +98,8 @@ usuario); ARM, aparcado hasta tener la placa.
 - Initramfs: el busybox de mkinitcpio **no tiene `tr` ni `stty`**, y Plymouth pinta la ñ y las tildes
   como cuadrados (`label-freetype` sin locale): textos con acentos en el splash, como imágenes
   (una por idioma; el gancho sabe el idioma por `command-os.idioma=` en la línea del kernel).
+  Datos para el tema del splash, con `plymouth update --status` (`display-message` sale en crudo en el
+  modo detalles). `systemctl` con `-.mount`: siempre `--` antes (si no, lo toma por una opción).
 - Textos: el original es el castellano dentro de `_()` (Python), `t`/`tn` (shell, de `lib/textos.sh`,
   el texto entero y literal), `{{…}}` (Waybar, hyprlock) o el `label="…"` del menú de labwc; un texto
   nuevo o cambiado necesita `bash build/po.sh` y su traducción en `os/po/`, o `tests/idioma.sh` falla.

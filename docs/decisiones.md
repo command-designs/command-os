@@ -3,6 +3,27 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-19 — Arranque de la marca v2 (`docs/DISENO.md` § «Movimiento»)
+
+- **Firma corta de BRAND § 9.1 con el símbolo arriba y el wordmark debajo**, centrados: la versión
+  corta no tiene «ascenso», así que el símbolo se queda donde se traza. Descartado: símbolo y wordmark
+  en una línea (rompe la composición de `lenguaje.html`). Halo solo en la barra del símbolo (la del
+  wordmark, sin él).
+- **Pocas imágenes en el initramfs**: solo el símbolo va en fotogramas (42 pequeños); el wordmark es
+  una imagen que el script destapa con una tapa Void (el fondo es Void liso) y el cabezal es un píxel
+  estirado. El tema pasa de 673 a ~450 KB. Descartado: fotogramas de la pantalla entera (más de 1 MB).
+- **Comprobaciones reales con su resultado, de un servicio aparte**: Plymouth solo recibe de systemd
+  el nombre de cada unidad cuando empieza, nunca si acabó bien. `lib/diagnostico-arranque` pregunta a
+  systemd por seis unidades que marcan fases de verdad y manda los estados. Descartado: marcar «OK» lo
+  anterior al llegar una unidad nueva (sería mentira, BRAND § 7.1) y seguir con la consola de unidades.
+- **Los estados van por `plymouth update --status`**, no por `display-message`: el modo detalles (Esc)
+  escribe los mensajes en pantalla y salían los `cmd-diag` en crudo (visto en la VM).
+- **Estados con palabra (EN CURSO, OK…) en imágenes por idioma**: el tema no sabe el idioma, así que
+  llega con cada estado. Sin porcentaje en el medidor: el avance de Plymouth es una estimación por el
+  tiempo de arranques anteriores (BRAND § 9.3); nunca retrocede.
+- **Panel de GRUB con chaflán**: todas sus piezas miden lo que el corte (14 px), porque GRUB pone el
+  borde con el tamaño de las piezas; `apply-boot` lo suma al alto del menú.
+
 ## 2026-10-19 — Fondos de la marca v2 (`docs/DISENO.md` § «Pantalla», fondos)
 
 - **Dos fondos de escritorio, retícula (de serie) y plano, y void**, con los elementos de la web

@@ -36,15 +36,17 @@ la rejilla de 64 px, en píxeles fijos).
 
 ## Splash (Plymouth)
 
-Fotogramas a doble resolución (`build/make-plymouth.py`, wordmark de 1280 px). `command.script`
-mide todo en proporción al alto de la pantalla (a 1080 px, igual que antes: wordmark de 640 px), con
-`K` entre 0,7 y 2, y reduce los fotogramas una sola vez al cargarlos. La letra de la consola de
-arranque escala igual.
+Imágenes a doble resolución (`build/make-plymouth.py` y `build/make-plymouth-textos.py`).
+`command.script` mide todo en proporción al alto de la pantalla (a 1080 px: símbolo de 128 px,
+wordmark de 480 y la lista de su ancho), con `K` entre 0,7 y 2, y reduce las imágenes una sola vez al
+cargarlas. A 720 px de alto (la VM) los estados de la lista van a ~8 px: por eso son de 12 px a 1080.
 
 ## Menú de GRUB (tema propio)
 
-- Piezas en `os/branding/grub/` (`build/make-grub-theme.py`): panel y selección en nueve piezas y el
-  wordmark de 200 a 600 px cada 20 (**GRUB no escala las imágenes del tema**).
+- Piezas en `os/branding/grub/` (`build/make-grub-theme.py`): panel con el chaflán de `.panel` (14 px,
+  arriba a la izquierda y abajo a la derecha) y selección en nueve piezas, y el wordmark de 200 a 600 px
+  cada 20 (**GRUB no escala las imágenes del tema**). Todas las piezas del panel miden lo que el corte:
+  GRUB pone el borde con su tamaño, y `apply-boot` lo suma al alto del menú.
 - `lib/apply-boot` genera `/boot/grub/themes/command/` para el alto de la pantalla del equipo (modo
   preferido de `/sys/class/drm`, la interna si la hay): fuentes JetBrains Mono con `grub-mkfont` (menú
   20 px, textos 15 px, consola 18 px a 1080 de alto), `theme.txt` con el bloque centrado y

@@ -72,9 +72,10 @@ make_grub_theme() {  # make_grub_theme ALTO_PANTALLA -> 0 si el tema queda listo
       -o "${THEME_DIR}/cmd-${name%%:*}.pf2" "${THEME_FONT}" || return 1
   done
   # Bloque centrado: wordmark, hueco, panel del menú (4 entradas a la vista; si hay más, barra de
-  # desplazamiento; + 2: el borde de 1 px arriba y abajo) y cuenta atrás.
+  # desplazamiento; + 2 × 14: el borde arriba y abajo, que mide lo que el chaflán de las piezas
+  # panel_*, C en build/make-grub-theme.py) y cuenta atrás.
   local gap ih sp pad mh half
-  gap=$(p 44); ih=$(p 44); sp=$(p 4); pad=$(p 10); mh=$(( 4 * (ih + sp) + 2 * pad + 2 ))
+  gap=$(p 44); ih=$(p 44); sp=$(p 4); pad=$(p 10); mh=$(( 4 * (ih + sp) + 2 * pad + 2 * 14 ))
   half=$(( (lh + gap + mh) / 2 ))
   cat > "${THEME_DIR}/theme.txt" <<EOF
 # Command OS — tema de GRUB para pantallas de ${h} px de alto. Lo genera /usr/lib/command-os/apply-boot

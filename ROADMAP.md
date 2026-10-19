@@ -36,6 +36,11 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - Forma de la marca v2 en un PC real (`docs/DISENO.md` § «Pantalla»): chaflanes en el menú del clic
   derecho de Thunar y Firefox, en sus diálogos (botones), en las notificaciones y en una app GTK 3 de
   Flathub; y cómo se ven a alta densidad (en la VM, a escala 2, el filo sale algo suave).
+- Arranque de la marca v2 en un PC real (`docs/DISENO.md` § «Movimiento»): la firma (el símbolo se traza
+  y se rellena, su barra, el wordmark) y que una tecla la salte; la lista de comprobaciones con los
+  estados de tu equipo y el medidor; el menú de GRUB con el chaflán (Esc al encender); y, con el disco
+  cifrado, la contraseña en el sitio de la lista y «disco del sistema» en curso al abrirlo (en la VM
+  cifrada no se ha probado este arranque nuevo).
 
 ## Aparcado hasta tener el hardware ARM del cyberdeck
 
@@ -47,19 +52,14 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-Los puntos 1 y 2 terminan de aplicar la identidad de marca v2 de command-web (`BRAND.md` 2.0 §§ 3–9 y
+El punto 1 termina de aplicar la identidad de marca v2 de command-web (`BRAND.md` 2.0 §§ 3–9 y
 12.3, referencia `lenguaje.html`), que ya vale para Command OS y sustituye la estética HUD/Cyberpunk.
-Colores, letra, forma (chaflanes y escuadras) y fondos ya están (con `tests/marca.sh`). Van todos en la rama
-`feat/identidad-de-marca-v2` y en un solo PR al terminar el 2. Al acabar no puede quedar nada del estilo Cyberpunk: todo pasa
-a la v2.
-Antes de empezar cada uno: decir modelo y esfuerzo y esperar el «adelante» del usuario.
+Colores, letra, forma (chaflanes y escuadras), fondos y arranque (firma, comprobaciones y GRUB) ya están
+(con `tests/marca.sh`). Va en la rama `feat/identidad-de-marca-v2` y en un solo PR al terminarlo. Al
+acabar no puede quedar nada del estilo Cyberpunk: todo pasa a la v2.
+Antes de empezar: decir modelo y esfuerzo y esperar el «adelante» del usuario.
 
-1. **Marca v2 — arranque** (Plymouth y GRUB): versión corta de la secuencia de identidad (trazado del
-   símbolo → relleno → barra con halo → wordmark, ≤ 3 s, saltable), sin glitch ni cursor cian; la consola
-   de servicios pasa a lista de diagnóstico con las comprobaciones reales y un medidor con el avance real
-   de Plymouth. La contraseña del disco cifrado sigue dentro del splash. Al terminar, quitar
-   `make-plymouth.py` de `TEMPORALES` en `tests/marca.sh`. *Opus, alto: initramfs y cifrado.*
-2. **Marca v2 — sonidos** (`build/make-sounds.py`): que suenen como la interfaz v2, un instrumento
+1. **Marca v2 — sonidos** (`build/make-sounds.py`): que suenen como la interfaz v2, un instrumento
    preciso y sobrio, en vez del aparato de Cyberpunk (golpe de encendido con ventiladores, alarma
    saturada). Antes de generar, proponer la dirección y que el usuario la escuche. Cierre de la marca
    v2: repaso de todo el repo («cyberpunk», «HUD», «2077», «glitch», «cian» y los hex viejos; en las
@@ -67,18 +67,18 @@ Antes de empezar cada uno: decir modelo y esfuerzo y esperar el «adelante» del
    si esas palabras vuelven a `os/` o `build/`, `DISENO.md` reescrito entero y PR. *Opus, medio:
    síntesis de sonido y repaso de muchos archivos.*
 
-3. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
+2. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
    en la ejecución diaria, y caché de paquetes. Antes, arreglar la facturación de GitHub (los trabajos
    no arrancan: «recent account payments have failed»). *Sonnet, medio.*
-4. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
+3. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
    y la clave de recuperación nuevas tras cambiarlas con el panel del disco, y que la vieja ya no
    entra. *Sonnet, medio.*
-5. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
+4. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
    `tecla`, `limpiar` y `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy
    en bash y Python, cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
-6. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
+5. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
    (Flatpak), sin tocar `/var/lib/flatpak` desde la comprobación de solo lectura (`docs/decisiones.md`,
    2026-10-19). *Opus, medio: toca la unidad de systemd, la barra y el panel.*
-7. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
+6. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
    instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
    alto: toca el instalador y la vuelta atrás.*

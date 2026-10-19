@@ -140,14 +140,19 @@ y un desliz corto de 200–220 ms, y la barra hace transiciones de color en los 
 tareas y el logo. El bloqueo entra con un fundido de 0,4 s y su campo de contraseña cambia de color
 con la misma curva (filo Red Hot; Ash comprobando, Warn si falla o si las mayúsculas están
 activadas, con el número de intentos).
-**Firma de arranque** (pendiente de «Marca v2 — arranque» del ROADMAP, aún con el estilo anterior; ya en v2: fondo
-Void, barra de progreso Signal Red sobre Steel y cursor de la contraseña en Red Hot): el wordmark se revela de izquierda a derecha con un cursor cian en el borde,
-después la barra roja se extiende desde la izquierda con su halo; ~1,1 s, 28 fotogramas, tres de
-ellos con glitch (franjas desplazadas y aberración roja/cian). El último queda limpio
-(`os/branding/plymouth/`, fotogramas con `build/make-plymouth.py`). Debajo, solo una barra de progreso
-fina en rojo y, bajo ella, una consola de 6 líneas con los servicios que arranca systemd (la más
-reciente en hueso, las anteriores apagándose hacia Smoke). Es el único texto del arranque; Esc pasa
-al modo detalles de Plymouth, para soporte. Al apagar, solo el wordmark.
+**Firma de arranque** (BRAND § 9.1, versión corta; `os/branding/plymouth/`): sobre Void liso, el
+contorno del símbolo C se traza en Bone (1 px, la forma real del logo) y se rellena de izquierda a
+derecha; su barra Signal Red se extiende con su halo (el único de la interfaz) y el wordmark se revela
+de izquierda a derecha con un cabezal Red Hot, y después su barra. 2,65 s (~2,8 s medidos en la VM
+del primer fotograma al último), con las curvas de la marca y sin glitch ni parpadeos. Cualquier tecla
+la salta al final; Esc pasa al modo detalles de Plymouth, para soporte. Al apagar, solo el logo ya completo.
+**Arranque con diagnóstico** (BRAND § 9.2): debajo, la lista `.diag` de las comprobaciones reales, en
+orden (disco del sistema, sistemas de archivos, dispositivos, servicios básicos, red, inicio de
+sesión), cada una con su estado (EN ESPERA atenuada, EN CURSO en Red Hot, OK en verde, ERROR en Red
+Hot), el contador de hechas y un medidor de 2 px con el avance de Plymouth, sin porcentaje (es una
+estimación por el tiempo de arranques anteriores) y que nunca retrocede. Las comprueba
+`lib/diagnostico-arranque` con systemd (`docs/notas/arranque-e-imagenes.md`). Con el disco cifrado,
+la contraseña se pide en el sitio de la lista.
 Del encendido al escritorio no aparece texto del cargador, del kernel ni de systemd.
 En VM, `install.sh` quita el halo y las sombras de las ventanas (`~/.config/labwc/themerc-override`).
 
@@ -178,8 +183,8 @@ ni emojis.
 
 | #   | Ancla                      | Cómo se cumple                                                                                                                    | Estado                                       |
 | --- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| 1   | Logotipo con su barra      | Símbolo C en Waybar y bloqueo; wordmark en el splash; siempre con la barra roja.                                    | ✔ verificado en VM (labwc, 2026-10-05)       |
-| 2   | Firma de arranque          | Plymouth: letras de izquierda a derecha y luego la barra. ~1,1 s. Cualquier tecla salta la animación (Esc sigue siendo el modo detalles). | ✔ verificado en VM (2026-10-07; ~1,1 s medidos) |
+| 1   | Logotipo con su barra      | Símbolo C en Waybar y bloqueo; símbolo y wordmark en el splash; siempre con la barra roja.                          | ✔ verificado en VM (labwc, 2026-10-05)       |
+| 2   | Firma de arranque          | Plymouth: versión corta de la secuencia (trazado → relleno → barra → wordmark), 2,65 s; cualquier tecla la salta (Esc, modo detalles). Después, las comprobaciones de arranque. | ✔ verificado en VM (2026-10-19; ~2,8 s medidos) |
 | 3   | Un solo punto rojo         | El rojo es una señal: solo lo activo (filo de la ventana, espacio de trabajo, foco, selección, botón principal) y la barra del logo; los datos van en neutros. El punto rojo físico depende del hardware. | pantalla ✔ verificado en VM · objeto pendiente |
 | 4   | Voz                        | Textos de bloqueo, `issue` y `motd` en tono terminal.                                                                             | ✔                                            |
 | 5   | Nombre y código            | `os-release` (`VARIANT="CMD-OS"`), `/etc/issue` y `motd`. Pantalla «acerca de cmd-os» (Super+F2).                                 | ✔ verificado en VM (2026-10-07)              |

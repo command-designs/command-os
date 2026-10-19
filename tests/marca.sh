@@ -2,7 +2,8 @@
 # Command OS — prueba de la marca (docs/DISENO.md): ningún archivo del sistema ni generador de build/
 # usa un color fuera de la paleta v2 de Command (tokens.css de command-web), salvo los colores extra
 # permitidos de la lista de abajo, y nada lleva brillos (el halo es solo de la barra del logo). La
-# forma: los chaflanes generados al día y citados bien, y solo los radios de la marca.
+# forma: los chaflanes generados al día y citados bien, y solo los radios de la marca. El splash:
+# sus imágenes completas y la lista de comprobaciones igual en el servicio, el gancho y el tema.
 # Mira colores hex (#rrggbb y #rrggbbaa), rgb()/rgba(), tuplas RGB de Python, secuencias de color
 # de terminal (38;2;r;g;b) y los colores de Plymouth (0.93, 0.92, 0.90). Corre en cualquier Linux con
 # python3 (GitHub Actions, ver .github/workflows/pruebas.yml). Sale con 1 si algo falla.
@@ -40,9 +41,7 @@ EXTRA = {
 # Exclusiones temporales: generadores que se rehacen enteros en un punto del ROADMAP. Cada punto
 # quita su línea al terminar; si un archivo de aquí ya no tiene colores fuera de la paleta, la
 # prueba falla para que se quite.
-TEMPORALES = {
-    "build/make-plymouth.py": "punto «Marca v2 — arranque» del ROADMAP",
-}
+TEMPORALES = {}
 
 BINARIOS = (".png", ".jpg", ".jpeg", ".wav", ".ttf", ".otf", ".pf2", ".gz", ".zst", ".mo", ".po", ".pot")
 archivos = [f for f in subprocess.run(["git", "ls-files", "os", "build"], capture_output=True,
@@ -140,6 +139,38 @@ if grep -rn 'hide_search' os/bin os/lib >/dev/null; then
 fi
 (( forma == 0 )) && echo "  ok   chaflanes al día y citados bien, radios de la marca, paneles de wofi sin hide_search"
 
+echo "==> Splash (firma corta y comprobaciones de arranque; BRAND § 9)"
+splash=0
+dir=os/branding/plymouth/command
+script="${dir}/command.script"
+# Los fotogramas del símbolo que carga command.script existen todos (y no sobra ninguno).
+frames=$(sed -nE 's/^SIM_FRAMES = ([0-9]+);.*/\1/p' "${script}")
+hay=$(find "${dir}" -name 'simbolo-*.png' | wc -l)
+if [[ -z "${frames}" || "${hay}" -ne "${frames}" || ! -f "${dir}/simbolo-$((frames - 1)).png" ]]; then
+  echo "  MAL  command.script carga ${frames:-?} fotogramas del símbolo y hay ${hay} (python build/make-plymouth.py)"; splash=1
+fi
+# Las comprobaciones de lib/diagnostico-arranque son tantas como filas pinta el tema y como
+# nombres (diag-N) y números (diag-ix-N) hay; el gancho del initramfs manda un estado por fila.
+filas=$(sed -nE 's/^ROWS = ([0-9]+);.*/\1/p' "${script}")
+comprobaciones=$(sed -n '/^COMPROBACIONES=(/,/^)/p' os/lib/diagnostico-arranque | grep -cE '^  [^ #]')
+gancho=$(grep -oE 'cmd-diag \$\{idioma\} [a-z]+' os/initcpio/hooks/command-os-cifrado | awk '{print length($3)}')
+if [[ -z "${filas}" || "${comprobaciones}" -ne "${filas}" || "${gancho:-0}" -ne "${filas}" ]]; then
+  echo "  MAL  comprobaciones: ${comprobaciones} en diagnostico-arranque, ${filas:-?} filas en command.script, ${gancho:-?} en el gancho"; splash=1
+fi
+for ((n = 1; n <= ${filas:-0}; n++)); do
+  for img in "diag-${n}.es.png" "diag-ix-${n}.png"; do
+    [[ -f "${dir}/${img}" ]] || { echo "  MAL  falta ${img} (python build/make-plymouth-textos.py)"; splash=1; }
+  done
+done
+for ((n = 0; n <= ${filas:-0}; n++)); do
+  [[ -f "${dir}/diag-cuenta-${n}.png" ]] || { echo "  MAL  falta diag-cuenta-${n}.png"; splash=1; }
+done
+# Nada del splash anterior: ni fotogramas viejos ni lectura de los mensajes de systemd como consola.
+if compgen -G "${dir}/frame-*.png" >/dev/null || grep -qE 'push_line|log_sprite' "${script}"; then
+  echo "  MAL  quedan restos de la consola de servicios del splash anterior"; splash=1
+fi
+(( splash == 0 )) && echo "  ok   ${frames} fotogramas del símbolo, ${filas} comprobaciones iguales en el servicio, el gancho y el tema"
+
 echo
-if (( colores != 0 )) || [[ -n "${brillos}" ]] || (( forma != 0 )); then echo "==> Hay fallos"; exit 1; fi
+if (( colores != 0 )) || [[ -n "${brillos}" ]] || (( forma != 0 )) || (( splash != 0 )); then echo "==> Hay fallos"; exit 1; fi
 echo "==> Todo correcto"
