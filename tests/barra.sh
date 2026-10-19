@@ -194,6 +194,8 @@ print(fijadas.orden_terminal({"Exec": "firefox %u"}))')
 python3 "${F}" generar >/dev/null && [[ -z "$(leer_barra)" ]] && ok "lista vacía: grupo vacío" || mal "vacía: $(leer_barra)"
 [[ "$(XDG_RUNTIME_DIR=/no/existe bash "${RAIZ}/os/bin/command-os-fijadas" generar "${T}/base.css" 2>/dev/null)" == "${T}/base.css" ]] \
   && ok "si no puede generar, la barra arranca con su hoja de siempre" || mal "sin respaldo de la hoja"
+! env -u XDG_RUNTIME_DIR python3 "${F}" generar "${T}/base.css" >/dev/null 2>&1 && [[ ! -e /tmp/command-os/barra/fijadas.jsonc ]] \
+  && ok "sin XDG_RUNTIME_DIR no escribe nada (nunca en /tmp)" || mal "generó sin XDG_RUNTIME_DIR"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

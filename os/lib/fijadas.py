@@ -29,7 +29,7 @@ from traducir import traductor
 
 CONFIG = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
 LISTA = os.path.join(CONFIG, "command-os", "fijadas")
-RUN = os.path.join(os.environ.get("XDG_RUNTIME_DIR") or "/tmp", "command-os", "barra")
+RUN = os.path.join(os.environ.get("XDG_RUNTIME_DIR") or "", "command-os", "barra")
 DE_SERIE = ["firefox.desktop", "thunar.desktop", "kitty.desktop"]
 TEMAS = ["Papirus-Dark", "Papirus", "hicolor"]
 # Primero los SVG (se ven nítidos a cualquier escala), luego PNG grandes que GTK reduce.
@@ -153,7 +153,12 @@ def generar(estilo=None, tr=None):
     """Escribe RUN/fijadas.jsonc (lo incluye config.jsonc) y RUN/estilo.css (la hoja de la barra más
     los iconos). Devuelve la ruta de la hoja. ESTILO es la hoja de la barra; sin él, la de la última vez."""
     _ = tr or traductor()
-    os.makedirs(RUN, exist_ok=True)
+    # Solo en el XDG_RUNTIME_DIR de la cuenta (como command-os-config): nunca en /tmp, donde otra
+    # cuenta podría dejar antes una configuración de Waybar con sus propias órdenes.
+    run = os.environ.get("XDG_RUNTIME_DIR") or ""
+    if not os.path.isabs(run) or not os.path.isdir(run) or os.stat(run).st_uid != os.getuid():
+        raise RuntimeError("sin XDG_RUNTIME_DIR propio")
+    os.makedirs(RUN, mode=0o700, exist_ok=True)
     base_guardada = os.path.join(RUN, "estilo-base")
     if estilo:
         with open(base_guardada, "w", encoding="utf-8") as f:
