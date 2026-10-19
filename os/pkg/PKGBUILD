@@ -33,6 +33,7 @@ package() {
     install -m 755 "${f}" "${d}/usr/bin/"
   done
   for f in "${s}"/lib/*; do
+    [[ -f "${f}" ]] || continue  # p. ej. un __pycache__ de una prueba
     install -m 755 "${f}" "${d}/usr/lib/command-os/"
   done
   install -Dm 644 "${s}/pacman/snapshot-date" "${d}/usr/share/command-os/pacman/snapshot-date"
@@ -118,6 +119,13 @@ package() {
     "${d}/usr/share/polkit-1/actions/dev.commandlab.command-os.gestionar-cuentas.policy"
   install -Dm 644 "${s}/system/polkit-gestionar-disco.policy" \
     "${d}/usr/share/polkit-1/actions/dev.commandlab.command-os.gestionar-disco.policy"
+
+  # --- Batería: límite de carga (polkit para lib/gestionar-bateria; udev y el regreso del reposo lo
+  # vuelven a poner) ---
+  install -Dm 644 "${s}/system/polkit-gestionar-bateria.policy" \
+    "${d}/usr/share/polkit-1/actions/dev.commandlab.command-os.gestionar-bateria.policy"
+  install -Dm 644 "${s}/system/udev-bateria.rules" "${d}/usr/lib/udev/rules.d/90-command-os-bateria.rules"
+  install -Dm 755 "${s}/system/sleep-bateria" "${d}/usr/lib/systemd/system-sleep/command-os-bateria"
 
   # --- Traducciones (os/po/<idioma>.po, docs/idioma.md): el texto original es el castellano ---
   for f in "${s}"/po/*.po; do

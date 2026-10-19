@@ -1,0 +1,4 @@
+# Command OS — límite de carga de la batería (docs/notas/escritorio.md § «Batería»): si se activó en el
+# panel de la batería, se vuelve a poner al aparecer la batería (también al arrancar). Sin límite
+# guardado, gestionar-bateria no toca nada.
+SUBSYSTEM=="power_supply", ACTION=="add", ATTR{type}=="Battery", RUN+="/usr/lib/command-os/gestionar-bateria aplicar"

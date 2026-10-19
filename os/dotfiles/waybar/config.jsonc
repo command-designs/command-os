@@ -2,18 +2,23 @@
     "layer": "top",
     "position": "top",
     "height": 30,
-    "modules-left": ["custom/logo", "wlr/taskbar"],
+    "modules-left": ["custom/logo", "group/fijadas", "wlr/taskbar"],
     "modules-center": ["clock"],
+    // Aplicaciones fijadas (group/fijadas y sus custom/fijada#fN): las escribe command-os-fijadas al
+    // abrir la sesión y al cambiar la lista (lib/fijadas.py). Sin el archivo, la barra sale sin ellas.
+    "include": ["$XDG_RUNTIME_DIR/command-os/barra/fijadas.jsonc"],
     "modules-right": ["custom/updates", "ext/workspaces", "cpu", "temperature", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
 
     // Los textos entre dobles llaves se traducen al abrir la sesión (command-os-config, docs/idioma.md).
     // Etiqueta en cian (dato) + valor en hueso. Colores de docs/DISENO.md.
     // Logo como fondo CSS (#custom-logo en style.css): el módulo `image` de Waybar 0.15 se
-    // bloquea al arrancar y deja la barra invisible. Clic: lanzador de aplicaciones.
+    // bloquea al arrancar y deja la barra invisible. Clic: lanzador de aplicaciones; clic derecho:
+    // elegir una aplicación para fijarla en la barra.
     "custom/logo": {
         "format": " ",
-        "tooltip-format": "{{aplicaciones}}",
-        "on-click": "command-os-launcher"
+        "tooltip-format": "{{aplicaciones · clic derecho: fijar una aplicación en la barra}}",
+        "on-click": "command-os-launcher",
+        "on-click-right": "command-os-fijadas fijar"
     },
     // Aviso de actualizaciones: oculto si no hay nada (el script devuelve texto vacío). Solo lee el
     // archivo que deja la comprobación del sistema (lib/check-updates, cada 6 horas y tras cada
@@ -80,13 +85,16 @@
         "on-click": "command-os-volume",
         "tooltip-format": "{desc} · {{clic: mezclador}}"
     },
-    // Con la batería descargándose, el tiempo que queda; cargando, un +.
+    // Con la batería descargándose, el tiempo que queda; cargando, un +. Clic derecho: el panel de la
+    // batería (límite de carga al 80 % si el portátil lo permite; command-os-bateria).
     "battery": {
         "format": "<span color='#5bbfc4'>bat</span> {capacity}%",
         "format-discharging": "<span color='#5bbfc4'>bat</span> {capacity}% <span color='#6f6870'>{time}</span>",
         "format-charging": "<span color='#5bbfc4'>bat</span> {capacity}% +",
         "format-time": "{H}h{M:02}",
-        "states": { "warning": 30, "critical": 15 }
+        "states": { "warning": 30, "critical": 15 },
+        "tooltip-format": "{{clic derecho: ajustes de la batería}}",
+        "on-click-right": "command-os-bateria panel"
     },
     "tray": { "spacing": 8 },
     // Menú de energía (bloquear · reiniciar · apagar), igual que Super+Escape.

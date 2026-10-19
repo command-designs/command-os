@@ -3,6 +3,29 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-15 — Batería y aplicaciones fijadas en la barra (`docs/notas/escritorio.md`)
+
+- **La barra sigue con el `battery` de Waybar en texto** (`bat 85%`), decisión del usuario: se llegó a
+  hacer un módulo propio con iconos y el porcentaje ocultable, y lo descartó (le gusta el texto). Lo
+  nuevo (avisos y límite de carga) va aparte y no toca la barra.
+- **Avisos al 20 % (normal) y al 10 % (urgente)**, decisión del usuario (mantener la batería entre el
+  20 y el 80 %). Cada umbral avisa una vez por descarga.
+- **Límite de carga al 80 % solo si el portátil lo permite** (`charge_control_end_threshold`), apagado
+  de serie. El usuario prefería no hacerlo si no valía para todos; se hizo así porque quien no lo tiene
+  no ve nada (como GNOME y KDE) y quien lo tiene alarga la vida de la batería. Sin límite guardado no se
+  toca nada al arrancar: se respeta lo que haya puesto la BIOS. Descartado: TLP (un servicio más para
+  una sola cosa) y el modo conservación de los IdeaPad (corta al ~60 %, no al 80 %).
+- **Polkit deja cambiar el límite a la sesión activa sin contraseña**, como el límite de UPower en
+  GNOME: solo cuida la batería y se deshace con el mismo interruptor. El ayudante solo acepta
+  `limite 80`, `limite no` y `aplicar`.
+- **Fijar aplicaciones con módulos propios** (`group/fijadas` por `include`, iconos en una hoja que
+  importa la de la barra): `wlr/taskbar` no sabe fijar y su clic derecho no puede lanzar órdenes, así
+  que **no se puede fijar desde la ventana abierta** (lo que pidió el usuario). Se fija con el clic
+  derecho en el logo (el lanzador, pero fija en vez de abrir) y se quita o se mueve con el clic derecho
+  en la propia fijada. Una fijada abierta sale además como ventana en la barra de tareas (no se juntan:
+  sin IPC de labwc no se sabe a qué ventana corresponde). Descartado: cambiar de barra (sfwbar,
+  nwg-panel) por esto, y `lswt`/`wlrctl` (no están en los repos de Arch).
+
 ## 2026-10-08 — Zona horaria y hora (`docs/cuentas.md` § «Hora»)
 
 - **La zona se elige en el asistente de primer arranque** (decisión del usuario), como el idioma: la

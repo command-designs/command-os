@@ -56,6 +56,46 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   sección "labwc en la VM".
 
 
+## Batería (2026-10-15)
+
+- **Barra**: el módulo `battery` de Waybar, en texto (`bat 85%`, el tiempo que queda descargándose y
+  `+` cargando; el usuario lo quiere así, sin icono). Clic derecho: el panel de la batería.
+- **Avisos** (`command-os-bateria watch`, autostart; `os/lib/bateria.py`): al 20 % normal y al 10 %
+  urgente (mako lo deja hasta cerrarlo, con su sonido), una vez por descarga; al enchufar, un aviso
+  breve los sustituye. Mira `/sys/class/power_supply` cada minuto: fuera las baterías de periféricos
+  (`scope` = Device); varias baterías cuentan juntas si todas dan energía (o todas carga).
+- **Límite de carga al 80 %** (panel: clic derecho en la batería o menú → ajustes → batería;
+  `os/lib/panel-bateria.py`): solo aparece si el controlador expone `charge_control_end_threshold`.
+  Lo pone `lib/gestionar-bateria` con pkexec (sesión activa sin contraseña); guarda
+  `/etc/command-os/limite-carga` y lo vuelven a poner udev al aparecer la batería (también al
+  arrancar) y `/usr/lib/systemd/system-sleep/command-os-bateria` al despertar. Inicio a 75 si hay
+  `charge_control_start_threshold`; en los Dell, modo `Custom` (el de antes se apunta en
+  `limite-carga.modos` y vuelve al quitarlo). Si el firmware rechaza un orden de escritura (inicio por
+  encima del fin) prueba el otro; si rechaza el valor, todo queda como estaba. Apagado de serie. Por
+  qué así: `docs/decisiones.md`.
+- **Probado**: `tests/barra.sh` (batería simulada con `COMMAND_OS_POWER_SUPPLY`, avisos, límite sobre
+  un sysfs de mentira) y en la VM con una batería simulada (panel, avisos de mako, polkit sin
+  contraseña en la sesión activa). **No probado**: un portátil real (la VM no tiene batería): el límite
+  en el firmware y que siga tras reiniciar y tras el reposo.
+
+## Aplicaciones fijadas (2026-10-15)
+
+- **Cómo va**: Waybar no sabe fijar (`wlr/taskbar` solo enseña ventanas y su clic derecho no lanza
+  órdenes). `os/lib/fijadas.py` escribe en `$XDG_RUNTIME_DIR/command-os/barra/` `fijadas.jsonc`
+  (`group/fijadas` con un `custom/fijada#fN` por aplicación; lo incluye `config.jsonc` con `include`) y
+  `estilo.css` (importa la hoja de la barra y pone cada icono de fondo en `#custom-fijada.fN`). El
+  autostart lanza Waybar con `command-os-fijadas generar <hoja>`; si falla, devuelve la hoja de
+  siempre y la barra arranca sin fijadas. Al cambiar la lista, se regenera y se recarga Waybar (SIGUSR2).
+- **Lista**: `~/.config/command-os/fijadas`, un `.desktop` por línea; sin el archivo, las de serie
+  (Firefox, Thunar, kitty). Las desinstaladas desaparecen solas. Iconos de Papirus-Dark (SVG primero),
+  sus padres o `/usr/share/pixmaps`, sin GTK.
+- **Uso**: clic abre (`gio launch`); clic derecho en una fijada: quitar, mover a la izquierda o a la
+  derecha, fijar otra; clic derecho en el logo: el lanzador, que fija en vez de abrir
+  (`drun-print_desktop_file`). Una fijada abierta sale también como ventana en la barra de tareas.
+- **Probado**: `tests/barra.sh` y en la VM (iconos de serie, menú, mover, fijar btop desde el lanzador,
+  abrir kitty). `tests/escritorio.sh` comprueba que la barra arranca con las fijadas.
+
+
 ## Rediseño "ordenador real de Cyberpunk" (2026-10-05, rama `rediseno`)
 
 Criterio del usuario: se queda lo que **sirve** y lo que **crea ambiente y queda bien**; fuera lo que
@@ -69,7 +109,8 @@ antes de cada cambio y que se le notifique (PushNotification) cuando haga falta 
   en `os/branding/` (si no, la regla de texto los corrompería).
 - **Barra**: reloj con fecha (Waybar pasa **un** argumento de fecha: con dos `{:...}` el módulo no
   arranca; usar `{0:%d.%m}  {0:%H:%M}`), temperatura (en la VM no hay `thermal_zone0` y el módulo
-  se desactiva solo, es normal), batería con tiempo restante, señal wifi, umbrales ámbar/rojo.
+  se desactiva solo, es normal), batería con tiempo restante (avisos y límite de carga: § «Batería»),
+  señal wifi, umbrales ámbar/rojo.
 - **Ventanas**: barra de título plana, títulos y Alt+Tab en JetBrains Mono, halo de 12 px.
 - **Bloqueo**: `immediate_render` (sin él, hyprlock espera hasta 2 s a sus recursos antes de
   bloquear) y el sonido de bloqueo en segundo plano en `hypridle.conf` (antes bloqueaba al terminar

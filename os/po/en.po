@@ -456,6 +456,113 @@ msgstr "recovery key changed: the previous one no longer works."
 msgid "clave de recuperación"
 msgstr "recovery key"
 
+msgid "cmd-os · batería"
+msgstr "cmd-os · battery"
+
+msgid "› batería"
+msgstr "› battery"
+
+msgid "este equipo no tiene batería."
+msgstr "this computer has no battery."
+
+msgid "limitar la carga al 80 %"
+msgstr "limit charging to 80 %"
+
+msgid ""
+"la batería dura más años si no pasa mucho tiempo al 100 %: con esto deja de "
+"cargar al 80 %. sirve sobre todo si el portátil pasa mucho tiempo enchufado; "
+"quítalo antes de un viaje para tener la carga completa."
+msgstr ""
+"the battery lasts more years if it doesn't spend long at 100 %: this stops "
+"charging at 80 %. it helps most if the laptop is plugged in most of the "
+"time; turn it off before a trip to have a full charge."
+
+msgid "la carga se para en el 80 %."
+msgstr "charging stops at 80 %."
+
+msgid "la batería vuelve a cargar hasta el 100 %."
+msgstr "the battery charges up to 100 % again."
+
+msgid "el portátil no aceptó el límite de carga."
+msgstr "the laptop did not accept the charge limit."
+
+msgid "este portátil no permite limitar la carga."
+msgstr "this laptop does not allow limiting the charge."
+
+#, python-brace-format
+msgid "{n} % · cargando · {t} hasta terminar de cargar"
+msgstr "{n} % · charging · {t} until fully charged"
+
+#, python-brace-format
+msgid "{n} % · cargando"
+msgstr "{n} % · charging"
+
+#, python-brace-format
+msgid "{n} % · descargando · quedan {t}"
+msgstr "{n} % · discharging · {t} left"
+
+#, python-brace-format
+msgid "{n} % · descargando"
+msgstr "{n} % · discharging"
+
+#, python-brace-format
+msgid "{n} % · llena"
+msgstr "{n} % · full"
+
+#, python-brace-format
+msgid "{n} % · enchufada, en el límite de carga"
+msgstr "{n} % · plugged in, at the charge limit"
+
+#, python-brace-format
+msgid "{n} % · enchufada, sin cargar"
+msgstr "{n} % · plugged in, not charging"
+
+msgid "batería muy baja"
+msgstr "battery very low"
+
+#, python-brace-format
+msgid "queda un {n} %: enchufa el cargador ya o guarda lo que estés haciendo."
+msgstr "{n} % left: plug in the charger now or save your work."
+
+msgid "batería baja"
+msgstr "battery low"
+
+#, python-brace-format
+msgid "queda un {n} %: enchufa el cargador pronto."
+msgstr "{n} % left: plug in the charger soon."
+
+msgid "batería"
+msgstr "battery"
+
+msgid "cargando"
+msgstr "charging"
+
+#, python-brace-format
+msgid "{app} · clic derecho: opciones"
+msgstr "{app} · right click: options"
+
+msgid "quitar de la barra"
+msgstr "unpin from the bar"
+
+msgid "mover a la izquierda"
+msgstr "move left"
+
+msgid "mover a la derecha"
+msgstr "move right"
+
+msgid "fijar otra aplicación"
+msgstr "pin another app"
+
+msgid "fijar en la barra"
+msgstr "pin to the bar"
+
+#, python-brace-format
+msgid "{app} fijada en la barra"
+msgstr "{app} pinned to the bar"
+
+msgid "ya estaba en la barra"
+msgstr "it was already in the bar"
+
 msgid "contraseña del disco  ·  o la clave de recuperación"
 msgstr "disk password  ·  or the recovery key"
 
@@ -1379,11 +1486,17 @@ msgid "Quita el USB y reinicia: sale el menú de GRUB (Command OS / Windows)."
 msgstr ""
 "Remove the USB and restart: the GRUB menu appears (Command OS / Windows)."
 
+msgid "aplicaciones · clic derecho: fijar una aplicación en la barra"
+msgstr "apps · right click: pin an app to the bar"
+
 msgid "clic: conexiones"
 msgstr "click: connections"
 
 msgid "clic: mezclador"
 msgstr "click: mixer"
+
+msgid "clic derecho: ajustes de la batería"
+msgstr "right click: battery settings"
 
 msgid "sesión bloqueada"
 msgstr "session locked"
@@ -1432,7 +1545,3 @@ msgstr "on all desktops"
 
 msgid "mover a escritorio"
 msgstr "move to desktop"
-
-#, fuzzy
-#~ msgid "contraseña del disco cambiada. Se pide la nueva al encender."
-#~ msgstr "disk password  ·  or the recovery key"

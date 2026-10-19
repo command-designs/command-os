@@ -75,6 +75,13 @@ sleep 12
 for p in labwc waybar mako hypridle swaybg; do
   if pgrep -u "${uid}" -x "${p}" >/dev/null; then ok "en marcha: ${p}"; else mal "no arrancó: ${p}"; fi
 done
+# Aplicaciones fijadas (command-os-fijadas): la barra arranca con su hoja de estilo y su configuración.
+if [[ -s "${run}/command-os/barra/fijadas.jsonc" ]] && ! grep -aq 'Unable to find resource file' "${SALIDA}/labwc.log" \
+    && pgrep -u "${uid}" -a waybar | grep -qF -- "--style ${run}/command-os/barra/estilo.css"; then
+  ok "barra: aplicaciones fijadas"
+else
+  mal "barra: sin las aplicaciones fijadas (ver labwc.log)"
+fi
 if grep -aqiE 'error parsing config|parser error|no menu with id|already exists' "${SALIDA}/labwc.log"; then
   mal "labwc: errores en su configuración (ver labwc.log)"
 else

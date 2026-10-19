@@ -21,6 +21,11 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   nueva abren el disco, pero no el arranque con ellas) y que la clave vieja ya no entra.
 - Hora en un dual boot con Windows de verdad (`docs/cuentas.md` § «Hora»): elegir otra zona en el
   asistente sin red y que Windows y Command OS sigan con la misma hora.
+- Batería en un portátil real (`docs/notas/escritorio.md` § «Batería»; la VM no tiene batería): los
+  avisos al 20 % y al 10 % y, si el panel de la batería (clic derecho en `bat`) enseña «limitar la
+  carga al 80 %», que el portátil deje de cargar ahí y que siga limitado tras reiniciar y tras el reposo.
+- Aplicaciones fijadas con el ratón de verdad (en la VM se probaron las órdenes de cada clic): clic
+  para abrir, clic derecho en una fijada (quitar, mover) y clic derecho en el logo para fijar otra.
 - Escala automática en un portátil de alta densidad y con un segundo monitor conectado en marcha
   (`docs/notas/pantallas.md`; la VM no da tamaño físico).
 
@@ -34,4 +39,12 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-Ninguno de desarrollo: lo que queda lo prueba el usuario (arriba) o espera al hardware (aparcado).
+1. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
+   en la ejecución diaria, y caché de paquetes. Antes, arreglar la facturación de GitHub (los trabajos
+   no arrancan: «recent account payments have failed»). *Sonnet, medio.*
+2. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
+   y la clave de recuperación nuevas tras cambiarlas con el panel del disco, y que la vieja ya no
+   entra. *Sonnet, medio.*
+3. Limpieza de los paneles (`lib/panel-*.py`, `comun.py`): una clase base con `tecla`, `limpiar` y
+   `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy en bash y Python,
+   cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
