@@ -41,7 +41,6 @@ EXTRA = {
 # quita su línea al terminar; si un archivo de aquí ya no tiene colores fuera de la paleta, la
 # prueba falla para que se quite.
 TEMPORALES = {
-    "build/make-wallpaper.py": "punto «Marca v2 — fondos» del ROADMAP",
     "build/make-plymouth.py": "punto «Marca v2 — arranque» del ROADMAP",
 }
 

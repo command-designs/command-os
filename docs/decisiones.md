@@ -3,6 +3,22 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-19 — Fondos de la marca v2 (`docs/DISENO.md` § «Pantalla», fondos)
+
+- **Dos fondos de escritorio, retícula (de serie) y plano, y void**, con los elementos de la web
+  (BRAND § 7.2: retícula de 26 px con máscara radial, rejilla de 64 px tras un plano técnico). Fuera
+  interfaz, núcleo y placa: microtipografía, número de serie, código de barras, chip y glitch eran
+  lecturas inventadas o adorno (regla de función, § 7.1). Descartado: rehacerlos con los colores v2
+  (seguirían siendo adorno) y una placa de verdad (se retoma con el hardware, ancla 7).
+- **El plano es la construcción real del símbolo**: las cotas son sus medidas en unidades del
+  `viewBox`, y el generador las comprueba contra el PNG del logo (si el logo cambia, falla en vez de
+  dibujar cotas falsas). Descartado: un plano del cyberdeck (no hay hardware) y cotas sin números.
+- **void sin el resplandor rojo bajo**: el degradado rojo va detrás del elemento principal (§ 7.2) y
+  void no lo tiene (el logo lo pone encima el bloqueo, GRUB o el asistente).
+- **PNG sin grano en vez de JPEG**: sin grano, de 30 a 110 KB cada uno (los JPEG eran de ~1 MB) y sin
+  artefactos en los puntos. Un fondo elegido antes de la v2 vuelve al de serie (`command-os-wallpaper`
+  solo acepta los nombres de su lista). En inglés, `dot grid` y `blueprint`.
+
 ## 2026-10-19 — Forma de la marca v2: chaflanes y escuadras (`docs/DISENO.md` § «Pantalla»)
 
 - **Chaflán con `border-image` de SVG en archivos**, no con CSS: GTK no tiene `clip-path`. GTK 3 no

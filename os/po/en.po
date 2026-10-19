@@ -1196,14 +1196,11 @@ msgstr "update available"
 msgid "command-os %s · clic para actualizar"
 msgstr "command-os %s · click to update"
 
-msgid "interfaz"
-msgstr "interface"
+msgid "retícula"
+msgstr "dot grid"
 
-msgid "núcleo"
-msgstr "core"
-
-msgid "placa"
-msgstr "board"
+msgid "plano"
+msgstr "blueprint"
 
 #, python-format
 msgid "zona horaria: %s (son las %s)"

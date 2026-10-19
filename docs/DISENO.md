@@ -10,7 +10,7 @@ Una máquina que funciona, con la **marca v2 de Command** (`BRAND.md` 2.0 §§ 3
 visual en `lenguaje.html` de command-web): precisa, sobria y legible, como el panel de un instrumento
 bien hecho. Casi monocromo, el rojo como señal, líneas finas y medidores honestos. Sustituye al HUD
 estilo Cyberpunk 2077 (decisión del usuario, 2026-10-19; por qué, en `docs/decisiones.md`). Se aplica
-por partes (`ROADMAP.md`): colores y letra ✔; chaflanes y escuadras ✔; fondos, arranque y sonidos,
+por partes (`ROADMAP.md`): colores y letra ✔; chaflanes y escuadras ✔; fondos ✔; arranque y sonidos,
 pendientes.
 
 **Regla de función** (BRAND § 7.1, obligatoria): todo lo que se ve nombra algo, informa de un estado,
@@ -117,21 +117,19 @@ command-web, no se inventa aquí.
 - **Notificaciones** (swaync, `os/dotfiles/swaync/`): panel Graphite con chaflán y filo Steel (Iron al
   pasar el ratón; Red Hot la crítica, que no se cierra sola), título en Bone, cuerpo en Ash, sin la
   hora; barra de progreso Signal Red sobre Steel. Super+N las cierra todas.
-- **Fondos** (`build/make-wallpaper.py`; **pendiente de «Marca v2 — fondos» del ROADMAP**: aún con el estilo
-  anterior): gráfica de producto, como la que traería de serie un
-  ordenador de ese mundo; nada de paisajes. Tres para elegir (`command-os-wallpaper elegir`, o
-  ajustes → fondo de pantalla en el menú del escritorio):
-  - **interfaz** (de serie): corte diagonal con filo rojo, trama de semitono roja, wordmark gigante
-    en contorno, la C con microtipografía de fabricante (`SYS.INTEGRITY … OK`, número de serie,
-    código de barras) y dos cortes con glitch.
-  - **núcleo**: la C como pieza de hardware oscura con filo de luz roja, la barra encendida y
-    reflejada, pistas de circuito con señales rojas y cianes y un aro técnico.
-  - **placa**: macro de la placa del cyberdeck con el chip serigrafiado (`CMD-OS C2077-A`) y
-    desenfoque de cámara hacia los bordes.
-  - **void**: Void con la matriz de puntos tenue y un resplandor rojo bajo; solo para el bloqueo y
-    GRUB, que ya llevan el logo encima.
-  La barra del símbolo es siempre Signal Red; su resplandor, el rojo de la marca. Los de escritorio
-  van en JPEG q93 (el grano no comprime en PNG).
+- **Fondos** (`build/make-wallpaper.py`): el lenguaje de la web (BRAND § 7.2), sin nada que decore
+  (nada de lecturas, números de serie ni adornos inventados). Dos para elegir (`command-os-wallpaper
+  elegir`, o ajustes → fondo de pantalla en el menú del escritorio):
+  - **retícula** (de serie): la retícula de puntos de 26 px (Steel sobre Void) con máscara radial,
+    la C en el centro y un degradado rojo radial al 14 % detrás de ella, como el héroe de la web.
+  - **plano**: la construcción real del símbolo sobre la rejilla de 64 px (que pasa por su esquina):
+    el contorno de la C en `--line-plan`, las guías de sus medidas en `--line-guide` (tronco, brazos,
+    hueco y barra), el área de respeto discontinua (¼ del ancho) y las cotas en unidades del
+    `viewBox` (1158 × 1237). La barra es lo único rojo.
+  - **void**: Void con la retícula muy tenue y sin rojo; solo para el bloqueo, GRUB y el asistente,
+    que ya llevan el logo encima.
+  La barra del símbolo es siempre Signal Red y lleva el único halo (2 % del ancho, 55 %). En PNG sin
+  grano (de 30 a 110 KB).
 
 ## Movimiento
 

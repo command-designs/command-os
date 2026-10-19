@@ -27,10 +27,11 @@ Qué hace cada pieza para que todo se vea igual de bien en 16:9 (1366x768, 1920x
 
 ## Fondos 16:9 y 16:10
 
-`build/make-wallpaper.py [16x9|16x10]` genera cada fondo en 2560x1440 (`command-<n>.jpg`) y
-2560x1600 (`command-<n>-16x10.jpg`), con la composición en proporción al lienzo.
+`build/make-wallpaper.py [16x9|16x10]` genera cada fondo en 2560x1440 (`command-<n>.png`) y
+2560x1600 (`command-<n>-16x10.png`), con la composición en proporción al alto (la retícula de 26 px y
+la rejilla de 64 px, en píxeles fijos).
 `command-os-wallpaper` da a cada pantalla el más cercano (ancho/alto < 1,70 → 16:10; también 4:3 y
-5:4, que con el 16:10 ya no cortan la C de `interfaz`). `void` (bloqueo, GRUB, asistente) va solo en
+5:4, que con el 16:10 no recortan el plano). `void` (bloqueo, GRUB, asistente) va solo en
 16:9: es liso y se recorta sin perder nada.
 
 ## Splash (Plymouth)

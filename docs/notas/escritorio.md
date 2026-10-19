@@ -169,12 +169,15 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
 Criterio del usuario: se queda lo que **sirve** y lo que **crea ambiente y queda bien**; fuera lo que
 ni sirve ni aporta ambiente. Detalle visual en `docs/DISENO.md`. El usuario pidió que se le pregunte
 antes de cada cambio y que se le notifique (PushNotification) cuando haga falta su decisión.
-- **Fondos** (`build/make-wallpaper.py`, numpy): gráfica de producto, **no paisajes** (el usuario
-  rechazó skyline y mapa). `interfaz` (de serie), `nucleo`, `placa` en JPEG q93 y `void` en PNG sin
-  grano para bloqueo y GRUB. Microtexto con JetBrains Mono de `build/fonts/` (OFL, solo para
-  generar). Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`),
-  lo llama `autostart` y el menú ajustes → fondo de pantalla. `.gitattributes`: `*.jpg binary`
-  en `os/branding/` (si no, la regla de texto los corrompería).
+- **Fondos** (`build/make-wallpaper.py`, numpy y Pillow): con la marca v2, **no paisajes** (el usuario
+  rechazó skyline y mapa). `reticula` (de serie) y `plano`, y `void` para el bloqueo, GRUB y el
+  asistente, todos en PNG (sin grano pesan poco). Las cotas de `plano`, con JetBrains Mono de
+  `build/fonts/` (OFL, solo para generar); sus medidas del símbolo se comprueban contra el PNG del
+  logo al generar. Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`;
+  un nombre que ya no está en la lista, como los de antes de la v2, vuelve al de serie), lo llama
+  `autostart` y el menú ajustes → fondo de pantalla. `.gitattributes`: `*.png binary` en
+  `os/branding/` (si no, la regla de texto los corrompería). Para generarlos en Windows, numpy y
+  Pillow en un entorno virtual fuera del repo (el `python3` de Windows es el de la Store).
 - **Barra**: reloj con fecha (Waybar pasa **un** argumento de fecha: con dos `{:...}` el módulo no
   arranca; usar `{0:%d.%m}  {0:%H:%M}`), temperatura (en la VM no hay `thermal_zone0` y el módulo
   se desactiva solo, es normal), batería con tiempo restante (avisos y límite de carga: § «Batería»),
