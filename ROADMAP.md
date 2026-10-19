@@ -10,7 +10,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - Instalar en un PC real con `instalar-command-os.sh` (dual boot o disco entero; `docs/instalacion.md` § 2):
   arranque desde la entrada UEFI, wifi y gráfica concretos. Dual boot en un portátil real
   (`docs/dualboot.md`): la entrada UEFI y Windows con BitLocker.
-- Oír los sonidos del sistema (en la VM solo se ha comprobado que no saturan).
+- Oír los sonidos del sistema de la marca v2 en un PC real (`docs/DISENO.md` § «Sonido»; los prototipos
+  se escucharon aparte, en el sistema solo se ha comprobado que no saturan).
 - Teclas de brillo en un portátil real (la VM no tiene retroiluminación: solo se prueba que lanzan la orden).
 - Disco cifrado en un PC real (`docs/cifrado.md`): la contraseña en el splash con el teclado del
   portátil y con uno USB, una contraseña con símbolos (en la VM solo se teclean letras, cifras y
@@ -54,18 +55,15 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 El punto 1 termina de aplicar la identidad de marca v2 de command-web (`BRAND.md` 2.0 §§ 3–9 y
 12.3, referencia `lenguaje.html`), que ya vale para Command OS y sustituye la estética HUD/Cyberpunk.
-Colores, letra, forma (chaflanes y escuadras), fondos y arranque (firma, comprobaciones y GRUB) ya están
+Colores, letra, forma (chaflanes y escuadras), fondos, arranque (firma, comprobaciones y GRUB) y sonidos ya están
 (con `tests/marca.sh`). Va en la rama `feat/identidad-de-marca-v2` y en un solo PR al terminarlo. Al
 acabar no puede quedar nada del estilo Cyberpunk: todo pasa a la v2.
 Antes de empezar: decir modelo y esfuerzo y esperar el «adelante» del usuario.
 
-1. **Marca v2 — sonidos** (`build/make-sounds.py`): que suenen como la interfaz v2, un instrumento
-   preciso y sobrio, en vez del aparato de Cyberpunk (golpe de encendido con ventiladores, alarma
-   saturada). Antes de generar, proponer la dirección y que el usuario la escuche. Cierre de la marca
-   v2: repaso de todo el repo («cyberpunk», «HUD», «2077», «glitch», «cian» y los hex viejos; en las
-   notas históricas solo como historia), `tests/marca.sh` que falle si `TEMPORALES` no está vacía o
-   si esas palabras vuelven a `os/` o `build/`, `DISENO.md` reescrito entero y PR. *Opus, medio:
-   síntesis de sonido y repaso de muchos archivos.*
+1. **Cierre de la marca v2**: repaso de todo el repo («cyberpunk», «HUD», «2077», «glitch», «cian» y los
+   hex viejos; en las notas históricas solo como historia), `tests/marca.sh` que falle si `TEMPORALES`
+   no está vacía o si esas palabras vuelven a `os/` o `build/`, `DISENO.md` reescrito entero y PR.
+   *Opus, medio: repaso de muchos archivos y reescritura del documento de diseño.*
 
 2. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
    en la ejecución diaria, y caché de paquetes. Antes, arreglar la facturación de GitHub (los trabajos

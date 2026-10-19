@@ -158,17 +158,16 @@ En VM, `install.sh` quita el halo y las sombras de las ventanas (`~/.config/labw
 
 ## Sonido
 
-(Pendiente de «Marca v2 — sonidos» del ROADMAP: aún con el estilo anterior; tienen que sonar como
-la interfaz v2, un instrumento preciso y sobrio.)
-
-Un aparato real, no un móvil ni un videojuego (`build/make-sounds.py`, síntesis propia): pitidos
-digitales cortos, clics de transitorio como relés o botones, barridos de encendido y apagado y una sala
-pequeña y seca, sin ecos largos.
-- **boot** (inicio de sesión): golpe grave de encendido, ventiladores que arrancan (ruido con el
-  filtro abriéndose), ráfaga de pitidos de datos y confirmación en dos tonos. ~2,5 s.
-- **notify** (swaync, al llegar una notificación): clic y dos tonos digitales cortos. **critical**: tres pulsos de alarma saturados.
-- **lock**: barrido hacia abajo y cerrojo. **unlock**: cerrojo y barrido hacia arriba.
-- **tick** (teclas de volumen): clic seco de botón.
+Un instrumento de medida preciso y sobrio, como la interfaz (`build/make-sounds.py`, síntesis propia):
+tonos casi puros (seno con un segundo armónico breve en el ataque), ataque de 2 ms y caída limpia, sin
+rebotes, como `--ease-out`. Sin ruido, sin saturación y sin nada al azar. Una sola tónica (La) con
+quintas, cuartas y octavas, los tiempos de la marca (90 y 160 ms) y una sala casi seca.
+- **boot** (inicio de sesión): La4, Mi5 y La5 escalonados 160 ms; el último se queda con La3 suave
+  debajo. ~1,5 s.
+- **notify** (swaync, al llegar una notificación): dos notas cortas que suben una cuarta (La5, Re6).
+  **critical**: Re6 tres veces cada 160 ms, más brillante; la urgencia la da la repetición, no la distorsión.
+- **lock**: dos notas que bajan una quinta (Mi6, La5). **unlock**: la misma figura hacia arriba.
+- **tick** (teclas de volumen): un toque de 90 ms (Mi7), como el paso de un mando de precisión.
 
 ## Objeto
 

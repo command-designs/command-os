@@ -189,7 +189,8 @@ antes de cada cambio y que se le notifique (PushNotification) cuando haga falta 
   (`os/bin/command-os-status`), intentos fallidos y aviso de mayúsculas en Warn.
 - **Sonidos** (`build/make-sounds.py`, numpy): de aparato real (clics, pitidos, barridos, golpe de
   encendido), sala seca. `login.wav` eliminado (no se usaba). **No se han escuchado**: verificado
-  solo que no saturan; que el usuario los oiga.
+  solo que no saturan; que el usuario los oiga. Sustituidos el 2026-10-19 por los de la marca v2
+  (`docs/DISENO.md` § «Sonido»).
 - **Paquetes**: fuera las herramientas personales de desarrollo (alacritty, vim, tmux, htop, ripgrep,
   fd, fzf, bat, eza, zoxide, jq, tree, rsync, wget, nodejs, npm…) y sus alias del `bashrc`. python
   ya no está en la lista pero sigue instalado porque kitty depende de él. Se quedan base-devel + git

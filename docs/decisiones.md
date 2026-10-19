@@ -3,6 +3,18 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-19 — Sonidos de la marca v2 (`docs/DISENO.md` § «Sonido»)
+
+- **Un instrumento de medida en vez del aparato de Cyberpunk**: fuera el golpe grave de encendido, los
+  ventiladores de ruido, la ráfaga de pitidos al azar y la alarma saturada. Tonos casi puros con la
+  envolvente de la marca (arranca con decisión, se asienta sin rebotes) y una sola tónica con
+  intervalos abiertos: el sonido sigue la regla de función, como la pantalla. El usuario escuchó dos
+  prototipos y eligió el seno casi puro. Descartado: la «barrita metálica» (FM con un filo metálico
+  en el ataque), más física pero menos sobria.
+- **critical sin distorsión**: la urgencia la da la repetición (tres veces el mismo tono, más
+  brillante), no la saturación. **boot** dura ~1,5 s y acompaña a la firma sin imitarla (suena al
+  iniciar la sesión, no durante el splash).
+
 ## 2026-10-19 — Arranque de la marca v2 (`docs/DISENO.md` § «Movimiento»)
 
 - **Firma corta de BRAND § 9.1 con el símbolo arriba y el wordmark debajo**, centrados: la versión
