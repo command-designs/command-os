@@ -6,6 +6,9 @@ import re
 
 # e_machine de la cabecera ELF -> nombre de `uname -m`.
 MAQUINAS = {0x03: "i686", 0x28: "armv7l", 0x3E: "x86_64", 0xB7: "aarch64"}
+# Lo que puede ejecutar cada procesador además de lo suyo (32 bits, si están sus bibliotecas; si no, el
+# programa se cierra al abrirse y abrir-descarga lo dice).
+COMPATIBLES = {"x86_64": {"i686"}, "aarch64": {"armv7l"}}
 # Trozos del nombre de un paquete que no son el nombre de la aplicación.
 RUIDO = {"amd64", "x86", "x64", "i386", "i686", "arm64", "aarch64", "armhf", "noarch", "linux", "current",
          "latest", "stable", "setup", "installer", "deb", "rpm"}
@@ -47,17 +50,29 @@ def maquina(ruta):
     return MAQUINAS.get(int.from_bytes(cabecera[18:20], orden))
 
 
+def otro_procesador(ruta, este):
+    """El procesador de un ejecutable si este equipo (`uname -m`) no puede ejecutarlo, o None."""
+    suyo = maquina(ruta)
+    if suyo is None or suyo == este or suyo in COMPATIBLES.get(este, ()):
+        return None
+    return suyo
+
+
 def repositorio(ruta):
-    """(nombre, título, url) de un .flatpakrepo, o None si no es válido. El nombre del remoto sale del
-    nombre del archivo, solo con los caracteres que acepta flatpak."""
-    datos = configparser.ConfigParser(interpolation=None)
+    """(nombre, título, url) de un .flatpakrepo, o None si no vale. Solo https y con clave GPG (un remoto sin
+    firma sería una puerta de entrada), sin claves repetidas ni valores de varias líneas (flatpak lee el
+    archivo con GLib, que no los entiende igual: la ventana tiene que enseñar lo que flatpak va a usar). El
+    nombre del remoto sale del nombre del archivo, solo con los caracteres que acepta flatpak."""
+    datos = configparser.ConfigParser(interpolation=None, strict=True)
     try:
         datos.read(ruta, encoding="utf-8")
         seccion = datos["Flatpak Repo"]
     except (OSError, configparser.Error, KeyError, UnicodeDecodeError):
         return None
+    if any("\n" in v for v in seccion.values()):
+        return None
     url = seccion.get("Url", "")
-    if not url.startswith(("https://", "http://")):
+    if not url.startswith("https://") or not seccion.get("GPGKey", "").strip():
         return None
     nombre = re.sub(r"[^A-Za-z0-9_-]", "-", re.sub(r"\.flatpakrepo$", "", os.path.basename(ruta), flags=re.I))
     nombre = nombre.strip("-") or "repositorio"

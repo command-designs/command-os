@@ -43,15 +43,28 @@ import descargas, sys
 for n in sys.argv[1:]:
     print(descargas.maquina(n))' "${T}/x86.AppImage" "${T}/arm.AppImage" "${T}/texto.AppImage" "${T}/no-existe")
 [[ "${salida}" == $'x86_64\naarch64\nNone\nNone' ]] && ok "procesador de un AppImage (ELF)" || mal "máquinas: ${salida}"
+elf "${T}/i686.AppImage" 03
+salida=$(python3 -c '
+import descargas, sys
+for n, este in zip(sys.argv[1::2], sys.argv[2::2]):
+    print(descargas.otro_procesador(n, este))' "${T}/x86.AppImage" x86_64 "${T}/i686.AppImage" x86_64 \
+  "${T}/arm.AppImage" x86_64 "${T}/x86.AppImage" aarch64 "${T}/texto.AppImage" x86_64)
+[[ "${salida}" == $'None\nNone\naarch64\nx86_64\nNone' ]] \
+  && ok "solo se rechaza lo que este procesador no ejecuta (32 bits del mismo sí)" || mal "otro procesador: ${salida}"
 printf '[Flatpak Repo]\nTitle=GNOME Nightly\nUrl=https://nightly.gnome.org/repo/\nGPGKey=AAAA\n' > "${T}/gnome nightly.flatpakrepo"
-printf '[Flatpak Repo]\nTitle=Local\nUrl=file:///tmp/repo\n' > "${T}/local.flatpakrepo"
+printf '[Flatpak Repo]\nTitle=Local\nUrl=file:///tmp/repo\nGPGKey=AAAA\n' > "${T}/local.flatpakrepo"
 printf 'no es un repositorio\n' > "${T}/roto.flatpakrepo"
+printf '[Flatpak Repo]\nTitle=Sin firma\nUrl=https://ejemplo.org/repo/\n' > "${T}/sinfirma.flatpakrepo"
+printf '[Flatpak Repo]\nTitle=Http\nUrl=http://ejemplo.org/repo/\nGPGKey=AAAA\n' > "${T}/http.flatpakrepo"
+printf '[Flatpak Repo]\nTitle=Dos\nUrl=https://bueno.org/\n  https://malo.org/\nGPGKey=AAAA\n' > "${T}/varias.flatpakrepo"
+printf '[Flatpak Repo]\nUrl=https://bueno.org/\nUrl=https://malo.org/\nGPGKey=AAAA\n' > "${T}/repetida.flatpakrepo"
 salida=$(python3 -c '
 import descargas, sys
 for n in sys.argv[1:]:
-    print(descargas.repositorio(n))' "${T}/gnome nightly.flatpakrepo" "${T}/local.flatpakrepo" "${T}/roto.flatpakrepo")
-[[ "${salida}" == $'(\'gnome-nightly\', \'GNOME Nightly\', \'https://nightly.gnome.org/repo/\')\nNone\nNone' ]] \
-  && ok "repositorio .flatpakrepo (nombre válido; fuera los que no son http(s) o están rotos)" || mal "repositorios: ${salida}"
+    print(descargas.repositorio(n))' "${T}/gnome nightly.flatpakrepo" "${T}"/{local,roto,sinfirma,http,varias,repetida}.flatpakrepo)
+[[ "${salida}" == $'(\'gnome-nightly\', \'GNOME Nightly\', \'https://nightly.gnome.org/repo/\')'"$(printf '\nNone%.0s' 1 2 3 4 5 6)" ]] \
+  && ok "repositorio .flatpakrepo (nombre válido; fuera sin https, sin firma, roto, en varias líneas o repetido)" \
+  || mal "repositorios: ${salida//$'\n'/ | }"
 
 echo "==> Asociaciones de tipos (mimeapps.list)"
 MIME="${RAIZ}/os/dotfiles/applications/mimeapps.list"
@@ -115,6 +128,12 @@ echo "de serie 3" > "${SYS}/gtk-3.0/settings.ini"
 preparar
 [[ "$(cat "${CFG}/gtk-3.0/settings.ini")" == "de serie 1: gtk-3.0/settings.ini" ]] \
   && ok "sin la suma de la copia, no se sabe si es del usuario: se deja" || mal "pisó una copia sin suma"
+echo 'suma vieja' > "${CFG}/command-os/gtk/gtk-4.0-settings.ini.sha256"  # igual que la de serie, suma desfasada
+preparar
+echo "de serie 4" > "${SYS}/gtk-4.0/settings.ini"
+preparar
+[[ "$(cat "${CFG}/gtk-4.0/settings.ini")" == "de serie 4" && ! -e "${CFG}/gtk-4.0/settings.ini.nuevo" ]] \
+  && ok "una copia igual a la de serie con la suma desfasada sigue al día" || mal "suma desfasada: $(cat "${CFG}/gtk-4.0/settings.ini")"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

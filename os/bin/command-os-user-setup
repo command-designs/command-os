@@ -51,7 +51,8 @@ copia() {  # copia destino-en-~/.config origen-en-sistema
   if [[ -f "${dst}" && ! -L "${dst}" ]]; then
     actual=$(sha256sum < "${dst}")
     if [[ "${actual}" == "${serie}" ]]; then
-      [[ -s "${suma}" ]] || { mkdir -p "${STATE}/gtk"; echo "${actual}" > "${suma}"; }
+      # Igual que la de serie: es nuestra (también si la suma era de una copia anterior).
+      [[ "$(cat "${suma}" 2>/dev/null)" == "${actual}" ]] || { mkdir -p "${STATE}/gtk"; echo "${actual}" > "${suma}"; }
       return 0
     fi
     # Distinta de la de serie: si es la última copia nuestra, está desfasada; si no, es del usuario.
@@ -59,9 +60,10 @@ copia() {  # copia destino-en-~/.config origen-en-sistema
   elif [[ -e "${dst}" && ! -L "${dst}" ]]; then
     return 0  # una carpeta u otra cosa del usuario
   fi
+  # Al lado y después en su sitio: si la copia falla (disco lleno), queda la de antes.
   mkdir -p "$(dirname "${dst}")" "${STATE}/gtk"
-  rm -f "${dst}"
-  cp "${src}" "${dst}" && echo "${serie}" > "${suma}"
+  cp "${src}" "${dst}.nuevo" && mv -f "${dst}.nuevo" "${dst}" && echo "${serie}" > "${suma}" \
+    || rm -f "${dst}.nuevo"
 }
 copia gtk-3.0/gtk.css "${SYS}/gtk-3.0/gtk.css"
 copia gtk-3.0/settings.ini "${SYS}/gtk-3.0/settings.ini"

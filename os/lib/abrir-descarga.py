@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 from comun import cargar_tema, traductor, ventana
-from descargas import busqueda, maquina, repositorio, tipo
+from descargas import busqueda, otro_procesador, repositorio, tipo
 
 from gi.repository import Gio, GLib, Gtk  # noqa: E402
 
@@ -69,6 +69,7 @@ class Panel:
         _ = self._
         archivo = os.path.basename(self.ruta)
         t = tipo(self.ruta)
+        self.error = None  # la etiqueta de errores, solo en las ventanas con botón principal
         if not os.path.isfile(self.ruta):
             self.cabecera(_("› abrir descarga"))
             self.texto(_("el archivo «{archivo}» ya no existe.").format(archivo=archivo), "error")
@@ -106,18 +107,27 @@ class Panel:
 
     def abrir_appimage(self, boton):
         _ = self._
-        este, suyo = os.uname().machine, maquina(self.ruta)
-        if suyo and suyo != este:
+        este = os.uname().machine
+        if suyo := otro_procesador(self.ruta, este):
             self.error.set_text(_("este programa es para otro tipo de procesador ({suyo}) y no funciona en este "
                                   "equipo ({este}).").format(suyo=suyo, este=este))
             return
+        ruta = os.path.abspath(self.ruta)
         try:
-            modo = os.stat(self.ruta).st_mode
+            modo = os.stat(ruta).st_mode
             if not modo & stat.S_IXUSR:
-                os.chmod(self.ruta, modo | stat.S_IXUSR)
-            proceso = subprocess.Popen([os.path.abspath(self.ruta)], cwd=os.path.dirname(os.path.abspath(self.ruta)),
-                                       stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                       stderr=subprocess.DEVNULL, start_new_session=True)
+                os.chmod(ruta, modo | stat.S_IXUSR)
+        except OSError:
+            self.error.set_text(_("no se pudo abrir el programa: puede que el archivo no sea tuyo o esté dañado."))
+            return
+        try:
+            proceso = subprocess.Popen([ruta], cwd=os.path.dirname(ruta), stdin=subprocess.DEVNULL,
+                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        except PermissionError:
+            # Ya es ejecutable: es el disco el que no deja ejecutar programas (noexec: USB, /tmp).
+            self.error.set_text(_("este disco no deja abrir programas: copia el archivo a tu carpeta personal y "
+                                  "ábrelo desde allí."))
+            return
         except OSError:
             self.error.set_text(_("no se pudo abrir el programa: puede que el archivo no sea tuyo o esté dañado."))
             return
@@ -150,8 +160,18 @@ class Panel:
 
     def anadir_repositorio(self, boton):
         _ = self._
-        boton.set_sensitive(False)
         nombre = self.repo[0]
+        # Con --if-not-exists, flatpak no hace nada (y sale bien) si ya hay un remoto con ese nombre, aunque
+        # sea de otra dirección: se avisa antes.
+        try:
+            remotos = subprocess.run(["flatpak", "remotes", "--system", "--columns=name"], capture_output=True,
+                                     text=True, timeout=30).stdout.split()
+        except (OSError, subprocess.SubprocessError):
+            remotos = []
+        if nombre in remotos:
+            self.error.set_text(_("ya hay un repositorio llamado «{nombre}» en la tienda.").format(nombre=nombre))
+            return
+        boton.set_sensitive(False)
         # Flatpak pide permiso a polkit (las cuentas administradoras de la sesión activa, sin contraseña).
         try:
             proceso = Gio.Subprocess.new(
@@ -173,8 +193,9 @@ class Panel:
                 self.texto(_("repositorio añadido: sus aplicaciones ya salen en la tienda."), "dato")
                 self.botones()
             else:
-                self.pintar()
-                self.error.set_text(_("no se pudo añadir el repositorio."))
+                self.pintar()  # si el archivo ya no está, lo dice en vez del error
+                if self.error is not None:
+                    self.error.set_text(_("no se pudo añadir el repositorio."))
         proceso.wait_check_async(None, hecho)
 
 

@@ -109,13 +109,15 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
   `command-os-tienda buscar TEXTO` la abre buscando. Bazaar avisa de los permisos de cada app (Discord:
   «alto riesgo», X11 y propietaria). `libheif` hace falta para las capturas de Flathub (AVIF).
 - **Actualizar**: `command-os-update` (`update`) actualiza las apps al final, contra Flathub del día y
-  sin preguntar, y quita los runtimes que ya no usa nadie; si falla (sin red), lo de pacman queda hecho.
+  sin preguntar (las del sistema y las que quien lo lanza instaló solo para su cuenta, `--user`), y quita
+  los runtimes que ya no usa nadie; si falla (sin red), lo de pacman queda hecho.
   El aviso de la barra todavía no cuenta las apps (`ROADMAP.md`). Bazaar también las actualiza.
 - **Lanzador y fijadas**: `command-os-session` carga `/etc/profile.d/flatpak.sh` (greetd no abre un shell
   de entrada), así que `XDG_DATA_DIRS` lleva las carpetas `exports/share` de Flatpak: wofi y las fijadas
   ven sus `.desktop` e iconos.
-- **Tema**: un permiso global (`flatpak override --system`, `lib/apply-system`) deja a las apps leer
-  `~/.config/gtk-3.0` y `gtk-4.0` en solo lectura. Dentro de su caja `/usr` es el del runtime, así que
+- **Tema**: un permiso global (`flatpak override --system`, `lib/apply-system`) deja a las apps leer, en
+  solo lectura, `gtk.css` y `settings.ini` de `~/.config/gtk-3.0` y `gtk-4.0` (solo esos archivos: la
+  carpeta guarda también los marcadores). Dentro de su caja `/usr` es el del runtime, así que
   **esos archivos son copias, no enlaces** (`command-os-user-setup`; la suma de la última copia queda en
   `~/.config/command-os/gtk/` y se pone al día si el usuario no la ha tocado). El modo oscuro y el tema
   llegan de dconf por el portal; Flatpak descarga solo la extensión `org.gtk.Gtk3theme.adw-gtk3-dark` al

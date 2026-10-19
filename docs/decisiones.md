@@ -31,11 +31,16 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **`command-os-update` actualiza las apps al final, sin preguntar.** Pacman ya preguntó y las apps no
   tocan el sistema; si falla, lo de pacman queda hecho. El aviso de la barra aún no las cuenta (mirarlo
   sin tocar `/var/lib/flatpak` desde la unidad de solo lectura pide más trabajo): en `ROADMAP.md`.
-- **Tema de las apps: copias de GTK, no enlaces.** Con el permiso `xdg-config/gtk-3.0:ro` las apps ven
-  `~/.config/gtk-3.0`, pero un enlace a `/usr/share/command-os` no lleva a nada dentro de su caja. La
-  copia se pone al día con la de serie mientras su suma sea la de la última copia (como hace `ucf`); si
-  no hay suma y no coincide con la de serie, se trata como del usuario. Descartado: dejar las apps sin
-  la paleta de Command OS.
+- **Tema de las apps: copias de GTK, no enlaces.** Con el permiso global de leer
+  `xdg-config/gtk-3.0/gtk.css` (y `settings.ini`, y los de `gtk-4.0`) las apps ven esos archivos, pero
+  un enlace a `/usr/share/command-os` no lleva a nada dentro de su caja. La copia se pone al día con la
+  de serie mientras su suma sea la de la última copia (como hace `ucf`); si no coincide con la de
+  serie ni con esa suma, se trata como del usuario. **El permiso es por archivo, no de la carpeta:**
+  `gtk-3.0` guarda también `bookmarks` (las carpetas marcadas en Thunar), que ninguna app tiene por qué
+  ver. Descartado: dejar las apps sin la paleta de Command OS.
+- **Un `.flatpakrepo` solo con `https://` y clave GPG**, y sin valores partidos en varias líneas:
+  la ventana enseña lo que flatpak va a usar (Python y GLib leen distinto los valores de varias
+  líneas) y un repositorio sin firma por http sería una puerta de entrada.
 - **xarchiver, no file-roller:** GTK 3 como Thunar, así que coge `gtk-3.0/gtk.css` (file-roller es GTK 4
   y se vería distinto); `thunar-archive-plugin` lo usa para «extraer aquí». `unrar` (licencia propia,
   redistribuible, en `extra`) para los rar.

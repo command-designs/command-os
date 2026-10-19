@@ -82,15 +82,19 @@ done < <(sed -n 's/^\([a-z-]*\/[^=]*\)=\(.*\)$/\1=\2/p' /usr/share/applications/
 # resuelve todos los símbolos al empezar). En la foto del 2026/10/05, Bazaar venía compilado contra un
 # libdex más nuevo y no abría (docs/decisiones.md): una fecha así no se valida.
 for p in bazaar xarchiver; do
-  if (LD_BIND_NOW=1 timeout 10 "${p}" --help 2>&1 || true) | grep -qE 'symbol lookup error|error while loading shared libraries'; then
+  if ! command -v "${p}" >/dev/null; then
+    mal "${p}: no está instalado"
+  elif (LD_BIND_NOW=1 timeout 10 "${p}" --help 2>&1 || true) | grep -qE 'symbol lookup error|error while loading shared libraries'; then
     mal "${p}: no arranca con las bibliotecas de esta fecha"
   else
     ok "${p}: enlaza con las bibliotecas de esta fecha"
   fi
 done
 if flatpak remotes --system --columns=name 2>/dev/null | grep -qx flathub; then ok "flatpak: Flathub de serie"; else mal "flatpak: sin Flathub"; fi
-if grep -qs 'xdg-config/gtk-3.0:ro' /var/lib/flatpak/overrides/global; then
-  ok "flatpak: las apps leen el tema GTK del usuario"
+permisos=$(sed -n 's/^filesystems=//p' /var/lib/flatpak/overrides/global 2>/dev/null)
+if [[ ";${permisos}" == *";xdg-config/gtk-3.0/gtk.css:ro;"* && ";${permisos}" == *";xdg-config/gtk-4.0/gtk.css:ro;"* \
+    && ";${permisos}" != *";xdg-config/gtk-3.0:"* ]]; then
+  ok "flatpak: las apps leen el tema GTK del usuario (solo sus archivos, no los marcadores)"
 else
   mal "flatpak: sin el permiso global del tema (lib/apply-system)"
 fi
