@@ -63,13 +63,17 @@ def repositorio(ruta):
     firma sería una puerta de entrada), sin claves repetidas ni valores de varias líneas (flatpak lee el
     archivo con GLib, que no los entiende igual: la ventana tiene que enseñar lo que flatpak va a usar). El
     nombre del remoto sale del nombre del archivo, solo con los caracteres que acepta flatpak."""
-    datos = configparser.ConfigParser(interpolation=None, strict=True)
+    # Como GLib: claves con mayúsculas y minúsculas tal cual (si no, un «gpgkey=» pasaría por «GPGKey» y
+    # flatpak añadiría el remoto sin firma), solo «=» entre clave y valor y solo «#» de comentario.
+    datos = configparser.ConfigParser(interpolation=None, strict=True, delimiters=("=",), comment_prefixes=("#",))
+    datos.optionxform = str
     try:
         datos.read(ruta, encoding="utf-8")
         seccion = datos["Flatpak Repo"]
     except (OSError, configparser.Error, KeyError, UnicodeDecodeError):
         return None
-    if any("\n" in v for v in seccion.values()):
+    # [DEFAULT] se hereda en configparser, no en GLib: un GPGKey ahí no es el del repositorio.
+    if datos.defaults() or any("\n" in v for v in seccion.values()):
         return None
     url = seccion.get("Url", "")
     if not url.startswith("https://") or not seccion.get("GPGKey", "").strip():

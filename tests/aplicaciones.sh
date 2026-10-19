@@ -58,12 +58,16 @@ printf '[Flatpak Repo]\nTitle=Sin firma\nUrl=https://ejemplo.org/repo/\n' > "${T
 printf '[Flatpak Repo]\nTitle=Http\nUrl=http://ejemplo.org/repo/\nGPGKey=AAAA\n' > "${T}/http.flatpakrepo"
 printf '[Flatpak Repo]\nTitle=Dos\nUrl=https://bueno.org/\n  https://malo.org/\nGPGKey=AAAA\n' > "${T}/varias.flatpakrepo"
 printf '[Flatpak Repo]\nUrl=https://bueno.org/\nUrl=https://malo.org/\nGPGKey=AAAA\n' > "${T}/repetida.flatpakrepo"
+# Para flatpak (GLib) «gpgkey» no es «GPGKey»: el remoto se añadiría sin firma.
+printf '[Flatpak Repo]\nUrl=https://ejemplo.org/repo/\ngpgkey=AAAA\n' > "${T}/minusculas.flatpakrepo"
+printf '[Flatpak Repo]\nUrl: https://ejemplo.org/repo/\nGPGKey=AAAA\n' > "${T}/dospuntos.flatpakrepo"
+printf '[DEFAULT]\nGPGKey=AAAA\n[Flatpak Repo]\nUrl=https://ejemplo.org/repo/\n' > "${T}/heredada.flatpakrepo"
 salida=$(python3 -c '
 import descargas, sys
 for n in sys.argv[1:]:
-    print(descargas.repositorio(n))' "${T}/gnome nightly.flatpakrepo" "${T}"/{local,roto,sinfirma,http,varias,repetida}.flatpakrepo)
-[[ "${salida}" == $'(\'gnome-nightly\', \'GNOME Nightly\', \'https://nightly.gnome.org/repo/\')'"$(printf '\nNone%.0s' 1 2 3 4 5 6)" ]] \
-  && ok "repositorio .flatpakrepo (nombre válido; fuera sin https, sin firma, roto, en varias líneas o repetido)" \
+    print(descargas.repositorio(n))' "${T}/gnome nightly.flatpakrepo" "${T}"/{local,roto,sinfirma,http,varias,repetida,minusculas,dospuntos,heredada}.flatpakrepo)
+[[ "${salida}" == $'(\'gnome-nightly\', \'GNOME Nightly\', \'https://nightly.gnome.org/repo/\')'"$(printf '\nNone%.0s' 1 2 3 4 5 6 7 8 9)" ]] \
+  && ok "repositorio .flatpakrepo (nombre válido; fuera sin https, sin firma, roto, en varias líneas, repetido o con claves que GLib no lee igual)" \
   || mal "repositorios: ${salida//$'\n'/ | }"
 
 echo "==> Asociaciones de tipos (mimeapps.list)"
