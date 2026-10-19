@@ -19,7 +19,7 @@ llegan a todos los equipos sin pisar nada personal:
 | --- | --- | --- |
 | labwc | `/etc/xdg/labwc/` | `~/.config/labwc/` se **suma** (labwc arranca con `--merge-config`); ahí van sus escritorios |
 | kitty, hyprlock, fastfetch, portales | `/etc/xdg/<programa>/` | una copia en `~/.config` la sustituye |
-| Waybar, mako, hypridle, wofi | `/usr/share/command-os/config/<programa>/` | ídem; `command-os-config` elige cuál se usa |
+| Waybar, swaync, hypridle, wofi | `/usr/share/command-os/config/<programa>/` | ídem; `command-os-config` elige cuál se usa |
 | GTK 3/4, nano | `/usr/share/command-os/config/` | `command-os-user-setup` copia la de GTK (las apps Flatpak no verían un enlace a `/usr`; la copia sigue a la de serie mientras el usuario no la toque) y enlaza la de nano; si el usuario pone un archivo propio, se respeta |
 | terminal | `/usr/share/command-os/config/bash/bashrc` | un bloque en `~/.bashrc` lo carga |
 
@@ -167,7 +167,7 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
 ## 8. Pruebas automáticas (`tests/*.sh`, `.github/workflows/pruebas.yml`)
 
 En cada cambio y cada día: sintaxis y shellcheck de los scripts, y una sesión real de labwc sin
-pantalla con el paquete instalado (labwc lee su configuración sin errores; Waybar, mako, hypridle y
+pantalla con el paquete instalado (labwc lee su configuración sin errores; Waybar, swaync, hypridle y
 el fondo arrancan; las configuraciones de hyprlock son válidas; captura de pantalla en los
 artefactos). Se ejecuta contra el Arch de la fecha validada (lo que tienen los equipos) y contra el
 Arch del día (lo que llegará): si la del día falla, no se valida una fecha nueva hasta arreglarlo.

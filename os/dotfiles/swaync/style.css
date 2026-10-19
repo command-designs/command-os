@@ -1,0 +1,171 @@
+/* Notificaciones de Command OS (swaync, docs/DISENO.md, marca v2): cada una es un panel en Graphite
+   con chaflán de 14 px y filo Steel (.panel); al pasar el ratón, filo Iron; la crítica, filo Red Hot
+   (.panel--active: el texto ya dice qué pasa). Título en Bone, cuerpo en Ash, Geist. La barra de
+   progreso, Signal Red sobre Steel. El chaflán es un border-image (build/make-chaflanes.py): GTK no
+   pinta su centro, así que lo rellena un degradado liso del tamaño menos las esquinas (2 × 15 px).
+   Sustituye a la hoja de serie de swaync (solo se usan las notificaciones, no el centro). */
+
+* {
+    font-family: "Geist", sans-serif;
+    border-radius: 0;
+    text-shadow: none;
+}
+
+notificationwindow,
+blankwindow {
+    background: transparent;
+}
+
+.notification-row {
+    background: none;
+    outline: none;
+}
+
+.notification-row .notification-background {
+    padding: 4px 8px;
+}
+
+.notification-row .notification-background .notification {
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: linear-gradient(#151515, #151515);
+    background-size: calc(100% - 30px) calc(100% - 30px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("file:///usr/share/command-os/chaflanes/panel.svg");
+    border-image-slice: 15;
+    border-image-width: 15px;
+    border-image-repeat: stretch;
+}
+
+.notification-row .notification-background .notification:hover {
+    border-image-source: url("file:///usr/share/command-os/chaflanes/panel-hover.svg");
+}
+
+.notification-row .notification-background .notification.critical {
+    border-image-source: url("file:///usr/share/command-os/chaflanes/panel-activo.svg");
+}
+
+.notification-default-action,
+.notification-default-action:hover {
+    padding: 12px 14px;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    color: #edebe6;
+}
+
+.notification-content {
+    background: transparent;
+    padding: 0;
+}
+
+.notification-content .image {
+    -gtk-icon-size: 32px;
+    margin: 0 12px 0 0;
+}
+
+.notification-content .app-icon {
+    -gtk-icon-size: 14px;
+    -gtk-icon-shadow: none;
+    margin: 4px;
+}
+
+.notification-content .text-box label {
+    filter: none;
+}
+
+.notification-content .text-box .summary {
+    font-size: 14px;
+    font-weight: 600;
+    color: #edebe6;
+}
+
+/* Sin la hora: el aviso sale en el momento (como antes, con mako). */
+.notification-content .text-box .time {
+    font-size: 0;
+    margin: 0;
+    min-width: 0;
+    opacity: 0;
+}
+
+.notification-content .text-box .body {
+    font-size: 13px;
+    color: #a3a09a;
+}
+
+.notification.low .notification-content .text-box .summary {
+    color: #a3a09a;
+}
+
+.notification-content progressbar {
+    margin-top: 8px;
+}
+
+.notification-content progressbar trough {
+    min-height: 2px;
+    background-color: #2a2a2a;
+    border: none;
+}
+
+.notification-content progressbar progress {
+    min-height: 2px;
+    background-color: #a51500;
+    border: none;
+}
+
+/* Cerrar: una cruz en Smoke, Bone al pasar; sin fondo. */
+.close-button {
+    min-width: 20px;
+    min-height: 20px;
+    margin: 8px 8px 0 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    color: #85827c;
+}
+
+.close-button:hover {
+    background: transparent;
+    color: #edebe6;
+}
+
+/* Acciones de la notificación: botones con chaflán (.btn--cut), como en las apps. */
+.notification-alt-actions {
+    background: none;
+    padding: 0 14px 12px;
+}
+
+.notification-action {
+    margin: 0 8px 0 0;
+    padding: 0;
+}
+
+.notification-action > button {
+    padding: 5px 13px;
+    border: none;
+    box-shadow: none;
+    color: #edebe6;
+    background-color: transparent;
+    background-image: linear-gradient(#151515, #151515);
+    background-size: calc(100% - 22px) calc(100% - 22px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("file:///usr/share/command-os/chaflanes/boton.svg");
+    border-image-slice: 11;
+    border-image-width: 11px;
+    border-image-repeat: stretch;
+}
+
+.notification-action > button:hover {
+    border-image-source: url("file:///usr/share/command-os/chaflanes/boton-hover.svg");
+}
+
+.notification-action > button:active {
+    background-image: linear-gradient(#1f1f1f, #1f1f1f);
+    border-image-source: url("file:///usr/share/command-os/chaflanes/boton-pulsado.svg");
+}

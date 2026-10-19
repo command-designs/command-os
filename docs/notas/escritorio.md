@@ -42,6 +42,17 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   escritorio, barra, ventanas activa e inactiva, Thunar (GTK 3), pavucontrol (GTK 4), kitty con fastfetch,
   lanzador, menú de energía, notificación, bloqueo y splash. El menú de GRUB no se vio (el arranque lo
   oculta): solo las piezas generadas. Menús de labwc y Alt+Tab, sin captura.
+- **Marca v2, forma** (2026-10-19; por qué así, `docs/decisiones.md`): chaflanes con `border-image`
+  (`build/make-chaflanes.py`; regenerar y pasar `tests/marca.sh` al cambiar un color o un tamaño).
+  Las hojas GTK de serie los buscan en `chaflanes/` junto a ellas (enlace a `../../chaflanes` en
+  `/usr/share/command-os/config/gtk-*`; copias en `~/.config/gtk-*/chaflanes/`); wofi, swaync y el
+  inicio de sesión, con ruta absoluta. Las notificaciones son de **swaync** (`os/dotfiles/swaync/`:
+  sonido por urgencia en `scripts`, Super+N `swaync-client --close-all`; solo las ventanas flotantes,
+  sin el centro de notificaciones). **Verificado en la VM** con capturas: lanzador, menú de energía
+  (las tres opciones), inicio de sesión y asistente (panel, escuadras, botones), bloqueo (escuadras),
+  ventanas de muestra GTK 3 y GTK 4 (botones sueltos, unidos, principal, inactivo, menú y popover) y a
+  escala 2 (el filo se ve algo suave: el SVG se pinta a 1x y GTK lo amplía). **No verificado**: un
+  popover con flecha en una app real y el tema dentro de una app Flatpak GTK 3.
 - **GTK**: las apps con cabecera propia (GTK 4, Firefox) no reciben marco de labwc; `gtk-3.0/gtk.css`
   y `gtk-4.0/gtk.css` les dibujan el mismo filo (Red Hot si están activas) y la misma sombra oscura.
 - **Verificado en VM VirtualBox** (capturas): escritorio, barra con tareas, ventanas activa/inactiva
@@ -65,7 +76,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 - **Barra**: el módulo `battery` de Waybar, en texto (`bat 85%`, el tiempo que queda descargándose y
   `+` cargando; el usuario lo quiere así, sin icono). Clic derecho: el panel de la batería.
 - **Avisos** (`command-os-bateria watch`, autostart; `os/lib/bateria.py`): al 20 % normal y al 10 %
-  urgente (mako lo deja hasta cerrarlo, con su sonido), una vez por descarga; al enchufar, un aviso
+  urgente (swaync lo deja hasta cerrarlo, con su sonido), una vez por descarga; al enchufar, un aviso
   breve los sustituye. Mira `/sys/class/power_supply` cada minuto: fuera las baterías de periféricos
   (`scope` = Device); varias baterías cuentan juntas si todas dan energía (o todas carga).
 - **Límite de carga al 80 %** (panel: clic derecho en la batería o menú → ajustes → batería;

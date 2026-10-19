@@ -38,7 +38,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas | `docs/notas/escritorio.md` y `docs/DISENO.md` |
-| colores, letra o cualquier archivo de tema (marca v2 de command-web) | `docs/DISENO.md` § «Pantalla» y `tests/marca.sh` |
+| colores, letra, forma (chaflanes, escuadras) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` § «Pantalla», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma» |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
@@ -55,6 +55,9 @@ usuario); ARM, aparcado hasta tener la placa.
 - Colores: solo los de la paleta v2 (`docs/DISENO.md`); `tests/marca.sh` falla con cualquier otro. Un
   color extra que haga falta se añade a su lista `EXTRA` con el motivo. Signal Red nunca para texto
   (no da contraste): texto, iconos y foco en Red Hot. Sin `text-shadow` ni halos (solo la barra del logo).
+- Chaflanes en GTK: `border-image` con los SVG de `build/make-chaflanes.py` (regenerar al cambiarlos)
+  **en archivo** (GTK 3 no carga `data:`) y el centro con un degradado (GTK no lo pinta). wofi: nunca
+  `hide_search` (enseña una sola opción); el alto de un panel, con `--lines`.
 - labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.
 - Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` y se pasa con
   `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch. La hoja va además
@@ -118,7 +121,8 @@ usuario); ARM, aparcado hasta tener la placa.
   ayudantes contestan con códigos y reciben las contraseñas por la entrada estándar. Un texto de
   Python va con `_("…")` (no `self._("…")`: xgettext no lo ve) y cada archivo nuevo entra en `PYTHON` de
   `build/po.sh`. Probando en la VM por SSH: nunca `pkill -f <nombre>` desde la propia línea de SSH (se
-  mata a sí misma), el ratón virtual se acelera (usar teclado: Tab/Intro) y `polkit` solo deja
+  mata a sí misma), ni `sudo -S` con la entrada ocupada por una tubería (tres fallos: sudo bloqueado
+  10 min), el ratón virtual se acelera (usar teclado: Tab/Intro) y `polkit` solo deja
   comprobar actualizaciones a la sesión local activa, no a un proceso lanzado por SSH.
 
 ## Qué se probó y qué se descartó (no repetir)

@@ -10,7 +10,7 @@ Una máquina que funciona, con la **marca v2 de Command** (`BRAND.md` 2.0 §§ 3
 visual en `lenguaje.html` de command-web): precisa, sobria y legible, como el panel de un instrumento
 bien hecho. Casi monocromo, el rojo como señal, líneas finas y medidores honestos. Sustituye al HUD
 estilo Cyberpunk 2077 (decisión del usuario, 2026-10-19; por qué, en `docs/decisiones.md`). Se aplica
-por partes (`ROADMAP.md`): colores y letra ✔; chaflanes y escuadras, fondos, arranque y sonidos,
+por partes (`ROADMAP.md`): colores y letra ✔; chaflanes y escuadras ✔; fondos, arranque y sonidos,
 pendientes.
 
 **Regla de función** (BRAND § 7.1, obligatoria): todo lo que se ve nombra algo, informa de un estado,
@@ -20,7 +20,7 @@ command-web, no se inventa aquí.
 ## Pantalla
 
 - **Paleta v2** (`tokens.css` de command-web, la fuente que manda). Escrita a mano en cada archivo de
-  tema: `themerc` y botones de labwc, Waybar, Wofi, Mako, hyprlock, Kitty, GTK 3/4,
+  tema: `themerc` y botones de labwc, Waybar, Wofi, swaync, hyprlock, Kitty, GTK 3/4,
   `greeter/command.css`, prompt de bash, fastfetch, Plymouth, tema de GRUB y los scripts de `build/`.
   **`tests/marca.sh` falla si aparece un color fuera de ella** (o de los extra permitidos):
 
@@ -44,8 +44,21 @@ command-web, no se inventa aquí.
   y rótulos de los menús; Geist en lanzador, menús y notificaciones; Oxanium en titulares (paneles,
   asistente, inicio de sesión), el reloj de la barra y la hora del bloqueo. Nunca mono para titulares. Oxanium y Geist no están en los
   repos de Arch y se instalan desde `os/branding/fonts/` (licencia OFL incluida).
-- **Forma:** esquinas vivas (radio 0; los chaflanes llegan con «Marca v2 — forma» del ROADMAP), bordes de 1 px.
-  Lo seleccionado va en Slate con la barra Signal Red a la izquierda; nada de brillos en el texto.
+- **Forma** (BRAND § 6): **chaflán** (esquinas superior izquierda e inferior derecha cortadas a 45°,
+  con el filo de 1 px siguiendo el corte) en paneles (14 px: inicio de sesión, asistente,
+  notificaciones, menú de energía y demás paneles de wofi), menús y popovers de las apps (14 px),
+  lanzador (20 px), botones con texto (10 px) y pistas (6 px). El resto, esquinas vivas (radio 0) y
+  bordes de 1 px; radio de 2 px solo en los campos de texto. **Escuadras** (cuatro esquinas Red Hot
+  de 1 px y 10 px) solo en la zona principal del bloqueo (hora y contraseña) y del inicio de sesión y
+  el asistente (el panel). Lo seleccionado va en Slate con la barra Signal Red a la izquierda (Red
+  Hot en el lanzador y los paneles de wofi, como la paleta de `lenguaje.html`); nada de brillos.
+  - **Cómo:** el CSS de GTK no tiene `clip-path`. El chaflán es un `border-image` con SVG de nueve
+    partes (`build/make-chaflanes.py` → `/usr/share/command-os/chaflanes/`) y el centro, que GTK no
+    pinta, un degradado liso del tamaño menos las esquinas. hyprlock no tiene imágenes de borde: sus
+    escuadras son 8 rectángulos (`shape`). `tests/marca.sh` comprueba que los SVG están al día.
+  - **Sin chaflán** (no se puede): los menús de labwc, Alt+Tab y los marcos de ventana (labwc solo
+    dibuja rectángulos), los popovers con flecha de GTK 3 y los botones en grupos unidos, de barras de
+    herramientas o de solo icono (el corte rompería la forma).
 - **Ventanas (labwc, tema `Command` en `os/branding/labwc/`):** flotantes, con barra de título y
   botones a la derecha (minimizar · maximizar · cerrar) como en cualquier escritorio. La activa: filo
   Red Hot de 1 px y barra plana en Slate con el título en JetBrains Mono negrita. La inactiva: filo
@@ -57,11 +70,12 @@ command-web, no se inventa aquí.
   filo Red Hot.
 - **Apps (GTK 3/4 y Qt):** mismo tema que el escritorio, sin ventanas blancas. Base `adw-gtk3-dark`
   recoloreada en `~/.config/gtk-3.0/gtk.css` y `gtk-4.0/gtk.css` (colores con nombre y variables
-  de libadwaita): ventana en Graphite, listas en Void, cabeceras en Void con filo Steel, menús en
-  Slate con filo Steel, selección en Slate con la barra Signal Red a la izquierda, texto seleccionado
-  en Signal Red con texto blanco, botón principal en Signal Red, foco y enlaces en Red Hot, OK y Warn
-  para estados, esquinas vivas. Qt
-  sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). Iconos Papirus-Dark con carpetas grises
+  de libadwaita): ventana en Graphite, listas en Void, cabeceras en Void con filo Steel, menús y
+  popovers en Slate con chaflán y filo Steel, selección en Slate con la barra Signal Red a la
+  izquierda, texto seleccionado en Signal Red con texto blanco, botones con texto con chaflán (en
+  Graphite con filo Iron; el principal en Signal Red), foco y enlaces en Red Hot, OK y Warn para
+  estados. Los SVG de los chaflanes van copiados junto a las hojas (`~/.config/gtk-*/chaflanes/`)
+  para que también los vean las apps Flatpak. Qt sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). Iconos Papirus-Dark con carpetas grises
   (`command-os-icon-folders`; el rojo queda para lo activo). `dconf` pone el modo oscuro para todo el
   sistema (Firefox y portales incluidos).
 - **Barra (Waybar):** a la izquierda, logo (clic: aplicaciones) y barra de tareas con un icono por
@@ -83,9 +97,13 @@ command-web, no se inventa aquí.
   Void y textos en la voz de la marca (`aplicaciones`, `ajustes`, `mover a`…). **Alt+Tab** es el mismo
   panel: lista con icono y título, selección con filo Red Hot y el contorno de la ventana elegida en
   Red Hot.
+- **Lanzador** (Wofi, `command-os-launcher`): con el aspecto de la paleta de comandos de la marca
+  (BRAND § 7.2): panel con chaflán de 20 px y filo Iron, fila de búsqueda sin caja con la lupa en
+  Red Hot y una línea Steel debajo, entradas en Ash y la activa en Bone sobre Slate con la barra Red
+  Hot a la izquierda. Sin el velo que atenúa la vista (aquí no hay transparencias).
 - **Paneles del sistema:** el menú de energía (`command-os-power`: bloquear · reiniciar · apagar, con
-  confirmación) es un panel Wofi pequeño sin buscador, con la opción elegida en Slate y la barra
-  Signal Red; se abre
+  confirmación) es un panel Wofi pequeño con chaflán y sin buscador, con la opción elegida en Slate y la
+  barra Red Hot; se abre
   con Super+Escape o con el botón 󰐥 al final de la barra. La ayuda de atajos (`command-os-keys`,
   Super+F1) usa el mismo panel en dos columnas; «acerca de cmd-os» (`command-os-about`, Super+F2 o el
   menú del escritorio) también: nombre, paquete, Arch validado, hardware y si se puede volver atrás. El mezclador de volumen (clic en `vol`) es pavucontrol
@@ -93,9 +111,12 @@ command-web, no se inventa aquí.
 - **Sin blur, transparencias ni brillos** en el escritorio: la GPU del Pi 5 no da para blur fluido y
   la interfaz se lee mejor opaca. El halo es solo de la barra del logo; las ventanas y paneles
   flotantes llevan una sombra oscura corta.
-- **Inicio de sesión, asistente y paneles** (`greeter/command.css`): panel Graphite con filo Steel,
-  titular en Oxanium, etiquetas en Smoke, campo en Void con el foco Red Hot y el botón principal en
-  Signal Red con texto blanco.
+- **Inicio de sesión, asistente y paneles** (`greeter/command.css`): panel Graphite con chaflán y filo
+  Steel dentro de las escuadras de la zona principal, titular en Oxanium, etiquetas en Smoke, campo en
+  Void con el foco Red Hot y botones con chaflán (el principal en Signal Red con texto blanco).
+- **Notificaciones** (swaync, `os/dotfiles/swaync/`): panel Graphite con chaflán y filo Steel (Iron al
+  pasar el ratón; Red Hot la crítica, que no se cierra sola), título en Bone, cuerpo en Ash, sin la
+  hora; barra de progreso Signal Red sobre Steel. Super+N las cierra todas.
 - **Fondos** (`build/make-wallpaper.py`; **pendiente de «Marca v2 — fondos» del ROADMAP**: aún con el estilo
   anterior): gráfica de producto, como la que traería de serie un
   ordenador de ese mundo; nada de paisajes. Tres para elegir (`command-os-wallpaper elegir`, o
@@ -142,7 +163,7 @@ digitales cortos, clics de transitorio como relés o botones, barridos de encend
 pequeña y seca, sin ecos largos.
 - **boot** (inicio de sesión): golpe grave de encendido, ventiladores que arrancan (ruido con el
   filtro abriéndose), ráfaga de pitidos de datos y confirmación en dos tonos. ~2,5 s.
-- **notify**: clic y dos tonos digitales cortos. **critical**: tres pulsos de alarma saturados.
+- **notify** (swaync, al llegar una notificación): clic y dos tonos digitales cortos. **critical**: tres pulsos de alarma saturados.
 - **lock**: barrido hacia abajo y cerrojo. **unlock**: cerrojo y barrido hacia arriba.
 - **tick** (teclas de volumen): clic seco de botón.
 
@@ -174,6 +195,8 @@ ni emojis.
 - Colores fuera de la paleta v2 (cian, magenta, el rojo `#D13449` del estilo anterior), salvo los extra
   documentados en `tests/marca.sh`; Signal Red para texto (no da contraste) o Red Hot para superficies.
 - Halos o `text-shadow` fuera de la barra del logo, blur, glassmorphism o transparencias.
+- Esquinas redondeadas o píldoras (solo 2 px en los campos de texto); chaflanes en otro tamaño que los
+  de `tokens.css` (6 · 10 · 14 · 20 px) o en las otras dos esquinas.
 - Glitch, parpadeos o animaciones en bucle por adorno (BRAND § 9.3).
 - Un estado solo con color: siempre con su texto.
 - Lecturas decorativas: números de serie, códigos o consolas inventados (regla de función).

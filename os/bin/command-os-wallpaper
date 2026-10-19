@@ -52,8 +52,7 @@ case "${1:-}" in
       if [[ "${n}" == "${now}" ]]; then menu+=("󰄬   ${LABEL[$n]}"); else menu+=("     ${LABEL[$n]}"); fi
     done
     choice=$(printf '%s\n' "${menu[@]}" | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
-      --define hide_search=true --cache-file /dev/null \
-      --width 280 --height $(( 22 + 40 * ${#NAMES[@]} ))) || exit 0
+      --cache-file /dev/null --width 280 --lines ${#NAMES[@]}) || exit 0
     for n in "${NAMES[@]}"; do
       if [[ "${choice}" == *"${LABEL[$n]}" ]]; then
         mkdir -p "$(dirname "${STATE}")"

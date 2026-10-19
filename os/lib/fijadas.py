@@ -282,8 +282,7 @@ def menu(ident):
         opciones.append(("derecha", "\U000F0054   " + _("mover a la derecha")))
     opciones.append(("fijar", "\U000F0403   " + _("fijar otra aplicación")))
     r = subprocess.run(["wofi", "--dmenu", "--prompt", TAG, "--style", config_wofi("power.css"),
-                        "--define", "hide_search=true", "--cache-file", "/dev/null",
-                        "--width", "300", "--height", str(22 + 40 * len(opciones))],
+                        "--cache-file", "/dev/null", "--width", "300", "--lines", str(len(opciones))],
                        input="\n".join(t for _c, t in opciones) + "\n", capture_output=True, text=True, check=False)
     elegida = next((c for c, t in opciones if t == r.stdout.strip()), None)
     if elegida == "quitar":

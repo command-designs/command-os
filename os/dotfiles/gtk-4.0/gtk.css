@@ -1,7 +1,8 @@
 /* Command OS — apps GTK 4 y libadwaita (pavucontrol, selector de archivos) con la marca v2 de
    docs/DISENO.md. Mismos colores que gtk-3.0/gtk.css: los colores con nombre para adw-gtk3 y las
    variables CSS (--*) para libadwaita. Signal Red en superficies con texto blanco, Red Hot en texto,
-   iconos y foco, OK y Warn para estados. Esquinas vivas. */
+   iconos y foco, OK y Warn para estados. Chaflanes en botones, popovers y pistas (al final); el
+   resto, esquinas vivas. */
 
 @define-color cmd_void #0e0e0e;
 @define-color cmd_graphite #151515;
@@ -11,6 +12,7 @@
 @define-color cmd_white #ffffff;
 @define-color cmd_red #a51500;
 @define-color cmd_red_hot #f5482c;
+@define-color cmd_red_deep #6e0e00;
 @define-color cmd_ok #3ddc84;
 @define-color cmd_warn #ffb020;
 
@@ -107,9 +109,15 @@
     --active-toggle-fg-color: #edebe6;
 }
 
-/* Esquinas vivas; solo los radios y el tirador de los deslizadores siguen redondos. */
+/* Forma (BRAND § 6): esquinas vivas; radio de 2 px solo en los campos de texto; los radios y el
+   tirador de los deslizadores siguen redondos. Los chaflanes, al final. */
 * {
     border-radius: 0;
+}
+
+entry,
+spinbutton {
+    border-radius: 2px;
 }
 
 radio,
@@ -171,23 +179,132 @@ spinbutton:focus-within {
     outline-color: #f5482c;
 }
 
-/* Popovers y tooltips: panel con filo Steel. */
-popover > contents {
-    border: 1px solid #2a2a2a;
-}
-
 popover modelbutton:hover {
     background-color: #2a2a2a;
-}
-
-tooltip {
-    background-color: #1f1f1f;
-    color: #edebe6;
-    border: 1px solid #2a2a2a;
 }
 
 /* Enlaces en Red Hot (texto rojo sobre oscuro). */
 link,
 label > link {
     color: #f5482c;
+}
+
+/* Chaflanes de la marca v2 (BRAND § 6; SVG de build/make-chaflanes.py en chaflanes/, junto a esta
+   hoja: command-os-user-setup los copia con ella). Un border-image dibuja el corte y el filo; GTK no
+   pinta su centro, así que lo rellena un degradado liso del tamaño menos las dos esquinas (2 × corte
+   + 2). El fondo propio va transparente para que no asome por el corte. */
+
+/* Menús y popovers: panel de 14 px en Slate con filo Steel y sin flecha (no casaría con el corte).
+   El margen interior deja las opciones fuera del corte. */
+popover > contents {
+    padding: 8px 6px;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    background-size: calc(100% - 30px) calc(100% - 30px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/menu.svg");
+    border-image-slice: 15;
+    border-image-width: 15px;
+    border-image-repeat: stretch;
+}
+
+popover > arrow {
+    background: none;
+    border: none;
+    box-shadow: none;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Pistas: chaflán de 6 px en Slate. */
+tooltip,
+tooltip.background {
+    color: @cmd_bone;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    background-size: calc(100% - 14px) calc(100% - 14px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/pista.svg");
+    border-image-slice: 7;
+    border-image-width: 7px;
+    border-image-repeat: stretch;
+}
+
+/* Botones con texto (.btn--cut): chaflán de 10 px en Graphite con filo Iron; al pasar, filo Smoke;
+   pulsado, Slate; con el foco del teclado, filo Red Hot. El principal (y el destructivo), en Signal
+   Red con texto blanco. Solo los sueltos: en un grupo unido (.linked) o los de solo icono, el corte
+   rompería la forma y se quedan como estaban. */
+box:not(.linked) > button.text-button:not(.flat),
+box:not(.linked) > button.image-text-button:not(.flat),
+grid > button.text-button:not(.flat) {
+    padding: 5px 13px;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_graphite, @cmd_graphite);
+    background-size: calc(100% - 22px) calc(100% - 22px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/boton.svg");
+    border-image-slice: 11;
+    border-image-width: 11px;
+    border-image-repeat: stretch;
+}
+
+box:not(.linked) > button.text-button:not(.flat):hover,
+box:not(.linked) > button.image-text-button:not(.flat):hover,
+grid > button.text-button:not(.flat):hover {
+    border-image-source: url("chaflanes/boton-hover.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):focus-visible,
+box:not(.linked) > button.image-text-button:not(.flat):focus-visible,
+grid > button.text-button:not(.flat):focus-visible {
+    border-image-source: url("chaflanes/boton-foco.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):active,
+box:not(.linked) > button.text-button:not(.flat):checked,
+box:not(.linked) > button.image-text-button:not(.flat):active,
+grid > button.text-button:not(.flat):active {
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    border-image-source: url("chaflanes/boton-pulsado.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):disabled,
+box:not(.linked) > button.image-text-button:not(.flat):disabled,
+grid > button.text-button:not(.flat):disabled {
+    border-image-source: url("chaflanes/boton-inactivo.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat),
+box:not(.linked) > button.destructive-action:not(.flat),
+grid > button.suggested-action:not(.flat),
+grid > button.destructive-action:not(.flat) {
+    color: @cmd_white;
+    background-image: linear-gradient(@cmd_red, @cmd_red);
+    border-image-source: url("chaflanes/principal.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat):hover,
+box:not(.linked) > button.suggested-action:not(.flat):focus-visible,
+box:not(.linked) > button.destructive-action:not(.flat):hover,
+box:not(.linked) > button.destructive-action:not(.flat):focus-visible,
+grid > button.suggested-action:not(.flat):hover,
+grid > button.suggested-action:not(.flat):focus-visible {
+    border-image-source: url("chaflanes/principal-hover.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat):active,
+box:not(.linked) > button.destructive-action:not(.flat):active,
+grid > button.suggested-action:not(.flat):active {
+    background-image: linear-gradient(@cmd_red_deep, @cmd_red_deep);
+    border-image-source: url("chaflanes/principal-pulsado.svg");
 }

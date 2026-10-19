@@ -187,7 +187,7 @@ def vigilar():
         return 0
     _ = traductor()
     avisado = 100
-    time.sleep(20)  # que mako esté listo
+    time.sleep(20)  # que swaync esté listo
     while True:
         d = estado()
         que, avisado = siguiente_aviso(d, avisado)

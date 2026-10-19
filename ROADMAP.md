@@ -33,6 +33,9 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   aplicaciones) y abrirlo desde el lanzador; descargar un `.tar.gz` o `.zip` con Firefox y abrirlo con
   **doble clic** en Thunar (xarchiver, sin preguntar) y extraerlo con el clic derecho; abrir un AppImage
   de verdad y un `.deb` descargados; que una app GTK de Flathub se vea oscura y con el filo rojo.
+- Forma de la marca v2 en un PC real (`docs/DISENO.md` § «Pantalla»): chaflanes en el menú del clic
+  derecho de Thunar y Firefox, en sus diálogos (botones), en las notificaciones y en una app GTK 3 de
+  Flathub; y cómo se ven a alta densidad (en la VM, a escala 2, el filo sale algo suave).
 
 ## Aparcado hasta tener el hardware ARM del cyberdeck
 
@@ -44,30 +47,24 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-Los puntos 1–4 terminan de aplicar la identidad de marca v2 de command-web (`BRAND.md` 2.0 §§ 3–9 y
+Los puntos 1–3 terminan de aplicar la identidad de marca v2 de command-web (`BRAND.md` 2.0 §§ 3–9 y
 12.3, referencia `lenguaje.html`), que ya vale para Command OS y sustituye la estética HUD/Cyberpunk.
-Colores y letra ya están (con `tests/marca.sh`). Van todos en la rama `feat/identidad-de-marca-v2` y en
-un solo PR al terminar el 4. Al acabar no puede quedar nada del estilo Cyberpunk: todo pasa
+Colores, letra y forma (chaflanes y escuadras) ya están (con `tests/marca.sh`). Van todos en la rama
+`feat/identidad-de-marca-v2` y en un solo PR al terminar el 3. Al acabar no puede quedar nada del estilo Cyberpunk: todo pasa
 a la v2.
 Antes de empezar cada uno: decir modelo y esfuerzo y esperar el «adelante» del usuario.
 
-1. **Marca v2 — forma**: chaflán en paneles, botones, menús, notificaciones e inicio de sesión (en GTK con
-   imágenes de borde generadas: su CSS no tiene `clip-path`), escuadras en la zona principal del bloqueo
-   y del inicio de sesión, y el lanzador con el aspecto de la paleta de comandos (activo con barra roja a
-   la izquierda). Arreglar de paso el menú de energía (`command-os-power`): solo enseña una opción a la vez
-   con barra de desplazamiento (ya pasaba antes de la marca v2; visto en la VM el 2026-10-19). *Opus,
-   alto: límites de GTK y labwc, se prueba en la VM.*
-2. **Marca v2 — fondos** (`build/make-wallpaper.py`): «retícula» (de serie: puntos de 26 px con máscara
+1. **Marca v2 — fondos** (`build/make-wallpaper.py`): «retícula» (de serie: puntos de 26 px con máscara
    radial, la C y un resplandor rojo ≤ 14 %), «plano» (construcción real del logo: guías, área de
    respeto, rejilla de 64 px; la barra es lo único rojo) y «void». Fuera interfaz, núcleo y placa
    (microtipografía, números de serie, código de barras y chip inventados: regla de función). Al
    terminar, quitar `make-wallpaper.py` de `TEMPORALES` en `tests/marca.sh`. *Opus, medio.*
-3. **Marca v2 — arranque** (Plymouth y GRUB): versión corta de la secuencia de identidad (trazado del
+2. **Marca v2 — arranque** (Plymouth y GRUB): versión corta de la secuencia de identidad (trazado del
    símbolo → relleno → barra con halo → wordmark, ≤ 3 s, saltable), sin glitch ni cursor cian; la consola
    de servicios pasa a lista de diagnóstico con las comprobaciones reales y un medidor con el avance real
    de Plymouth. La contraseña del disco cifrado sigue dentro del splash. Al terminar, quitar
    `make-plymouth.py` de `TEMPORALES` en `tests/marca.sh`. *Opus, alto: initramfs y cifrado.*
-4. **Marca v2 — sonidos** (`build/make-sounds.py`): que suenen como la interfaz v2, un instrumento
+3. **Marca v2 — sonidos** (`build/make-sounds.py`): que suenen como la interfaz v2, un instrumento
    preciso y sobrio, en vez del aparato de Cyberpunk (golpe de encendido con ventiladores, alarma
    saturada). Antes de generar, proponer la dirección y que el usuario la escuche. Cierre de la marca
    v2: repaso de todo el repo («cyberpunk», «HUD», «2077», «glitch», «cian» y los hex viejos; en las
@@ -75,18 +72,18 @@ Antes de empezar cada uno: decir modelo y esfuerzo y esperar el «adelante» del
    si esas palabras vuelven a `os/` o `build/`, `DISENO.md` reescrito entero y PR. *Opus, medio:
    síntesis de sonido y repaso de muchos archivos.*
 
-5. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
+4. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
    en la ejecución diaria, y caché de paquetes. Antes, arreglar la facturación de GitHub (los trabajos
    no arrancan: «recent account payments have failed»). *Sonnet, medio.*
-6. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
+5. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
    y la clave de recuperación nuevas tras cambiarlas con el panel del disco, y que la vieja ya no
    entra. *Sonnet, medio.*
-7. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
+6. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
    `tecla`, `limpiar` y `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy
    en bash y Python, cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
-8. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
+7. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
    (Flatpak), sin tocar `/var/lib/flatpak` desde la comprobación de solo lectura (`docs/decisiones.md`,
    2026-10-19). *Opus, medio: toca la unidad de systemd, la barra y el panel.*
-9. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
+8. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
    instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
    alto: toca el instalador y la vuelta atrás.*

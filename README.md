@@ -24,7 +24,7 @@ entiende sin explicación; y es ligero (sin animaciones de ventanas ni efectos c
 Raspberry Pi 5 importa. Es el mismo compositor que usa Raspberry Pi OS por defecto.
 
 **Estado respecto a esa meta**: `os/` ya tiene escritorio labwc con tema de ventanas propio,
-tema de marca, notificaciones (Mako), bloqueo/idle (Hyprlock/Hypridle), OSD, splash de arranque,
+tema de marca, notificaciones (swaync), bloqueo/idle (Hyprlock/Hypridle), OSD, splash de arranque,
 atajos con su ayuda (Super+F1), apps por defecto, tienda de aplicaciones (Flatpak con Flathub, que
 no toca el sistema), gestor de comprimidos y asistente de primer arranque con pantalla de
 inicio de sesión propia (`docs/cuentas.md`), verificado en una VM x86_64. Falta probar varias piezas,

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Command OS — prueba del escritorio sin pantalla. Arranca una sesión real (labwc sin pantalla, con
 # render por software) con el paquete command-os instalado y comprueba que todo arranca bien: es lo
-# que detecta que una actualización de Arch (labwc, Waybar, mako, hyprlock…) ha roto algo.
+# que detecta que una actualización de Arch (labwc, Waybar, swaync, hyprlock…) ha roto algo.
 #
 # Se ejecuta como root en un Arch con el paquete instalado (GitHub Actions, ver
 # .github/workflows/pruebas.yml). Deja en $SALIDA (por defecto ./resultados) los registros y una
@@ -118,7 +118,7 @@ como dbus-run-session -- env WLR_BACKENDS=headless WLR_RENDERER=pixman WLR_LIBIN
   WLR_HEADLESS_OUTPUTS=1 labwc --merge-config > "${SALIDA}/labwc.log" 2>&1 &
 sleep 12
 
-for p in labwc waybar mako hypridle swaybg; do
+for p in labwc waybar swaync hypridle swaybg; do
   if pgrep -u "${uid}" -x "${p}" >/dev/null; then ok "en marcha: ${p}"; else mal "no arrancó: ${p}"; fi
 done
 # Aplicaciones fijadas (command-os-fijadas): la barra arranca con su hoja de estilo y su configuración.

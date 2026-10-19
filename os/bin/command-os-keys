@@ -45,6 +45,5 @@ fila "super + f1"            "$(t 'esta ayuda')"
 fila "super + f2"            "$(t 'acerca de cmd-os')"
 
 printf '%s\n' "${KEYS[@]}" | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
-  --define hide_search=true --cache-file /dev/null \
-  --width 520 --height 560 >/dev/null
+  --cache-file /dev/null --width 520 --lines 13 >/dev/null
 exit 0

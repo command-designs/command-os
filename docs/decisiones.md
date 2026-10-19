@@ -3,6 +3,30 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-19 — Forma de la marca v2: chaflanes y escuadras (`docs/DISENO.md` § «Pantalla»)
+
+- **Chaflán con `border-image` de SVG en archivos**, no con CSS: GTK no tiene `clip-path`. GTK 3 no
+  carga imágenes `data:` (probado en la VM: GTK 4 sí), así que los SVG van en
+  `/usr/share/command-os/chaflanes/` y copiados junto a las hojas de `~/.config/gtk-*/` para las apps
+  Flatpak (no ven `/usr`). GTK no pinta el centro de un `border-image` (no admite `fill`): lo rellena
+  un degradado liso del tamaño menos las esquinas. Descartado: degradados en diagonal (no siguen el
+  filo de 1 px) y una imagen por tamaño de widget.
+- **Notificaciones con swaync en vez de mako** (decisión del usuario: lo más fiel a la v2). mako solo
+  dibuja rectángulos con radio y la v2 pide chaflán en los paneles. swaync es GTK 4 (CSS con
+  `border-image`) y los sonidos van en sus `scripts` por urgencia. No se marca `conflicts=mako`: con
+  `--noconfirm` haría fallar la actualización; en los equipos ya instalados mako se queda sin usar.
+  Descartado: dejar mako con esquinas vivas como excepción.
+- **Chaflán en todos los botones con texto** (la v2 hace `.btn--cut` el botón por defecto), también en
+  las apps, pero solo los sueltos: en grupos unidos (`.linked`), barras de herramientas y los de solo
+  icono el corte rompe la forma. Descartado: solo el botón principal en las apps.
+- **Barra de lo activo en Red Hot en el lanzador y los paneles de wofi**, como la paleta de
+  `lenguaje.html` (y da contraste de 3:1 sobre Slate, que Signal Red no da). En listas de las apps y la
+  barra de tareas sigue en Signal Red («indicadores activos», BRAND § 4).
+- **Sin chaflán donde no se puede:** menús de labwc, Alt+Tab y marcos de ventana (labwc solo dibuja
+  rectángulos), popovers con flecha de GTK 3. Escuadras en hyprlock con 8 rectángulos (`shape`).
+- **Paneles de wofi sin `hide_search`**: en wofi 1.5.3 deja ver solo la primera opción (el fallo del
+  menú de energía). El buscador se encoge a cero en `power.css` y el alto lo da `--lines`.
+
 ## 2026-10-19 — Marca v2 de Command en vez del estilo Cyberpunk (`docs/DISENO.md`)
 
 - **Se deja el HUD de Cyberpunk 2077 (rojo `#D13449`, cian, glitch, halos) por la marca v2 de

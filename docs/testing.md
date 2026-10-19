@@ -166,7 +166,7 @@ Cierre de ventana = apagado ACPI limpio: `setextradata GUI/DefaultCloseAction Sh
 
 `build/make-sounds.py` genera `os/branding/sounds/*.wav` (síntesis propia, estéreo 48 kHz).
 `os/bin/command-os-sound <nombre>` los reproduce con `pw-play`. Eventos: `boot` (inicio de sesión),
-`notify`/`critical` (Mako), `lock`/`unlock` (Hypridle), `tick` (teclas de volumen).
+`notify`/`critical` (swaync, por urgencia), `lock`/`unlock` (Hypridle), `tick` (teclas de volumen).
 
 ## labwc en la VM (2026-10-05)
 
@@ -210,6 +210,14 @@ Comandos desde el anfitrión con `S="ssh -i build/packer/keys/packer_build_key -
 - **Portapapeles**: `wl-copy` por SSH se queda esperando (hay que lanzarlo con `>/dev/null 2>&1`). Super+V
   (`wtype` o `keyboardputscancode e0 5b 2f af e0 db`) abre el historial. Con el buscador o el
   portapapeles abiertos, otro `command-os-clipboard` solo lo cierra (es un interruptor).
+- **sudo por SSH**: `echo deck | sudo -S` con la entrada estándar ocupada (un `tar` por la tubería, o
+  un `install.sh` que vuelve a pedir sudo dentro) cuenta como contraseña mal puesta; a los tres
+  intentos, faillock bloquea sudo 10 minutos (`faillock --user deck` lo enseña). Copiar y ejecutar
+  en llamadas de SSH separadas.
+- **Probar paneles sin cerrar la sesión**: `greeter.py` y `primer-arranque.py` se pueden abrir en la
+  sesión de labwc para una captura (solo hablan con greetd o tocan el sistema al terminar). Para
+  bloquear con hypridle parado, `command-os-lock` directamente (`loginctl lock-session` lo atiende
+  hypridle).
 - kitty abre siempre a 100x30 celdas (`remember_window_size no`), no con el tamaño de la última.
 
 ## Instalador en la VM `command-os-instalador` (2026-10-07)

@@ -1,7 +1,8 @@
 /* Command OS — pantalla de inicio de sesión (lib/greeter.py) y asistente de primer arranque.
-   Parte del tema GTK 4 de serie (marca v2 de docs/DISENO.md) y añade el panel central: Graphite
-   con filo Steel de 1 px, esquinas vivas; etiquetas en Smoke, voz en minúsculas. El rojo, solo en
-   el foco (Red Hot) y en el botón principal (Signal Red con texto blanco). */
+   Parte del tema GTK 4 de serie (marca v2 de docs/DISENO.md; de ahí vienen también los botones con
+   chaflán) y añade el panel central: Graphite con chaflán de 14 px y filo Steel, enmarcado por las
+   escuadras Red Hot de la zona principal; etiquetas en Smoke, voz en minúsculas. El rojo, solo en
+   las escuadras, el foco (Red Hot) y el botón principal (Signal Red con texto blanco). */
 @import url("file:///usr/share/command-os/config/gtk-4.0/gtk.css");
 
 window {
@@ -16,12 +17,31 @@ window {
     background-position: center;
 }
 
+/* Panel con chaflán (build/make-chaflanes.py): un border-image dibuja el corte y el filo; GTK no
+   pinta su centro, así que lo rellena un degradado liso del tamaño menos las esquinas (2 × 15 px). */
 .panel {
-    background-color: #151515;
-    border: 1px solid #2a2a2a;
-    border-radius: 0;
     padding: 28px 32px;
-    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: linear-gradient(#151515, #151515);
+    background-size: calc(100% - 30px) calc(100% - 30px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("file:///usr/share/command-os/chaflanes/panel.svg");
+    border-image-slice: 15;
+    border-image-width: 15px;
+    border-image-repeat: stretch;
+}
+
+/* Escuadras (.corners): cuatro esquinas de 1 px y 10 px que enmarcan la zona principal (cada
+   esquina del SVG mide 12 px: 2 de aire para que el rojo no se corra al estirar los lados). */
+.escuadras {
+    padding: 14px;
+    border-image-source: url("file:///usr/share/command-os/chaflanes/escuadras.svg");
+    border-image-slice: 12;
+    border-image-width: 12px;
+    border-image-repeat: stretch;
 }
 
 /* Titulares en Oxanium (marca v2 § 5: nunca mono para titulares). */
@@ -67,13 +87,8 @@ button.flat:hover {
     color: #f5482c;
 }
 
-entry,
-dropdown > button,
-button {
-    border-radius: 0;
-}
-
 entry {
+    border-radius: 2px;
     background-color: #0e0e0e;
     border: 1px solid #2a2a2a;
     min-height: 34px;
@@ -100,19 +115,10 @@ entry:focus-within {
     color: #a3a09a;
 }
 
+/* El botón principal: el de gtk-4.0/gtk.css (Signal Red con chaflán), un poco más alto. */
 button.suggested-action {
-    background-color: #a51500;
-    color: #ffffff;
     font-weight: bold;
-    min-height: 38px;
-}
-
-button.suggested-action:hover {
-    box-shadow: inset 0 0 0 1px #f5482c;
-}
-
-button.suggested-action:active {
-    background-color: #6e0e00;
+    min-height: 28px;
 }
 
 /* Paneles del escritorio (comun.ventana): actualizaciones, cuentas y disco. */

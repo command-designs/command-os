@@ -45,12 +45,13 @@ fi
 
 # Aplicaciones de la tienda (Flatpak, remoto Flathub de serie en el paquete flatpak): que se vean con
 # el tema de Command OS. Pueden leer, solo eso, los archivos del tema de ~/.config/gtk-3.0 y gtk-4.0 (las
-# copias de command-os-user-setup); no la carpeta, que guarda también los marcadores de Thunar. El modo
+# copias de command-os-user-setup, con los chaflanes de la marca); no la carpeta, que guarda también los marcadores de Thunar. El modo
 # oscuro y el tema GTK los toman de dconf por el portal de ajustes.
 if command -v flatpak >/dev/null; then
   flatpak override --system \
     --filesystem=xdg-config/gtk-3.0/gtk.css:ro --filesystem=xdg-config/gtk-3.0/settings.ini:ro \
     --filesystem=xdg-config/gtk-4.0/gtk.css:ro --filesystem=xdg-config/gtk-4.0/settings.ini:ro \
+    --filesystem=xdg-config/gtk-3.0/chaflanes:ro --filesystem=xdg-config/gtk-4.0/chaflanes:ro \
     || warn "no se pudo dar a las apps Flatpak el tema del sistema"
 fi
 

@@ -57,6 +57,10 @@ package() {
   install -m 644 "${s}"/branding/fastfetch/command-logo.txt "${d}/usr/share/command-os/fastfetch/"
   install -m 644 "${s}"/branding/{os-release,issue,motd} "${d}/usr/share/command-os/identity/"
   install -Dm 644 "${s}/branding/logo/command-mark-white.png" "${d}/usr/share/pixmaps/command-os.png"
+  # Chaflanes y escuadras de la marca v2 (build/make-chaflanes.py) para las hojas GTK. Las de GTK de
+  # serie los buscan junto a ellas (chaflanes/, enlace) como las copias de ~/.config (user-setup).
+  install -d "${d}/usr/share/command-os/chaflanes"
+  install -m 644 "${s}"/branding/chaflanes/*.svg "${d}/usr/share/command-os/chaflanes/"
   # Oxanium y Geist (BRAND.md § 5) no están en los repos de Arch (licencia OFL incluida).
   install -d "${d}/usr/share/fonts/command-os" "${d}/usr/share/licenses/${pkgname}"
   install -m 644 "${s}"/branding/fonts/*.ttf "${d}/usr/share/fonts/command-os/"
@@ -80,17 +84,19 @@ package() {
   # --- Configuración de serie de los programas que no miran /etc/xdg ---
   # command-os-config elige la copia del usuario si existe; si no, esta.
   local c="${d}/usr/share/command-os/config"
-  install -d "${c}/"{waybar,mako,hypr,wofi,gtk-3.0,gtk-4.0,nano,bash,labwc}
+  install -d "${c}/"{waybar,swaync,hypr,wofi,gtk-3.0,gtk-4.0,nano,bash,labwc}
   # El menú de labwc va aquí y no en /etc/xdg/labwc: command-os-session lo da traducido (lib/menus-labwc).
   install -m 644 "${s}/dotfiles/labwc/menu.xml" "${c}/labwc/"
   # Waybar trae su propia configuración de ejemplo en /etc/xdg/waybar: la nuestra va aquí.
   install -m 644 "${s}"/dotfiles/waybar/{config.jsonc,style.css} "${c}/waybar/"
-  install -m 644 "${s}/dotfiles/mako/config" "${c}/mako/"
+  install -m 644 "${s}"/dotfiles/swaync/{config.json,style.css} "${c}/swaync/"
   install -m 644 "${s}/dotfiles/hypr/hypridle.conf" "${c}/hypr/"
   install -m 644 "${s}/dotfiles/hypr/hyprlock-emergencia.conf" "${c}/hypr/"
   install -m 644 "${s}"/dotfiles/wofi/{config,style.css,power.css} "${c}/wofi/"
   install -m 644 "${s}"/dotfiles/gtk-3.0/{gtk.css,settings.ini} "${c}/gtk-3.0/"
   install -m 644 "${s}"/dotfiles/gtk-4.0/{gtk.css,settings.ini} "${c}/gtk-4.0/"
+  ln -s ../../chaflanes "${c}/gtk-3.0/chaflanes"
+  ln -s ../../chaflanes "${c}/gtk-4.0/chaflanes"
   install -m 644 "${s}/dotfiles/nano/nanorc" "${c}/nano/"
   install -m 644 "${s}/dotfiles/bash/command-os.bashrc" "${c}/bash/bashrc"
 

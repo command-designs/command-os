@@ -34,7 +34,7 @@ wofi
 # Bloqueo e inactividad: hyprlock/hypridle, programas sueltos que usan los protocolos estándar
 # ext-session-lock e ext-idle-notify (labwc los implementa).
 swaybg
-mako
+swaync
 hyprlock
 hypridle
 # Bloqueo de reserva si hyprlock se rompe tras una actualización (command-os-lock).

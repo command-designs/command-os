@@ -1,7 +1,8 @@
 /* Command OS — apps GTK 3 (Thunar, Firefox, diálogos) con la marca v2 de docs/DISENO.md.
    Base: adw-gtk3-dark, que pinta todo con estos colores con nombre; aquí se sustituyen por los
    de Command. Casi monocromo: Signal Red en superficies (botón principal, selección de texto) con
-   texto blanco, Red Hot en texto, iconos y foco; OK y Warn para estados. Esquinas vivas. */
+   texto blanco, Red Hot en texto, iconos y foco; OK y Warn para estados. Chaflanes en botones,
+   menús y pistas (al final); el resto, esquinas vivas. */
 
 @define-color cmd_void #0e0e0e;
 @define-color cmd_graphite #151515;
@@ -12,6 +13,7 @@
 @define-color cmd_white #ffffff;
 @define-color cmd_red #a51500;
 @define-color cmd_red_hot #f5482c;
+@define-color cmd_red_deep #6e0e00;
 @define-color cmd_ok #3ddc84;
 @define-color cmd_warn #ffb020;
 
@@ -76,10 +78,16 @@
 @define-color content_view_bg @view_bg_color;
 @define-color text_view_bg @view_bg_color;
 
-/* Esquinas vivas; solo los radios y el tirador de los deslizadores siguen redondos. */
+/* Forma (BRAND § 6): esquinas vivas; radio de 2 px solo en los campos de texto; los radios y el
+   tirador de los deslizadores siguen redondos. Los chaflanes, al final. */
 * {
     border-radius: 0;
     -gtk-outline-radius: 0;
+}
+
+entry,
+spinbutton {
+    border-radius: 2px;
 }
 
 radio,
@@ -114,10 +122,17 @@ window.csd.tiled-left decoration {
     box-shadow: none;
 }
 
-/* Menús y desplegables: filo Steel de 1 px y sombra corta. */
+/* Menús y pistas: la ventana es transparente y el panel con chaflán lo dibuja el menú (al final). */
 window.csd.popup decoration,
 window.csd.popup decoration:backdrop {
-    box-shadow: 0 0 0 1px @cmd_steel, 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: none;
+    border: none;
+    background: none;
+}
+
+window.popup,
+window.csd.popup {
+    background-color: transparent;
 }
 
 window.solid-csd decoration {
@@ -163,10 +178,7 @@ spinbutton:focus {
     box-shadow: inset 0 0 0 1px @cmd_red_hot;
 }
 
-/* Menús, popovers y tooltips: panel con filo Steel. */
-menu,
-.menu,
-.context-menu,
+/* Popovers (con flecha: GTK 3 les dibuja la forma él mismo): panel con filo Steel. */
 popover {
     border: 1px solid @cmd_steel;
 }
@@ -178,15 +190,142 @@ popover modelbutton:hover {
     color: @cmd_bone;
 }
 
-tooltip,
-tooltip.background {
-    background-color: @cmd_slate;
-    color: @cmd_bone;
-    border: 1px solid @cmd_steel;
-}
-
 /* Enlaces en Red Hot (texto rojo sobre oscuro). */
 link,
 *:link {
     color: @cmd_red_hot;
+}
+
+/* Chaflanes de la marca v2 (BRAND § 6; SVG de build/make-chaflanes.py en chaflanes/, junto a esta
+   hoja: command-os-user-setup los copia con ella). Un border-image dibuja el corte y el filo; GTK no
+   pinta su centro, así que lo rellena un degradado liso del tamaño menos las dos esquinas (2 × corte
+   + 2). El fondo propio va transparente para que no asome por el corte. */
+
+/* Menús: panel de 14 px en Slate con filo Steel. El margen interior deja las opciones fuera del corte
+   (si no, el resaltado de la primera taparía la esquina). */
+menu,
+.menu,
+.context-menu {
+    padding: 8px 6px;
+    border: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    background-size: calc(100% - 30px) calc(100% - 30px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/menu.svg");
+    border-image-slice: 15;
+    border-image-width: 15px;
+    border-image-repeat: stretch;
+}
+
+/* Pistas: chaflán de 6 px en Slate. */
+tooltip,
+tooltip.background {
+    color: @cmd_bone;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    background-size: calc(100% - 14px) calc(100% - 14px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/pista.svg");
+    border-image-slice: 7;
+    border-image-width: 7px;
+    border-image-repeat: stretch;
+}
+
+/* Botones con texto (.btn--cut): chaflán de 10 px en Graphite con filo Iron; al pasar, filo Smoke;
+   pulsado, Slate; con el foco, filo Red Hot. El principal (y el destructivo), en Signal Red con texto
+   blanco. Solo los sueltos: en un grupo unido (.linked), en barras de herramientas o los de solo
+   icono, el corte rompería la forma y se quedan como estaban. */
+box:not(.linked) > button.text-button:not(.flat),
+buttonbox:not(.linked) > button.text-button:not(.flat),
+headerbar > button.text-button:not(.flat),
+grid > button.text-button:not(.flat) {
+    padding: 5px 13px;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_graphite, @cmd_graphite);
+    background-size: calc(100% - 22px) calc(100% - 22px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/boton.svg");
+    border-image-slice: 11;
+    border-image-width: 11px;
+    border-image-repeat: stretch;
+}
+
+box:not(.linked) > button.text-button:not(.flat):hover,
+buttonbox:not(.linked) > button.text-button:not(.flat):hover,
+headerbar > button.text-button:not(.flat):hover,
+grid > button.text-button:not(.flat):hover {
+    border-image-source: url("chaflanes/boton-hover.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):focus,
+buttonbox:not(.linked) > button.text-button:not(.flat):focus,
+headerbar > button.text-button:not(.flat):focus,
+grid > button.text-button:not(.flat):focus {
+    border-image-source: url("chaflanes/boton-foco.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):active,
+box:not(.linked) > button.text-button:not(.flat):checked,
+buttonbox:not(.linked) > button.text-button:not(.flat):active,
+headerbar > button.text-button:not(.flat):active,
+grid > button.text-button:not(.flat):active {
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    border-image-source: url("chaflanes/boton-pulsado.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):disabled,
+buttonbox:not(.linked) > button.text-button:not(.flat):disabled,
+headerbar > button.text-button:not(.flat):disabled,
+grid > button.text-button:not(.flat):disabled {
+    border-image-source: url("chaflanes/boton-inactivo.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat),
+box:not(.linked) > button.destructive-action:not(.flat),
+buttonbox:not(.linked) > button.suggested-action:not(.flat),
+buttonbox:not(.linked) > button.destructive-action:not(.flat),
+headerbar > button.suggested-action:not(.flat),
+headerbar > button.destructive-action:not(.flat),
+grid > button.suggested-action:not(.flat),
+grid > button.destructive-action:not(.flat) {
+    color: @cmd_white;
+    background-image: linear-gradient(@cmd_red, @cmd_red);
+    border-image-source: url("chaflanes/principal.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat):hover,
+box:not(.linked) > button.suggested-action:not(.flat):focus,
+box:not(.linked) > button.destructive-action:not(.flat):hover,
+box:not(.linked) > button.destructive-action:not(.flat):focus,
+buttonbox:not(.linked) > button.suggested-action:not(.flat):hover,
+buttonbox:not(.linked) > button.suggested-action:not(.flat):focus,
+buttonbox:not(.linked) > button.destructive-action:not(.flat):hover,
+buttonbox:not(.linked) > button.destructive-action:not(.flat):focus,
+headerbar > button.suggested-action:not(.flat):hover,
+headerbar > button.suggested-action:not(.flat):focus,
+headerbar > button.destructive-action:not(.flat):hover,
+headerbar > button.destructive-action:not(.flat):focus,
+grid > button.suggested-action:not(.flat):hover,
+grid > button.suggested-action:not(.flat):focus {
+    border-image-source: url("chaflanes/principal-hover.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat):active,
+box:not(.linked) > button.destructive-action:not(.flat):active,
+buttonbox:not(.linked) > button.suggested-action:not(.flat):active,
+buttonbox:not(.linked) > button.destructive-action:not(.flat):active,
+headerbar > button.suggested-action:not(.flat):active,
+headerbar > button.destructive-action:not(.flat):active,
+grid > button.suggested-action:not(.flat):active {
+    background-image: linear-gradient(@cmd_red_deep, @cmd_red_deep);
+    border-image-source: url("chaflanes/principal-pulsado.svg");
 }

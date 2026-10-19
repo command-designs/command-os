@@ -6,7 +6,7 @@ cortos, clics de transitorio (relés, botones), barridos de encendido y apagado,
 arrancar, y una sala pequeña y seca en lugar de ecos largos. Movimiento de BRAND.md § 9: arranca con
 decisión y se asienta sin rebotes. Síntesis propia con numpy.
 
-Eventos (os/bin/command-os-sound): boot (inicio de sesión), notify y critical (Mako), lock y unlock
+Eventos (os/bin/command-os-sound): boot (inicio de sesión), notify y critical (swaync, por urgencia), lock y unlock
 (hypridle), tick (teclas de volumen).
 Uso: python build/make-sounds.py
 """

@@ -138,6 +138,22 @@ echo "de serie 4" > "${SYS}/gtk-4.0/settings.ini"
 preparar
 [[ "$(cat "${CFG}/gtk-4.0/settings.ini")" == "de serie 4" && ! -e "${CFG}/gtk-4.0/settings.ini.nuevo" ]] \
   && ok "una copia igual a la de serie con la suma desfasada sigue al día" || mal "suma desfasada: $(cat "${CFG}/gtk-4.0/settings.ini")"
+# Chaflanes de la marca: las hojas los buscan en chaflanes/, junto a ellas (en el sistema, un enlace).
+mkdir -p "${SYS}/chaflanes"
+echo '<svg>1</svg>' > "${SYS}/chaflanes/boton.svg"
+for g in gtk-3.0 gtk-4.0; do ln -s ../chaflanes "${SYS}/${g}/chaflanes"; done
+preparar
+if [[ "$(cat "${CFG}/gtk-3.0/chaflanes/boton.svg" 2>/dev/null)" == '<svg>1</svg>' \
+    && "$(cat "${CFG}/gtk-4.0/chaflanes/boton.svg" 2>/dev/null)" == '<svg>1</svg>' \
+    && ! -L "${CFG}/gtk-3.0/chaflanes/boton.svg" ]]; then
+  ok "chaflanes: copias junto a las hojas"
+else
+  mal "chaflanes: sin copiar ($(ls -l "${CFG}/gtk-3.0" 2>&1 | tr '\n' ' '))"
+fi
+echo '<svg>2</svg>' > "${SYS}/chaflanes/boton.svg"
+preparar
+[[ "$(cat "${CFG}/gtk-4.0/chaflanes/boton.svg")" == '<svg>2</svg>' ]] && ok "chaflanes: siguen a los de serie" \
+  || mal "chaflanes: no se pusieron al día"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

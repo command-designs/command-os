@@ -138,7 +138,7 @@
     <!-- Sistema. -->
     <keybind key="W-Escape"><action name="Execute" command="command-os-power" /></keybind>
     <keybind key="W-l"><action name="Execute" command="loginctl lock-session" /></keybind>
-    <keybind key="W-n"><action name="Execute" command="makoctl dismiss --all" /></keybind>
+    <keybind key="W-n"><action name="Execute" command="swaync-client --close-all" /></keybind>
     <!-- Salida de emergencia: cierra labwc y el inicio automático de tty1 abre una sesión nueva. -->
     <keybind key="W-S-m"><action name="Exit" /></keybind>
     <keybind key="Print">

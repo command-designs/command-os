@@ -45,15 +45,17 @@ doble = p.hyprlock(sys.argv[2], {"eDP-1": 2.0, "HDMI-A-1": 1.0})
 print(doble.count("monitor = eDP-1"), doble.count("monitor = HDMI-A-1"))
 print("font_size = 128" in doble, "size = 600, 88" in doble, "position = 0, -100" in doble)
 print(p.escalar_valor("50%, 10", 2), "check_color = rgb(163, 160, 154)" in doble)
+print("size = 20, 2" in doble, "position = -370, 300" in doble)  # una escuadra
 PY
 )
 mapfile -t l <<< "${salida}"
 [[ "${l[0]}" == igual ]] && ok "a escala 1 no cambia nada" || mal "a escala 1 cambia la configuración"
-bloques=$(grep -cE '^(background|image|label|input-field) \{' "${RAIZ}/os/dotfiles/hypr/hyprlock.conf")
+bloques=$(grep -cE '^(background|image|label|input-field|shape) \{' "${RAIZ}/os/dotfiles/hypr/hyprlock.conf")
 [[ "${l[1]}" == "${bloques} ${bloques}" ]] && ok "un bloque por pantalla (${bloques} cada una)" \
   || mal "bloques por pantalla: ${l[1]} (se esperaban ${bloques} ${bloques})"
 [[ "${l[2]}" == "True True True" ]] && ok "medidas multiplicadas (letra, campo, posición)" || mal "medidas: ${l[2]}"
 [[ "${l[3]}" == "50%, 20 True" ]] && ok "porcentajes y colores intactos" || mal "porcentajes o colores: ${l[3]}"
+[[ "${l[4]}" == "True True" ]] && ok "escuadras escaladas (brazo y posición)" || mal "escuadras: ${l[4]}"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

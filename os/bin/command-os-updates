@@ -158,7 +158,7 @@ notificar() {
 }
 
 vigilar() {
-  # Una sola instancia por sesión; el primer vistazo espera a que mako y Waybar estén listos.
+  # Una sola instancia por sesión; el primer vistazo espera a que swaync y Waybar estén listos.
   exec 9> "${XDG_RUNTIME_DIR:-/tmp}/command-os-updates.lock"
   flock -n 9 || exit 0
   sleep 45
