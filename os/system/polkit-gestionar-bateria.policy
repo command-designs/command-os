@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!--
+  Command OS: el panel de la batería (lib/panel-bateria.py) pide a pkexec que lance solo
+  lib/gestionar-bateria, que pone o quita el límite de carga al 80 %. La sesión activa no necesita
+  contraseña (como el límite de carga de UPower en GNOME): solo cuida la batería y se deshace con el
+  mismo interruptor. Otras sesiones, la de un administrador.
+-->
+<policyconfig>
+  <vendor>Command OS</vendor>
+  <vendor_url>https://github.com/command-designs/command-os</vendor_url>
+  <action id="dev.commandlab.command-os.gestionar-bateria">
+    <description>Limit the battery charge</description>
+    <description xml:lang="es">Limitar la carga de la batería</description>
+    <message>Authentication is required to change the battery charge limit</message>
+    <message xml:lang="es">Hace falta autenticarse para cambiar el límite de carga de la batería</message>
+    <icon_name>battery</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/command-os/gestionar-bateria</annotate>
+  </action>
+</policyconfig>

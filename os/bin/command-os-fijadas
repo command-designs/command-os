@@ -1,0 +1,18 @@
+#!/bin/sh
+# Command OS — aplicaciones fijadas en la barra (lib/fijadas.py; docs/notas/escritorio.md
+# § «Aplicaciones fijadas»).
+#   command-os-fijadas generar ESTILO   la hoja de estilo para Waybar (la de la barra más los iconos de
+#                                       las fijadas); si algo falla, ESTILO tal cual: la barra arranca
+#                                       igual, sin las fijadas
+#   command-os-fijadas abrir|menu|fijar|anadir|quitar|mover …   ver lib/fijadas.py
+export PYTHONPATH=/usr/lib/command-os
+if [ "${1:-}" = generar ]; then
+  if hoja=$(python3 /usr/lib/command-os/fijadas.py generar "${2:?uso: command-os-fijadas generar ESTILO}") \
+      && [ -s "${hoja}" ]; then
+    printf '%s\n' "${hoja}"
+  else
+    printf '%s\n' "$2"
+  fi
+  exit 0
+fi
+exec python3 /usr/lib/command-os/fijadas.py "$@"

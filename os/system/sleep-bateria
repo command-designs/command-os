@@ -1,0 +1,5 @@
+#!/bin/sh
+# Command OS — al volver del reposo, el límite de carga de la batería otra vez (muchos firmwares lo
+# olvidan al dormir). Sin límite guardado no toca nada (lib/gestionar-bateria aplicar).
+[ "$1" = post ] && exec /usr/lib/command-os/gestionar-bateria aplicar
+exit 0

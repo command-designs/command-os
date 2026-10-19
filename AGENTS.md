@@ -27,7 +27,7 @@ de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualiza
 igual en 16:9 y 16:10 con escala automática de alta densidad y tema de GRUB propio
 (`docs/notas/pantallas.md`). Al instalar en un PC, el disco se cifra (LUKS2, sí por defecto) con la
 contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). En castellano de serie, con
-el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`). La zona horaria también se elige en el asistente, con hora por la red (`docs/cuentas.md` § «Hora»). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`). La zona horaria también se elige en el asistente, con hora por la red (`docs/cuentas.md` § «Hora»). La barra lleva la batería (avisos al 20 y al 10 %, límite de carga al 80 % si el portátil lo permite) y aplicaciones fijadas (`docs/notas/escritorio.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -37,7 +37,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso y panel de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
-| escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales | `docs/notas/escritorio.md` y `docs/DISENO.md` |
+| escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
 | cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, panel del disco, `gestionar-disco`, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
@@ -52,7 +52,10 @@ usuario); ARM, aparcado hasta tener la placa.
 - XML de labwc: **ningún comentario puede contener `--`**: labwc deja de leer el archivo entero.
 - labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.
 - Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` y se pasa con
-  `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch.
+  `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch. La hoja va además
+  por `command-os-fijadas generar` (los iconos de las aplicaciones fijadas). `wlr/taskbar` no ejecuta
+  órdenes al hacer clic: lo que tenga que lanzar algo va en un módulo `custom`. Los tests que importan
+  `os/lib/*.py` van con `PYTHONDONTWRITEBYTECODE=1` (un `__pycache__` entraría en el paquete).
 - hyprlock con errores de configuración no sale: pantalla en negro y sin campo. `command-os-lock` revisa antes.
 - VirtualBox: **apagar la VM antes de que el PC entre en reposo** (se congela; recuperación en `docs/notas/vm-virtualbox-wsl.md`).
 - Nunca matar QEMU con `Stop-Process -Force` / `kill -9` (corrompe archivos): `shutdown -h now` por SSH antes.

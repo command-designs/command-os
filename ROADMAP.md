@@ -21,6 +21,11 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   nueva abren el disco, pero no el arranque con ellas) y que la clave vieja ya no entra.
 - Hora en un dual boot con Windows de verdad (`docs/cuentas.md` § «Hora»): elegir otra zona en el
   asistente sin red y que Windows y Command OS sigan con la misma hora.
+- Batería en un portátil real (`docs/notas/escritorio.md` § «Batería»; la VM no tiene batería): los
+  avisos al 20 % y al 10 % y, si el panel de la batería (clic derecho en `bat`) enseña «limitar la
+  carga al 80 %», que el portátil deje de cargar ahí y que siga limitado tras reiniciar y tras el reposo.
+- Aplicaciones fijadas con el ratón de verdad (en la VM se probaron las órdenes de cada clic): clic
+  para abrir, clic derecho en una fijada (quitar, mover) y clic derecho en el logo para fijar otra.
 - Escala automática en un portátil de alta densidad y con un segundo monitor conectado en marcha
   (`docs/notas/pantallas.md`; la VM no da tamaño físico).
 

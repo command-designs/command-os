@@ -47,6 +47,9 @@
       <item label="disco cifrado" icon="drive-harddisk">
         <action name="Execute" command="command-os-disco" />
       </item>
+      <item label="batería" icon="battery">
+        <action name="Execute" command="command-os-bateria panel" />
+      </item>
       <separator />
       <item label="recargar escritorio" icon="view-refresh">
         <action name="Reconfigure" />

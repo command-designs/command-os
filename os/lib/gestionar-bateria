@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# Command OS — límite de carga de la batería al 80 % (lo que el panel de la batería, lib/panel-bateria.py,
+# hace como root). Se lanza con pkexec (system/polkit-gestionar-bateria.policy) y, para volver a ponerlo,
+# desde udev al aparecer la batería (también al arrancar) y al volver del reposo (system/sleep-bateria):
+# muchos firmwares lo olvidan. Contesta con códigos («error: CÓDIGO» y sale con 3), como lib/gestionar-disco.
+# docs/notas/escritorio.md § «Batería».
+#
+#   gestionar-bateria limite 80     guarda la elección y la aplica
+#   gestionar-bateria limite no     la quita y deja cargar hasta el 100 %
+#   gestionar-bateria aplicar       la vuelve a aplicar si está guardada (si no, no toca nada: respeta
+#                                   lo que haya puesto la BIOS)
+#
+# Solo vale en portátiles cuyo controlador lo expone (charge_control_end_threshold: ThinkPad, ASUS,
+# Framework, varios Dell, LG, Samsung, MSI, Huawei…); en el resto el panel no enseña la opción.
+# Códigos: no_soportado (ninguna batería lo permite), rechazado (el firmware no aceptó el valor), fallo.
+# COMMAND_OS_POWER_SUPPLY y COMMAND_OS_LIMITE_CARGA cambian las rutas solo para tests/barra.sh.
+set -uo pipefail
+
+PS=${COMMAND_OS_POWER_SUPPLY:-/sys/class/power_supply}
+CONF=${COMMAND_OS_LIMITE_CARGA:-/etc/command-os/limite-carga}
+FIN=80
+# Algunos portátiles (ThinkPad, Framework, Dell) tienen también un umbral para volver a cargar: sin él,
+# a ratos cargarían del 79 al 80 % sin parar. Dell no acepta menos de 50 ni un hueco menor de 5.
+INICIO=75
+
+fallo() { echo "error: $1" >&2; exit 3; }
+[[ "$(id -u)" -eq 0 || -n "${COMMAND_OS_POWER_SUPPLY:-}" ]] || fallo sin_permiso
+
+baterias() {
+  local b
+  for b in "${PS}"/*; do
+    [[ "$(cat "${b}/type" 2>/dev/null)" == Battery && -e "${b}/charge_control_end_threshold" ]] || continue
+    [[ "$(cat "${b}/scope" 2>/dev/null)" == Device ]] && continue
+    echo "${b}"
+  done
+}
+
+escribir() { printf '%s\n' "$2" 2>/dev/null > "$1"; }
+
+# Los Dell solo hacen caso de los umbrales en el modo de carga Custom (charge_types lista los modos con
+# el elegido entre corchetes; charge_type, el más antiguo, solo trae el elegido). El modo de antes
+# (Adaptive, Standard…) se apunta aquí para volver a él al quitar el límite.
+MODOS="${CONF}.modos"
+
+# modo_carga BATERÍA — archivo y modo elegido, o nada si la batería no tiene modos.
+modo_carga() {
+  local f m
+  for f in "$1/charge_types" "$1/charge_type"; do
+    [[ -e "${f}" ]] || continue
+    m=$(cat "${f}" 2>/dev/null)
+    [[ "${m}" == *"["*"]"* ]] && { m=${m#*[}; m=${m%%]*}; }
+    printf '%s %s\n' "${f}" "${m}"
+    return 0
+  done
+  return 1
+}
+
+poner_custom() {
+  local f m
+  read -r f m < <(modo_carga "$1") || return 0
+  [[ "${m}" == Custom ]] && return 0
+  grep -q "^$(basename "$1")=" "${MODOS}" 2>/dev/null \
+    || { install -d -m 755 "$(dirname "${MODOS}")" && printf '%s=%s\n' "$(basename "$1")" "${m}" >> "${MODOS}"; }
+  grep -qw Custom "${f}" 2>/dev/null && escribir "${f}" Custom
+  return 0
+}
+
+volver_modo() {
+  local f m antes
+  read -r f m < <(modo_carga "$1") || return 0
+  antes=$(sed -n "s/^$(basename "$1")=//p" "${MODOS}" 2>/dev/null | head -n 1)
+  [[ -n "${antes}" ]] && escribir "${f}" "${antes}"
+  return 0
+}
+
+# poner BATERÍA — umbral de fin y, si lo hay, de inicio. Hay firmwares que no dejan el inicio por
+# encima del fin ni al revés: si un orden falla, se prueba el otro. Vale si el fin queda en su sitio.
+poner() {
+  local b=$1 fin="$1/charge_control_end_threshold" ini="$1/charge_control_start_threshold"
+  poner_custom "${b}"
+  if [[ -e "${ini}" ]]; then
+    { escribir "${fin}" "${FIN}" && escribir "${ini}" "${INICIO}"; } \
+      || { escribir "${ini}" "${INICIO}" && escribir "${fin}" "${FIN}"; }
+  else
+    escribir "${fin}" "${FIN}"
+  fi
+  [[ "$(cat "${fin}" 2>/dev/null)" == "${FIN}" ]]
+}
+
+# quitar BATERÍA — hasta el 100 % y que vuelva a cargar en cuanto baje (0; Dell no acepta menos de 50).
+quitar() {
+  local b=$1 fin="$1/charge_control_end_threshold" ini="$1/charge_control_start_threshold"
+  escribir "${fin}" 100
+  [[ -e "${ini}" ]] && { escribir "${ini}" 0 || escribir "${ini}" 95; }
+  volver_modo "${b}"
+  [[ "$(cat "${fin}" 2>/dev/null)" == 100 ]]
+}
+
+mapfile -t bs < <(baterias)
+
+case "${1:-} ${2:-}" in
+  "limite ${FIN}")
+    (( ${#bs[@]} )) || fallo no_soportado
+    previo=$(cat "${CONF}" 2>/dev/null)
+    for b in "${bs[@]}"; do
+      if ! poner "${b}"; then
+        # Sin límite guardado, se deja todo como estaba; con él, no se quita lo que ya funcionaba.
+        if [[ "${previo}" != "${FIN}" ]]; then
+          for x in "${bs[@]}"; do quitar "${x}"; done
+          rm -f "${MODOS}"
+        fi
+        fallo rechazado
+      fi
+    done
+    install -d -m 755 "$(dirname "${CONF}")" && printf '%s\n' "${FIN}" > "${CONF}" || fallo fallo ;;
+  "limite no")
+    rm -f "${CONF}" || fallo fallo
+    for b in "${bs[@]}"; do quitar "${b}" || fallo rechazado; done
+    rm -f "${MODOS}" ;;
+  "aplicar "*)
+    [[ "$(cat "${CONF}" 2>/dev/null)" == "${FIN}" ]] || exit 0
+    for b in "${bs[@]}"; do poner "${b}" || echo "command-os: el firmware no aceptó el límite de carga en ${b}" >&2; done ;;
+  *) fallo fallo ;;
+esac
+exit 0
