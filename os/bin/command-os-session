@@ -15,6 +15,16 @@ if menus=$(/usr/lib/command-os/menus-labwc); then
   export XDG_CONFIG_DIRS="${menus}:${XDG_CONFIG_DIRS:-/etc/xdg}"
 fi
 
+# Aplicaciones de la tienda (Flatpak): sus .desktop e iconos, para el lanzador y las fijadas. Las
+# carpetas las da el propio flatpak (/etc/profile.d/flatpak.sh), que greetd no carga: no es un shell
+# de entrada. El script no está hecho para `set -u`.
+export XDG_DATA_DIRS=${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
+if [[ -r /etc/profile.d/flatpak.sh ]]; then
+  set +u
+  source /etc/profile.d/flatpak.sh
+  set -u
+fi
+
 # --merge-config: la configuración de serie (/etc/xdg/labwc) más lo que el usuario añada en
 # ~/.config/labwc. El registro va a un archivo, no a la pantalla.
 exec labwc --merge-config > "${XDG_RUNTIME_DIR:-/tmp}/labwc.log" 2>&1

@@ -28,6 +28,11 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   para abrir, clic derecho en una fijada (quitar, mover) y clic derecho en el logo para fijar otra.
 - Escala automática en un portátil de alta densidad y con un segundo monitor conectado en marcha
   (`docs/notas/pantallas.md`; la VM no da tamaño físico).
+- Instalar aplicaciones en un PC real (`docs/notas/escritorio.md` § «Instalar aplicaciones»; en la VM
+  se instaló y abrió Discord): instalar algo desde la tienda (la fijada de la barra o menú → tienda de
+  aplicaciones) y abrirlo desde el lanzador; descargar un `.tar.gz` o `.zip` con Firefox y abrirlo con
+  **doble clic** en Thunar (xarchiver, sin preguntar) y extraerlo con el clic derecho; abrir un AppImage
+  de verdad y un `.deb` descargados; que una app GTK de Flathub se vea oscura y con el filo rojo.
 
 ## Aparcado hasta tener el hardware ARM del cyberdeck
 
@@ -45,6 +50,12 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 2. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
    y la clave de recuperación nuevas tras cambiarlas con el panel del disco, y que la vieja ya no
    entra. *Sonnet, medio.*
-3. Limpieza de los paneles (`lib/panel-*.py`, `comun.py`): una clase base con `tecla`, `limpiar` y
-   `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy en bash y Python,
-   cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
+3. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
+   `tecla`, `limpiar` y `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy
+   en bash y Python, cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
+4. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
+   (Flatpak), sin tocar `/var/lib/flatpak` desde la comprobación de solo lectura (`docs/decisiones.md`,
+   2026-10-19). *Opus, medio: toca la unidad de systemd, la barra y el panel.*
+5. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
+   instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
+   alto: toca el instalador y la vuelta atrás.*

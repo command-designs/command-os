@@ -1,0 +1,34 @@
+# Command OS — aplicación de serie para cada tipo de archivo, para que nada descargado pregunte con qué
+# abrirse. Lo que el usuario elija («abrir con» en Thunar) va a ~/.config/mimeapps.list y gana a esto.
+# Cada aplicación tiene que declarar el tipo en su .desktop: lo comprueba tests/escritorio.sh.
+# docs/notas/escritorio.md § «Instalar aplicaciones».
+[Default Applications]
+inode/directory=thunar.desktop
+
+# Comprimidos: xarchiver los abre; el clic derecho de Thunar los extrae (thunar-archive-plugin).
+application/zip=xarchiver.desktop
+application/x-tar=xarchiver.desktop
+application/x-compressed-tar=xarchiver.desktop
+application/x-bzip2-compressed-tar=xarchiver.desktop
+application/x-xz-compressed-tar=xarchiver.desktop
+application/x-zstd-compressed-tar=xarchiver.desktop
+application/x-lzma-compressed-tar=xarchiver.desktop
+application/gzip=xarchiver.desktop
+application/x-bzip2=xarchiver.desktop
+application/x-xz=xarchiver.desktop
+application/zstd=xarchiver.desktop
+application/x-7z-compressed=xarchiver.desktop
+application/vnd.rar=xarchiver.desktop
+application/x-rar=xarchiver.desktop
+
+# Aplicaciones de Flathub: la tienda.
+application/vnd.flatpak.ref=io.github.kolunmi.Bazaar.desktop
+application/vnd.flatpak=io.github.kolunmi.Bazaar.desktop
+x-scheme-handler/appstream=io.github.kolunmi.Bazaar.desktop
+
+# Programas y paquetes que no se abren con una aplicación: command-os-abrir-descarga.
+application/vnd.appimage=dev.commandlab.AbrirDescarga.desktop
+application/x-iso9660-appimage=dev.commandlab.AbrirDescarga.desktop
+application/vnd.debian.binary-package=dev.commandlab.AbrirDescarga.desktop
+application/x-rpm=dev.commandlab.AbrirDescarga.desktop
+application/vnd.flatpak.repo=dev.commandlab.AbrirDescarga.desktop

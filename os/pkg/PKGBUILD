@@ -94,6 +94,13 @@ package() {
   install -m 644 "${s}/dotfiles/nano/nanorc" "${c}/nano/"
   install -m 644 "${s}/dotfiles/bash/command-os.bashrc" "${c}/bash/bashrc"
 
+  # --- Instalar aplicaciones: qué abre cada tipo de archivo (los de la distribución van en
+  # /usr/share/applications; el usuario decide en ~/.config/mimeapps.list) y la ventana para lo
+  # descargado que no es de ninguna aplicación (AppImage, .deb, .rpm, .flatpakrepo) ---
+  install -Dm 644 "${s}/dotfiles/applications/mimeapps.list" "${d}/usr/share/applications/mimeapps.list"
+  install -Dm 644 "${s}/dotfiles/applications/dev.commandlab.AbrirDescarga.desktop" \
+    "${d}/usr/share/applications/dev.commandlab.AbrirDescarga.desktop"
+
   # --- Ajustes de sistema: dconf (modo oscuro, tema GTK, iconos, fuentes) y splash hasta labwc ---
   install -Dm 644 "${s}/system/dconf/profile/user" "${d}/etc/dconf/profile/user"
   install -Dm 644 "${s}/system/dconf/db/local.d/00-command-os" "${d}/etc/dconf/db/local.d/00-command-os"

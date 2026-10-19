@@ -3,6 +3,8 @@
 #   - pantallas: la escala de alta densidad y la configuración de hyprlock escalada (tests/pantallas.sh).
 #   - barra: la batería con una batería simulada, sus avisos, el límite de carga y las aplicaciones
 #     fijadas (tests/barra.sh).
+#   - aplicaciones: qué se hace con cada descarga, las asociaciones de tipos, la orden de la tienda y el
+#     tema GTK que leen las apps Flatpak (tests/aplicaciones.sh).
 #   - instalador publicado: lo que lleva y que solo se ejecuta con una firma buena (tests/instalador.sh).
 #   - discos: el instalador en disco entero rechaza lo que no debe borrar (tests/discos.sh).
 #   - rollback: command-os-rollback sobre un btrfs en un disco loop, con y sin /boot aparte y con un
@@ -36,6 +38,8 @@ jobs:
         run: bash tests/pantallas.sh
       - name: Batería y aplicaciones fijadas de la barra
         run: bash tests/barra.sh
+      - name: Instalar aplicaciones (descargas, tipos de archivo, tienda, tema de las apps Flatpak)
+        run: bash tests/aplicaciones.sh
       - name: Instalador publicado (contenido y firma)
         run: |
           # msgfmt compila el catálogo del instalador en inglés (cargar_idioma); Ubuntu solo trae gettext-base.

@@ -96,6 +96,57 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   abrir kitty). `tests/escritorio.sh` comprueba que la barra arranca con las fijadas.
 
 
+## Instalar aplicaciones (2026-10-19)
+
+Petición del usuario: que instalar algo nunca sea un problema (en su portátil, un Discord descargado
+en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: `docs/decisiones.md`.
+
+- **Tienda**: Bazaar (paquete `bazaar`), solo Flatpak, con Flathub (el paquete `flatpak` trae el remoto
+  en `/usr/share/flatpak/remotes.d`). Las apps van en `/var/lib/flatpak` (instalación del sistema), aparte
+  de pacman: nunca tocan la base de datos de pacman ni la fecha validada. Polkit de Flatpak: las cuentas
+  de `wheel` instalan sin contraseña en la sesión activa; las demás piden la de un administrador. Se
+  abre con `command-os-tienda` (menú → tienda de aplicaciones, fijada de serie en la barra) y
+  `command-os-tienda buscar TEXTO` la abre buscando. Bazaar avisa de los permisos de cada app (Discord:
+  «alto riesgo», X11 y propietaria). `libheif` hace falta para las capturas de Flathub (AVIF).
+- **Actualizar**: `command-os-update` (`update`) actualiza las apps al final, contra Flathub del día y
+  sin preguntar, y quita los runtimes que ya no usa nadie; si falla (sin red), lo de pacman queda hecho.
+  El aviso de la barra todavía no cuenta las apps (`ROADMAP.md`). Bazaar también las actualiza.
+- **Lanzador y fijadas**: `command-os-session` carga `/etc/profile.d/flatpak.sh` (greetd no abre un shell
+  de entrada), así que `XDG_DATA_DIRS` lleva las carpetas `exports/share` de Flatpak: wofi y las fijadas
+  ven sus `.desktop` e iconos.
+- **Tema**: un permiso global (`flatpak override --system`, `lib/apply-system`) deja a las apps leer
+  `~/.config/gtk-3.0` y `gtk-4.0` en solo lectura. Dentro de su caja `/usr` es el del runtime, así que
+  **esos archivos son copias, no enlaces** (`command-os-user-setup`; la suma de la última copia queda en
+  `~/.config/command-os/gtk/` y se pone al día si el usuario no la ha tocado). El modo oscuro y el tema
+  llegan de dconf por el portal; Flatpak descarga solo la extensión `org.gtk.Gtk3theme.adw-gtk3-dark` al
+  instalar la primera app. Papirus y las fuentes se ven desde la caja (`/run/host`).
+- **Comprimidos**: xarchiver (GTK 3, el mismo tema que Thunar) con `thunar-archive-plugin` (clic derecho:
+  extraer aquí, extraer en…, crear comprimido), `7zip` y `unrar`.
+- **Tipos de archivo**: `/usr/share/applications/mimeapps.list` (`os/dotfiles/applications/`), las
+  aplicaciones de serie de la distribución; lo que elija el usuario va a `~/.config/mimeapps.list` y gana.
+  Comprimidos → xarchiver; `.flatpakref`, `.flatpak` y `appstream://` → Bazaar; AppImage, `.deb`, `.rpm`
+  y `.flatpakrepo` → `command-os-abrir-descarga` (`lib/abrir-descarga.py`, lógica en `lib/descargas.py`).
+- **`command-os-abrir-descarga`** (ventana como los paneles; app_id `dev.commandlab.AbrirDescarga`, igual
+  que su `.desktop`, para que la barra de tareas tenga icono): un AppImage avisa de que es un programa
+  descargado; al aceptar comprueba que sea para este procesador (cabecera ELF), lo marca como ejecutable
+  y lo abre (`fuse2`); si se cierra con error en 3 s, lo dice. Un `.deb` o `.rpm` explica que es de otra
+  distribución y busca la app en la tienda por su nombre sin versión ni arquitectura. Un
+  `.flatpakrepo` añade el repositorio si se confirma.
+- **Probado**: `tests/aplicaciones.sh` (descargas, asociaciones, `command-os-tienda`, copias del tema) y
+  `tests/escritorio.sh` (cada tipo abre con su aplicación según GIO, Bazaar y xarchiver enlazan con las
+  bibliotecas de la fecha, Flathub, el permiso del tema y `XDG_DATA_DIRS` de la sesión). En la VM, con la
+  fecha 2026/10/18: buscar «discord» en la tienda, instalar Discord (sin contraseña) y abrirlo desde wofi;
+  fijarlo (icono de Papirus); el tema GTK dentro de su caja; «extraer aquí» de un `.tar.gz` en Thunar y
+  abrirlo en xarchiver con su aplicación por defecto; la ventana de un `.deb` (→ tienda buscando
+  «discord») y de un AppImage (que falla al abrirse y para ARM). **No probado**: el doble clic con un
+  ratón de verdad en Thunar (en la VM, el toque virtual no da el foco a Thunar: se probó la misma acción,
+  abrir con la aplicación por defecto), un AppImage real y una app GTK 3 de Flathub (Discord es Electron).
+- **Al probar en la VM**: `polkit` solo deja instalar a la sesión local, no a SSH: la tienda se abre
+  desde una terminal de la sesión (`sh t.sh`). Los botones de GTK se pulsan bien con una pantalla
+  táctil virtual de uinput (`ABS_X/ABS_Y` + `BTN_TOUCH`, `INPUT_PROP_DIRECT`: coordenadas exactas, sin la
+  aceleración del ratón virtual; `docs/testing.md`).
+
+
 ## Rediseño "ordenador real de Cyberpunk" (2026-10-05, rama `rediseno`)
 
 Criterio del usuario: se queda lo que **sirve** y lo que **crea ambiente y queda bien**; fuera lo que

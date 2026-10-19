@@ -65,6 +65,48 @@ for f in /etc/xdg/labwc/rc.xml /usr/share/command-os/config/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
 done
 
+echo "==> Instalar aplicaciones (tienda, comprimidos, tipos de archivo)"
+# Lo que se descarga se abre con su aplicación de serie, sin preguntar: GIO (Thunar, Firefox) la da como
+# la de cada tipo de /usr/share/applications/mimeapps.list. Si Arch cambia el nombre de un .desktop
+# (Bazaar, xarchiver), esto falla antes de que llegue a los equipos.
+antes=${fallos}
+while IFS='=' read -r tipo app; do
+  if [[ ! -f "/usr/share/applications/${app}" ]]; then
+    mal "tipos: no existe ${app} (${tipo})"
+  elif [[ "$(como gio mime "${tipo}" 2>/dev/null | head -1)" != *"${app}"* ]]; then
+    mal "tipos: ${tipo} no se abre con ${app} ($(como gio mime "${tipo}" 2>&1 | head -1))"
+  fi
+done < <(sed -n 's/^\([a-z-]*\/[^=]*\)=\(.*\)$/\1=\2/p' /usr/share/applications/mimeapps.list)
+(( fallos == antes )) && ok "tipos: cada uno se abre con su aplicación de serie"
+# La tienda y el gestor de comprimidos arrancan con las bibliotecas de esta fecha de Arch (LD_BIND_NOW
+# resuelve todos los símbolos al empezar). En la foto del 2026/10/05, Bazaar venía compilado contra un
+# libdex más nuevo y no abría (docs/decisiones.md): una fecha así no se valida.
+for p in bazaar xarchiver; do
+  if (LD_BIND_NOW=1 timeout 10 "${p}" --help 2>&1 || true) | grep -qE 'symbol lookup error|error while loading shared libraries'; then
+    mal "${p}: no arranca con las bibliotecas de esta fecha"
+  else
+    ok "${p}: enlaza con las bibliotecas de esta fecha"
+  fi
+done
+if flatpak remotes --system --columns=name 2>/dev/null | grep -qx flathub; then ok "flatpak: Flathub de serie"; else mal "flatpak: sin Flathub"; fi
+if grep -qs 'xdg-config/gtk-3.0:ro' /var/lib/flatpak/overrides/global; then
+  ok "flatpak: las apps leen el tema GTK del usuario"
+else
+  mal "flatpak: sin el permiso global del tema (lib/apply-system)"
+fi
+# La sesión ve las aplicaciones de la tienda: command-os-session con un labwc de mentira que apunta su
+# XDG_DATA_DIRS (de ahí leen el lanzador y las fijadas).
+install -d -o "${USUARIO}" "${run}/bin"
+printf '#!/bin/sh\necho "$XDG_DATA_DIRS" > "%s/datos"\n' "${run}" > "${run}/bin/labwc"
+chmod 755 "${run}/bin/labwc"
+como env PATH="${run}/bin:${PATH}" command-os-session
+if [[ ":$(cat "${run}/datos" 2>/dev/null):" == *":/var/lib/flatpak/exports/share:"*":/usr/share:"* ]]; then
+  ok "sesión: el lanzador ve las aplicaciones Flatpak"
+else
+  mal "sesión: XDG_DATA_DIRS sin Flatpak ($(cat "${run}/datos" 2>/dev/null))"
+fi
+rm -rf "${run}/bin" "${run}/datos"
+
 echo "==> Sesión de labwc sin pantalla"
 como command-os-user-setup || mal "command-os-user-setup"
 # Sesión de prueba: render por software, sin dispositivos de entrada.

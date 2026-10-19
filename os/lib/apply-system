@@ -43,6 +43,14 @@ fi
 # Fecha validada de Arch y repositorio de Command OS (la fecha puede venir nueva con el paquete).
 /usr/lib/command-os/apply-repos || warn "no se pudieron ajustar los repositorios"
 
+# Aplicaciones de la tienda (Flatpak, remoto Flathub de serie en el paquete flatpak): que se vean con
+# el tema de Command OS. Pueden leer ~/.config/gtk-3.0 y gtk-4.0 (las copias de command-os-user-setup);
+# el modo oscuro y el tema GTK los toman de dconf por el portal de ajustes.
+if command -v flatpak >/dev/null; then
+  flatpak override --system --filesystem=xdg-config/gtk-3.0:ro --filesystem=xdg-config/gtk-4.0:ro \
+    || warn "no se pudo dar a las apps Flatpak el tema del sistema"
+fi
+
 # Comprobación periódica de actualizaciones: se activa una sola vez (marca en /var/lib/command-os);
 # si el usuario la desactiva con `systemctl disable`, una actualización no la vuelve a activar. Solo se
 # arranca con systemd en marcha y fuera de un chroot (allí `systemctl` hablaría con el anfitrión).

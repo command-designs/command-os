@@ -563,6 +563,105 @@ msgstr "{app} pinned to the bar"
 msgid "ya estaba en la barra"
 msgstr "it was already in the bar"
 
+msgid "cmd-os · abrir descarga"
+msgstr "cmd-os · open download"
+
+msgid "cancelar"
+msgstr "cancel"
+
+msgid "› abrir descarga"
+msgstr "› open download"
+
+#, python-brace-format
+msgid "el archivo «{archivo}» ya no existe."
+msgstr "the file “{archivo}” no longer exists."
+
+msgid "› abrir un programa descargado"
+msgstr "› open a downloaded program"
+
+#, python-brace-format
+msgid ""
+"«{archivo}» es un programa descargado de internet (AppImage). ábrelo solo si "
+"viene de un sitio en el que confíes: podrá usar tus archivos como cualquier "
+"otro programa."
+msgstr ""
+"“{archivo}” is a program downloaded from the internet (AppImage). only open "
+"it if it comes from a site you trust: it will be able to use your files like "
+"any other program."
+
+msgid "abrir"
+msgstr "open"
+
+msgid "› paquete de otro sistema"
+msgstr "› package for another system"
+
+#, python-brace-format
+msgid ""
+"«{archivo}» es un paquete para debian y ubuntu: en command os las "
+"aplicaciones no se instalan así. búscala en la tienda de aplicaciones, que "
+"tiene la versión que funciona en este equipo y la mantiene al día."
+msgstr ""
+"“{archivo}” is a package for debian and ubuntu: command os doesn't install "
+"apps that way. look for it in the app store, which has the version that works "
+"on this computer and keeps it up to date."
+
+#, python-brace-format
+msgid ""
+"«{archivo}» es un paquete para fedora y opensuse: en command os las "
+"aplicaciones no se instalan así. búscala en la tienda de aplicaciones, que "
+"tiene la versión que funciona en este equipo y la mantiene al día."
+msgstr ""
+"“{archivo}” is a package for fedora and opensuse: command os doesn't install "
+"apps that way. look for it in the app store, which has the version that works "
+"on this computer and keeps it up to date."
+
+msgid "buscar en la tienda"
+msgstr "search the store"
+
+msgid "› añadir un repositorio de aplicaciones"
+msgstr "› add an app repository"
+
+#, python-brace-format
+msgid ""
+"«{titulo}» ({url}) es un repositorio de aplicaciones Flatpak. añádelo solo "
+"si confías en quien lo publica: sus aplicaciones saldrán en la tienda."
+msgstr ""
+"“{titulo}” ({url}) is a Flatpak app repository. only add it if you trust "
+"whoever publishes it: its apps will show up in the store."
+
+msgid "añadir"
+msgstr "add"
+
+#, python-brace-format
+msgid "command os no sabe abrir «{archivo}»."
+msgstr "command os doesn't know how to open “{archivo}”."
+
+#, python-brace-format
+msgid ""
+"este programa es para otro tipo de procesador ({suyo}) y no funciona en este "
+"equipo ({este})."
+msgstr ""
+"this program is for another kind of processor ({suyo}) and doesn't work on "
+"this computer ({este})."
+
+msgid ""
+"no se pudo abrir el programa: puede que el archivo no sea tuyo o esté dañado."
+msgstr ""
+"could not open the program: the file may belong to someone else or be damaged."
+
+msgid ""
+"el programa se cerró nada más abrirse: puede que esté dañado o que necesite "
+"algo que este equipo no tiene."
+msgstr ""
+"the program closed right after opening: it may be damaged or need something "
+"this computer doesn't have."
+
+msgid "no se pudo añadir el repositorio."
+msgstr "could not add the repository."
+
+msgid "repositorio añadido: sus aplicaciones ya salen en la tienda."
+msgstr "repository added: its apps now show up in the store."
+
 msgid "contraseña del disco  ·  o la clave de recuperación"
 msgstr "disk password  ·  or the recovery key"
 
@@ -928,9 +1027,6 @@ msgstr ""
 msgid "hecho: al encender pedirá usuario y contraseña"
 msgstr "done: at power on it will ask for user and password"
 
-msgid "cancelar"
-msgstr "cancel"
-
 msgid "sí, reiniciar"
 msgstr "yes, restart"
 
@@ -1012,6 +1108,15 @@ msgstr "When everything works, you can delete the previous copy with:"
 
 msgid "sin red"
 msgstr "no network"
+
+msgid "command-os: actualizando las aplicaciones de la tienda…"
+msgstr "command-os: updating the store apps…"
+
+msgid ""
+"command-os: no se pudieron actualizar las aplicaciones de la tienda; se "
+"reintentará la próxima vez."
+msgstr ""
+"command-os: could not update the store apps; it will be retried next time."
 
 msgid ""
 "command-os: el kernel se ha actualizado; reinicia para terminar (systemctl "
@@ -1506,6 +1611,9 @@ msgstr "access denied"
 
 msgid "cmd-os"
 msgstr "cmd-os"
+
+msgid "tienda de aplicaciones"
+msgstr "app store"
 
 msgid "ajustes"
 msgstr "settings"

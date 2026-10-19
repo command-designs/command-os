@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Abrir descarga
+Name[en]=Open download
+Comment=Abre programas AppImage y explica qué hacer con paquetes de otros sistemas
+Comment[en]=Opens AppImage programs and explains what to do with packages from other systems
+Exec=command-os-abrir-descarga %f
+Icon=system-software-install
+Terminal=false
+NoDisplay=true
+MimeType=application/vnd.appimage;application/x-iso9660-appimage;application/vnd.debian.binary-package;application/x-rpm;application/vnd.flatpak.repo;

@@ -71,6 +71,22 @@ plymouth
 firefox
 thunar
 btop
+
+# Instalar aplicaciones (docs/notas/escritorio.md § «Instalar aplicaciones»): Flatpak con Flathub (el
+# paquete flatpak ya trae el remoto) y la tienda Bazaar. Las apps van aparte del sistema: nunca tocan
+# pacman ni la fecha validada de Arch (docs/decisiones.md).
+flatpak
+bazaar
+# Las capturas de Flathub vienen en AVIF: sin libheif, glycin no las abre y la tienda sale sin imágenes.
+libheif
+# Comprimidos: doble clic en Thunar los abre y el clic derecho los extrae (xarchiver es GTK 3, como
+# Thunar, y coge el mismo tema); 7z y rar con sus herramientas. zip/unzip, más abajo.
+thunar-archive-plugin
+xarchiver
+7zip
+unrar
+# Programas AppImage descargados (command-os-abrir-descarga).
+fuse2
 fastfetch
 pavucontrol
 

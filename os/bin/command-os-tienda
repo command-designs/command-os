@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Command OS — la tienda de aplicaciones: Bazaar, con las aplicaciones Flatpak de Flathub. Van aparte
+# del sistema, así que instalarlas nunca toca pacman ni la fecha validada de Arch.
+# docs/notas/escritorio.md § «Instalar aplicaciones».
+#
+#   command-os-tienda               la abre (menú → tienda de aplicaciones, aplicación fijada de serie)
+#   command-os-tienda buscar TEXTO  la abre buscando TEXTO (paquetes .deb y .rpm: command-os-abrir-descarga)
+set -uo pipefail
+case "${1:-}" in
+  "") exec bazaar ;;
+  buscar) [[ -n "${2:-}" ]] || exec bazaar; exec bazaar --search-for "$2" ;;
+  *) echo "uso: command-os-tienda [buscar TEXTO]" >&2; exit 2 ;;
+esac

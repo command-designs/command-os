@@ -3,6 +3,7 @@
 #   1. Repositorios al día (fecha validada de Arch, repositorio y clave de Command OS).
 #   2. Primero solo el paquete command-os: puede traer una nueva fecha validada de Arch.
 #   3. Después, todo el sistema contra esa fecha (nunca se mezclan paquetes de días distintos).
+#   4. Por último, las aplicaciones de la tienda (Flatpak).
 # Con la raíz en btrfs, snap-pac hace una instantánea antes y otra después: si algo sale mal, se
 # vuelve atrás desde el menú de arranque o con command-os-rollback.
 set -euo pipefail
@@ -16,6 +17,20 @@ if pacman -Si command-os >/dev/null 2>&1; then
 fi
 /usr/lib/command-os/apply-repos
 pacman -Syu "$@"
+
+# 4. Las aplicaciones de la tienda (Flatpak): van aparte del sistema y de la fecha validada, así que se
+#    actualizan después, contra Flathub del día, y sin preguntar (pacman ya preguntó). Si falla (sin
+#    red), lo de pacman queda hecho; se reintenta la próxima vez. Después, fuera los runtimes que ya no
+#    usa ninguna aplicación.
+if command -v flatpak >/dev/null && [[ -n "$(flatpak list --system --columns=application 2>/dev/null)" ]]; then
+  echo
+  echo "$(t 'command-os: actualizando las aplicaciones de la tienda…')"
+  if flatpak update --system --noninteractive -y; then
+    flatpak uninstall --system --unused --noninteractive -y >/dev/null 2>&1 || true
+  else
+    echo "$(t 'command-os: no se pudieron actualizar las aplicaciones de la tienda; se reintentará la próxima vez.')"
+  fi
+fi
 
 # Si se actualizó el kernel, el que está en marcha ya no tiene sus módulos en el disco (Arch los
 # borra): hay que reiniciar para estrenar el nuevo.

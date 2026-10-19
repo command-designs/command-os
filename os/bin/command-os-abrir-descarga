@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Command OS — abre un archivo descargado que no es de ninguna aplicación: un programa AppImage, un
+# paquete .deb o .rpm de otra distribución o un repositorio .flatpakrepo (lib/abrir-descarga.py). Lo
+# eligen las asociaciones de tipos de serie (/usr/share/applications/mimeapps.list).
+# docs/notas/escritorio.md § «Instalar aplicaciones».
+#
+#   command-os-abrir-descarga ARCHIVO
+export PYTHONPATH=/usr/lib/command-os
+export GTK_THEME=${GTK_THEME:-adw-gtk3:dark}
+exec python3 /usr/lib/command-os/abrir-descarga.py "$@"
