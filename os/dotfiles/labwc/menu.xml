@@ -20,6 +20,9 @@
     <item label="navegador" icon="firefox">
       <action name="Execute" command="firefox" />
     </item>
+    <item label="tienda de aplicaciones" icon="system-software-install">
+      <action name="Execute" command="command-os-tienda" />
+    </item>
     <separator />
     <menu id="ajustes" label="ajustes" icon="preferences-system">
       <item label="fondo de pantalla" icon="preferences-desktop-wallpaper">

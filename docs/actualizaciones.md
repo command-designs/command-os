@@ -20,7 +20,7 @@ llegan a todos los equipos sin pisar nada personal:
 | labwc | `/etc/xdg/labwc/` | `~/.config/labwc/` se **suma** (labwc arranca con `--merge-config`); ahí van sus escritorios |
 | kitty, hyprlock, fastfetch, portales | `/etc/xdg/<programa>/` | una copia en `~/.config` la sustituye |
 | Waybar, mako, hypridle, wofi | `/usr/share/command-os/config/<programa>/` | ídem; `command-os-config` elige cuál se usa |
-| GTK 3/4, nano | `/usr/share/command-os/config/` | `command-os-user-setup` enlaza la de serie; si el usuario pone un archivo propio, se respeta |
+| GTK 3/4, nano | `/usr/share/command-os/config/` | `command-os-user-setup` copia la de GTK (las apps Flatpak no verían un enlace a `/usr`; la copia sigue a la de serie mientras el usuario no la toque) y enlaza la de nano; si el usuario pone un archivo propio, se respeta |
 | terminal | `/usr/share/command-os/config/bash/bashrc` | un bloque en `~/.bashrc` lo carga |
 
 `command-os-user-setup` se ejecuta en cada inicio de sesión (rápido e idempotente): crea los enlaces
@@ -57,7 +57,9 @@ Los equipos x86_64 no se actualizan contra el Arch del día, sino contra la foto
 espejos del día no es seguro).
 
 - **Actualizar un equipo:** `update` en la terminal (`command-os-update`): primero trae el paquete
-  command-os (que puede traer una fecha nueva) y después todo el sistema contra esa fecha.
+  command-os (que puede traer una fecha nueva) y después todo el sistema contra esa fecha. Al final,
+  las aplicaciones de la tienda (Flatpak), que no van con la fecha: están aparte del sistema y se
+  actualizan contra Flathub del día (`docs/notas/escritorio.md` § «Instalar aplicaciones»).
 - **Validar una fecha nueva:** GitHub Actions → `fecha` → Run workflow (vacío = ayer). Prueba el
   escritorio con ese Arch y, solo si pasa, guarda la fecha en `main` y publica el paquete.
 - **Servidor:** `/etc/command-os/archive-url` cambia el servidor del archivo. Con muchos equipos,
@@ -169,6 +171,8 @@ pantalla con el paquete instalado (labwc lee su configuración sin errores; Wayb
 el fondo arrancan; las configuraciones de hyprlock son válidas; captura de pantalla en los
 artefactos). Se ejecuta contra el Arch de la fecha validada (lo que tienen los equipos) y contra el
 Arch del día (lo que llegará): si la del día falla, no se valida una fecha nueva hasta arreglarlo.
+También que la tienda (Bazaar) y xarchiver enlazan con las bibliotecas de esa fecha: en la del
+2026/10/05 Bazaar no arrancaba (`docs/decisiones.md`).
 Además: `tests/cuentas.sh` (entrada al equipo) y `tests/actualizaciones.sh` (lo que enseña la barra, la
 comprobación con un `checkupdates` de mentira, las unidades de systemd), sin red ni pantalla, y
 `tests/rollback.sh` (`command-os-rollback` sobre un btrfs en un disco loop, ver § 5).

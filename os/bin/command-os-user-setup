@@ -5,13 +5,13 @@
 #
 # La configuración de serie vive en el sistema (/etc/xdg y /usr/share/command-os/config) y se
 # actualiza con el paquete. En ~/.config solo hay:
-#   - enlaces a la de serie para los programas que no saben leerla del sistema (GTK, nano); si el
-#     usuario los sustituye por un archivo propio, se respeta;
+#   - enlaces (nano) o copias (GTK) de la de serie para los programas que no saben leerla del sistema;
+#     si el usuario los sustituye por un archivo propio, se respeta;
 #   - lo que el propio usuario cambie (copias completas o, en labwc, solo lo que añade).
 set -uo pipefail
 
 CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
-SYS=/usr/share/command-os/config
+SYS=${COMMAND_OS_CONFIG:-/usr/share/command-os/config}  # otra carpeta solo en tests/aplicaciones.sh
 STATE="${CFG}/command-os"
 mkdir -p "${STATE}"
 
@@ -37,11 +37,38 @@ link() {  # link destino-en-~/.config origen-en-sistema
     ln -sfn "${src}" "${dst}"
   fi
 }
-link gtk-3.0/gtk.css "${SYS}/gtk-3.0/gtk.css"
-link gtk-3.0/settings.ini "${SYS}/gtk-3.0/settings.ini"
-link gtk-4.0/gtk.css "${SYS}/gtk-4.0/gtk.css"
-link gtk-4.0/settings.ini "${SYS}/gtk-4.0/settings.ini"
 link nano/nanorc "${SYS}/nano/nanorc"
+
+# --- GTK: copias de la de serie, no enlaces ---
+# Las apps Flatpak también leen ~/.config/gtk-3.0 y gtk-4.0 (permiso global de lib/apply-system), pero
+# dentro de su caja /usr es el de su runtime: un enlace a /usr/share/command-os no llevaría a nada. Una
+# copia se pone al día cuando cambia la de serie mientras el usuario no la haya tocado: la suma de la
+# última que se puso queda en ~/.config/command-os/gtk/. Un enlace de antes se cambia por la copia.
+copia() {  # copia destino-en-~/.config origen-en-sistema
+  local dst="${CFG}/$1" src="$2" suma="${STATE}/gtk/${1//\//-}.sha256" serie actual
+  [[ -r "${src}" ]] || return 0
+  serie=$(sha256sum < "${src}")
+  if [[ -f "${dst}" && ! -L "${dst}" ]]; then
+    actual=$(sha256sum < "${dst}")
+    if [[ "${actual}" == "${serie}" ]]; then
+      # Igual que la de serie: es nuestra (también si la suma era de una copia anterior).
+      [[ "$(cat "${suma}" 2>/dev/null)" == "${actual}" ]] || { mkdir -p "${STATE}/gtk"; echo "${actual}" > "${suma}"; }
+      return 0
+    fi
+    # Distinta de la de serie: si es la última copia nuestra, está desfasada; si no, es del usuario.
+    [[ -s "${suma}" && "${actual}" == "$(cat "${suma}")" ]] || return 0
+  elif [[ -e "${dst}" && ! -L "${dst}" ]]; then
+    return 0  # una carpeta u otra cosa del usuario
+  fi
+  # Al lado y después en su sitio: si la copia falla (disco lleno), queda la de antes.
+  mkdir -p "$(dirname "${dst}")" "${STATE}/gtk"
+  cp "${src}" "${dst}.nuevo" && mv -f "${dst}.nuevo" "${dst}" && echo "${serie}" > "${suma}" \
+    || rm -f "${dst}.nuevo"
+}
+copia gtk-3.0/gtk.css "${SYS}/gtk-3.0/gtk.css"
+copia gtk-3.0/settings.ini "${SYS}/gtk-3.0/settings.ini"
+copia gtk-4.0/gtk.css "${SYS}/gtk-4.0/gtk.css"
+copia gtk-4.0/settings.ini "${SYS}/gtk-4.0/settings.ini"
 
 # --- labwc: escritorios del usuario (command-os-desktops); de serie, uno ---
 if [[ ! -e "${CFG}/labwc/rc.xml" ]]; then

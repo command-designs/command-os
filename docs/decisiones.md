@@ -3,6 +3,55 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-19 — Instalar aplicaciones (`docs/notas/escritorio.md` § «Instalar aplicaciones»)
+
+- **Tienda de Flatpak con Flathub, no de pacman.** Las apps de Flatpak van aparte del sistema: instalar o
+  actualizar una nunca toca la base de datos de pacman, la fecha validada ni el bloqueo, así que no
+  puede romper una actualización. Descartado: pamac (AUR, fuera de los repos oficiales; instala del AUR
+  contra un Arch que no es el validado y hace actualizaciones parciales) y PackageKit con GNOME Software
+  o Discover (sincroniza la base de datos de pacman por su cuenta y se salta el orden de
+  `command-os-update`; Discover trae KDE).
+- **Bazaar como tienda** (aprobado por el usuario frente a GNOME Software): hecha solo para Flathub,
+  rápida, la usan Bazzite y Bluefin, abre `.flatpakref` y `appstream://` y avisa de los permisos de cada
+  app. Coste: arrastra `webkitgtk-6.0`. GNOME Software (sin WebKit) está pensada para GNOME (firmware,
+  sistema) y es más lenta. Bazaar como Flatpak se descartó: más de 1 GB de runtimes en la instalación,
+  con red dentro de un gancho de pacman.
+- **Fecha validada 2026/10/05 → 2026/10/18.** En la foto del 2026/10/05, el Bazaar 0.9.6 de Arch venía
+  compilado contra libdex 1.2 (llegó a `extra` el 2026-10-07) y no arrancaba (`undefined symbol:
+  dex_limiter_run`). Se validó en la VM (actualizar con `command-os-update`, `tests/escritorio.sh`,
+  `tests/idioma.sh`, `tests/actualizaciones.sh`, la tienda) porque la CI no corre (facturación de
+  GitHub); la CI la vuelve a probar en el PR. `tests/escritorio.sh` comprueba ahora que Bazaar y
+  xarchiver enlazan con las bibliotecas de la fecha, para que una así no se valide.
+- **Instalación del sistema (`/var/lib/flatpak`), no por cuenta:** los runtimes (cientos de MB) se
+  descargan una vez para todas las cuentas. Polkit de serie de Flatpak: `wheel` instala sin contraseña
+  en la sesión activa; el resto, con la de un administrador (no hace falta regla propia).
+- **Las apps Flatpak entran en las instantáneas de `@`** (`/var/lib/flatpak`). Volver atrás las deja como
+  estaban (repo y despliegue juntos, coherente) a cambio de instantáneas más grandes. Un subvolumen
+  `@flatpak` toca el instalador: queda en `ROADMAP.md`.
+- **`command-os-update` actualiza las apps al final, sin preguntar.** Pacman ya preguntó y las apps no
+  tocan el sistema; si falla, lo de pacman queda hecho. El aviso de la barra aún no las cuenta (mirarlo
+  sin tocar `/var/lib/flatpak` desde la unidad de solo lectura pide más trabajo): en `ROADMAP.md`.
+- **Tema de las apps: copias de GTK, no enlaces.** Con el permiso global de leer
+  `xdg-config/gtk-3.0/gtk.css` (y `settings.ini`, y los de `gtk-4.0`) las apps ven esos archivos, pero
+  un enlace a `/usr/share/command-os` no lleva a nada dentro de su caja. La copia se pone al día con la
+  de serie mientras su suma sea la de la última copia (como hace `ucf`); si no coincide con la de
+  serie ni con esa suma, se trata como del usuario. **El permiso es por archivo, no de la carpeta:**
+  `gtk-3.0` guarda también `bookmarks` (las carpetas marcadas en Thunar), que ninguna app tiene por qué
+  ver. Descartado: dejar las apps sin la paleta de Command OS.
+- **Un `.flatpakrepo` solo con `https://` y clave GPG**, y sin valores partidos en varias líneas:
+  la ventana enseña lo que flatpak va a usar (Python y GLib leen distinto los valores de varias
+  líneas) y un repositorio sin firma por http sería una puerta de entrada.
+- **xarchiver, no file-roller:** GTK 3 como Thunar, así que coge `gtk-3.0/gtk.css` (file-roller es GTK 4
+  y se vería distinto); `thunar-archive-plugin` lo usa para «extraer aquí». `unrar` (licencia propia,
+  redistribuible, en `extra`) para los rar.
+- **Tipos de archivo en `/usr/share/applications/mimeapps.list`** (el sitio de la distribución en la
+  especificación; `/etc/xdg` queda para el administrador y `~/.config` para el usuario).
+- **AppImage, `.deb`, `.rpm` y `.flatpakrepo` en una ventana propia** (`command-os-abrir-descarga`), no
+  con xarchiver (los declara pero solo enseña sus tripas): un AppImage se abre tras avisar (y se marca
+  como ejecutable, que es lo que nadie sabe hacer); un `.deb`/`.rpm` no se puede instalar en Arch sin
+  romperlo, así que lleva a la tienda. Descartado: convertir paquetes (`debtap`) y Gear Lever para los
+  AppImage (una app más para algo que se resuelve con un aviso).
+
 ## 2026-10-15 — Batería y aplicaciones fijadas en la barra (`docs/notas/escritorio.md`)
 
 - **La barra sigue con el `battery` de Waybar en texto** (`bat 85%`), decisión del usuario: se llegó a

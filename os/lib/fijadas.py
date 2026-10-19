@@ -14,7 +14,7 @@ docs/notas/escritorio.md § «Aplicaciones fijadas».
     fijadas.py anadir ID | quitar ID | mover ID -1|1   lo mismo sin preguntar
 
 ID es el nombre del .desktop (firefox.desktop). La lista va en ~/.config/command-os/fijadas, una por
-línea; sin el archivo, las de serie (navegador, archivos y terminal). No usa GTK: lo prueba
+línea; sin el archivo, las de serie (navegador, archivos, terminal y tienda). No usa GTK: lo prueba
 tests/barra.sh sin pantalla.
 """
 import configparser
@@ -30,7 +30,7 @@ from traducir import traductor
 CONFIG = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
 LISTA = os.path.join(CONFIG, "command-os", "fijadas")
 RUN = os.path.join(os.environ.get("XDG_RUNTIME_DIR") or "", "command-os", "barra")
-DE_SERIE = ["firefox.desktop", "thunar.desktop", "kitty.desktop"]
+DE_SERIE = ["firefox.desktop", "thunar.desktop", "kitty.desktop", "io.github.kolunmi.Bazaar.desktop"]
 TEMAS = ["Papirus-Dark", "Papirus", "hicolor"]
 # Primero los SVG (se ven nítidos a cualquier escala), luego PNG grandes que GTK reduce.
 TAMANOS_SVG = ["scalable", "16x16", "22x22", "24x24", "32x32", "48x48", "64x64"]

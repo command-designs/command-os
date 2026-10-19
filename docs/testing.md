@@ -200,6 +200,10 @@ Comandos desde el anfitrión con `S="ssh -i build/packer/keys/packer_build_key -
   GTK se abren desde una terminal de la sesión (Super+Intro y `sh archivo.sh` con la orden: con
   `keyboardputstring` solo salen bien letras, cifras, espacios y el punto), no por SSH: polkit solo
   autentica y deja comprobar actualizaciones a la sesión local activa.
+- **Tocar un botón exacto** (2026-10-19): una pantalla táctil virtual de uinput (`EV_ABS` con `ABS_X`/`ABS_Y`
+  del tamaño de la pantalla, `BTN_TOUCH` e `INPUT_PROP_DIRECT`, como root) toca en las coordenadas de la
+  captura sin la aceleración del ratón. GTK lo toma como un clic. Un toque no da el foco del teclado a la
+  ventana (labwc): después, `wtype` sigue escribiendo en la que lo tenía.
 - **Inactividad**: bloquea a los 5 min y apaga la pantalla a los 10 (`wlopm` la muestra `on`/`off`). Un
   `ssh` largo se corta: lanzar un script con `setsid nohup` que apunte `wlopm` y `pgrep hyprlock` cada
   5 s en un archivo y mirarlo después. Una tecla la enciende (queda bloqueada hasta teclear la contraseña).

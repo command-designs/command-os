@@ -27,7 +27,7 @@ de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualiza
 igual en 16:9 y 16:10 con escala automática de alta densidad y tema de GRUB propio
 (`docs/notas/pantallas.md`). Al instalar en un PC, el disco se cifra (LUKS2, sí por defecto) con la
 contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). En castellano de serie, con
-el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`). La zona horaria también se elige en el asistente, con hora por la red (`docs/cuentas.md` § «Hora»). La barra lleva la batería (avisos al 20 y al 10 %, límite de carga al 80 % si el portátil lo permite) y aplicaciones fijadas (`docs/notas/escritorio.md`). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`). La zona horaria también se elige en el asistente, con hora por la red (`docs/cuentas.md` § «Hora»). La barra lleva la batería (avisos al 20 y al 10 %, límite de carga al 80 % si el portátil lo permite) y aplicaciones fijadas (`docs/notas/escritorio.md`). Desde el 2026-10-19 trae tienda de aplicaciones (Bazaar con Flathub, aparte de pacman), gestor de comprimidos en Thunar y tipos de archivo de serie para que nada descargado pregunte (`docs/notas/escritorio.md` § «Instalar aplicaciones»). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -38,6 +38,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas | `docs/notas/escritorio.md` y `docs/DISENO.md` |
+| tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
 | cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, panel del disco, `gestionar-disco`, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
@@ -102,6 +103,12 @@ usuario); ARM, aparcado hasta tener la placa.
   de su `sh -c` puede quedársela (`pantallas.py vigilar` cierra los descriptores heredados) o la pantalla
   se queda en negro tras el asistente o el inicio de sesión.
 - Nunca `rm -rf` de un chroot con montajes `--rbind` (/dev, /run…): entra en ellos y borra los del sistema.
+- Apps Flatpak: dentro de su caja `/usr` es el del runtime. Lo que tengan que leer de `~/.config` (GTK)
+  van copias, no enlaces a `/usr/share/command-os`. Un paquete nuevo puede venir roto en una fecha de
+  Arch (Bazaar y libdex el 2026/10/05): `tests/escritorio.sh` mira que enlace (`LD_BIND_NOW`).
+- Copiar a la VM: nunca `build/x86` entero (lleva los discos de las VM, ignorados por git, y llena
+  `/tmp`): `git ls-files build | tar -czf - -T -`. `command-os-update` en la VM baja el paquete al
+  publicado si el de desarrollo es más nuevo: reinstalar después con `install.sh`.
 - Paneles del escritorio (`lib/panel-*.py`, `comun.ventana`/`Dialogo`): lo que necesita root va a
   `lib/gestionar-*` con `pkexec` (nunca `sudo -S` con una contraseña escrita en el panel); esos
   ayudantes contestan con códigos y reciben las contraseñas por la entrada estándar. Un texto de
