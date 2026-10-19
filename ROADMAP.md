@@ -44,18 +44,44 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
+Los puntos 1–4 aplican la identidad de marca v2 de command-web (`BRAND.md` 2.0 §§ 3–9 y 12.3,
+referencia `lenguaje.html`), que ya vale para Command OS y sustituye la estética HUD/Cyberpunk de
+`docs/DISENO.md`. Van todos en la rama `feat/identidad-de-marca-v2` y en un solo PR al terminar el 4.
+Antes de empezar cada uno: decir modelo y esfuerzo y esperar el «adelante» del usuario.
+
+1. **Marca v2 — colores y letra** en todos los archivos de tema (Waybar, Wofi, Mako, Kitty, GTK 3/4,
+   `greeter/command.css` y paneles, hyprlock, `themerc` y botones de labwc, fastfetch, prompt de bash,
+   colores de Plymouth y tema de GRUB): tokens de `tokens.css` (Void, Graphite, Slate, Steel, Bone, Ash,
+   Smoke; Signal Red en superficies y barras, Red Hot en texto, iconos y foco; OK y Warn para estados).
+   Fuera el cian y los brillos (el halo, solo en la barra del logo). Test nuevo `tests/marca.sh`: falla
+   si queda un color fuera de la paleta v2. *Opus, medio: muchos archivos, cambio mecánico.*
+2. **Marca v2 — forma**: chaflán en paneles, botones, menús, notificaciones e inicio de sesión (en GTK con
+   imágenes de borde generadas: su CSS no tiene `clip-path`), escuadras en la zona principal del bloqueo
+   y del inicio de sesión, y el lanzador con el aspecto de la paleta de comandos (activo con barra roja a
+   la izquierda). *Opus, alto: límites de GTK y labwc, se prueba en la VM.*
+3. **Marca v2 — fondos** (`build/make-wallpaper.py`): «retícula» (de serie: puntos de 26 px con máscara
+   radial, la C y un resplandor rojo ≤ 14 %), «plano» (construcción real del logo: guías, área de
+   respeto, rejilla de 64 px; la barra es lo único rojo) y «void». Fuera interfaz, núcleo y placa
+   (microtipografía, números de serie, código de barras y chip inventados: regla de función).
+   *Opus, medio.*
+4. **Marca v2 — arranque** (Plymouth y GRUB): versión corta de la secuencia de identidad (trazado del
+   símbolo → relleno → barra con halo → wordmark, ≤ 3 s, saltable), sin glitch ni cursor cian; la consola
+   de servicios pasa a lista de diagnóstico con las comprobaciones reales y un medidor con el avance real
+   de Plymouth. La contraseña del disco cifrado sigue dentro del splash. Al terminar, `DISENO.md`
+   reescrito y PR. *Opus, alto: initramfs y cifrado.*
+
+5. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
    en la ejecución diaria, y caché de paquetes. Antes, arreglar la facturación de GitHub (los trabajos
    no arrancan: «recent account payments have failed»). *Sonnet, medio.*
-2. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
+6. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
    y la clave de recuperación nuevas tras cambiarlas con el panel del disco, y que la vieja ya no
    entra. *Sonnet, medio.*
-3. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
+7. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
    `tecla`, `limpiar` y `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy
    en bash y Python, cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
-4. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
+8. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
    (Flatpak), sin tocar `/var/lib/flatpak` desde la comprobación de solo lectura (`docs/decisiones.md`,
    2026-10-19). *Opus, medio: toca la unidad de systemd, la barra y el panel.*
-5. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
+9. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
    instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
    alto: toca el instalador y la vuelta atrás.*
