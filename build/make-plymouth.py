@@ -23,7 +23,8 @@ REVEAL, BAR = 18, 10  # fotogramas de revelado de letras y de extensión de la b
 SIGNAL_RED = (165, 21, 0, 255)  # barra del logo: no se recolorea (ancla 1)
 RED = (209, 52, 73, 255)  # rojo 2077 del HUD
 CYAN = (91, 191, 196)
-STEEL = (46, 38, 48, 255)
+RED_HOT = (245, 72, 44, 255)  # marca v2: foco (cursor del campo de la contraseña)
+STEEL = (42, 42, 42, 255)
 BONE = (237, 235, 230, 255)
 GLITCH = {5: 1, 11: 2, 20: 3}  # fotograma -> semilla
 PAD = 16 * S  # margen transparente para que quepan el halo y los desplazamientos del glitch
@@ -87,9 +88,9 @@ for i in range(REVEAL + BAR):
     n += 1
 print(n, "fotogramas", W + 2 * PAD, "x", H + 2 * PAD)
 
-# Píxeles sueltos que el script escala en Plymouth: la barra de progreso (rojo sobre Steel) y el
-# campo de la contraseña del disco (puntos en hueso, cursor cian).
-Image.new("RGBA", (1, 1), RED).save(OUT / "px-red.png")
+# Píxeles sueltos que el script escala en Plymouth (marca v2): la barra de progreso (Signal Red
+# sobre Steel) y el campo de la contraseña del disco (puntos en Bone, cursor Red Hot).
+Image.new("RGBA", (1, 1), SIGNAL_RED).save(OUT / "px-red.png")
 Image.new("RGBA", (1, 1), STEEL).save(OUT / "px-dim.png")
 Image.new("RGBA", (1, 1), BONE).save(OUT / "px-bone.png")
-Image.new("RGBA", (1, 1), CYAN + (255,)).save(OUT / "px-cyan.png")
+Image.new("RGBA", (1, 1), RED_HOT).save(OUT / "px-red-hot.png")

@@ -3,6 +3,34 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-19 — Marca v2 de Command en vez del estilo Cyberpunk (`docs/DISENO.md`)
+
+- **Se deja el HUD de Cyberpunk 2077 (rojo `#D13449`, cian, glitch, halos) por la marca v2 de
+  command-web** (`BRAND.md` 2.0, que vale ya para todo Command, Command OS incluido): casi monocromo,
+  el rojo como señal, chaflanes, escuadras y la regla de función. Un dispositivo puede tener interfaz
+  propia, pero el estilo Cyberpunk era un disfraz que la marca ya no admite (§ 12.3: lo retro viene del
+  medio, no de un disfraz) y separaba Command OS del resto del ecosistema. Descartado: mantener el
+  HUD solo en Command OS, o mezclar los dos (el cian como secundario).
+- **Dos rojos con papeles fijos:** Signal Red `#A51500` en superficies y barras (botón principal,
+  barra de lo activo, progreso, texto seleccionado con texto blanco) y Red Hot `#F5482C` en texto,
+  iconos y foco (filo de la ventana activa, campo enfocado, enlaces). Signal Red no da contraste de
+  texto sobre oscuro. **Fuera el cian del todo**: las etiquetas de datos pasan a Smoke y los valores a
+  Bone o Ash. **Lo seleccionado** va en Slate con la barra Signal Red a la izquierda (antes, granate).
+- **Estados con OK `#3DDC84` y Warn `#FFB020`, siempre con su texto** (cifra, `upd N`, «acceso
+  denegado»); el crítico, en Red Hot. Descartado: un amarillo propio como el de antes.
+- **Sin brillos:** fuera el halo de las ventanas, el `text-shadow` del texto activo y el de la hora del
+  bloqueo y del inicio de sesión. El halo queda solo en la barra del logo (BRAND § 3). Las ventanas
+  conservan una sombra oscura corta (son flotantes; tokens.css la permite en lo flotante).
+- **Colores extra solo donde hacen falta y documentados en `tests/marca.sh`.** Hoy, los seis de azul,
+  magenta y cian de la terminal (Kitty): los programas usan los 16 colores ANSI con significado y la
+  marca no los tiene. Van apagados, casi grises, para no competir con el rojo. Descartado: grises
+  puros (`ls` y `git diff` dejarían de distinguirse) y añadir una paleta de terminal a `BRAND.md`
+  (decisión del usuario: los principales son los de v2; los extra se permiten donde hagan falta).
+- **`tests/marca.sh` con exclusiones temporales** para los generadores que se rehacen enteros más
+  adelante (`make-wallpaper.py` en «Marca v2 — fondos» del ROADMAP, `make-plymouth.py` en «Marca v2 — arranque»): retocarlos
+  ahora sería trabajo que se tira. La prueba falla si un excluido ya no tiene colores viejos, para que
+  la lista se vacíe.
+
 ## 2026-10-19 — Instalar aplicaciones (`docs/notas/escritorio.md` § «Instalar aplicaciones»)
 
 - **Tienda de Flatpak con Flathub, no de pacman.** Las apps de Flatpak van aparte del sistema: instalar o

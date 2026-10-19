@@ -9,9 +9,9 @@
 # Con el disco cifrado, la contraseña se pide aquí mismo, en el sitio de la consola (abajo).
 # El progreso lo calcula Plymouth con la duración guardada de arranques anteriores; en el
 # primer arranque es una estimación por defecto. Al apagar/reiniciar no hay barra.
-# Paleta HUD (docs/DISENO.md): fondo Void #0D0B0E, barra roja sobre Steel.
-Window.SetBackgroundTopColor(0.051, 0.043, 0.055);
-Window.SetBackgroundBottomColor(0.051, 0.043, 0.055);
+# Marca v2 (docs/DISENO.md): fondo Void #0E0E0E, barra Signal Red sobre Steel.
+Window.SetBackgroundTopColor(0.055, 0.055, 0.055);
+Window.SetBackgroundBottomColor(0.055, 0.055, 0.055);
 
 # Todo va en proporción al alto de la pantalla: igual de grande en 1366x768 que en 2560x1600 o
 # en 4K. A 1080 px de alto, K = 1 (wordmark de 640 px). Los fotogramas vienen a doble resolución
@@ -77,8 +77,8 @@ fun draw_log() {
             if (i == LOG_LINES - 1) {
                 log_sprite[i].SetImage(Image.Text(log_text[i], 0.93, 0.92, 0.90, 1, FONT));
             } else {
-                # Smoke #6F6870 -> Ash #A8A2A6
-                log_sprite[i].SetImage(Image.Text(log_text[i], 0.30 + 0.36 * t, 0.28 + 0.36 * t, 0.30 + 0.35 * t, 1, FONT));
+                # Smoke #85827C -> Ash #A3A09A
+                log_sprite[i].SetImage(Image.Text(log_text[i], 0.52 + 0.12 * t, 0.51 + 0.12 * t, 0.49 + 0.11 * t, 1, FONT));
             }
             log_sprite[i].SetOpacity(1);
         }
@@ -135,12 +135,12 @@ Plymouth.SetKeyboardInputFunction(key_callback);
 # --- Contraseña del disco cifrado ---------------------------------------------------
 # La pide el gancho command-os-cifrado del initramfs (os/initcpio). En el sitio de la consola: el
 # texto, una línea de campo y un cuadradito hueso por carácter (no se ve cuántos hay a partir de
-# DOT_MAX) con el cursor cian detrás. Los dos textos del gancho van como imágenes en JetBrains Mono,
+# DOT_MAX) con el cursor Red Hot detrás. Los dos textos del gancho van como imágenes en JetBrains Mono,
 # una por idioma (build/make-plymouth-textos.py): en el initramfs, Image.Text pinta la ñ y las tildes
 # como cuadrados. Plymouth no sabe el idioma: el gancho manda el texto en el del sistema (parámetro
 # command-os.idioma=) y aquí se reconoce por su contenido; cualquier otro, con Image.Text.
 px_bone = Image("px-bone.png");
-px_cyan = Image("px-cyan.png");
+px_red_hot = Image("px-red-hot.png");
 fun texto_imagen(nombre) {
     src = Image(nombre);
     return src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
@@ -158,7 +158,7 @@ prompt_sprite.SetPosition(logo_x, log_y, 4);
 field_line = Sprite(px_dim.Scale(logo_w, BAR_H));
 field_line.SetPosition(logo_x, field_y + DOT + Math.Int(10 * K), 4);
 field_line.SetOpacity(0);
-caret = Sprite(px_cyan.Scale(Math.Int(DOT / 2) + 1, DOT + Math.Int(6 * K)));
+caret = Sprite(px_red_hot.Scale(Math.Int(DOT / 2) + 1, DOT + Math.Int(6 * K)));
 caret.SetOpacity(0);
 for (i = 0; i < DOT_MAX; i++) {
     dot[i] = Sprite(px_bone.Scale(DOT, DOT));

@@ -1,5 +1,6 @@
 # Command OS — pruebas en cada cambio y cada día.
 #   - scripts: sintaxis y errores graves (shellcheck) de todos los scripts.
+#   - marca: ningún archivo de tema usa un color fuera de la paleta v2 ni brillos (tests/marca.sh).
 #   - pantallas: la escala de alta densidad y la configuración de hyprlock escalada (tests/pantallas.sh).
 #   - barra: la batería con una batería simulada, sus avisos, el límite de carga y las aplicaciones
 #     fijadas (tests/barra.sh).
@@ -34,6 +35,8 @@ jobs:
       - name: shellcheck (solo errores)
         run: |
           shellcheck -S error -e SC1090,SC1091 os/install.sh $(find os/lib -maxdepth 1 -type f ! -name '*.py') os/bin/* os/initcpio/*/* os/system/sleep-* build/x86/*.sh tests/*.sh
+      - name: Colores de la marca v2
+        run: bash tests/marca.sh
       - name: Escala de las pantallas
         run: bash tests/pantallas.sh
       - name: Batería y aplicaciones fijadas de la barra

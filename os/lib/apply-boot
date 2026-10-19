@@ -72,9 +72,9 @@ make_grub_theme() {  # make_grub_theme ALTO_PANTALLA -> 0 si el tema queda listo
       -o "${THEME_DIR}/cmd-${name%%:*}.pf2" "${THEME_FONT}" || return 1
   done
   # Bloque centrado: wordmark, hueco, panel del menú (4 entradas a la vista; si hay más, barra de
-  # desplazamiento) y cuenta atrás.
+  # desplazamiento; + 2: el borde de 1 px arriba y abajo) y cuenta atrás.
   local gap ih sp pad mh half
-  gap=$(p 44); ih=$(p 44); sp=$(p 4); pad=$(p 10); mh=$(( 4 * (ih + sp) + 2 * pad + 4 ))
+  gap=$(p 44); ih=$(p 44); sp=$(p 4); pad=$(p 10); mh=$(( 4 * (ih + sp) + 2 * pad + 2 ))
   half=$(( (lh + gap + mh) / 2 ))
   cat > "${THEME_DIR}/theme.txt" <<EOF
 # Command OS — tema de GRUB para pantallas de ${h} px de alto. Lo genera /usr/lib/command-os/apply-boot
@@ -82,7 +82,7 @@ make_grub_theme() {  # make_grub_theme ALTO_PANTALLA -> 0 si el tema queda listo
 title-text: ""
 desktop-image: "fondo.png"
 desktop-image-scale-method: "crop"
-desktop-color: "#0d0b0e"
+desktop-color: "#0e0e0e"
 terminal-font: "cmd-consola"
 terminal-left: "4%"
 terminal-top: "4%"
@@ -106,7 +106,7 @@ terminal-border: "0"
   menu_pixmap_style = "panel_*.png"
   item_font = "cmd-menu"
   selected_item_font = "cmd-menu"
-  item_color = "#a8a2a6"
+  item_color = "#a3a09a"
   selected_item_color = "#edebe6"
   selected_item_pixmap_style = "sel_*.png"
   item_height = ${ih}
@@ -128,7 +128,7 @@ terminal-border: "0"
   height = $(p 24)
   align = "center"
   font = "cmd-texto"
-  color = "#5bbfc4"
+  color = "#a3a09a"
   text = "$(t 'arranca en %d s')"
 }
 
@@ -139,7 +139,7 @@ terminal-border: "0"
   height = $(p 24)
   align = "center"
   font = "cmd-texto"
-  color = "#6f6870"
+  color = "#85827c"
   text = "$(t '↑ ↓  elegir      intro  arrancar      e  editar      c  consola')"
 }
 EOF

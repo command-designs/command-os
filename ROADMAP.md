@@ -44,31 +44,36 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-Los puntos 1–4 aplican la identidad de marca v2 de command-web (`BRAND.md` 2.0 §§ 3–9 y 12.3,
-referencia `lenguaje.html`), que ya vale para Command OS y sustituye la estética HUD/Cyberpunk de
-`docs/DISENO.md`. Van todos en la rama `feat/identidad-de-marca-v2` y en un solo PR al terminar el 4.
+Los puntos 1–4 terminan de aplicar la identidad de marca v2 de command-web (`BRAND.md` 2.0 §§ 3–9 y
+12.3, referencia `lenguaje.html`), que ya vale para Command OS y sustituye la estética HUD/Cyberpunk.
+Colores y letra ya están (con `tests/marca.sh`). Van todos en la rama `feat/identidad-de-marca-v2` y en
+un solo PR al terminar el 4. Al acabar no puede quedar nada del estilo Cyberpunk: todo pasa
+a la v2.
 Antes de empezar cada uno: decir modelo y esfuerzo y esperar el «adelante» del usuario.
 
-1. **Marca v2 — colores y letra** en todos los archivos de tema (Waybar, Wofi, Mako, Kitty, GTK 3/4,
-   `greeter/command.css` y paneles, hyprlock, `themerc` y botones de labwc, fastfetch, prompt de bash,
-   colores de Plymouth y tema de GRUB): tokens de `tokens.css` (Void, Graphite, Slate, Steel, Bone, Ash,
-   Smoke; Signal Red en superficies y barras, Red Hot en texto, iconos y foco; OK y Warn para estados).
-   Fuera el cian y los brillos (el halo, solo en la barra del logo). Test nuevo `tests/marca.sh`: falla
-   si queda un color fuera de la paleta v2. *Opus, medio: muchos archivos, cambio mecánico.*
-2. **Marca v2 — forma**: chaflán en paneles, botones, menús, notificaciones e inicio de sesión (en GTK con
+1. **Marca v2 — forma**: chaflán en paneles, botones, menús, notificaciones e inicio de sesión (en GTK con
    imágenes de borde generadas: su CSS no tiene `clip-path`), escuadras en la zona principal del bloqueo
    y del inicio de sesión, y el lanzador con el aspecto de la paleta de comandos (activo con barra roja a
-   la izquierda). *Opus, alto: límites de GTK y labwc, se prueba en la VM.*
-3. **Marca v2 — fondos** (`build/make-wallpaper.py`): «retícula» (de serie: puntos de 26 px con máscara
+   la izquierda). Arreglar de paso el menú de energía (`command-os-power`): solo enseña una opción a la vez
+   con barra de desplazamiento (ya pasaba antes de la marca v2; visto en la VM el 2026-10-19). *Opus,
+   alto: límites de GTK y labwc, se prueba en la VM.*
+2. **Marca v2 — fondos** (`build/make-wallpaper.py`): «retícula» (de serie: puntos de 26 px con máscara
    radial, la C y un resplandor rojo ≤ 14 %), «plano» (construcción real del logo: guías, área de
    respeto, rejilla de 64 px; la barra es lo único rojo) y «void». Fuera interfaz, núcleo y placa
-   (microtipografía, números de serie, código de barras y chip inventados: regla de función).
-   *Opus, medio.*
-4. **Marca v2 — arranque** (Plymouth y GRUB): versión corta de la secuencia de identidad (trazado del
+   (microtipografía, números de serie, código de barras y chip inventados: regla de función). Al
+   terminar, quitar `make-wallpaper.py` de `TEMPORALES` en `tests/marca.sh`. *Opus, medio.*
+3. **Marca v2 — arranque** (Plymouth y GRUB): versión corta de la secuencia de identidad (trazado del
    símbolo → relleno → barra con halo → wordmark, ≤ 3 s, saltable), sin glitch ni cursor cian; la consola
    de servicios pasa a lista de diagnóstico con las comprobaciones reales y un medidor con el avance real
-   de Plymouth. La contraseña del disco cifrado sigue dentro del splash. Al terminar, `DISENO.md`
-   reescrito y PR. *Opus, alto: initramfs y cifrado.*
+   de Plymouth. La contraseña del disco cifrado sigue dentro del splash. Al terminar, quitar
+   `make-plymouth.py` de `TEMPORALES` en `tests/marca.sh`. *Opus, alto: initramfs y cifrado.*
+4. **Marca v2 — sonidos** (`build/make-sounds.py`): que suenen como la interfaz v2, un instrumento
+   preciso y sobrio, en vez del aparato de Cyberpunk (golpe de encendido con ventiladores, alarma
+   saturada). Antes de generar, proponer la dirección y que el usuario la escuche. Cierre de la marca
+   v2: repaso de todo el repo («cyberpunk», «HUD», «2077», «glitch», «cian» y los hex viejos; en las
+   notas históricas solo como historia), `tests/marca.sh` que falle si `TEMPORALES` no está vacía o
+   si esas palabras vuelven a `os/` o `build/`, `DISENO.md` reescrito entero y PR. *Opus, medio:
+   síntesis de sonido y repaso de muchos archivos.*
 
 5. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
    en la ejecución diaria, y caché de paquetes. Antes, arreglar la facturación de GitHub (los trabajos

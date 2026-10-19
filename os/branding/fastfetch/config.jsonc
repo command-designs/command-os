@@ -1,7 +1,7 @@
 // Command OS — fastfetch (información del sistema). Se instala en /etc/xdg/fastfetch/ para todos
 // los usuarios; cada uno puede sustituirla con ~/.config/fastfetch/config.jsonc.
-// Logo: la C de Command con su barra (build/make-fastfetch-logo.py). Paleta de docs/DISENO.md:
-// claves en cian (dato), separador rojo, valores en hueso. Voz de la marca: minúsculas.
+// Logo: la C de Command con su barra (build/make-fastfetch-logo.py). Paleta de la marca v2
+// (docs/DISENO.md): claves en Smoke, separador Red Hot, valores en Bone. Voz de la marca: minúsculas.
 {
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
     "logo": {
@@ -20,21 +20,21 @@
     "display": {
         "separator": " › ",
         "color": {
-            "keys": "#5BBFC4",
+            "keys": "#85827C",
             "title": "#EDEBE6",
             "output": "#EDEBE6",
-            "separator": "#D13449"
+            "separator": "#F5482C"
         },
         // El ancho incluye el separador: "escritorio › " son 13.
         "key": {
             "width": 14
         },
-        // Porcentajes (memoria, disco, batería): cian normal, ámbar aviso, rojo crítico.
+        // Porcentajes (memoria, disco, batería): OK normal, Warn aviso, Red Hot crítico (con su cifra).
         "percent": {
             "color": {
-                "green": "#5BBFC4",
-                "yellow": "#E2C044",
-                "red": "#D13449"
+                "green": "#3DDC84",
+                "yellow": "#FFB020",
+                "red": "#F5482C"
             }
         },
         "brightColor": false
@@ -44,14 +44,14 @@
             "type": "title",
             "color": {
                 "user": "#EDEBE6",
-                "at": "#6F6870",
-                "host": "#D13449"
+                "at": "#85827C",
+                "host": "#EDEBE6"
             }
         },
         {
             "type": "separator",
             "string": "─",
-            "outputColor": "#2E2630"
+            "outputColor": "#2A2A2A"
         },
         { "type": "os", "key": "sistema", "format": "{pretty-name} · {arch}" },
         { "type": "host", "key": "equipo" },

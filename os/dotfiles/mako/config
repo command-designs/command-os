@@ -1,10 +1,10 @@
-# Notificaciones de Command OS (docs/DISENO.md): panel HUD con esquinas vivas.
-# Normal: filo cian (dato). Crítica: rojo 2077 sobre fondo granate.
+# Notificaciones de Command OS (docs/DISENO.md, marca v2): panel en Graphite con filo de 1 px.
+# Crítica: filo Red Hot de 2 px (el texto ya dice qué pasa). Barra de progreso en Signal Red.
 font=Geist 11
-background-color=#15121a
+background-color=#151515
 text-color=#edebe6
-border-color=#5bbfc4aa
-progress-color=over #2f6e72
+border-color=#2a2a2a
+progress-color=over #a51500
 border-size=1
 border-radius=0
 padding=12
@@ -16,12 +16,11 @@ layer=overlay
 on-notify=exec command-os-sound notify
 
 [urgency=low]
-text-color=#a8a2a6
-border-color=#2e2630
+text-color=#a3a09a
+border-color=#2a2a2a
 
 [urgency=critical]
 on-notify=exec command-os-sound critical
-background-color=#1f0c12
-border-color=#d13449
+border-color=#f5482c
 border-size=2
 default-timeout=0

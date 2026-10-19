@@ -44,7 +44,7 @@ print("igual" if igual == open(sys.argv[2], encoding="utf-8").read() else "cambi
 doble = p.hyprlock(sys.argv[2], {"eDP-1": 2.0, "HDMI-A-1": 1.0})
 print(doble.count("monitor = eDP-1"), doble.count("monitor = HDMI-A-1"))
 print("font_size = 128" in doble, "size = 600, 88" in doble, "position = 0, -100" in doble)
-print(p.escalar_valor("50%, 10", 2), "shadow_color = rgba(209, 52, 73, 0.30)" in doble)
+print(p.escalar_valor("50%, 10", 2), "check_color = rgb(163, 160, 154)" in doble)
 PY
 )
 mapfile -t l <<< "${salida}"

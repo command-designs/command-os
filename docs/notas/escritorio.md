@@ -25,8 +25,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   Waybar los enseña a la derecha y `style.css` oculta el botón cuando es `:only-child`. Re-ejecutar
   `install.sh` vuelve a dejar uno solo.
 - **Aviso de actualizaciones** (`custom/updates` en Waybar, `os/bin/command-os-updates`): oculto si no
-  hay nada (el script devuelve texto vacío y Waybar quita el módulo), `upd N` en cian y el número en
-  ámbar si hay versión nueva de command-os. Lo refresca cada minuto y con la señal 8 (`pkill
+  hay nada (el script devuelve texto vacío y Waybar quita el módulo), `upd N` con la etiqueta en Smoke y el
+  número en Warn si hay versión nueva de command-os. Lo refresca cada minuto y con la señal 8 (`pkill
   -RTMIN+8 waybar`). Cómo se comprueba, por qué así y cómo se prueba: `docs/actualizaciones.md` § 7.
 - **fastfetch**: logo de la C generado por `build/make-fastfetch-logo.py` (medios bloques, colores
   `$1`/`$2`) y configuración en `os/branding/fastfetch/`, instalados en `/usr/share/command-os/` y
@@ -38,10 +38,14 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 - **Ajustes por máquina** (los genera `install.sh`, no van en los dotfiles): `environment.d/local.env`
   (teclado de `/etc/command-os/kb_layout`) y `themerc-override` (sin sombras en VM). En VirtualBox,
   `video=1280x720` en la línea del kernel: todo el arranque y el escritorio a esa resolución.
+- **Marca v2, colores y letra** (2026-10-19, verificado en la VM con capturas): inicio de sesión,
+  escritorio, barra, ventanas activa e inactiva, Thunar (GTK 3), pavucontrol (GTK 4), kitty con fastfetch,
+  lanzador, menú de energía, notificación, bloqueo y splash. El menú de GRUB no se vio (el arranque lo
+  oculta): solo las piezas generadas. Menús de labwc y Alt+Tab, sin captura.
 - **GTK**: las apps con cabecera propia (GTK 4, Firefox) no reciben marco de labwc; `gtk-3.0/gtk.css`
-  y `gtk-4.0/gtk.css` les dibujan el mismo filo rojo y halo.
+  y `gtk-4.0/gtk.css` les dibujan el mismo filo (Red Hot si están activas) y la misma sombra oscura.
 - **Verificado en VM VirtualBox** (capturas): escritorio, barra con tareas, ventanas activa/inactiva
-  (borde `#D13449` medido), botones, menú de ventana, Alt+Tab, lanzador con Super, ayuda de atajos,
+  (borde `#D13449` medido; desde la marca v2 es Red Hot `#F5482C`), botones, menú de ventana, Alt+Tab, lanzador con Super, ayuda de atajos,
   mezclador desplegable, bloqueo y desbloqueo, bloqueo automático a los 5 min, notificaciones, crear,
   usar y quitar escritorios, fastfetch, re-ejecución de `install.sh` con la sesión abierta y
   reinicio completo (splash → escritorio). Uso de memoria del sistema: ~616 MB. **No verificado**:
@@ -163,12 +167,12 @@ antes de cada cambio y que se le notifique (PushNotification) cuando haga falta 
 - **Barra**: reloj con fecha (Waybar pasa **un** argumento de fecha: con dos `{:...}` el módulo no
   arranca; usar `{0:%d.%m}  {0:%H:%M}`), temperatura (en la VM no hay `thermal_zone0` y el módulo
   se desactiva solo, es normal), batería con tiempo restante (avisos y límite de carga: § «Batería»),
-  señal wifi, umbrales ámbar/rojo.
-- **Ventanas**: barra de título plana, títulos y Alt+Tab en JetBrains Mono, halo de 12 px.
+  señal wifi, umbrales Warn/Red Hot.
+- **Ventanas**: barra de título plana, títulos y Alt+Tab en JetBrains Mono, sombra oscura de 12 px (sin halo rojo desde la marca v2).
 - **Bloqueo**: `immediate_render` (sin él, hyprlock espera hasta 2 s a sus recursos antes de
   bloquear) y el sonido de bloqueo en segundo plano en `hypridle.conf` (antes bloqueaba al terminar
   el sonido). Medido: Super+L → sesión bloqueada en ~350 ms. Línea de estado real
-  (`os/bin/command-os-status`), intentos fallidos y aviso de mayúsculas en ámbar.
+  (`os/bin/command-os-status`), intentos fallidos y aviso de mayúsculas en Warn.
 - **Sonidos** (`build/make-sounds.py`, numpy): de aparato real (clics, pitidos, barridos, golpe de
   encendido), sala seca. `login.wav` eliminado (no se usaba). **No se han escuchado**: verificado
   solo que no saturan; que el usuario los oiga.

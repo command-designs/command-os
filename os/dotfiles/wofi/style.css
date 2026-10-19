@@ -1,14 +1,13 @@
-/* Lanzador de Command OS: terminal HUD (docs/DISENO.md). Marco rojo 2077, esquinas vivas,
-   la entrada seleccionada se marca con un filo rojo y un halo. */
-@define-color void #0d0b0e;
-@define-color graphite #15121a;
-@define-color slate #1d1820;
-@define-color steel #2e2630;
+/* Lanzador de Command OS (docs/DISENO.md, marca v2): panel en Graphite con filo de 1 px; la entrada
+   seleccionada, en Slate con la barra Signal Red a la izquierda. El foco del buscador, en Red Hot. */
+@define-color void #0e0e0e;
+@define-color graphite #151515;
+@define-color slate #1f1f1f;
+@define-color steel #2a2a2a;
 @define-color bone #edebe6;
-@define-color smoke #6f6870;
-@define-color red #d13449;
-@define-color red-deep #2b1118;
-@define-color cyan #5bbfc4;
+@define-color smoke #85827c;
+@define-color red #a51500;
+@define-color red-hot #f5482c;
 
 * {
     font-family: "Geist", "JetBrainsMono Nerd Font";
@@ -17,10 +16,9 @@
 }
 
 window {
-    background-color: @void;
+    background-color: @graphite;
     color: @bone;
-    border: 1px solid @red;
-    border-top: 3px solid @red;
+    border: 1px solid @steel;
 }
 
 /* Entrada del panel: aparece y se asienta, con la curva de Command (sin rebote). labwc no anima
@@ -42,17 +40,16 @@ window {
 #input {
     margin-bottom: 8px;
     padding: 10px 12px;
-    background-color: @graphite;
-    color: @cyan;
-    caret-color: @red;
+    background-color: @void;
+    color: @bone;
+    caret-color: @red-hot;
     border: 1px solid @steel;
     font-family: "JetBrainsMono Nerd Font";
     letter-spacing: 0.04em;
 }
 
 #input:focus {
-    border-color: alpha(@red, 0.6);
-    box-shadow: 0 0 6px alpha(@red, 0.18);
+    border-color: @red-hot;
 }
 
 #entry {
@@ -61,7 +58,7 @@ window {
 }
 
 #entry:selected {
-    background-color: @red-deep;
+    background-color: @slate;
     border-left: 2px solid @red;
     outline: none;
 }
@@ -75,6 +72,5 @@ window {
 }
 
 #text:selected {
-    color: @red;
-    text-shadow: 0 0 4px alpha(@red, 0.4);
+    color: @bone;
 }

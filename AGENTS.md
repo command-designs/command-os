@@ -38,6 +38,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas | `docs/notas/escritorio.md` y `docs/DISENO.md` |
+| colores, letra o cualquier archivo de tema (marca v2 de command-web) | `docs/DISENO.md` § «Pantalla» y `tests/marca.sh` |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
@@ -51,6 +52,9 @@ usuario); ARM, aparcado hasta tener la placa.
 ## Trampas que ya han roto algo (resumen; el porqué está en `docs/notas/`)
 
 - XML de labwc: **ningún comentario puede contener `--`**: labwc deja de leer el archivo entero.
+- Colores: solo los de la paleta v2 (`docs/DISENO.md`); `tests/marca.sh` falla con cualquier otro. Un
+  color extra que haga falta se añade a su lista `EXTRA` con el motivo. Signal Red nunca para texto
+  (no da contraste): texto, iconos y foco en Red Hot. Sin `text-shadow` ni halos (solo la barra del logo).
 - labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.
 - Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` y se pasa con
   `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch. La hoja va además

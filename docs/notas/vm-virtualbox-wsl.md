@@ -11,7 +11,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Comandos exactos: `docs/
   en vez de blur. Las apps GTK/Qt (Thunar, Firefox, pavucontrol) siguen el mismo tema: `adw-gtk3-dark`
   recoloreado en `os/dotfiles/gtk-{3,4}.0/gtk.css`, Papirus-Dark y modo oscuro por dconf. Se mantiene de `BRAND.md` (`C:\Workspace\command\command-web`): wordmark con barra Signal
   Red, Oxanium/Geist/JetBrains Mono, voz en minúsculas, curva de movimiento. Paleta, reglas y
-  estado de cada ancla en `docs/DISENO.md`. Assets en `os/branding/`
+  estado de cada ancla en `docs/DISENO.md`. **Desde el 2026-10-19 vale la marca v2** de command-web
+  (casi monocromo, sin cian ni halos; `docs/decisiones.md`): lo de arriba queda como historia. Assets en `os/branding/`
   (logo, fuentes OFL, wallpaper, tema Plymouth); se regeneran con `build/make-wallpaper.py` y
   `build/make-plymouth.py`. El instalador también cambia `os-release`, `issue`, `motd` y GRUB.
 - **VirtualBox sí sirve ahora** para probar el escritorio (contradice el punto 1 de "Qué se

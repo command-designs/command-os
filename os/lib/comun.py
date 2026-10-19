@@ -39,7 +39,7 @@ def usuario_desde(nombre):
 
 
 def fila(etiqueta, widget):
-    """Etiqueta en cian encima del campo."""
+    """Etiqueta en Smoke encima del campo."""
     caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
     texto = Gtk.Label(label=etiqueta, xalign=0)
     texto.add_css_class("etiqueta")

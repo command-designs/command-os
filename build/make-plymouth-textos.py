@@ -3,7 +3,7 @@
 En el initramfs, Plymouth dibuja el texto con label-freetype, que pinta la ñ y las tildes como
 cuadrados (no tiene un locale UTF-8 ni la fuente de la marca). Estos textos van como imágenes, igual
 que el wordmark: JetBrains Mono en minúsculas, como las etiquetas del asistente de primer arranque
-(cian; el fallo, en rojo). A doble resolución: command.script los reduce al alto de la pantalla.
+(Ash; el fallo, en Red Hot: marca v2). A doble resolución: command.script los reduce al alto de la pantalla.
 
 Una imagen por idioma (texto-clave.<idioma>.png): el castellano es el texto original y el resto sale
 de su traducción en os/po/<idioma>.po (docs/idioma.md), así que tests/idioma.sh vigila también estos
@@ -24,8 +24,8 @@ PO = REPO / "os" / "po"
 FONT = sys.argv[1] if len(sys.argv) > 1 else "/usr/share/fonts/TTF/JetBrainsMonoNLNerdFont-Regular.ttf"
 S = 2  # doble resolución
 SIZE = 13 * S  # a 1080 px de alto, un punto más que la consola de servicios
-CYAN = (91, 191, 196, 255)
-RED = (209, 52, 73, 255)
+ASH = (163, 160, 154, 255)
+RED_HOT = (245, 72, 44, 255)
 
 
 def _(texto):  # marca para build/po.sh: el texto original, en castellano
@@ -33,8 +33,8 @@ def _(texto):  # marca para build/po.sh: el texto original, en castellano
 
 
 TEXTOS = {
-    "texto-clave": (_("contraseña del disco  ·  o la clave de recuperación"), CYAN),
-    "texto-clave-mala": (_("contraseña incorrecta  ·  vuelve a escribirla"), RED),
+    "texto-clave": (_("contraseña del disco  ·  o la clave de recuperación"), ASH),
+    "texto-clave-mala": (_("contraseña incorrecta  ·  vuelve a escribirla"), RED_HOT),
 }
 
 

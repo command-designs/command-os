@@ -77,7 +77,7 @@ estado() {
     (( otros > 8 )) && tip+="$(t '… y %d más' $(( otros - 8 )))"$'\n'
   fi
   tip+=$'\n'"$(t 'comprobado %s · clic: ver y actualizar · clic derecho: comprobar ahora' "$(hace "${comprobado}")")"
-  printf '{"text": "<span color=\\"#5bbfc4\\">upd</span> %s", "tooltip": "%s", "class": "%s"}\n' \
+  printf '{"text": "<span color=\\"#85827c\\">upd</span> %s", "tooltip": "%s", "class": "%s"}\n' \
     "${total}" "$(printf '%s' "${tip}" | pango | json)" "${clase}"
 }
 
