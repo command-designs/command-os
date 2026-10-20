@@ -3,6 +3,15 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — Licencia del repo: GPL-3.0
+
+- **GPL-3.0** (`LICENSE`, titular command-lab). Es la licencia habitual en el ecosistema Linux/Arch y
+  obliga a que cualquier versión modificada que se distribuya siga siendo libre, para que nadie cierre
+  un derivado de Command OS.
+- Descartado: **MIT/Apache-2.0** (permiten que un tercero lo cierre y lo venda sin devolver nada) y
+  **sin licencia** (el repo es público: sin licencia nadie puede legalmente usarlo ni modificarlo).
+- La licencia cubre el código y los scripts del repo; el nombre y la identidad de marca no se ceden.
+
 ## 2026-10-20 — Bluetooth con blueman y apagado de serie (`docs/notas/escritorio.md` § «Bluetooth»)
 
 - **Panel: blueman, no uno propio** (decisión del usuario). Ya coge el tema GTK 3, viene traducido y trae
@@ -550,12 +559,3 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 
 - **Clave nueva al perder la anterior**, sin transición firmada: aún no se había publicado ningún
   paquete, así que ningún equipo confiaba en la antigua.
-
-## 2026-10-20 — Licencia del repo: GPL-3.0
-
-- **GPL-3.0** (`LICENSE`, titular command-lab). Es la licencia habitual en el ecosistema Linux/Arch y
-  obliga a que cualquier versión modificada que se distribuya siga siendo libre, para que nadie cierre
-  un derivado de Command OS.
-- Descartado: **MIT/Apache-2.0** (permiten que un tercero lo cierre y lo venda sin devolver nada) y
-  **sin licencia** (el repo es público: sin licencia nadie puede legalmente usarlo ni modificarlo).
-- La licencia cubre el código y los scripts del repo; el nombre y la identidad de marca no se ceden.
