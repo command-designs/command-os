@@ -61,14 +61,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-Los puntos 1–3 van juntos en la rama actual y en un solo PR; los 4 y 5, en ese PR o el siguiente.
+Los puntos 2 y 3 van juntos en la rama actual y en un solo PR (el de «CI en verde»); el 4 y el 5, en ese PR o el siguiente.
 
-1. **CI en verde.** Arreglar tres fallos: `os/lib/reglas.sh` sin línea `# shellcheck shell=bash` (SC2148);
-   `tests/discos.sh` lanza `gestionar-disco` sin `bash` y `os/lib` no tiene permiso de ejecución en git;
-   el grep de `tests/cuentas.sh` (§ «Reglas de las cuentas») busca `\]\[^$]` y debe ser `\][^$]`. Reintentos
-   de pacman contra archive.archlinux.org («Operation too slow»). Recortar `pruebas.yml` (`push` solo a
-   `main` más `pull_request`) y poner `timeout-minutes` y `concurrency` en todos los workflows. Después,
-   abrir el PR de la rama. _Sonnet, esfuerzo medio._
 2. **Avisar cuando falle la CI programada.** Que el fallo diario de «escritorio con el Arch del día» abra
    o actualice un issue (desde el 2026-10-16 fallaba sin que nadie lo viera). _Sonnet, esfuerzo bajo._
 3. **Pruebas en WSL como en la CI.** `build/wsl/pruebas.sh`: lanza en el Arch de WSL las mismas pruebas

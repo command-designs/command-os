@@ -16,9 +16,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: fecha
+  cancel-in-progress: false  # no cortar una validación que va a escribir en main
+
 jobs:
   elegir:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       fecha: ${{ steps.f.outputs.fecha }}
     steps:
@@ -39,6 +44,7 @@ jobs:
   validar:
     needs: [elegir, probar]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
         with:

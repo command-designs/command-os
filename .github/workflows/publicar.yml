@@ -24,7 +24,9 @@ on:
       COMMAND_OS_VERSIONS_TOKEN:
         required: true
 
-concurrency: publicar
+concurrency:
+  group: publicar
+  cancel-in-progress: false  # no cortar una publicación a medias
 
 env:
   REPO_PUBLICO: command-designs/command-os-versions
@@ -32,6 +34,7 @@ env:
 jobs:
   publicar:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     container: archlinux:latest
     steps:
       # git antes del checkout: sin él, actions/checkout baja los archivos sin el historial y no hay

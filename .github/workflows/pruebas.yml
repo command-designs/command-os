@@ -17,14 +17,20 @@ name: pruebas
 
 on:
   push:
+    branches: [main]
   pull_request:
   schedule:
     - cron: '17 5 * * *'
   workflow_dispatch:
 
+concurrency:
+  group: pruebas-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   scripts:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - name: Sintaxis
@@ -53,6 +59,7 @@ jobs:
   # Seguridad del instalador en disco entero, con discos loop (nunca discos reales del ejecutor).
   discos:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - name: Herramientas
@@ -64,6 +71,7 @@ jobs:
   # command-os-rollback sobre un btrfs en un disco loop (nunca discos reales del ejecutor).
   rollback:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - name: Herramientas

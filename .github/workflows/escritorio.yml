@@ -18,6 +18,7 @@ jobs:
   escritorio:
     name: escritorio (${{ inputs.arch }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     container: archlinux:latest
     steps:
       - uses: actions/checkout@v5
@@ -38,8 +39,12 @@ jobs:
           # La imagen de Docker no extrae traducciones ni locales (NoExtract): un equipo de verdad
           # sí, y tests/idioma.sh los necesita. glibc se reinstala para recuperar los locales.
           sed -i '/^NoExtract/d' /etc/pacman.conf
-          pacman -Syu --noconfirm base-devel git libxml2 grim grub
-          pacman -S --noconfirm glibc
+          # archive.archlinux.org a veces corta con «Operation too slow»: reintentos.
+          for i in 1 2 3 4; do
+            pacman -Syu --noconfirm base-devel git libxml2 grim grub && pacman -S --noconfirm glibc && break
+            [ "$i" = 4 ] && exit 1
+            echo "pacman falló (intento $i), reintento"; sleep 20
+          done
 
       - name: Paquete command-os
         run: |
