@@ -91,9 +91,9 @@ ver abajo).
   Dentro, titular en Oxanium, etiquetas en Smoke y lecturas.
 - **Lecturas** (`.readout`): la telemetría de la barra (etiqueta en Smoke, valor en Ash), fastfetch y
   «acerca de cmd-os».
-- **Medición** con un valor real detrás: el medidor de 2 px del arranque (`.meter`, sin porcentaje
-  porque es una estimación), la lista de comprobaciones de arranque (`.diag`) y la barra de progreso de
-  las notificaciones.
+- **Medición** con un valor real detrás: el anillo (`.ring`) y la barra de 2 px (`.meter`) del
+  arranque, con el mismo avance y sin porcentaje porque es una estimación, la lista de comprobaciones
+  de arranque (`.diag`) con su contador y la barra de progreso de las notificaciones.
 - **Retícula de puntos** de 26 px y **rejilla de 64 px** del plano técnico, en los fondos.
 - **Paleta de comandos:** el lanzador (BRAND § 7.2), sin el velo que atenúa la vista porque aquí no hay
   transparencias.
@@ -210,13 +210,24 @@ mayúsculas están activadas, con el número de intentos).
   con un cabezal Red Hot, y después su barra. 2,65 s (~2,8 s medidos en la VM del primer fotograma al
   último), con las curvas de la marca. Cualquier tecla la salta al final; Esc pasa al modo detalles de
   Plymouth, para soporte. Al apagar, solo el logo ya completo.
-- **Arranque con diagnóstico** (BRAND § 9.2): debajo, la lista de las comprobaciones reales, en orden
-  (disco del sistema, sistemas de archivos, dispositivos, servicios básicos, red, inicio de sesión),
-  cada una con su estado (EN ESPERA atenuada, EN CURSO en Red Hot, OK en verde, ERROR en Red Hot), el
-  contador de hechas y un medidor de 2 px con el avance de Plymouth, sin porcentaje (es una estimación
-  por el tiempo de arranques anteriores) y que nunca retrocede. Las comprueba
-  `lib/diagnostico-arranque` con systemd (`docs/notas/arranque-e-imagenes.md`). Con el disco cifrado,
-  la contraseña se pide en el sitio de la lista.
+- **Arranque con diagnóstico** (BRAND § 9.2), como la pantalla de carga de `lenguaje.html` (§ 04):
+  acabada la firma, el símbolo pasa en 0,6 s al centro de un anillo a la izquierda y el wordmark se
+  encoge hasta el rótulo de arriba (`command · CMD-OS`), y aparece el resto:
+  - arriba a la derecha, `SALTAR · CUALQUIER TECLA` mientras dura la firma y `ESC · DETALLES` después;
+  - el anillo (pista Steel, avance Red Hot) sobre una retícula de puntos con máscara radial;
+  - a la derecha, las comprobaciones reales, en orden (disco del sistema, sistemas de archivos,
+    dispositivos, servicios básicos, red, inicio de sesión), con el número, el nombre en Geist y el
+    estado en mono (EN ESPERA atenuada, EN CURSO en Red Hot, OK en verde, ERROR en Red Hot), y el
+    contador de hechas (`4 / 6`) en la cabecera;
+  - abajo, lo que se está haciendo (`ARRANCANDO LA RED`; `SISTEMA LISTO` al llegar al inicio de
+    sesión; el fallo, en Red Hot, con «esc: detalles»), la barra de 2 px en Bone sobre Steel y un
+    `CONSEJO` con un atajo real, uno al azar en cada arranque.
+
+  El anillo y la barra muestran el mismo avance de Plymouth y nunca retroceden; **sin porcentaje**
+  (decisión del usuario): es una estimación por el tiempo de arranques anteriores (BRAND § 9.3), y la
+  cifra real es el contador. Las comprueba `lib/diagnostico-arranque` con systemd
+  (`docs/notas/arranque-e-imagenes.md`). Con el disco cifrado, la contraseña se pide en el sitio de la
+  lista. Plymouth no dibuja arcos: el avance del anillo son 400 puntos Red Hot que se encienden.
 - **GRUB** (tema de `apply-boot`): el menú solo aparece con Esc; lleva el fondo `void`, el panel con
   chaflán, las entradas en Geist con la elegida en Slate y la barra Red Hot (la paleta) y los rótulos
   (cuenta atrás y teclas) en mono 500 y mayúsculas.

@@ -17,6 +17,12 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   módulo aparte por LED (más procesos y se separa de su texto).
 - **El plano lleva llamadas en vez de cotas** (decisión del usuario), como el héroe del concepto; cada
   una dice la pieza y su medida real. Etiquetas en castellano en todos los idiomas (el PNG es uno).
+- **Splash como la pantalla de carga del concepto, sin porcentaje** (decisiones del usuario): la firma
+  corta sigue en el centro (ancla 2) y después el símbolo pasa al anillo y el wordmark al rótulo de
+  arriba. El avance de Plymouth es una estimación (BRAND § 9.3): anillo y barra sin porcentaje; la cifra
+  es el contador `n / 6`. Un consejo real (un atajo de `rc.xml`) al azar en cada arranque. Plymouth no
+  dibuja arcos: 400 puntos solapados sobre un anillo pintado. Descartado: imágenes del arco por paso
+  (decenas de MB de memoria en el initramfs) y segmentos girados (depende del sentido de `Rotate`).
 - **Los paneles pequeños de wofi (energía, atajos, acerca de) siguen en mono**: la ayuda y «acerca de»
   alinean columnas con espacios. Descartado Geist (como la paleta), que las desalinea.
 

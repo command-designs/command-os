@@ -717,6 +717,51 @@ msgstr "ok"
 msgid "error"
 msgstr "error"
 
+msgid "arrancando"
+msgstr "starting"
+
+msgid "comprobando el disco del sistema"
+msgstr "checking the system disk"
+
+msgid "montando los sistemas de archivos"
+msgstr "mounting the file systems"
+
+msgid "detectando los dispositivos"
+msgstr "detecting the devices"
+
+msgid "arrancando los servicios básicos"
+msgstr "starting the core services"
+
+msgid "arrancando la red"
+msgstr "starting the network"
+
+msgid "sistema listo"
+msgstr "system ready"
+
+msgid "una comprobación ha fallado · esc: detalles"
+msgstr "a check has failed · esc: details"
+
+msgid "saltar · cualquier tecla"
+msgstr "skip · any key"
+
+msgid "esc · detalles"
+msgstr "esc · details"
+
+msgid "consejo"
+msgstr "tip"
+
+msgid "Super + F1 enseña todos los atajos de teclado."
+msgstr "Super + F1 shows all the keyboard shortcuts."
+
+msgid "Super abre el lanzador de aplicaciones; Super + Intro, la terminal."
+msgstr "Super opens the app launcher; Super + Enter, the terminal."
+
+msgid "Super + Escape abre el menú de energía: bloquear, reiniciar o apagar."
+msgstr "Super + Escape opens the power menu: lock, restart or shut down."
+
+msgid "Super + Ctrl + D crea otro escritorio, hasta cuatro."
+msgstr "Super + Ctrl + D adds another desktop, up to four."
+
 msgid "Ejecutar como root (pacman, usuarios, servicios)."
 msgstr "Run it as root (pacman, users, services)."
 

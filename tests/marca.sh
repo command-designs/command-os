@@ -196,7 +196,23 @@ for ((n = 1; n <= ${filas:-0}; n++)); do
   done
 done
 for ((n = 0; n <= ${filas:-0}; n++)); do
-  [[ -f "${dir}/diag-cuenta-${n}.png" ]] || { echo "  MAL  falta diag-cuenta-${n}.png"; splash=1; }
+  for img in "diag-cuenta-${n}.png" "linea-${n}.es.png" "linea-${n}.en.png"; do
+    [[ -f "${dir}/${img}" ]] || { echo "  MAL  falta ${img} (python build/make-plymouth-textos.py)"; splash=1; }
+  done
+done
+# Pantalla de carga (lenguaje.html § 04): los consejos que sortea el tema y las piezas fijas.
+consejos=$(sed -nE 's/^CONSEJOS = ([0-9]+);.*/\1/p' "${script}")
+[[ -n "${consejos}" ]] || { echo "  MAL  command.script no dice cuántos consejos hay (CONSEJOS)"; splash=1; }
+for ((n = 1; n <= ${consejos:-0}; n++)); do
+  for img in "consejo-${n}.es.png" "consejo-${n}.en.png"; do
+    [[ -f "${dir}/${img}" ]] || { echo "  MAL  falta ${img} (python build/make-plymouth-textos.py)"; splash=1; }
+  done
+done
+if compgen -G "${dir}/consejo-$(( ${consejos:-0} + 1 )).*.png" >/dev/null; then
+  echo "  MAL  sobra consejo-$(( consejos + 1 )): CONSEJOS en command.script no los cuenta todos"; splash=1
+fi
+for img in anillo.png punto.png puntos.png wordmark-mini.png codigo.png; do
+  [[ -f "${dir}/${img}" ]] || { echo "  MAL  falta ${img} (python build/make-plymouth.py o make-plymouth-textos.py)"; splash=1; }
 done
 # Nada del splash anterior: ni fotogramas viejos ni lectura de los mensajes de systemd como consola.
 if compgen -G "${dir}/frame-*.png" >/dev/null || grep -qE 'push_line|log_sprite' "${script}"; then
