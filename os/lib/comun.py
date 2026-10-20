@@ -32,7 +32,7 @@ def disco_cifrado(cmdline="/proc/cmdline"):
 
 
 def usuario_desde(nombre):
-    """«Daniel Infante» -> «daniel»: primera palabra, sin tildes, en minúsculas."""
+    """«Ana López» -> «ana»: primera palabra, sin tildes, en minúsculas."""
     plano = unicodedata.normalize("NFKD", nombre).encode("ascii", "ignore").decode()
     palabra = (plano.lower().split() or [""])[0]
     return re.sub(r"[^a-z0-9_-]", "", palabra)[:32]
