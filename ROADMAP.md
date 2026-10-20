@@ -26,9 +26,9 @@ se migra con marca, como `layout-2`, sin pisar sus cambios.
 
 ### Tanda 1 — Diseño 2.1 y movimiento (sobre labwc; nada depende del compositor)
 
-1. **Auditoría de fidelidad 2.1** (Opus, alto: criterio de diseño en todo el escritorio). Capturas de
-   la VM frente a `lenguaje.html` (barra, ventanas GTK 3/4, Firefox, Bazaar, Thunar, paneles,
-   lanzador, notificaciones) y lista de diferencias, que guía los puntos 2–4.
+Las diferencias con `lenguaje.html`, medidas en la VM: `docs/notas/auditoria-2.1.md` (cada punto
+borra las suyas al cerrarse).
+
 2. **Ventanas iguales** (Opus, alto: GTK 3, GTK 4/libadwaita, Firefox y labwc a la vez). Misma barra
    de título en todas (alto, letra, botones dibujados, filo y sombra): cabeceras GTK y libadwaita como
    la de labwc, y Firefox con la barra de labwc y las pestañas en la paleta (políticas y `userChrome`
