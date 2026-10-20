@@ -212,7 +212,7 @@ rm -f "${CMD}"
 echo "==> Reglas de las cuentas: la copia en shell (lib/reglas.sh) y la de Python (lib/comun.py) coinciden"
 py=$(PYTHONPATH=/usr/lib/command-os python3 -W ignore -c 'import comun; print(comun.MIN_CONTRASENA, comun.USUARIO_ER)' 2>/dev/null)
 # shellcheck source=../os/lib/reglas.sh
-sh=$(source /usr/lib/command-os/reglas.sh; patron=$(grep -oE '\^\[a-z\]\[^$]*' /usr/lib/command-os/reglas.sh | head -n1); echo "${MIN_CONTRASENA} ${patron#^}")
+sh=$(source /usr/lib/command-os/reglas.sh; patron=$(grep -oE '\^\[a-z\][^$]*' /usr/lib/command-os/reglas.sh | head -n1); echo "${MIN_CONTRASENA} ${patron#^}")
 [[ -n "${py}" && "${py}" == "${sh}" ]] && ok "longitud mínima y patrón de usuario iguales en shell y Python" \
   || mal "lib/reglas.sh (${sh}) y lib/comun.py (${py}) tienen reglas distintas"
 

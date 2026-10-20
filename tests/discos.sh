@@ -332,7 +332,7 @@ abre() { printf '%s' "$2" | cryptsetup open --test-passphrase --key-file=- "${DI
 gd() {
   local entrada=$1 e rc
   shift
-  e=$(printf '%s' "${entrada}" | COMMAND_OS_LUKS_DEV="${DISCOCIF}" "${GD}" "$@" 2>&1 >/dev/null)
+  e=$(printf '%s' "${entrada}" | COMMAND_OS_LUKS_DEV="${DISCOCIF}" bash "${GD}" "$@" 2>&1 >/dev/null)
   rc=$?
   if (( rc == 0 )); then R=ok; else R=$(sed -n 's/^error: //p' <<< "${e}"); fi
 }
@@ -365,7 +365,7 @@ printf '%s' "${CLAVE_B}" | cryptsetup luksAddKey --batch-mode --pbkdf pbkdf2 --p
 gd "${CLAVE_B}"$'\n'"${RECUP_A}"$'\n' recuperacion;             espero ranuras "con una tercera clave puesta a mano, no toca nada"
 abre x "una tercera clave" && ok "y esa clave sigue valiendo" || mal "se perdió la tercera clave"
 gd "${CLAVE_B}"$'\n'"${RECUP_A}"$'\n' nada;                     espero fallo "orden desconocida"
-R=$(printf 'x\nx\n' | env -u COMMAND_OS_LUKS_DEV "${GD}" contrasena 2>&1 >/dev/null | sed -n 's/^error: //p')
+R=$(printf 'x\nx\n' | env -u COMMAND_OS_LUKS_DEV bash "${GD}" contrasena 2>&1 >/dev/null | sed -n 's/^error: //p')
 espero no_cifrado "sin disco cifrado en la línea del kernel, no hace nada"
 
 echo

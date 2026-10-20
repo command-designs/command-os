@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Command OS — reglas de las cuentas que comparten los programas de shell (crear-cuenta,
 # gestionar-cuentas, gestionar-disco). La copia en Python es lib/comun.py (MIN_CONTRASENA, USUARIO_ER):
 # si se cambia una, se cambia la otra; tests/cuentas.sh comprueba que coinciden.
