@@ -61,4 +61,29 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-Ninguno por ahora (roadmap completado el 2026-10-20; lo que queda lo prueba el usuario, arriba).
+Los puntos 1–3 van juntos en la rama actual y en un solo PR; los 4 y 5, en ese PR o el siguiente.
+
+1. **CI en verde.** Arreglar tres fallos: `os/lib/reglas.sh` sin línea `# shellcheck shell=bash` (SC2148);
+   `tests/discos.sh` lanza `gestionar-disco` sin `bash` y `os/lib` no tiene permiso de ejecución en git;
+   el grep de `tests/cuentas.sh` (§ «Reglas de las cuentas») busca `\]\[^$]` y debe ser `\][^$]`. Reintentos
+   de pacman contra archive.archlinux.org («Operation too slow»). Recortar `pruebas.yml` (`push` solo a
+   `main` más `pull_request`) y poner `timeout-minutes` y `concurrency` en todos los workflows. Después,
+   abrir el PR de la rama. _Sonnet, esfuerzo medio._
+2. **Avisar cuando falle la CI programada.** Que el fallo diario de «escritorio con el Arch del día» abra
+   o actualice un issue (desde el 2026-10-16 fallaba sin que nadie lo viera). _Sonnet, esfuerzo bajo._
+3. **Pruebas en WSL como en la CI.** `build/wsl/pruebas.sh`: lanza en el Arch de WSL las mismas pruebas
+   que la CI, para no dar por comprobado lo que solo corrió en parte. _Sonnet, esfuerzo medio._
+4. **Guía de prueba en un PC real.** Convertir «Lo prueba el usuario» en `docs/prueba-en-pc-real.md`
+   (lista ordenada que sigue una sola instalación); aquí queda un enlace. _Sonnet, esfuerzo bajo._
+5. **`AGENTS.md` más corto** (197 líneas, la 30 tiene 705 caracteres): partir esa línea y llevar a `docs/`
+   la historia de QEMU/Packer y lo de la VM vieja. _Sonnet, esfuerzo bajo._
+6. **Bluetooth** (`bluez`, panel o `blueman`, módulo en la barra, textos traducidos, prueba en
+   `tests/escritorio.sh`). _Opus, esfuerzo medio (toca paquete, barra, idioma y marca)._
+7. **Licencia del repo (público y sin licencia).** Decide el usuario: ninguna, permisiva (MIT/Apache-2.0)
+   o copyleft (GPL-3.0). Aplicarla: _Sonnet, esfuerzo bajo._
+8. **Ajustar el diseño de command-os al concepto de diseño v2** (`lenguaje.html` de command-web, la
+   «prueba HUD»: plano holográfico, modo HUD, arranque con diagnóstico). Depende de que command-web esté
+   actualizado con ese concepto. Revisar pieza a pieza (barra, menús, paneles, notificaciones, bloqueo,
+   splash, GRUB, fondos, sonidos, apps GTK), anotar cada diferencia, corregirlas y dejar `tests/marca.sh`
+   y `docs/DISENO.md` al día. _Opus, esfuerzo alto (toca tema, generadores y arranque; hay que comparar
+   con el concepto en pantalla)._
