@@ -30,7 +30,7 @@ contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). En c
 el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`).
 La zona horaria también se elige en el asistente, con hora por la red (`docs/cuentas.md` § «Hora»).
 La barra lleva la batería (avisos al 20 y al 10 %, límite de carga al 80 % si el portátil lo permite)
-y aplicaciones fijadas (`docs/notas/escritorio.md`).
+y aplicaciones fijadas; también el Bluetooth, apagado de serie, con blueman (`docs/notas/escritorio.md`).
 Desde el 2026-10-19 trae tienda de aplicaciones (Bazaar con Flathub, aparte de pacman), gestor de
 comprimidos en Thunar y tipos de archivo de serie para que nada descargado pregunte
 (`docs/notas/escritorio.md` § «Instalar aplicaciones»).
@@ -44,7 +44,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso y panel de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
-| escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas | `docs/notas/escritorio.md` y `docs/DISENO.md` |
+| escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | colores, letra, forma (chaflanes, escuadras) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` §§ «Color», «Letra» y «Forma», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma» |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |

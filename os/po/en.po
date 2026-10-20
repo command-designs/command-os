@@ -1655,6 +1655,9 @@ msgstr "apps · right click: pin an app to the bar"
 msgid "clic: conexiones"
 msgstr "click: connections"
 
+msgid "clic: dispositivos · clic derecho: encender o apagar"
+msgstr "click: devices · right click: turn on or off"
+
 msgid "clic: mezclador"
 msgstr "click: mixer"
 

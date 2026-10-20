@@ -61,6 +61,18 @@ if [[ -f /etc/default/grub ]]; then
 else
   mal "no hay /etc/default/grub (falta grub en el contenedor)"
 fi
+# Bluetooth (lib/apply-system): servicio activado, adaptador apagado al arrancar y blueman sin icono en
+# la bandeja (la barra lleva el módulo `bt`, que abre blueman-manager y enciende con bluetoothctl).
+if grep -qx 'AutoEnable=false' /etc/bluetooth/main.conf 2>/dev/null; then ok "bluetooth: apagado al arrancar"; else mal "bluetooth: sin AutoEnable=false en main.conf"; fi
+if systemctl is-enabled bluetooth.service >/dev/null 2>&1; then ok "bluetooth: servicio activado"; else mal "bluetooth: servicio sin activar"; fi
+if [[ "$(como dconf read /org/blueman/general/plugin-list 2>&1)" == *"'!StatusIcon'"* ]]; then
+  ok "bluetooth: blueman sin icono en la bandeja"
+else
+  mal "bluetooth: blueman con icono en la bandeja (dconf)"
+fi
+for p in blueman-manager blueman-applet bluetoothctl rfkill; do
+  command -v "${p}" >/dev/null || mal "bluetooth: falta ${p}"
+done
 for f in /etc/xdg/labwc/rc.xml /usr/share/command-os/config/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
 done
@@ -137,9 +149,9 @@ if grep -aqiE '\[error\]|critical' "${SALIDA}/labwc.log"; then
   # nm-applet suelta avisos internos de GTK sin consecuencias (y, al arrancar, la bandeja de Waybar
   # avisa de su icono aún vacío: «No icon name or pixmap»); la temperatura y la batería no
   # existen en una máquina sin hardware; tampoco rfkill ni el bus del sistema (hypridle lo busca
-  # para logind y en el contenedor de CI no hay systemd).
+  # para logind, y el módulo de Bluetooth de Waybar para bluez, y en el contenedor de CI no hay systemd).
   grep -aiE '\[error\]|critical' "${SALIDA}/labwc.log" \
-    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet|No icon name or pixmap|RFKILL|Couldn.t create the dbus connection' \
+    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet|No icon name or pixmap|RFKILL|Couldn.t create the dbus connection|g_dbus_object_manager_client_new_for_bus_sync' \
     | head -5 > "${SALIDA}/errores-programas.txt"
   if [[ -s "${SALIDA}/errores-programas.txt" ]]; then mal "errores de programas (ver errores-programas.txt)"; fi
 fi

@@ -48,6 +48,11 @@ punto al probarlo y avisa de los fallos; lo que salga bien se quita de esta guí
 6. Batería (`docs/notas/escritorio.md` § «Batería»; la VM no tiene): avisos al 20 % y al 10 % y, si el
    panel de la batería (clic derecho en `bat`) enseña «limitar la carga al 80 %», que el portátil deje de
    cargar ahí y siga limitado tras reiniciar y tras el reposo.
+7. Bluetooth (`docs/notas/escritorio.md` § «Bluetooth»; la VM no tiene adaptador): `bt off` en la barra
+   al arrancar; clic derecho lo enciende (`bt on`) y otro lo apaga; clic abre los dispositivos bajo la
+   barra y otro clic los cierra. Emparejar unos auriculares y un teclado (si pide PIN, que salga el
+   diálogo), ver `bt 1` y su nombre al pasar el ratón, oír el sonido por los auriculares y, tras
+   reiniciar, que vuelva a salir `bt off`.
 
 ## 6. Paneles de ajustes (menú → ajustes)
 

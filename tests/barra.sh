@@ -3,7 +3,7 @@
 # el estado de una batería simulada (lib/bateria.py: avisos y panel), cuándo avisa de batería baja, el
 # límite de carga (lib/gestionar-bateria sobre un /sys/class/power_supply de mentira) y la parte de la
 # barra que generan las aplicaciones fijadas (lib/fijadas.py) y que la ayuda de atajos sale en columnas
-# (bin/command-os-keys). Corre en cualquier Linux con python3
+# (bin/command-os-keys) y lo que hace el clic derecho en el Bluetooth (bin/command-os-bluetooth). Corre en cualquier Linux con python3
 # (GitHub Actions, ver .github/workflows/pruebas.yml). Sale con 1 si algo falla.
 set -uo pipefail
 
@@ -215,6 +215,16 @@ print(len(filas), *mal, sep="\n")' "${T}/atajos")
 [[ "${salida}" =~ ^[0-9]+$ && "${salida}" -gt 20 ]] \
   && ok "${salida} atajos con la acción en la misma columna, también con flechas, «·» y «…» sin locale" \
   || mal "atajos descuadrados: ${salida}"
+
+echo "==> Bluetooth (bin/command-os-bluetooth)"
+# bluetoothctl y rfkill de mentira: el adaptador encendido o apagado según ${T}/bt, y lo que se pidió en ${T}/bt-ordenes.
+printf '#!/bin/sh\necho "bluetoothctl $*" >> "%s/bt-ordenes"\n[ "$1" = show ] && echo "	Powered: $(cat "%s/bt")"\nexit 0\n' "${T}" "${T}" > "${T}/bin/bluetoothctl"
+printf '#!/bin/sh\necho "rfkill $*" >> "%s/bt-ordenes"\n' "${T}" > "${T}/bin/rfkill"
+chmod +x "${T}/bin/"*
+bt() { echo "$1" > "${T}/bt"; : > "${T}/bt-ordenes"; PATH="${T}/bin:${PATH}" sh "${RAIZ}/os/bin/command-os-bluetooth" cambiar; grep -v ' show$' "${T}/bt-ordenes" | tr '\n' ';'; }
+[[ "$(bt no)" == "rfkill unblock bluetooth;bluetoothctl power on;" ]] && ok "apagado: quita el bloqueo y lo enciende" \
+  || mal "apagado: $(bt no)"
+[[ "$(bt yes)" == "bluetoothctl power off;" ]] && ok "encendido: lo apaga" || mal "encendido: $(bt yes)"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

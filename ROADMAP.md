@@ -18,8 +18,6 @@ Guía ordenada, para seguir con una sola instalación en un PC real: `docs/prueb
 
 ## Pendientes (por orden)
 
-6. **Bluetooth** (`bluez`, panel o `blueman`, módulo en la barra, textos traducidos, prueba en
-   `tests/escritorio.sh`). _Opus, esfuerzo medio (toca paquete, barra, idioma y marca)._
 7. **Licencia del repo (público y sin licencia).** Decide el usuario: ninguna, permisiva (MIT/Apache-2.0)
    o copyleft (GPL-3.0). Aplicarla: _Sonnet, esfuerzo bajo._
 8. **Ajustar el diseño de command-os al lenguaje HUD** (`lenguaje.html` de command-web y `BRAND.md` 2.1,

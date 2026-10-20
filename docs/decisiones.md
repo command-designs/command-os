@@ -3,6 +3,17 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — Bluetooth con blueman y apagado de serie (`docs/notas/escritorio.md` § «Bluetooth»)
+
+- **Panel: blueman, no uno propio** (decisión del usuario). Ya coge el tema GTK 3, viene traducido y trae
+  el agente de emparejamiento (PIN, confirmar código); un `panel-bluetooth.py` encajaría mejor con la
+  marca, pero habría que escribir ese agente por D-Bus. Se retoma si blueman desentona en pantalla.
+- **Apagado al arrancar, siempre** (decisión del usuario): menos batería y el equipo no se anuncia sin
+  que nadie lo pida. Con `AutoEnable=false` de bluez; descartado recordar el último estado (bluez no lo
+  guarda y blueman 2.4 tampoco).
+- **Encender y apagar desde la barra con `bluetoothctl` y `rfkill`**, no por el D-Bus de blueman-applet:
+  funciona aunque el applet no esté en marcha.
+
 ## 2026-10-20 — Subvolumen `@flatpak` para las apps de la tienda (`docs/actualizaciones.md` § 5)
 
 - **`/var/lib/flatpak` en su propio subvolumen** (`btrfs_root`, `build/x86/lib.sh`), como `@pkg`: las

@@ -147,14 +147,14 @@ tooltip label {
     color: @bone;
 }
 
-#network, #pulseaudio, #battery, #cpu, #temperature, #memory, #tray, #custom-updates {
+#network, #bluetooth, #pulseaudio, #battery, #cpu, #temperature, #memory, #tray, #custom-updates {
     transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1), background 200ms cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0 10px;
     color: @ash;
     border-left: 1px solid @steel;
 }
 
-#network:hover, #pulseaudio:hover, #cpu:hover, #memory:hover, #custom-updates:hover {
+#network:hover, #bluetooth:hover, #pulseaudio:hover, #cpu:hover, #memory:hover, #custom-updates:hover {
     color: @bone;
     background: @graphite;
 }
@@ -181,7 +181,7 @@ tooltip label {
     color: @red-hot;
 }
 
-#network.disconnected, #pulseaudio.muted {
+#network.disconnected, #bluetooth.off, #bluetooth.disabled, #pulseaudio.muted {
     color: @smoke;
 }
 
