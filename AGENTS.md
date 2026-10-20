@@ -55,6 +55,8 @@ usuario); ARM, aparcado hasta tener la placa.
 - Colores: solo los de la paleta v2 (`docs/DISENO.md`); `tests/marca.sh` falla con cualquier otro. Un
   color extra que haga falta se añade a su lista `EXTRA` con el motivo. Signal Red nunca para texto
   (no da contraste): texto, iconos y foco en Red Hot. Sin `text-shadow` ni halos (solo la barra del logo).
+  También falla con los colores del estilo anterior aunque vayan sin `#` (swaylock) y con sus palabras
+  en `os/` o `build/` (`PALABRAS`; las que hagan falta, en `PALABRAS_EXTRA` con el motivo).
 - Chaflanes en GTK: `border-image` con los SVG de `build/make-chaflanes.py` (regenerar al cambiarlos)
   **en archivo** (GTK 3 no carga `data:`) y el centro con un degradado (GTK no lo pinta). wofi: nunca
   `hide_search` (enseña una sola opción); el alto de un panel, con `--lines`.

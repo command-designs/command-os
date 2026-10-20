@@ -86,8 +86,14 @@ if [ "${cfg}" != "${emergencia}" ]; then
   hyprlock --config "${emergencia}" && exit 0
 fi
 logger -t command-os-lock "hyprlock no funciona; se usa swaylock"
-swaylock --color 0d0b0e --inside-color 15121a --ring-color d13449 \
-  --key-hl-color 5bbfc4 --text-color edebe6 --indicator-radius 80 --show-failed-attempts && exit 0
+# Los colores de la marca v2, como el campo de hyprlock (Ash comprobando, Warn si falla); los de
+# serie de swaylock (azul, verde, rojo vivo) no son de la paleta.
+swaylock --color 0e0e0e --inside-color 151515 --ring-color f5482c --line-color 0e0e0e \
+  --separator-color 0e0e0e --key-hl-color edebe6 --bs-hl-color 85827c --text-color edebe6 \
+  --inside-clear-color 151515 --ring-clear-color 85827c --text-clear-color edebe6 \
+  --inside-ver-color 151515 --ring-ver-color a3a09a --text-ver-color a3a09a \
+  --inside-wrong-color 151515 --ring-wrong-color ffb020 --text-wrong-color ffb020 \
+  --indicator-radius 80 --show-failed-attempts && exit 0
 
 logger -p auth.crit -t command-os-lock "NO SE HA PODIDO BLOQUEAR LA SESIÓN: fallan hyprlock y swaylock"
 notify-send -u critical "› $(t 'la sesión no se ha podido bloquear')" \

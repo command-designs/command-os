@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Command OS — prueba de la marca (docs/DISENO.md): ningún archivo del sistema ni generador de build/
 # usa un color fuera de la paleta v2 de Command (tokens.css de command-web), salvo los colores extra
-# permitidos de la lista de abajo, y nada lleva brillos (el halo es solo de la barra del logo). La
+# permitidos de la lista de abajo, ni nada del estilo anterior (sus colores, también sin «#», y sus
+# palabras), y nada lleva brillos (el halo es solo de la barra del logo). La
 # forma: los chaflanes generados al día y citados bien, y solo los radios de la marca. El splash:
 # sus imágenes completas y la lista de comprobaciones igual en el servicio, el gancho y el tema.
 # Mira colores hex (#rrggbb y #rrggbbaa), rgb()/rgba(), tuplas RGB de Python, secuencias de color
@@ -12,7 +13,7 @@ set -uo pipefail
 RAIZ=$(cd "$(dirname "$0")/.." && pwd)
 cd "${RAIZ}" || exit 1
 
-echo "==> Colores fuera de la paleta v2"
+echo "==> Colores fuera de la paleta v2 y restos del estilo anterior"
 python3 - <<'PY'
 import re
 import subprocess
@@ -38,10 +39,15 @@ EXTRA = {
     },
 }
 
-# Exclusiones temporales: generadores que se rehacen enteros en un punto del ROADMAP. Cada punto
-# quita su línea al terminar; si un archivo de aquí ya no tiene colores fuera de la paleta, la
-# prueba falla para que se quite.
-TEMPORALES = {}
+# El estilo anterior (HUD de Cyberpunk, cambiado por la marca v2 el 2026-10-19; docs/decisiones.md).
+# Sus colores se buscan también sin «#» (swaylock los lleva así) y sus palabras no pueden volver.
+VIEJOS = {"d13449", "5bbfc4", "e2c044", "0d0b0e", "15121a", "2e2630", "e8607a", "1d1820", "6f6870",
+          "a8a2a6", "a8283a", "2f8a8f", "d9b441", "d6d2d4", "8ad6da"}
+PALABRAS = re.compile(r"\b(cyberpunk|hud|2077|glitch|cian)\b", re.IGNORECASE)
+# Palabras permitidas por archivo, con el motivo.
+PALABRAS_EXTRA = {
+    "os/dotfiles/kitty/kitty.conf": {"cian"},  # el color 6 de ANSI se llama así (EXTRA, arriba)
+}
 
 BINARIOS = (".png", ".jpg", ".jpeg", ".wav", ".ttf", ".otf", ".pf2", ".gz", ".zst", ".mo", ".po", ".pot")
 archivos = [f for f in subprocess.run(["git", "ls-files", "os", "build"], capture_output=True,
@@ -90,22 +96,24 @@ for ruta in archivos:
     permitidos = set(PALETA) | set(EXTRA.get(ruta, {}))
     fuera = [(n, h) for n, h in colores(ruta, texto)
              if h not in permitidos and not (ruta.endswith(".script") and cerca(h, permitidos))]
-    if ruta in TEMPORALES:
-        if not fuera:
-            print(f"  MAL  {ruta}: ya no tiene colores fuera de la paleta; quítalo de TEMPORALES")
-            fallos += 1
-        else:
-            print(f"  ok   {ruta}: excluido hasta el {TEMPORALES[ruta]}")
-        continue
     for n, h in fuera:
         print(f"  MAL  {ruta}:{n}: #{h} no es de la paleta v2")
         fallos += 1
-for ruta in EXTRA:
+    for n, linea in enumerate(texto.splitlines(), 1):
+        for h in VIEJOS:
+            if re.search(r"(?<![0-9a-zA-Z])" + h + r"(?![0-9a-zA-Z])", linea, re.IGNORECASE):
+                print(f"  MAL  {ruta}:{n}: {h} es un color del estilo anterior")
+                fallos += 1
+        for m in PALABRAS.finditer(linea):
+            if m.group(1).lower() not in PALABRAS_EXTRA.get(ruta, set()):
+                print(f"  MAL  {ruta}:{n}: «{m.group(1)}» es del estilo anterior")
+                fallos += 1
+for ruta in set(EXTRA) | set(PALABRAS_EXTRA):
     if ruta not in archivos:
-        print(f"  MAL  {ruta}: tiene colores extra permitidos pero ya no existe")
+        print(f"  MAL  {ruta}: tiene colores o palabras extra permitidos pero ya no existe")
         fallos += 1
 if not fallos:
-    print(f"  ok   {len(archivos)} archivos con los colores de la paleta v2 (y los extra permitidos)")
+    print(f"  ok   {len(archivos)} archivos con los colores de la paleta v2 (y los extra permitidos), sin restos del estilo anterior")
 sys.exit(1 if fallos else 0)
 PY
 colores=$?
