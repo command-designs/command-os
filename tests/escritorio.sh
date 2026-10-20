@@ -21,6 +21,12 @@ uid=$(id -u "${USUARIO}")
 run="/tmp/prueba-runtime"
 rm -rf "${run}"; install -d -m 700 -o "${USUARIO}" "${run}"
 como() { runuser -u "${USUARIO}" -- env HOME="/home/${USUARIO}" XDG_RUNTIME_DIR="${run}" "$@"; }
+# Bus del sistema: el contenedor de la CI no tiene systemd. Sin él, el módulo de Bluetooth de Waybar
+# (habla con bluez por ese bus) deja la barra sin dibujar; en un equipo de verdad siempre está.
+if [[ ! -S /run/dbus/system_bus_socket ]]; then
+  install -d /run/dbus
+  dbus-daemon --system --fork || mal "no arrancó el bus del sistema (dbus-daemon --system)"
+fi
 
 echo "==> Configuración de serie"
 # Configuraciones de hyprlock: hyprlock las lee antes de conectarse a una pantalla.
