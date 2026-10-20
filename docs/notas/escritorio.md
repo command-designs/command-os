@@ -118,7 +118,8 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
 
 - **Tienda**: Bazaar (paquete `bazaar`), solo Flatpak, con Flathub (el paquete `flatpak` trae el remoto
   en `/usr/share/flatpak/remotes.d`). Las apps van en `/var/lib/flatpak` (instalación del sistema), aparte
-  de pacman: nunca tocan la base de datos de pacman ni la fecha validada. Polkit de Flatpak: las cuentas
+  de pacman: nunca tocan la base de datos de pacman ni la fecha validada. En las instalaciones nuevas es
+  su propio subvolumen (`@flatpak`): no entran en las instantáneas ni vuelven atrás con el sistema. Polkit de Flatpak: las cuentas
   de `wheel` instalan sin contraseña en la sesión activa; las demás piden la de un administrador. Se
   abre con `command-os-tienda` (menú → tienda de aplicaciones, fijada de serie en la barra) y
   `command-os-tienda buscar TEXTO` la abre buscando. Bazaar avisa de los permisos de cada app (Discord:

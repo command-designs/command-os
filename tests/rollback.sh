@@ -2,7 +2,9 @@
 # Command OS — prueba de command-os-rollback (docs/actualizaciones.md § 5) sobre un btrfs de verdad en un
 # disco loop: la raíz (@), las instantáneas (@snapshots/N/snapshot) y, en un caso, /boot en otra
 # partición. Comprueba qué se queda como sistema, que /boot recibe el kernel de la instantánea, que
-# si algo falla el sistema queda como estaba y que lo cancelado o inválido no toca nada.
+# si algo falla el sistema queda como estaba y que lo cancelado o inválido no toca nada. El último
+# escenario usa los subvolúmenes del instalador (btrfs_root de build/x86/lib.sh): las apps de la tienda
+# (@flatpak) no entran en las instantáneas ni vuelven atrás.
 #
 # El script actúa sobre rutas del sistema en marcha; aquí se le apuntan a la prueba con
 # COMMAND_OS_LIB, COMMAND_OS_SNAPSHOTS y COMMAND_OS_BOOT. La raíz de la prueba lleva un busybox
@@ -34,6 +36,7 @@ trap cleanup EXIT
 
 desmontar() {
   local l
+  [[ -n "${BASE:-}" ]] && mountpoint -q "${BASE}/mnt" && umount -R "${BASE}/mnt"
   for l in "${BASE:-}/boot" "${BASE:-}/snap" "${BASE:-}/top"; do
     [[ "${l}" == /* ]] && mountpoint -q "${l}" && umount "${l}"
   done
@@ -52,6 +55,7 @@ crear() {
   BASE="${T}/s${N}"
   R="${BASE}/top/@"
   SNAP1="${BASE}/top/@snapshots/1/snapshot"
+  SNAPS="${BASE}/snap"
   BOOT="${BASE}/boot"
   mkdir -p "${BASE}/top" "${BASE}/snap" "${BASE}/boot"
   truncate -s 700M "${BASE}/b.img"
@@ -107,7 +111,7 @@ EOF
 # $SALIDA y el código en $RC. LC_ALL=C: sin catálogo de traducciones sale el castellano original.
 CONFIRMA=SI
 correr() {
-  SALIDA=$(printf '%s\n' "${CONFIRMA}" | COMMAND_OS_LIB="${REPO}/os/lib" COMMAND_OS_SNAPSHOTS="${BASE}/snap" \
+  SALIDA=$(printf '%s\n' "${CONFIRMA}" | COMMAND_OS_LIB="${REPO}/os/lib" COMMAND_OS_SNAPSHOTS="${SNAPS}" \
     COMMAND_OS_BOOT="${BOOT}" LANGUAGE= LC_ALL=C bash "${ROLLBACK}" "$@" 2>&1)
   RC=$?
   CONFIRMA=SI
@@ -191,6 +195,42 @@ correr 1
 comprobar "sin /.snapshots: sale con error" rc_error
 comprobar "sin /.snapshots: avisa de que no hay instantáneas" dice 'no hay instantáneas'
 intacto "sin instantáneas"
+
+echo "==> Con los subvolúmenes del instalador (btrfs_root): las apps de la tienda no vuelven atrás"
+# El btrfs_root de verdad (build/x86/lib.sh), montado en ${M} como lo deja el instalador, con una
+# instantánea de @ de solo lectura, como las de snapper. Sin /boot aparte.
+desmontar
+N=$((N + 1))
+BASE="${T}/s${N}"
+M="${BASE}/mnt"
+R="${BASE}/top/@"
+SNAPS="${M}/.snapshots"
+BOOT="${BASE}/boot"
+mkdir -p "${M}" "${BASE}/top" "${BOOT}"
+truncate -s 700M "${BASE}/b.img"
+dev=$(losetup --find --show "${BASE}/b.img"); LOOPS+=("${dev}")
+# shellcheck source=../build/x86/lib.sh
+( export COMMAND_OS_LOCALE_DIR="${T}/locale"; source "${REPO}/build/x86/lib.sh" && btrfs_root "${dev}" "${M}" )
+mount -o subvolid=5 "${dev}" "${BASE}/top"
+subvolumen() { btrfs subvolume show "$1" >/dev/null 2>&1; }
+for sv in @ @home @snapshots @var_log @pkg @flatpak; do
+  comprobar "crea el subvolumen ${sv}" subvolumen "${BASE}/top/${sv}"
+done
+montado_de() { [[ "$(findmnt -no FSROOT "$1")" == "$2" ]]; }
+comprobar "/var/lib/flatpak se monta desde @flatpak" montado_de "${M}/var/lib/flatpak" /@flatpak
+echo viejo > "${M}/marker"
+echo app-vieja > "${M}/var/lib/flatpak/app"
+mkdir -p "${SNAPS}/1"
+btrfs subvolume snapshot -r "${M}" "${SNAPS}/1/snapshot" >/dev/null
+echo actual > "${M}/marker"
+echo app-nueva > "${M}/var/lib/flatpak/app"
+comprobar "la instantánea no lleva las apps (solo la carpeta vacía)" \
+  test -d "${SNAPS}/1/snapshot/var/lib/flatpak" -a ! -e "${SNAPS}/1/snapshot/var/lib/flatpak/app"
+correr 1
+comprobar "sale con 0" rc_cero
+comprobar "la raíz nueva es la instantánea" es "${R}/marker" viejo
+comprobar "las apps siguen como estaban (@flatpak no vuelve atrás)" es "${BASE}/top/@flatpak/app" app-nueva
+comprobar "la raíz nueva no trae apps dentro de @" test ! -e "${R}/var/lib/flatpak/app"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

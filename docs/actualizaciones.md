@@ -74,7 +74,7 @@ espejos del día no es seguro).
 
 Las instalaciones nuevas (`build/x86/build-image.sh`, `install-dualboot.sh`) usan btrfs con
 subvolúmenes (`build/x86/lib.sh`): `@` (el sistema, kernel incluido), `@home`, `@snapshots`,
-`@var_log` y `@pkg`. `install.sh` configura snapper (10 instantáneas como mucho, solo las de pacman)
+`@var_log`, `@pkg` y `@flatpak` (`/var/lib/flatpak`, las apps de la tienda). `install.sh` configura snapper (10 instantáneas como mucho, solo las de pacman)
 y snap-pac hace una **antes y otra después de cada operación de pacman**.
 
 - **Volver atrás:** Esc al encender → menú de GRUB → instantáneas (grub-btrfs). Se arranca la
@@ -82,6 +82,10 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
   necesita el initramfs clásico; install.sh lo cambia). Si todo va bien, `command-os-rollback` la
   deja como sistema y se reinicia. Sin arrancarla: `command-os-rollback N` (`--lista` para verlas).
 - `/home` no retrocede: los archivos del usuario se quedan.
+- Las apps de la tienda tampoco (`@flatpak`): van aparte de pacman y no hace falta fotografiarlas
+  (cientos de MB de runtimes que engordarían cada instantánea). Las instalaciones en btrfs anteriores al
+  2026-10-20 las llevan dentro de `@` y vuelven atrás con el sistema; no se migran en marcha
+  (`docs/decisiones.md`).
 - `/boot/grub` tampoco: `command-os-rollback` pone en el sistema recuperado el del anterior. El de la
   instantánea tiene la lista del menú desfasada, módulos que pueden no casar con el GRUB de la
   partición EFI (que no retrocede) y, en las instantáneas de la imagen, ni existe.
@@ -91,7 +95,8 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
   initramfs vuelven a `/boot`; si el kernel ya coincide no se rehace nada), que un fallo a medias
   (`mkinitcpio` que falla) deja la raíz, `/boot` y las copias como estaban, y que la confirmación
   equivocada, una instantánea inexistente, un argumento inválido y la falta de `/.snapshots` no tocan
-  nada. El script lee `COMMAND_OS_LIB`, `COMMAND_OS_SNAPSHOTS` y `COMMAND_OS_BOOT` solo para eso (por
+  nada. Un último caso usa el `btrfs_root` de verdad del instalador: crea los seis subvolúmenes, monta
+  `/var/lib/flatpak` desde `@flatpak`, la instantánea no lleva las apps y volver atrás no las toca. El script lee `COMMAND_OS_LIB`, `COMMAND_OS_SNAPSHOTS` y `COMMAND_OS_BOOT` solo para eso (por
   defecto, las rutas del sistema). Lo que **no** cubre: el arranque real desde GRUB y el reinicio (se
   prueba a mano en `command-os-btrfs`, `docs/notas/estabilidad.md`) ni los kernels de varios paquetes.
 - Las instalaciones antiguas en ext4 no tienen instantáneas (convertirlas exige reinstalar).
@@ -155,7 +160,9 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
   resultado (`/var/lib/command-os/updates`) y la base de datos de pacman van dentro de `@`, así que
   vuelven juntos, y la instantánea conserva las fechas de los archivos: la regla «la comprobación tiene
   que ser posterior al último cambio de pacman» se cumple o no con el estado recuperado, nunca con uno
-  mezclado. Si la instantánea no trae un resultado válido, la barra se oculta hasta la siguiente
+  mezclado. Las apps de la tienda no vuelven atrás (`@flatpak`, § 5) y `/var/lib/flatpak/.changed`
+  tampoco: si cambiaron después de la comprobación recuperada, sus líneas se descartan como siempre; si
+  no, siguen siendo las instaladas. Si la instantánea no trae un resultado válido, la barra se oculta hasta la siguiente
   comprobación (10 min tras arrancar). `/home` no vuelve atrás: si se vuelve de una versión nueva de
   command-os que ya se había avisado, no se avisa otra vez de ella (`updates-notified`). Verificado en
   `command-os-btrfs` con un `checkupdates` de mentira, instalando un paquete y volviendo a la

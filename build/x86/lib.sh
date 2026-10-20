@@ -82,22 +82,25 @@ parrafo() {
 #   @snapshots  /.snapshots            instantáneas de snapper (install.sh configura snapper)
 #   @var_log    /var/log               registros: se conservan al volver atrás (ver qué pasó)
 #   @pkg        /var/cache/pacman/pkg  caché de paquetes: no hace falta fotografiarla
+#   @flatpak    /var/lib/flatpak       apps de la tienda (Flatpak, aparte de pacman): no engordan las
+#                                      instantáneas y no retroceden al volver atrás
 # El kernel va en /boot dentro de @: una instantánea guarda el kernel con sus módulos. Con el disco
 # cifrado, /boot es una partición aparte (boot_partition) y command-os-rollback repone el kernel.
 btrfs_root() {
   local dev=$1 mnt=$2 sv
   mkfs.btrfs -f -L command-os "${dev}" >/dev/null
   mount "${dev}" "${mnt}"
-  for sv in @ @home @snapshots @var_log @pkg; do
+  for sv in @ @home @snapshots @var_log @pkg @flatpak; do
     btrfs subvolume create "${mnt}/${sv}" >/dev/null
   done
   umount "${mnt}"
   mount -o "${BTRFS_OPTS},subvol=@" "${dev}" "${mnt}"
-  mkdir -p "${mnt}"/{home,.snapshots,var/log,var/cache/pacman/pkg}
+  mkdir -p "${mnt}"/{home,.snapshots,var/log,var/cache/pacman/pkg,var/lib/flatpak}
   mount -o "${BTRFS_OPTS},subvol=@home" "${dev}" "${mnt}/home"
   mount -o "${BTRFS_OPTS},subvol=@snapshots" "${dev}" "${mnt}/.snapshots"
   mount -o "${BTRFS_OPTS},subvol=@var_log" "${dev}" "${mnt}/var/log"
   mount -o "${BTRFS_OPTS},subvol=@pkg" "${dev}" "${mnt}/var/cache/pacman/pkg"
+  mount -o "${BTRFS_OPTS},subvol=@flatpak" "${dev}" "${mnt}/var/lib/flatpak"
 }
 
 # boot_partition DISPOSITIVO MONTAJE — con el disco cifrado: formatea /boot en ext4 (sin cifrar; GRUB

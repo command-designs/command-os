@@ -3,6 +3,21 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — Subvolumen `@flatpak` para las apps de la tienda (`docs/actualizaciones.md` § 5)
+
+- **`/var/lib/flatpak` en su propio subvolumen** (`btrfs_root`, `build/x86/lib.sh`), como `@pkg`: las
+  instantáneas de `@` dejan de llevar las apps y sus runtimes (cientos de MB cada uno, que snapper
+  guardaba en hasta 10 instantáneas) y volver atrás no las toca. Sustituye a «las apps Flatpak entran
+  en las instantáneas de `@`» (entrada del 2026-10-19). Coste: tras volver atrás, el Flatpak de pacman
+  puede ser algo más viejo que los datos que escribió el nuevo; se acepta porque el formato del repositorio
+  (OSTree) es estable entre versiones.
+- **`command-os-rollback` no cambia:** solo sustituye `@`, la instantánea trae su `fstab` (que monta
+  `@flatpak` por nombre) y el aviso de actualizaciones sigue siendo coherente (§ 7: `.changed`
+  tampoco vuelve atrás).
+- **Solo instalaciones nuevas.** Las que ya están en btrfs siguen con las apps dentro de `@`.
+  Descartado: migrarlas desde `install.sh` (crear `@flatpak`, copiar y montar encima con el sistema en
+  marcha y la tienda quizá abierta): riesgo de dejar las apps a medias para ahorrar espacio.
+
 ## 2026-10-20 — Las apps de la tienda en el aviso de actualizaciones (`docs/actualizaciones.md` § 7)
 
 - **`flatpak remote-ls --updates` como `nobody`, dentro de la misma unidad de solo lectura.** Como
@@ -174,8 +189,8 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   descargan una vez para todas las cuentas. Polkit de serie de Flatpak: `wheel` instala sin contraseña
   en la sesión activa; el resto, con la de un administrador (no hace falta regla propia).
 - **Las apps Flatpak entran en las instantáneas de `@`** (`/var/lib/flatpak`). Volver atrás las deja como
-  estaban (repo y despliegue juntos, coherente) a cambio de instantáneas más grandes. Un subvolumen
-  `@flatpak` toca el instalador: queda en `ROADMAP.md`.
+  estaban (repo y despliegue juntos, coherente) a cambio de instantáneas más grandes. *Sustituida el
+  2026-10-20: subvolumen `@flatpak` en las instalaciones nuevas (entrada de ese día).*
 - **`command-os-update` actualiza las apps al final, sin preguntar.** Pacman ya preguntó y las apps no
   tocan el sistema; si falla, lo de pacman queda hecho. El aviso de la barra las cuenta desde el
   2026-10-20 (entrada de ese día).

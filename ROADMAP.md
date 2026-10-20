@@ -37,7 +37,10 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   de verdad y un `.deb` descargados; que una app GTK de Flathub se vea oscura y con el filo rojo. Con una
   app con versión nueva, que `upd` la cuente y el panel la liste en «aplicaciones de la tienda», y que
   tras `update` (o actualizarla desde la tienda) deje de contarla (`docs/actualizaciones.md` § 7; en
-  un Arch desechable se probó la comprobación con Flatpak de verdad, no la barra en pantalla).
+  un Arch desechable se probó la comprobación con Flatpak de verdad, no la barra en pantalla). En una
+  instalación nueva, que `findmnt /var/lib/flatpak` salga de `@flatpak` y que, tras volver atrás con
+  `command-os-rollback`, las apps instaladas después de la instantánea sigan ahí (`docs/actualizaciones.md`
+  § 5; en disco loop lo cubre `tests/rollback.sh`).
 - Forma de la marca v2 en un PC real (`docs/DISENO.md` § «Forma»): chaflanes en el menú del clic
   derecho de Thunar y Firefox, en sus diálogos (botones), en las notificaciones y en una app GTK 3 de
   Flathub; y cómo se ven a alta densidad (en la VM, a escala 2, el filo sale algo suave).
@@ -58,10 +61,7 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
-   instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
-   alto: toca el instalador y la vuelta atrás.*
-2. Contar la longitud de la contraseña en caracteres y no en bytes: `contrasena_corta` (`os/lib/reglas.sh`,
+1. Contar la longitud de la contraseña en caracteres y no en bytes: `contrasena_corta` (`os/lib/reglas.sh`,
    que usan `crear-cuenta` y `gestionar-cuentas`) hace `${#1}`, que sin un locale UTF-8 cuenta bytes (una
    contraseña con ñ o tildes pasaría con menos caracteres). Fijar `LC_ALL=C.UTF-8` dentro de la función
    y añadir el caso a `tests/cuentas.sh`; `gestionar-disco` ya trabaja byte a byte a propósito

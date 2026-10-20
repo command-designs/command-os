@@ -69,7 +69,7 @@ jobs:
       - name: Herramientas
         # busybox-static: el chroot de la prueba lleva su propio sh (restore_kernel).
         run: sudo apt-get update -q && sudo apt-get install -yq btrfs-progs busybox-static
-      - name: Volver a una instantánea, kernel en /boot y deshacer si falla
+      - name: Volver a una instantánea, kernel en /boot, deshacer si falla y subvolúmenes del instalador
         run: |
           sudo modprobe btrfs || true
           sudo bash tests/rollback.sh
