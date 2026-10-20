@@ -1,15 +1,15 @@
-/* Command OS — barra HUD (docs/DISENO.md). Rojo 2077 para lo activo, cian para los datos,
-   amarillo solo para avisos. Sin radios: esquinas vivas. */
-@define-color void #0d0b0e;
-@define-color graphite #15121a;
-@define-color steel #2e2630;
+/* Command OS — barra (docs/DISENO.md, marca v2). Neutros casi siempre; el rojo es una señal: Signal
+   Red en las barras de lo activo, Red Hot en texto e iconos. Warn solo para avisos. Esquinas vivas. */
+@define-color void #0e0e0e;
+@define-color graphite #151515;
+@define-color slate #1f1f1f;
+@define-color steel #2a2a2a;
 @define-color bone #edebe6;
-@define-color ash #a8a2a6;
-@define-color smoke #6f6870;
-@define-color red #d13449;
-@define-color red-deep #2b1118;
-@define-color cyan #5bbfc4;
-@define-color yellow #e2c044;
+@define-color ash #a3a09a;
+@define-color smoke #85827c;
+@define-color red #a51500;
+@define-color red-hot #f5482c;
+@define-color warn #ffb020;
 
 * {
     font-family: "JetBrainsMono Nerd Font";
@@ -18,17 +18,16 @@
     border-radius: 0;
 }
 
-/* Filo inferior rojo apagado con un brillo de 1 px: la barra se lee como un panel HUD. */
+/* Filo inferior de 1 px: separa la barra sin sombras. */
 window#waybar {
     background: @void;
     color: @bone;
-    border-bottom: 1px solid alpha(@red, 0.35);
-    box-shadow: inset 0 -1px alpha(@red, 0.12);
+    border-bottom: 1px solid @steel;
 }
 
 tooltip {
     background: @graphite;
-    border: 1px solid @red;
+    border: 1px solid @steel;
 }
 
 tooltip label {
@@ -39,7 +38,7 @@ tooltip label {
    sin ancho ni texto. Con dos o más, el primero abre con el mismo filo Steel que los datos. */
 #workspaces button {
     transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms cubic-bezier(0.16, 1, 0.3, 1),
-        border-color 250ms cubic-bezier(0.16, 1, 0.3, 1), text-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
+        border-color 250ms cubic-bezier(0.16, 1, 0.3, 1);
     padding: 0 8px;
     color: @smoke;
     border-bottom: 2px solid transparent;
@@ -54,19 +53,17 @@ tooltip label {
     background: @graphite;
     color: @bone;
     box-shadow: none;
-    text-shadow: none;
 }
 
 #workspaces button.active {
-    color: @red;
-    background: @red-deep;
+    color: @red-hot;
+    background: @slate;
     border-bottom: 2px solid @red;
-    text-shadow: 0 0 4px alpha(@red, 0.45);
 }
 
 #workspaces button.urgent {
-    color: @yellow;
-    border-bottom: 2px solid @yellow;
+    color: @warn;
+    border-bottom: 2px solid @warn;
 }
 
 /* Un solo escritorio: nada a la vista (va al final para ganar a .active y :hover). */
@@ -80,7 +77,6 @@ tooltip label {
     background: none;
     box-shadow: none;
     color: transparent;
-    text-shadow: none;
     font-size: 1px;
 }
 
@@ -103,7 +99,7 @@ tooltip label {
 }
 
 #taskbar button.active {
-    background: @red-deep;
+    background: @slate;
     border-bottom: 2px solid @red;
 }
 
@@ -138,7 +134,7 @@ tooltip label {
 }
 
 #custom-logo:hover {
-    background-color: @red-deep;
+    background-color: @slate;
 }
 
 /* Reloj en Oxanium: fecha apagada y hora en hueso. */
@@ -163,28 +159,26 @@ tooltip label {
     background: @graphite;
 }
 
-/* Actualizaciones: apagado con paquetes sueltos, ámbar (aviso) con una versión nueva de command-os. */
+/* Actualizaciones: apagado con paquetes sueltos, Warn (aviso) con una versión nueva de command-os. */
 #custom-updates.nueva {
-    color: @yellow;
+    color: @warn;
 }
 
-/* Umbrales: ámbar de aviso, rojo crítico. */
+/* Umbrales: Warn de aviso, Red Hot crítico (el texto de la etiqueta y el valor siguen ahí). */
 #cpu.warning, #memory.warning {
-    color: @yellow;
+    color: @warn;
 }
 
 #cpu.critical, #memory.critical, #temperature.critical {
-    color: @red;
-    text-shadow: 0 0 4px alpha(@red, 0.45);
+    color: @red-hot;
 }
 
 #battery.warning:not(.charging) {
-    color: @yellow;
+    color: @warn;
 }
 
 #battery.critical:not(.charging) {
-    color: @red;
-    text-shadow: 0 0 4px alpha(@red, 0.45);
+    color: @red-hot;
 }
 
 #network.disconnected, #pulseaudio.muted {
@@ -201,7 +195,6 @@ tooltip label {
 }
 
 #custom-power:hover {
-    color: @red;
-    background: @red-deep;
-    text-shadow: 0 0 4px alpha(@red, 0.45);
+    color: @red-hot;
+    background: @slate;
 }

@@ -1,0 +1,11 @@
+# Command OS: comprobaciones de arranque en el splash (lib/diagnostico-arranque). Arranca pronto, en
+# paralelo y sin dependencias de serie: solo mira el estado de otras unidades y no retrasa nada. Va
+# activada en el paquete (enlace en sysinit.target.wants).
+[Unit]
+Description=Command OS: comprobaciones de arranque en el splash
+DefaultDependencies=no
+After=plymouth-start.service
+
+[Service]
+Type=exec
+ExecStart=/usr/lib/command-os/diagnostico-arranque

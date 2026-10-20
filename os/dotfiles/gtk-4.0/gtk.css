@@ -1,32 +1,36 @@
-/* Command OS — apps GTK 4 y libadwaita (pavucontrol, selector de archivos) con la paleta HUD de
+/* Command OS — apps GTK 4 y libadwaita (pavucontrol, selector de archivos) con la marca v2 de
    docs/DISENO.md. Mismos colores que gtk-3.0/gtk.css: los colores con nombre para adw-gtk3 y las
-   variables CSS (--*) para libadwaita. Rojo para lo activo, cian para la información, esquinas vivas. */
+   variables CSS (--*) para libadwaita. Signal Red en superficies con texto blanco, Red Hot en texto,
+   iconos y foco, OK y Warn para estados. Chaflanes en botones, popovers y pistas (al final); el
+   resto, esquinas vivas. */
 
-@define-color cmd_void #0d0b0e;
-@define-color cmd_graphite #15121a;
-@define-color cmd_slate #1d1820;
-@define-color cmd_steel #2e2630;
+@define-color cmd_void #0e0e0e;
+@define-color cmd_graphite #151515;
+@define-color cmd_slate #1f1f1f;
+@define-color cmd_steel #2a2a2a;
 @define-color cmd_bone #edebe6;
-@define-color cmd_red #d13449;
-@define-color cmd_red_light #e8607a;
-@define-color cmd_cyan #5bbfc4;
-@define-color cmd_yellow #e2c044;
+@define-color cmd_white #ffffff;
+@define-color cmd_red #a51500;
+@define-color cmd_red_hot #f5482c;
+@define-color cmd_red_deep #6e0e00;
+@define-color cmd_ok #3ddc84;
+@define-color cmd_warn #ffb020;
 
 @define-color accent_bg_color @cmd_red;
-@define-color accent_fg_color @cmd_bone;
-@define-color accent_color @cmd_red_light;
-@define-color destructive_bg_color #a8283a;
-@define-color destructive_fg_color @cmd_bone;
-@define-color destructive_color @cmd_red_light;
-@define-color success_bg_color #2f8a8f;
-@define-color success_fg_color @cmd_bone;
-@define-color success_color @cmd_cyan;
-@define-color warning_bg_color @cmd_yellow;
+@define-color accent_fg_color @cmd_white;
+@define-color accent_color @cmd_red_hot;
+@define-color destructive_bg_color @cmd_red;
+@define-color destructive_fg_color @cmd_white;
+@define-color destructive_color @cmd_red_hot;
+@define-color success_bg_color @cmd_ok;
+@define-color success_fg_color rgba(0, 0, 0, 0.8);
+@define-color success_color @cmd_ok;
+@define-color warning_bg_color @cmd_warn;
 @define-color warning_fg_color rgba(0, 0, 0, 0.8);
-@define-color warning_color @cmd_yellow;
+@define-color warning_color @cmd_warn;
 @define-color error_bg_color @cmd_red;
-@define-color error_fg_color @cmd_bone;
-@define-color error_color @cmd_red_light;
+@define-color error_fg_color @cmd_white;
+@define-color error_color @cmd_red_hot;
 
 @define-color window_bg_color @cmd_graphite;
 @define-color window_fg_color @cmd_bone;
@@ -34,7 +38,7 @@
 @define-color view_fg_color @cmd_bone;
 @define-color headerbar_bg_color @cmd_void;
 @define-color headerbar_fg_color @cmd_bone;
-@define-color headerbar_border_color @cmd_bone;
+@define-color headerbar_border_color @cmd_steel;
 @define-color headerbar_backdrop_color @cmd_void;
 @define-color headerbar_shade_color rgba(0, 0, 0, 0.5);
 @define-color headerbar_darker_shade_color rgba(0, 0, 0, 0.9);
@@ -62,52 +66,58 @@
 @define-color scrollbar_outline_color rgba(0, 0, 0, 0.6);
 
 :root {
-    --accent-bg-color: #d13449;
-    --accent-fg-color: #edebe6;
-    --accent-color: #e8607a;
-    --destructive-bg-color: #a8283a;
-    --destructive-fg-color: #edebe6;
-    --destructive-color: #e8607a;
-    --success-bg-color: #2f8a8f;
-    --success-fg-color: #edebe6;
-    --success-color: #5bbfc4;
-    --warning-bg-color: #e2c044;
+    --accent-bg-color: #a51500;
+    --accent-fg-color: #ffffff;
+    --accent-color: #f5482c;
+    --destructive-bg-color: #a51500;
+    --destructive-fg-color: #ffffff;
+    --destructive-color: #f5482c;
+    --success-bg-color: #3ddc84;
+    --success-fg-color: rgb(0 0 0 / 80%);
+    --success-color: #3ddc84;
+    --warning-bg-color: #ffb020;
     --warning-fg-color: rgb(0 0 0 / 80%);
-    --warning-color: #e2c044;
-    --error-bg-color: #d13449;
-    --error-fg-color: #edebe6;
-    --error-color: #e8607a;
-    --window-bg-color: #15121a;
+    --warning-color: #ffb020;
+    --error-bg-color: #a51500;
+    --error-fg-color: #ffffff;
+    --error-color: #f5482c;
+    --window-bg-color: #151515;
     --window-fg-color: #edebe6;
-    --view-bg-color: #0d0b0e;
+    --view-bg-color: #0e0e0e;
     --view-fg-color: #edebe6;
-    --headerbar-bg-color: #0d0b0e;
+    --headerbar-bg-color: #0e0e0e;
     --headerbar-fg-color: #edebe6;
-    --headerbar-backdrop-color: #0d0b0e;
-    --sidebar-bg-color: #15121a;
+    --headerbar-backdrop-color: #0e0e0e;
+    --sidebar-bg-color: #151515;
     --sidebar-fg-color: #edebe6;
-    --sidebar-backdrop-color: #15121a;
-    --sidebar-border-color: #2e2630;
-    --secondary-sidebar-bg-color: #15121a;
+    --sidebar-backdrop-color: #151515;
+    --sidebar-border-color: #2a2a2a;
+    --secondary-sidebar-bg-color: #151515;
     --secondary-sidebar-fg-color: #edebe6;
-    --secondary-sidebar-backdrop-color: #15121a;
+    --secondary-sidebar-backdrop-color: #151515;
     --card-bg-color: rgb(237 235 230 / 4%);
     --card-fg-color: #edebe6;
-    --dialog-bg-color: #1d1820;
+    --dialog-bg-color: #1f1f1f;
     --dialog-fg-color: #edebe6;
-    --popover-bg-color: #1d1820;
+    --popover-bg-color: #1f1f1f;
     --popover-fg-color: #edebe6;
-    --thumbnail-bg-color: #1d1820;
+    --thumbnail-bg-color: #1f1f1f;
     --thumbnail-fg-color: #edebe6;
-    --overview-bg-color: #15121a;
+    --overview-bg-color: #151515;
     --overview-fg-color: #edebe6;
-    --active-toggle-bg-color: rgb(209 52 73 / 32%);
+    --active-toggle-bg-color: #2a2a2a;
     --active-toggle-fg-color: #edebe6;
 }
 
-/* Esquinas vivas; solo los radios y el tirador de los deslizadores siguen redondos. */
+/* Forma (BRAND § 6): esquinas vivas; radio de 2 px solo en los campos de texto; los radios y el
+   tirador de los deslizadores siguen redondos. Los chaflanes, al final. */
 * {
     border-radius: 0;
+}
+
+entry,
+spinbutton {
+    border-radius: 2px;
 }
 
 radio,
@@ -116,14 +126,14 @@ scale slider {
 }
 
 /* Marco de ventana. Las apps GTK 4 siempre dibujan su propia cabecera, así que llevan aquí el
-   mismo marco que el tema Command de labwc: filo rojo y halo si están activas, Steel y una sombra
-   corta si no. Maximizadas, encajadas o a pantalla completa, sin marco. */
+   mismo marco que el tema Command de labwc: filo Red Hot si están activas, Steel si no, y una sombra
+   oscura corta (sin halo rojo). Maximizadas, encajadas o a pantalla completa, sin marco. */
 window.csd {
-    box-shadow: 0 0 0 1px #d13449, 0 0 12px rgb(209 52 73 / 16%);
+    box-shadow: 0 0 0 1px #f5482c, 0 0 12px rgb(0 0 0 / 60%);
 }
 
 window.csd:backdrop {
-    box-shadow: 0 0 0 1px #2e2630, 0 0 12px rgb(0 0 0 / 44%);
+    box-shadow: 0 0 0 1px #2a2a2a, 0 0 12px rgb(0 0 0 / 44%);
 }
 
 window.csd.maximized,
@@ -137,50 +147,164 @@ window.csd.tiled-left {
 }
 
 window.solid-csd {
-    box-shadow: inset 0 0 0 1px #d13449;
+    box-shadow: inset 0 0 0 1px #f5482c;
 }
 
 headerbar,
 .titlebar {
-    box-shadow: inset 0 -1px rgb(209 52 73 / 35%);
+    box-shadow: inset 0 -1px #2a2a2a;
 }
 
-/* Selección: fondo granate con el texto en hueso; en listas, además, un filo rojo a la izquierda. */
+/* Selección en listas: Slate con el texto en Bone y la barra Signal Red a la izquierda. */
 row:selected,
 gridview > child:selected,
-treeview.view:selected,
-text > selection,
-label > selection {
-    background-color: rgb(209 52 73 / 32%);
+treeview.view:selected {
+    background-color: #1f1f1f;
     color: #edebe6;
 }
 
 row:selected {
-    box-shadow: inset 2px 0 #d13449;
+    box-shadow: inset 2px 0 #a51500;
+}
+
+/* Texto seleccionado: Signal Red con texto blanco (7,8:1). */
+text > selection,
+label > selection {
+    background-color: #a51500;
+    color: #ffffff;
 }
 
 entry:focus-within,
 spinbutton:focus-within {
-    outline-color: rgb(209 52 73 / 60%);
-}
-
-/* Popovers y tooltips: panel con filo rojo apagado. */
-popover > contents {
-    border: 1px solid rgb(209 52 73 / 45%);
+    outline-color: #f5482c;
 }
 
 popover modelbutton:hover {
-    background-color: rgb(209 52 73 / 32%);
+    background-color: #2a2a2a;
 }
 
-tooltip {
-    background-color: #1d1820;
-    color: #edebe6;
-    border: 1px solid rgb(209 52 73 / 60%);
-}
-
-/* Enlaces en cian (información). */
+/* Enlaces en Red Hot (texto rojo sobre oscuro). */
 link,
 label > link {
-    color: #5bbfc4;
+    color: #f5482c;
+}
+
+/* Chaflanes de la marca v2 (BRAND § 6; SVG de build/make-chaflanes.py en chaflanes/, junto a esta
+   hoja: command-os-user-setup los copia con ella). Un border-image dibuja el corte y el filo; GTK no
+   pinta su centro, así que lo rellena un degradado liso del tamaño menos las dos esquinas (2 × corte
+   + 2). El fondo propio va transparente para que no asome por el corte. */
+
+/* Menús y popovers: panel de 14 px en Slate con filo Steel y sin flecha (no casaría con el corte).
+   El margen interior deja las opciones fuera del corte. */
+popover > contents {
+    padding: 8px 6px;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    background-size: calc(100% - 30px) calc(100% - 30px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/menu.svg");
+    border-image-slice: 15;
+    border-image-width: 15px;
+    border-image-repeat: stretch;
+}
+
+popover > arrow {
+    background: none;
+    border: none;
+    box-shadow: none;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Pistas: chaflán de 6 px en Slate. */
+tooltip,
+tooltip.background {
+    color: @cmd_bone;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    background-size: calc(100% - 14px) calc(100% - 14px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/pista.svg");
+    border-image-slice: 7;
+    border-image-width: 7px;
+    border-image-repeat: stretch;
+}
+
+/* Botones con texto (.btn--cut): chaflán de 10 px en Graphite con filo Iron; al pasar, filo Smoke;
+   pulsado, Slate; con el foco del teclado, filo Red Hot. El principal (y el destructivo), en Signal
+   Red con texto blanco. Solo los sueltos: en un grupo unido (.linked) o los de solo icono, el corte
+   rompería la forma y se quedan como estaban. */
+box:not(.linked) > button.text-button:not(.flat),
+box:not(.linked) > button.image-text-button:not(.flat),
+grid > button.text-button:not(.flat) {
+    padding: 5px 13px;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background-color: transparent;
+    background-image: linear-gradient(@cmd_graphite, @cmd_graphite);
+    background-size: calc(100% - 22px) calc(100% - 22px);
+    background-position: center;
+    background-repeat: no-repeat;
+    border-image-source: url("chaflanes/boton.svg");
+    border-image-slice: 11;
+    border-image-width: 11px;
+    border-image-repeat: stretch;
+}
+
+box:not(.linked) > button.text-button:not(.flat):hover,
+box:not(.linked) > button.image-text-button:not(.flat):hover,
+grid > button.text-button:not(.flat):hover {
+    border-image-source: url("chaflanes/boton-hover.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):focus-visible,
+box:not(.linked) > button.image-text-button:not(.flat):focus-visible,
+grid > button.text-button:not(.flat):focus-visible {
+    border-image-source: url("chaflanes/boton-foco.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):active,
+box:not(.linked) > button.text-button:not(.flat):checked,
+box:not(.linked) > button.image-text-button:not(.flat):active,
+grid > button.text-button:not(.flat):active {
+    background-image: linear-gradient(@cmd_slate, @cmd_slate);
+    border-image-source: url("chaflanes/boton-pulsado.svg");
+}
+
+box:not(.linked) > button.text-button:not(.flat):disabled,
+box:not(.linked) > button.image-text-button:not(.flat):disabled,
+grid > button.text-button:not(.flat):disabled {
+    border-image-source: url("chaflanes/boton-inactivo.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat),
+box:not(.linked) > button.destructive-action:not(.flat),
+grid > button.suggested-action:not(.flat),
+grid > button.destructive-action:not(.flat) {
+    color: @cmd_white;
+    background-image: linear-gradient(@cmd_red, @cmd_red);
+    border-image-source: url("chaflanes/principal.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat):hover,
+box:not(.linked) > button.suggested-action:not(.flat):focus-visible,
+box:not(.linked) > button.destructive-action:not(.flat):hover,
+box:not(.linked) > button.destructive-action:not(.flat):focus-visible,
+grid > button.suggested-action:not(.flat):hover,
+grid > button.suggested-action:not(.flat):focus-visible {
+    border-image-source: url("chaflanes/principal-hover.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat):active,
+box:not(.linked) > button.destructive-action:not(.flat):active,
+grid > button.suggested-action:not(.flat):active {
+    background-image: linear-gradient(@cmd_red_deep, @cmd_red_deep);
+    border-image-source: url("chaflanes/principal-pulsado.svg");
 }

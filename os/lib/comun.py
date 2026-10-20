@@ -39,7 +39,7 @@ def usuario_desde(nombre):
 
 
 def fila(etiqueta, widget):
-    """Etiqueta en cian encima del campo."""
+    """Etiqueta en Smoke encima del campo."""
     caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
     texto = Gtk.Label(label=etiqueta, xalign=0)
     texto.add_css_class("etiqueta")
@@ -63,23 +63,27 @@ def logo(alto):
 
 
 def panel(ancho):
-    """Panel central (filo rojo arriba) sobre el fondo; devuelve (fondo, panel).
+    """Panel central con chaflán sobre el fondo, enmarcado por las escuadras de la zona principal
+    (marca v2, docs/DISENO.md); devuelve (fondo, panel).
 
     Va dentro de un ScrolledWindow: en una pantalla baja (1024x600) el formulario no cabe y, sin
     desplazamiento, el botón quedaría fuera de la pantalla. Si cabe, no se nota: sigue centrado."""
     caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
     caja.add_css_class("panel")
-    caja.set_halign(Gtk.Align.CENTER)
-    caja.set_valign(Gtk.Align.CENTER)
-    caja.set_hexpand(True)
     caja.set_size_request(ancho, -1)
+    marco = Gtk.Box()
+    marco.add_css_class("escuadras")
+    marco.set_halign(Gtk.Align.CENTER)
+    marco.set_valign(Gtk.Align.CENTER)
+    marco.set_hexpand(True)
+    marco.append(caja)
     desliza = Gtk.ScrolledWindow(
         hscrollbar_policy=Gtk.PolicyType.NEVER,
         vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
         hexpand=True,
         vexpand=True,
     )
-    desliza.set_child(caja)
+    desliza.set_child(marco)
     fondo = Gtk.Box(hexpand=True)
     fondo.add_css_class("fondo")
     fondo.append(desliza)

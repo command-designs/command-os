@@ -51,6 +51,5 @@ fi
   row "$(t 'volver')" "${snaps}"
   row "" "$(t 'más detalle: fastfetch')"
 } | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
-  --define hide_search=true --cache-file /dev/null \
-  --width 560 --height 490 >/dev/null
+  --cache-file /dev/null --width 560 --lines 11 >/dev/null
 exit 0

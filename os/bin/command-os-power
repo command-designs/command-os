@@ -13,8 +13,7 @@ if pkill -f "^wofi --dmenu --prompt ${TAG}" 2>/dev/null; then exit 0; fi
 
 menu() {  # menu línea…  -> imprime la línea elegida (Esc o clic fuera: nada)
   printf '%s\n' "$@" | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
-    --define hide_search=true --cache-file /dev/null \
-    --width 280 --height $(( 22 + 40 * $# ))
+    --cache-file /dev/null --width 280 --lines $#
 }
 
 LOCK="󰌾   $(t 'bloquear')"

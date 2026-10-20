@@ -38,7 +38,7 @@ asistente de primer arranque o cualquier texto que se traduzca.
 | `lib/entorno-grafico` | Lee `LANG` y `LC_*` de `/etc/locale.conf` al abrir cada pantalla (asistente, inicio de sesión, sesión) y, después, de `~/.config/locale.conf` si la cuenta tiene idioma propio (gana al del equipo). systemd solo lo lee al arrancar. |
 | `lib/apply-boot` | Genera el menú de GRUB con el `LANG` del sistema («Opciones avanzadas…») y los textos del tema (cuenta atrás y ayuda de teclas) traducidos, y pone `command-os.idioma=es\|en` en `GRUB_CMDLINE_LINUX` (la Pi, aparcada, no lo lleva: sale en castellano). |
 | `initcpio/hooks/command-os-cifrado` | Lee `command-os.idioma=` de la línea del kernel (el initramfs no tiene `locale.conf` ni gettext) y pide la contraseña del disco en ese idioma; sin el parámetro, en castellano. Sus textos van escritos en cada idioma (`textos_cifrado`). |
-| `branding/plymouth/command/texto-clave*.<idioma>.png` | Los textos de la contraseña en el splash, como imágenes (la ñ y las tildes no se ven en el initramfs). Los genera `build/make-plymouth-textos.py` desde `os/po/`; `command.script` elige la del idioma por el texto que le manda el gancho. |
+| `branding/plymouth/command/{texto-clave*,diag-*,estado-*}.<idioma>.png` | Los textos del splash (la contraseña y las comprobaciones de arranque), como imágenes (la ñ y las tildes no se ven en el initramfs). Los genera `build/make-plymouth-textos.py` desde `os/po/`; `command.script` elige los de la contraseña por el texto que le manda el gancho y los de la lista por el idioma que llega con cada estado (`lib/diagnostico-arranque` lo lee de `command-os.idioma=`). |
 | `os/po/<idioma>.po` | Las traducciones. El `PKGBUILD` las compila a `/usr/share/locale/<idioma>/LC_MESSAGES/command-os.mo`. |
 | `lib/textos.sh` | `t` y `tn` para los scripts de shell (bash y sh). Se carga con `source`. |
 | `lib/traducir.py` | Traductor sin GTK: `traductor()` para Python y dos modos para archivos de configuración que no pueden llamar a gettext: `plantilla` (los `{{textos}}`) y `etiquetas` (los `label="…"` de un menú XML). |
@@ -86,9 +86,10 @@ confirmaciones que se teclean (`BORRAR WINDOWS`, `SI`) son las del idioma elegid
 3. Generar su locale en los instaladores (`build/x86/lib.sh`, `build/x86/build-image.sh`) para que
    elegirlo en el asistente no tarde, y añadirlo a `elegir_idioma`/`cargar_idioma` (`build/x86/lib.sh`)
    y a la pregunta de `instalar-command-os.sh`. Si no, `command-os-idioma` lo genera al elegirlo (unos segundos).
-4. Splash del disco cifrado: `python build/make-plymouth-textos.py` (sus imágenes) y los textos del
-   idioma en `textos_cifrado` de `os/initcpio/hooks/command-os-cifrado`, con una palabra que
-   `command.script` reconozca (`display_password_callback`). `tests/idioma.sh` lo comprueba.
+4. Splash: `python build/make-plymouth-textos.py` (sus imágenes), los textos del idioma en
+   `textos_cifrado` de `os/initcpio/hooks/command-os-cifrado`, con una palabra que `command.script`
+   reconozca (`display_password_callback`), y cargar en `command.script` los textos de la lista en ese
+   idioma (hoy, `nombre_es`/`nombre_en`…; sin eso salen en castellano). `tests/idioma.sh` comprueba las imágenes.
 
 ## Cómo se ha probado
 

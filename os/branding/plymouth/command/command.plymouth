@@ -1,6 +1,6 @@
 [Plymouth Theme]
 Name=Command
-Description=Firma de arranque de Command: el wordmark se revela y la barra roja se extiende.
+Description=Firma de arranque de Command (el símbolo se traza y se rellena, su barra se extiende y el wordmark se revela) y comprobaciones de arranque.
 ModuleName=script
 
 [script]

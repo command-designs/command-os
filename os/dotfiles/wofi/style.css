@@ -1,14 +1,15 @@
-/* Lanzador de Command OS: terminal HUD (docs/DISENO.md). Marco rojo 2077, esquinas vivas,
-   la entrada seleccionada se marca con un filo rojo y un halo. */
-@define-color void #0d0b0e;
-@define-color graphite #15121a;
-@define-color slate #1d1820;
-@define-color steel #2e2630;
+/* Lanzador de Command OS con el aspecto de la paleta de comandos de la marca v2 (BRAND § 7.2,
+   lenguaje.html): panel en Graphite con chaflán de 20 px y filo Iron; arriba, la fila de búsqueda con
+   la lupa en Red Hot y una línea Steel debajo; la entrada activa, en Slate con la barra Red Hot a la
+   izquierda. El chaflán es un border-image (build/make-chaflanes.py): GTK no pinta su centro, así que
+   lo rellena un degradado liso del tamaño del panel menos las esquinas (2 × 21 px). */
+@define-color graphite #151515;
+@define-color slate #1f1f1f;
+@define-color steel #2a2a2a;
 @define-color bone #edebe6;
-@define-color smoke #6f6870;
-@define-color red #d13449;
-@define-color red-deep #2b1118;
-@define-color cyan #5bbfc4;
+@define-color ash #a3a09a;
+@define-color smoke #85827c;
+@define-color red-hot #f5482c;
 
 * {
     font-family: "Geist", "JetBrainsMono Nerd Font";
@@ -17,52 +18,71 @@
 }
 
 window {
-    background-color: @void;
+    background-color: transparent;
     color: @bone;
-    border: 1px solid @red;
-    border-top: 3px solid @red;
 }
 
 /* Entrada del panel: aparece y se asienta, con la curva de Command (sin rebote). labwc no anima
    ventanas, así que el movimiento del escritorio vive en los paneles. */
 @keyframes cmd-panel-in {
-    from { opacity: 0; margin-top: 20px; }
-    to { opacity: 1; margin-top: 12px; }
+    from { opacity: 0; margin-top: 8px; }
+    to { opacity: 1; margin-top: 0; }
 }
 
 #outer-box {
-    margin: 12px;
+    margin: 0;
+    padding: 0 0 8px;
+    border: none;
+    border-image-source: url("file:///usr/share/command-os/chaflanes/paleta.svg");
+    border-image-slice: 21;
+    border-image-width: 21px;
+    border-image-repeat: stretch;
+    background-color: transparent;
+    background-image: linear-gradient(@graphite, @graphite);
+    background-size: calc(100% - 42px) calc(100% - 42px);
+    background-position: center;
+    background-repeat: no-repeat;
     animation: cmd-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #entry {
-    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Fila de búsqueda: sin caja propia, como la de la paleta; el foco ya lo dice el cursor Red Hot. */
 #input {
-    margin-bottom: 8px;
-    padding: 10px 12px;
-    background-color: @graphite;
-    color: @cyan;
-    caret-color: @red;
-    border: 1px solid @steel;
+    margin: 0 1px 6px;
+    padding: 14px 18px 14px 12px;
+    background: none;
+    color: @bone;
+    caret-color: @red-hot;
+    border: none;
+    border-bottom: 1px solid @steel;
+    box-shadow: none;
     font-family: "JetBrainsMono Nerd Font";
+    font-size: 13px;
     letter-spacing: 0.04em;
 }
 
-#input:focus {
-    border-color: alpha(@red, 0.6);
-    box-shadow: 0 0 6px alpha(@red, 0.18);
+/* La lupa la pone wofi por código (no se puede cambiar por el › de la paleta): en Red Hot, el único
+   detalle rojo del panel. */
+#input image {
+    color: @red-hot;
+    margin-right: 4px;
+}
+
+#scroll {
+    margin: 0 6px;
 }
 
 #entry {
     padding: 8px 10px;
-    border-left: 2px solid transparent;
+    color: @ash;
 }
 
 #entry:selected {
-    background-color: @red-deep;
-    border-left: 2px solid @red;
+    background-color: @slate;
+    box-shadow: inset 2px 0 @red-hot;
     outline: none;
 }
 
@@ -71,10 +91,9 @@ window {
 }
 
 #text {
-    color: @bone;
+    color: @ash;
 }
 
 #text:selected {
-    color: @red;
-    text-shadow: 0 0 4px alpha(@red, 0.4);
+    color: @bone;
 }

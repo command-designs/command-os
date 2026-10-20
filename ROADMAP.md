@@ -10,7 +10,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 - Instalar en un PC real con `instalar-command-os.sh` (dual boot o disco entero; `docs/instalacion.md` § 2):
   arranque desde la entrada UEFI, wifi y gráfica concretos. Dual boot en un portátil real
   (`docs/dualboot.md`): la entrada UEFI y Windows con BitLocker.
-- Oír los sonidos del sistema (en la VM solo se ha comprobado que no saturan).
+- Oír los sonidos del sistema de la marca v2 en un PC real (`docs/DISENO.md` § «Sonido»; los prototipos
+  se escucharon aparte, en el sistema solo se ha comprobado que no saturan).
 - Teclas de brillo en un portátil real (la VM no tiene retroiluminación: solo se prueba que lanzan la orden).
 - Disco cifrado en un PC real (`docs/cifrado.md`): la contraseña en el splash con el teclado del
   portátil y con uno USB, una contraseña con símbolos (en la VM solo se teclean letras, cifras y
@@ -33,6 +34,14 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   aplicaciones) y abrirlo desde el lanzador; descargar un `.tar.gz` o `.zip` con Firefox y abrirlo con
   **doble clic** en Thunar (xarchiver, sin preguntar) y extraerlo con el clic derecho; abrir un AppImage
   de verdad y un `.deb` descargados; que una app GTK de Flathub se vea oscura y con el filo rojo.
+- Forma de la marca v2 en un PC real (`docs/DISENO.md` § «Forma»): chaflanes en el menú del clic
+  derecho de Thunar y Firefox, en sus diálogos (botones), en las notificaciones y en una app GTK 3 de
+  Flathub; y cómo se ven a alta densidad (en la VM, a escala 2, el filo sale algo suave).
+- Arranque de la marca v2 en un PC real (`docs/DISENO.md` § «Movimiento»): la firma (el símbolo se traza
+  y se rellena, su barra, el wordmark) y que una tecla la salte; la lista de comprobaciones con los
+  estados de tu equipo y el medidor; el menú de GRUB con el chaflán (Esc al encender); y, con el disco
+  cifrado, la contraseña en el sitio de la lista y «disco del sistema» en curso al abrirlo (en la VM
+  cifrada no se ha probado este arranque nuevo).
 
 ## Aparcado hasta tener el hardware ARM del cyberdeck
 

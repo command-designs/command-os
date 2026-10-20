@@ -1,10 +1,12 @@
-/* Menú de energía de Command OS (command-os-power): panel HUD pequeño sin buscador.
-   Mismos colores que style.css; la opción elegida se marca con el filo rojo. */
-@define-color void #0d0b0e;
+/* Paneles pequeños de wofi (docs/DISENO.md): menú de energía, ayuda de atajos, «acerca de», fondos y
+   el menú de las fijadas. Panel en Graphite con chaflán de 14 px y filo Steel (.panel de la marca
+   v2), sin buscador; la opción elegida, en Slate con la barra Red Hot, como en el lanzador.
+   El buscador no se quita con hide_search: en wofi 1.5 deja ver solo la primera opción. Se encoge
+   aquí a cero, y quien abre el panel le da el alto con --lines (una línea por opción). */
+@define-color graphite #151515;
+@define-color slate #1f1f1f;
 @define-color bone #edebe6;
-@define-color smoke #6f6870;
-@define-color red #d13449;
-@define-color red-deep #2b1118;
+@define-color red-hot #f5482c;
 
 * {
     font-family: "JetBrainsMono Nerd Font";
@@ -14,46 +16,56 @@
 }
 
 window {
-    background-color: @void;
+    background-color: transparent;
     color: @bone;
-    border: 1px solid alpha(@red, 0.6);
-    border-top: 3px solid @red;
 }
 
 @keyframes cmd-panel-in {
-    from { opacity: 0; margin-top: 16px; }
-    to { opacity: 1; margin-top: 10px; }
+    from { opacity: 0; margin-top: 6px; }
+    to { opacity: 1; margin-top: 0; }
 }
 
 #outer-box {
-    margin: 10px;
+    margin: 0;
+    padding: 8px;
+    border: none;
+    border-image-source: url("file:///usr/share/command-os/chaflanes/panel.svg");
+    border-image-slice: 15;
+    border-image-width: 15px;
+    border-image-repeat: stretch;
+    background-color: transparent;
+    background-image: linear-gradient(@graphite, @graphite);
+    background-size: calc(100% - 30px) calc(100% - 30px);
+    background-position: center;
+    background-repeat: no-repeat;
     animation: cmd-panel-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#input {
+#input,
+#input * {
     margin: 0;
     padding: 0;
     min-height: 0;
+    min-width: 0;
     border: none;
+    box-shadow: none;
+    background: none;
+    font-size: 0;
     opacity: 0;
+    -gtk-icon-source: none;
 }
 
 #entry {
     padding: 10px 14px;
-    border-left: 2px solid transparent;
 }
 
 #entry:selected {
-    background-color: @red-deep;
-    border-left: 2px solid @red;
+    background-color: @slate;
+    box-shadow: inset 2px 0 @red-hot;
     outline: none;
 }
 
-#text {
-    color: @bone;
-}
-
+#text,
 #text:selected {
-    color: @red;
-    text-shadow: 0 0 4px alpha(@red, 0.4);
+    color: @bone;
 }

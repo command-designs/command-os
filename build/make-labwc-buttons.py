@@ -2,9 +2,9 @@
 
 Glifos finos sobre fondo transparente, del tamaño exacto del botón (window.button.width/height de
 themerc). Maximizar son las escuadras del fondo de pantalla; restaurar, dos marcos solapados.
-Reposo: Ash (ventana activa) o Smoke (inactiva). Al pasar por encima: cian sobre Slate (dato,
-interacción) y, para cerrar, rojo sobre Red Deep. labwc solo pinta su efecto de hover genérico si
-falta el icono *_hover, así que los fondos de hover van dibujados en el propio SVG.
+Reposo: Ash (ventana activa) o Smoke (inactiva). Al pasar por encima: Bone sobre Steel y, para
+cerrar, blanco sobre Signal Red (botón rojo con texto blanco, marca v2). labwc solo pinta su efecto
+de hover genérico si falta el icono *_hover, así que los fondos de hover van dibujados en el SVG.
 
 Uso: python build/make-labwc-buttons.py  ->  os/branding/labwc/Command/labwc/*.svg
 """
@@ -15,9 +15,9 @@ W, H = 30, 26          # = window.button.width / window.button.height en themerc
 X0, Y0, S = 10, 8, 10  # caja del glifo: 10x10 px centrada
 STROKE = 1.4
 
-ASH, SMOKE = "#a8a2a6", "#6f6870"
-SLATE, CYAN = "#1d1820", "#5bbfc4"
-RED_DEEP, RED_LIGHT, RED = "#2b1118", "#e8607a", "#d13449"
+ASH, SMOKE = "#a3a09a", "#85827c"
+STEEL, BONE = "#2a2a2a", "#edebe6"
+SIGNAL_RED, WHITE = "#a51500", "#ffffff"
 
 
 def path(d, color):
@@ -47,12 +47,10 @@ def glyph_max_toggled(c):
     return path(back, c) + path(front, c)
 
 
-def svg(body, bg=None, edge=None):
+def svg(body, bg=None):
     rect = f'<rect width="{W}" height="{H}" fill="{bg}"/>' if bg else ""
-    # Filo inferior de 1 px en el hover: la misma marca que lo activo en Waybar.
-    line = f'<rect y="{H - 1}" width="{W}" height="1" fill="{edge}"/>' if edge else ""
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" '
-            f'viewBox="0 0 {W} {H}">{rect}{line}{body}</svg>\n')
+            f'viewBox="0 0 {W} {H}">{rect}{body}</svg>\n')
 
 
 BUTTONS = {
@@ -64,12 +62,12 @@ BUTTONS = {
 
 OUT.mkdir(parents=True, exist_ok=True)
 for name, glyph in BUTTONS.items():
-    hover = (RED_DEEP, RED_LIGHT, RED) if name == "close" else (SLATE, CYAN, None)
+    hover = (SIGNAL_RED, WHITE) if name == "close" else (STEEL, BONE)
     files = {
         f"{name}-active.svg": svg(glyph(ASH)),
         f"{name}-inactive.svg": svg(glyph(SMOKE)),
-        f"{name}_hover-active.svg": svg(glyph(hover[1]), hover[0], hover[2]),
-        f"{name}_hover-inactive.svg": svg(glyph(hover[1]), hover[0], hover[2]),
+        f"{name}_hover-active.svg": svg(glyph(hover[1]), hover[0]),
+        f"{name}_hover-inactive.svg": svg(glyph(hover[1]), hover[0]),
     }
     for fname, content in files.items():
         (OUT / fname).write_text(content, encoding="utf-8", newline="\n")

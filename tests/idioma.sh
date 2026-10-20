@@ -85,7 +85,7 @@ if [[ -f /etc/default/grub ]]; then
     && ok "línea del kernel: vuelve a command-os.idioma=es (una sola vez)" || mal "command-os.idioma= al volver al castellano"
 fi
 
-echo "==> Splash: textos de la contraseña del disco"
+echo "==> Splash: textos de la contraseña del disco y de las comprobaciones de arranque"
 # Cada imagen que carga command.script existe, en cada idioma (build/make-plymouth-textos.py).
 script="${REPO}/os/branding/plymouth/command/command.script"
 faltan=""
@@ -94,7 +94,7 @@ for img in $(grep -oE '"[a-z0-9.-]+\.png"' "${script}" | tr -d '"'); do
 done
 [[ -z "${faltan}" ]] && ok "el splash tiene todas sus imágenes" || mal "faltan imágenes del splash:${faltan}"
 for idioma in es $(basename -s .po "${REPO}"/os/po/*.po); do
-  for img in texto-clave texto-clave-mala; do
+  for img in texto-clave texto-clave-mala diag-titulo diag-{1..6} estado-{espera,curso,ok,error}; do
     [[ -f "${REPO}/os/branding/plymouth/command/${img}.${idioma}.png" ]] \
       || mal "falta ${img}.${idioma}.png (python build/make-plymouth-textos.py)"
   done

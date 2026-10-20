@@ -24,7 +24,7 @@ entiende sin explicación; y es ligero (sin animaciones de ventanas ni efectos c
 Raspberry Pi 5 importa. Es el mismo compositor que usa Raspberry Pi OS por defecto.
 
 **Estado respecto a esa meta**: `os/` ya tiene escritorio labwc con tema de ventanas propio,
-tema de marca, notificaciones (Mako), bloqueo/idle (Hyprlock/Hypridle), OSD, splash de arranque,
+tema de marca, notificaciones (swaync), bloqueo/idle (Hyprlock/Hypridle), OSD, splash de arranque,
 atajos con su ayuda (Super+F1), apps por defecto, tienda de aplicaciones (Flatpak con Flathub, que
 no toca el sistema), gestor de comprimidos y asistente de primer arranque con pantalla de
 inicio de sesión propia (`docs/cuentas.md`), verificado en una VM x86_64. Falta probar varias piezas,
@@ -38,7 +38,7 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
   serie e inglés: [`docs/idioma.md`](docs/idioma.md)), marca (`branding/`), configuración de serie (`dotfiles/`, `system/`) y la fecha validada de Arch y la
   clave de firma (`pacman/`). `install.sh` prepara la máquina, construye el paquete y lo instala;
   las actualizaciones llegan después por pacman. Cómo funciona todo: [`docs/actualizaciones.md`](docs/actualizaciones.md).
-- `tests/` y `.github/workflows/` — pruebas automáticas (sesión real sin pantalla, escala de las
+- `tests/` y `.github/workflows/` — pruebas automáticas (sesión real sin pantalla, colores de la marca, escala de las
   pantallas, batería y aplicaciones fijadas de la barra, descargas y tipos de archivo, discos y cifrado
   del instalador, idioma y traducciones) en
   cada cambio y cada día, publicación firmada del paquete y validación de fechas de Arch.
@@ -65,7 +65,7 @@ render es por software (ver `docs/testing.md`).
 
 ## Identidad y estado del tema
 
-El escritorio sigue la marca de Command (`BRAND.md` de `command-web`): casi monocromo, rojo solo como
+El escritorio sigue la marca v2 de Command (`BRAND.md` de `command-web`): casi monocromo, rojo solo como
 señal. Detalle y estado de cada ancla de marca en [`docs/DISENO.md`](docs/DISENO.md). Los assets están
 en `os/branding/` (logo, fuentes, fondos en 16:9 y 16:10, splash de arranque, tema de GRUB). Escala
 de alta densidad y resoluciones: [`docs/notas/pantallas.md`](docs/notas/pantallas.md).

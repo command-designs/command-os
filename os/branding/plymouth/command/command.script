@@ -1,176 +1,299 @@
-# Command OS — firma de arranque (BRAND.md § 12.1, ancla 2), versión para clientes.
+# Command OS — firma de arranque (BRAND.md § 9.1, versión corta; § 12.1, ancla 2) y arranque con
+# diagnóstico (§ 9.2). docs/DISENO.md § «Movimiento».
 #
-# El wordmark animado (28 fotogramas a 2 ticks cada uno, ~1,1 s a 50 Hz; se queda en el último),
-# una barra de progreso fina debajo y, bajo la barra, una consola de 6 líneas con los servicios que
-# va arrancando systemd (llegan por Plymouth.SetUpdateStatusFunction / SetMessageFunction). Es el
-# único texto del arranque: el cargador, el kernel y systemd no escriben en pantalla.
-# Cualquier tecla salta la animación del wordmark (va al último fotograma; el arranque no se toca).
-# Para soporte técnico, Esc cambia al modo detalles de Plymouth (texto de arranque completo).
-# Con el disco cifrado, la contraseña se pide aquí mismo, en el sitio de la consola (abajo).
-# El progreso lo calcula Plymouth con la duración guardada de arranques anteriores; en el
-# primer arranque es una estimación por defecto. Al apagar/reiniciar no hay barra.
-# Paleta HUD (docs/DISENO.md): fondo Void #0D0B0E, barra roja sobre Steel.
-Window.SetBackgroundTopColor(0.051, 0.043, 0.055);
-Window.SetBackgroundBottomColor(0.051, 0.043, 0.055);
+# Firma, 2,65 s, sobre Void liso: el contorno del símbolo C se traza (0–0,9 s) y se rellena de
+# izquierda a derecha (0,8–1,35 s), su barra Signal Red se extiende con su halo (1,3–1,65 s) y el
+# wordmark se revela de izquierda a derecha con un cabezal Red Hot (1,6–2,3 s) y luego su barra
+# (2,3–2,65 s). Cualquier tecla la salta (va al final; el arranque no se toca). Esc, como siempre,
+# pasa al modo detalles de Plymouth (soporte técnico).
+# Debajo, la lista de comprobaciones de arranque: las reales, en orden y con su resultado
+# (lib/diagnostico-arranque las manda como estado, «cmd-diag IDIOMA ESTADOS»), y un medidor con el avance de
+# Plymouth (el tiempo de arranques anteriores; sin porcentaje: en el primero es una estimación).
+# Es lo único que se ve: el cargador, el kernel y systemd no escriben en pantalla.
+# Con el disco cifrado, la contraseña se pide aquí mismo, en el sitio de la lista.
+# Al apagar o reiniciar, solo el logo, ya completo.
+# Los colores, de la paleta v2 (tests/marca.sh): el fondo es Void #0E0E0E.
+Window.SetBackgroundTopColor(0.055, 0.055, 0.055);
+Window.SetBackgroundBottomColor(0.055, 0.055, 0.055);
 
-# Todo va en proporción al alto de la pantalla: igual de grande en 1366x768 que en 2560x1600 o
-# en 4K. A 1080 px de alto, K = 1 (wordmark de 640 px). Los fotogramas vienen a doble resolución
-# (build/make-plymouth.py) y se reducen una sola vez aquí, al cargarlos.
+# Todo va en proporción al alto de la pantalla: igual de grande en 1366x768 que en 2560x1600 o en
+# 4K. A 1080 px de alto, K = 1 (símbolo de 128 px, wordmark de 480). Las imágenes vienen a doble
+# resolución (build/make-plymouth.py y build/make-plymouth-textos.py) y se reducen aquí, al cargarlas.
 K = Window.GetHeight() / 1080;
 if (K < 0.7) K = 0.7;
 if (K > 2) K = 2;
-SRC = 2;  # resolución de los fotogramas
-BAR_H = Math.Int(2 * K + 0.5);
-if (BAR_H < 2) BAR_H = 2;
-PAD = Math.Int(16 * K);  # margen transparente de los fotogramas (halo y glitch)
+SRC = 2;
 
-frame_count = 28;
-for (i = 0; i < frame_count; i++) {
-    src = Image("frame-" + i + ".png");
-    frame[i] = src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
+fun cargar(nombre) {
+    src = Image(nombre);
+    return src.Scale(Math.Int(src.GetWidth() * K / SRC + 0.5), Math.Int(src.GetHeight() * K / SRC + 0.5));
 }
 
-# --- Composición: wordmark centrado, barra a la mitad de su ancho, centrada debajo ---
-logo_w = frame[0].GetWidth() - 2 * PAD;
-logo_x = Window.GetX() + (Window.GetWidth() - logo_w) / 2;
-logo_y = Window.GetY() + (Window.GetHeight() - frame[0].GetHeight()) / 2 - Math.Int(20 * K);
-bar_w  = Math.Int(logo_w / 2);
-bar_x  = Window.GetX() + (Window.GetWidth() - bar_w) / 2;
-bar_y  = logo_y + frame[0].GetHeight() - PAD + Math.Int(56 * K);
-
-logo = Sprite();
-logo.SetX(logo_x - PAD);
-logo.SetY(logo_y);
-logo.SetImage(frame[0]);
-
-# --- Barra de progreso (dos píxeles escalados: fondo tenue + relleno rojo) --------
-px_dim = Image("px-dim.png");
-px_red = Image("px-red.png");
-bar_bg = Sprite(px_dim.Scale(bar_w, BAR_H));
-bar_bg.SetPosition(bar_x, bar_y, 1);
-bar_fg = Sprite();
-bar_fg.SetPosition(bar_x, bar_y, 2);
-bar_px = 0;
+fun px(n) {  # n px a 1080 de alto, al menos 1
+    v = Math.Int(n * K + 0.5);
+    if (v < 1) v = 1;
+    return v;
+}
 
 booting = (Plymouth.GetMode() == "boot");
-if (!booting) bar_bg.SetOpacity(0);
 
-# --- Consola de arranque: bajo la barra, alineada con el wordmark ---------------------
-# La línea más reciente (abajo) en hueso; las anteriores se apagan hacia Smoke. Solo al arrancar.
-FONT = "Monospace " + Math.Int(9 * K + 0.5);
-LOG_LINES = 6;
-LINE_H = Math.Int(17 * K + 0.5);
-LOG_MAX = 76;
-log_y = bar_y + BAR_H + Math.Int(28 * K);
-for (i = 0; i < LOG_LINES; i++) {
-    log_text[i] = "";
-    log_sprite[i] = Sprite();
-    log_sprite[i].SetPosition(logo_x, log_y + i * LINE_H, 3);
+# --- Imágenes -------------------------------------------------------------------------------------
+SIM_FRAMES = 42;  # simbolo-0 … simbolo-41: un fotograma cada 40 ms, el último completo
+for (i = 0; i < SIM_FRAMES; i++)
+    sim_frame[i] = cargar("simbolo-" + i + ".png");
+SIM_PAD = Math.Int(12 * K + 0.5);  # margen de los fotogramas (cabe el halo)
+wordmark = cargar("wordmark.png");
+px_red = Image("px-red.png");
+px_dim = Image("px-dim.png");
+px_slate = Image("px-slate.png");
+px_bone = Image("px-bone.png");
+px_red_hot = Image("px-red-hot.png");
+px_void = Image("px-void.png");
+
+# --- Composición: símbolo, wordmark, lista y medidor, centrados en vertical ------------------------
+sim_w = sim_frame[0].GetWidth() - 2 * SIM_PAD;
+sim_h = sim_frame[0].GetHeight() - 2 * SIM_PAD;
+wm_w = wordmark.GetWidth();
+wm_h = wordmark.GetHeight();
+GAP_LOGO = px(36);
+GAP_LISTA = px(64);
+ROW_H = px(32);
+ROWS = 6;
+HEAD_H = px(16);
+GAP_HEAD = px(10);
+GAP_METER = px(18);
+METER_H = px(2);
+logo_h = sim_h + GAP_LOGO + wm_h;
+if (booting) block_h = logo_h + GAP_LISTA + HEAD_H + GAP_HEAD + ROWS * ROW_H + GAP_METER + METER_H;
+else block_h = logo_h;
+top = Window.GetY() + Math.Int((Window.GetHeight() - block_h) / 2);
+cx = Window.GetX() + Math.Int(Window.GetWidth() / 2);
+
+sim_x = cx - Math.Int(sim_w / 2);
+sim_y = top;
+wm_x = cx - Math.Int(wm_w / 2);
+wm_y = sim_y + sim_h + GAP_LOGO;
+list_x = wm_x;  # la lista y el medidor, del ancho del wordmark
+list_w = wm_w;
+head_y = wm_y + wm_h + GAP_LISTA;
+rows_y = head_y + HEAD_H + GAP_HEAD;
+meter_y = rows_y + ROWS * ROW_H + GAP_METER;
+
+# --- Firma ----------------------------------------------------------------------------------------
+sim = Sprite(sim_frame[0]);
+sim.SetPosition(sim_x - SIM_PAD, sim_y - SIM_PAD, 1);
+
+wm = Sprite(wordmark);
+wm.SetPosition(wm_x, wm_y, 1);
+# El wordmark trae su barra en la franja inferior (22 de 223 en command-wordmark.svg, a 201 del
+# borde de arriba). Dos tapas Void lo destapan: las letras y, después, la barra.
+WM_BAR_Y = Math.Int(wm_h * 201 / 223);
+tapa_letras = Sprite(px_void.Scale(wm_w + 2, WM_BAR_Y));
+tapa_letras.SetPosition(wm_x, wm_y, 2);
+tapa_barra = Sprite(px_void.Scale(wm_w + 2, wm_h - WM_BAR_Y + 1));
+tapa_barra.SetPosition(wm_x, wm_y + WM_BAR_Y, 2);
+CAB_W = px(1.5);
+cabezal = Sprite(px_red_hot.Scale(CAB_W, WM_BAR_Y + 2 * px(3)));
+cabezal.SetPosition(wm_x, wm_y - px(3), 3);
+cabezal.SetOpacity(0);
+
+fun ease_out(t) {  # cubic-bezier(.16, 1, .3, 1), aproximada
+    u = 1 - t;
+    return 1 - u * u * u * u;
 }
 
-fun draw_log() {
-    for (i = 0; i < LOG_LINES; i++) {
-        if (log_text[i] == "") {
-            log_sprite[i].SetOpacity(0);
-        } else {
-            t = (i + 1) / LOG_LINES;
-            if (i == LOG_LINES - 1) {
-                log_sprite[i].SetImage(Image.Text(log_text[i], 0.93, 0.92, 0.90, 1, FONT));
-            } else {
-                # Smoke #6F6870 -> Ash #A8A2A6
-                log_sprite[i].SetImage(Image.Text(log_text[i], 0.30 + 0.36 * t, 0.28 + 0.36 * t, 0.30 + 0.35 * t, 1, FONT));
-            }
-            log_sprite[i].SetOpacity(1);
-        }
+fun ease_in_out(t) {  # cubic-bezier(.65, 0, .35, 1), aproximada
+    if (t < 0.5) return 4 * t * t * t;
+    u = -2 * t + 2;
+    return 1 - u * u * u / 2;
+}
+
+fun fase(ms, a, b) {
+    t = (ms - a) / (b - a);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    return t;
+}
+
+FIN = 133;  # refrescos de 20 ms hasta el final de la firma (2,65 s)
+tick = 0;
+if (!booting) tick = FIN;  # al apagar, el logo ya completo
+pintado = -1;
+
+fun pintar_firma() {
+    ms = tick * 20;
+    idx = Math.Int(tick / 2);
+    if (idx >= SIM_FRAMES) idx = SIM_FRAMES - 1;
+    sim.SetImage(sim_frame[idx]);
+    x = Math.Int(wm_w * ease_in_out(fase(ms, 1600, 2300)));
+    tapa_letras.SetX(wm_x + x);
+    if (x > 0 && x < wm_w) {
+        cabezal.SetX(wm_x + x - Math.Int(CAB_W / 2));
+        cabezal.SetOpacity(1);
+    } else {
+        cabezal.SetOpacity(0);
+    }
+    tapa_barra.SetX(wm_x + Math.Int(wm_w * ease_out(fase(ms, 2300, 2650))));
+    if (tick >= FIN) {
+        tapa_letras.SetOpacity(0);
+        tapa_barra.SetOpacity(0);
     }
 }
 
-fun push_line(msg) {
-    if (!booting) return;
-    if (msg == "") return;
-    if (msg.Length() > LOG_MAX) msg = msg.SubString(0, LOG_MAX);
-    for (i = 0; i < LOG_LINES - 1; i++)
-        log_text[i] = log_text[i + 1];
-    log_text[LOG_LINES - 1] = "> " + msg;
-    draw_log();
+fun refresh_callback() {
+    if (pintado >= FIN) return;  # la firma ya está completa: nada más se mueve aquí
+    if (tick > FIN) tick = FIN;
+    pintar_firma();
+    pintado = tick;
+    tick++;
 }
+Plymouth.SetRefreshFunction(refresh_callback);
+pintar_firma();
 
-Plymouth.SetMessageFunction(push_line);
-Plymouth.SetUpdateStatusFunction(push_line);
-# Neutra (como cpu, mem o net en la barra): el tema no sabe el idioma; el resto de líneas son de systemd.
-push_line("cmd-os: init");
+fun key_callback(key) {
+    if (tick < FIN) tick = FIN;
+}
+Plymouth.SetKeyboardInputFunction(key_callback);
+
+# --- Medidor: el avance de Plymouth (Signal Red sobre Steel), solo al arrancar ---------------------
+meter_bg = Sprite(px_dim.Scale(list_w, METER_H));
+meter_bg.SetPosition(list_x, meter_y, 1);
+meter_fg = Sprite();
+meter_fg.SetPosition(list_x, meter_y, 2);
+meter_px = 0;
+if (!booting) meter_bg.SetOpacity(0);
 
 fun boot_progress_callback(time, progress) {
     if (!booting) return;
     if (progress > 1) progress = 1;
     if (progress < 0) progress = 0;
-    # Solo se reescala cuando cambia de píxel.
-    w = Math.Int(bar_w * progress);
-    if (w != bar_px) {
-        bar_px = w;
-        if (w > 0) {
-            bar_fg.SetImage(px_red.Scale(w, BAR_H));
-            bar_fg.SetOpacity(1);
-        }
+    w = Math.Int(list_w * progress);
+    if (w > meter_px) {  # nunca hacia atrás (BRAND § 9.2)
+        meter_px = w;
+        meter_fg.SetImage(px_red.Scale(w, METER_H));
     }
 }
 Plymouth.SetBootProgressFunction(boot_progress_callback);
 
-# --- Animación del wordmark -------------------------------------------------------
-tick = 0;
-fun refresh_callback() {
-    idx = Math.Int(tick / 2);
-    if (idx >= frame_count) idx = frame_count - 1;
-    logo.SetImage(frame[idx]);
-    tick++;
+# --- Comprobaciones de arranque (.diag) -----------------------------------------------------------
+# Textos como imágenes en JetBrains Mono, uno por idioma (en el initramfs, Image.Text pinta la ñ y las
+# tildes como cuadrados). El idioma llega con cada mensaje; hasta el primero, la lista no se ve.
+for (n = 1; n <= ROWS; n++) {
+    nombre_es[n] = cargar("diag-" + n + ".es.png");
+    nombre_en[n] = cargar("diag-" + n + ".en.png");
 }
-Plymouth.SetRefreshFunction(refresh_callback);
+titulo_es = cargar("diag-titulo.es.png");
+titulo_en = cargar("diag-titulo.en.png");
+estado_es["o"] = cargar("estado-ok.es.png");
+estado_es["x"] = cargar("estado-error.es.png");
+estado_es["c"] = cargar("estado-curso.es.png");
+estado_es["e"] = cargar("estado-espera.es.png");
+estado_en["o"] = cargar("estado-ok.en.png");
+estado_en["x"] = cargar("estado-error.en.png");
+estado_en["c"] = cargar("estado-curso.en.png");
+estado_en["e"] = cargar("estado-espera.en.png");
+for (n = 0; n <= ROWS; n++)
+    cuenta[n] = cargar("diag-cuenta-" + n + ".png");
 
-# --- Saltar la animación con una tecla ---------------------------------------------
-fun key_callback(key) {
-    if (tick < frame_count * 2) tick = frame_count * 2;
+titulo = Sprite();
+titulo.SetPosition(list_x, head_y, 3);
+contador = Sprite();
+FILETE = px(1);
+IX_W = px(40);
+for (n = 1; n <= ROWS; n++) {
+    y = rows_y + (n - 1) * ROW_H;
+    ix_img = cargar("diag-ix-" + n + ".png");
+    fila_ix[n] = Sprite(ix_img);
+    fila_ix[n].SetPosition(list_x, y + Math.Int((ROW_H - FILETE - ix_img.GetHeight()) / 2), 3);
+    fila_nombre[n] = Sprite();
+    fila_estado[n] = Sprite();
+    fila_y[n] = y;
+    fila_tenue[n] = 1;
+    filete[n] = Sprite(px_slate.Scale(list_w, FILETE));
+    filete[n].SetPosition(list_x, y + ROW_H - FILETE, 3);
 }
-Plymouth.SetKeyboardInputFunction(key_callback);
 
-# --- Contraseña del disco cifrado ---------------------------------------------------
-# La pide el gancho command-os-cifrado del initramfs (os/initcpio). En el sitio de la consola: el
+diag_lista = 0;  # 1 cuando ya ha llegado algún estado
+diag_visible = 1;  # 0 mientras se pide la contraseña
+
+fun diag_mostrar() {
+    v = 0;
+    if (diag_lista && diag_visible) v = 1;
+    titulo.SetOpacity(v);
+    contador.SetOpacity(v);
+    for (n = 1; n <= ROWS; n++) {
+        # Las que esperan, atenuadas; las demás, enteras (como .diag: is-done, is-active, is-error).
+        fila_ix[n].SetOpacity(v * fila_tenue[n]);
+        fila_nombre[n].SetOpacity(v * fila_tenue[n]);
+        fila_estado[n].SetOpacity(v);
+        filete[n].SetOpacity(v);
+    }
+}
+
+fun diag_estados(idioma, estados) {
+    hechas = 0;
+    if (idioma == "en") titulo.SetImage(titulo_en);
+    else titulo.SetImage(titulo_es);
+    for (n = 1; n <= ROWS; n++) {
+        c = estados.SubString(n - 1, n);
+        if (c != "o" && c != "x" && c != "c") c = "e";
+        if (c == "o") hechas++;
+        if (c == "e") fila_tenue[n] = 0.45;
+        else fila_tenue[n] = 1;
+        if (idioma == "en") {
+            nombre = nombre_en[n];
+            estado = estado_en[c];
+        } else {
+            nombre = nombre_es[n];
+            estado = estado_es[c];
+        }
+        fila_nombre[n].SetImage(nombre);
+        fila_nombre[n].SetPosition(list_x + IX_W, fila_y[n] + Math.Int((ROW_H - FILETE - nombre.GetHeight()) / 2), 3);
+        fila_estado[n].SetImage(estado);
+        fila_estado[n].SetPosition(list_x + list_w - estado.GetWidth(), fila_y[n] + Math.Int((ROW_H - FILETE - estado.GetHeight()) / 2), 3);
+    }
+    contador.SetImage(cuenta[hechas]);
+    contador.SetPosition(list_x + list_w - cuenta[hechas].GetWidth(), head_y, 3);
+    diag_lista = 1;
+    diag_mostrar();
+}
+
+fun status_callback(texto) {
+    if (!booting) return;  # systemd manda por aquí los nombres de sus unidades: solo se leen los nuestros
+    if (texto.Length() < 12 || texto.SubString(0, 9) != "cmd-diag ") return;
+    diag_estados(texto.SubString(9, 11), texto.SubString(12, texto.Length()));
+}
+Plymouth.SetUpdateStatusFunction(status_callback);
+diag_mostrar();
+
+# --- Contraseña del disco cifrado -----------------------------------------------------------------
+# La pide el gancho command-os-cifrado del initramfs (os/initcpio), en el sitio de la lista: el
 # texto, una línea de campo y un cuadradito hueso por carácter (no se ve cuántos hay a partir de
-# DOT_MAX) con el cursor cian detrás. Los dos textos del gancho van como imágenes en JetBrains Mono,
-# una por idioma (build/make-plymouth-textos.py): en el initramfs, Image.Text pinta la ñ y las tildes
-# como cuadrados. Plymouth no sabe el idioma: el gancho manda el texto en el del sistema (parámetro
-# command-os.idioma=) y aquí se reconoce por su contenido; cualquier otro, con Image.Text.
-px_bone = Image("px-bone.png");
-px_cyan = Image("px-cyan.png");
-fun texto_imagen(nombre) {
-    src = Image(nombre);
-    return src.Scale(Math.Int(src.GetWidth() * K / SRC), Math.Int(src.GetHeight() * K / SRC));
-}
-img_prompt_es = texto_imagen("texto-clave.es.png");
-img_wrong_es = texto_imagen("texto-clave-mala.es.png");
-img_prompt_en = texto_imagen("texto-clave.en.png");
-img_wrong_en = texto_imagen("texto-clave-mala.en.png");
-DOT = Math.Int(7 * K + 0.5);
+# DOT_MAX) con el cursor Red Hot detrás. Los dos textos del gancho van como imágenes, una por idioma
+# (build/make-plymouth-textos.py). Plymouth no sabe el idioma: el gancho manda el texto en el del
+# sistema (parámetro command-os.idioma=) y aquí se reconoce por su contenido; cualquier otro, con
+# Image.Text.
+img_prompt_es = cargar("texto-clave.es.png");
+img_wrong_es = cargar("texto-clave-mala.es.png");
+img_prompt_en = cargar("texto-clave.en.png");
+img_wrong_en = cargar("texto-clave-mala.en.png");
+FONT = "Monospace " + Math.Int(10 * K + 0.5);
+PROMPT_MAX = 76;
+DOT = px(7);
 DOT_GAP = DOT;
-DOT_MAX = Math.Int(logo_w / (DOT + DOT_GAP)) - 2;
-field_y = log_y + Math.Int(LINE_H * 1.8);
+DOT_MAX = Math.Int(list_w / (DOT + DOT_GAP)) - 2;
+field_y = head_y + px(40);
 prompt_sprite = Sprite();
-prompt_sprite.SetPosition(logo_x, log_y, 4);
-field_line = Sprite(px_dim.Scale(logo_w, BAR_H));
-field_line.SetPosition(logo_x, field_y + DOT + Math.Int(10 * K), 4);
+prompt_sprite.SetPosition(list_x, head_y, 4);
+field_line = Sprite(px_dim.Scale(list_w, METER_H));
+field_line.SetPosition(list_x, field_y + DOT + px(10), 4);
 field_line.SetOpacity(0);
-caret = Sprite(px_cyan.Scale(Math.Int(DOT / 2) + 1, DOT + Math.Int(6 * K)));
+caret = Sprite(px_red_hot.Scale(Math.Int(DOT / 2) + 1, DOT + px(6)));
 caret.SetOpacity(0);
 for (i = 0; i < DOT_MAX; i++) {
     dot[i] = Sprite(px_bone.Scale(DOT, DOT));
-    dot[i].SetPosition(logo_x + i * (DOT + DOT_GAP), field_y, 4);
+    dot[i].SetPosition(list_x + i * (DOT + DOT_GAP), field_y, 4);
     dot[i].SetOpacity(0);
-}
-
-fun show_log(visible) {
-    for (i = 0; i < LOG_LINES; i++) {
-        if (visible && log_text[i] != "") log_sprite[i].SetOpacity(1);
-        else log_sprite[i].SetOpacity(0);
-    }
 }
 
 fun contains(text, word) {
@@ -180,7 +303,8 @@ fun contains(text, word) {
 }
 
 fun display_password_callback(prompt, bullets) {
-    show_log(0);
+    diag_visible = 0;
+    diag_mostrar();
     # Los textos de os/initcpio/hooks/command-os-cifrado (textos_cifrado), en cada idioma.
     if (contains(prompt, "incorrecta")) {
         prompt_sprite.SetImage(img_wrong_es);
@@ -191,7 +315,7 @@ fun display_password_callback(prompt, bullets) {
     } else if (prompt == "" || contains(prompt, "del disco")) {
         prompt_sprite.SetImage(img_prompt_es);
     } else {
-        if (prompt.Length() > LOG_MAX) prompt = prompt.SubString(0, LOG_MAX);
+        if (prompt.Length() > PROMPT_MAX) prompt = prompt.SubString(0, PROMPT_MAX);
         prompt_sprite.SetImage(Image.Text(prompt, 0.93, 0.92, 0.90, 1, FONT));
     }
     prompt_sprite.SetOpacity(1);
@@ -202,7 +326,7 @@ fun display_password_callback(prompt, bullets) {
         if (i < shown) dot[i].SetOpacity(1);
         else dot[i].SetOpacity(0);
     }
-    caret.SetPosition(logo_x + shown * (DOT + DOT_GAP), field_y - Math.Int(3 * K), 5);
+    caret.SetPosition(list_x + shown * (DOT + DOT_GAP), field_y - px(3), 5);
     caret.SetOpacity(1);
 }
 Plymouth.SetDisplayPasswordFunction(display_password_callback);
@@ -212,6 +336,7 @@ fun display_normal_callback() {
     field_line.SetOpacity(0);
     caret.SetOpacity(0);
     for (i = 0; i < DOT_MAX; i++) dot[i].SetOpacity(0);
-    show_log(1);
+    diag_visible = 1;
+    diag_mostrar();
 }
 Plymouth.SetDisplayNormalFunction(display_normal_callback);

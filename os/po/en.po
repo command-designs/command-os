@@ -1196,14 +1196,11 @@ msgstr "update available"
 msgid "command-os %s · clic para actualizar"
 msgstr "command-os %s · click to update"
 
-msgid "interfaz"
-msgstr "interface"
+msgid "retícula"
+msgstr "dot grid"
 
-msgid "núcleo"
-msgstr "core"
-
-msgid "placa"
-msgstr "board"
+msgid "plano"
+msgstr "blueprint"
 
 #, python-format
 msgid "zona horaria: %s (son las %s)"
@@ -1665,3 +1662,33 @@ msgstr "on all desktops"
 
 msgid "mover a escritorio"
 msgstr "move to desktop"
+
+msgid "comprobaciones de arranque"
+msgstr "boot checks"
+
+msgid "disco del sistema"
+msgstr "system disk"
+
+msgid "sistemas de archivos"
+msgstr "file systems"
+
+msgid "dispositivos"
+msgstr "devices"
+
+msgid "servicios básicos"
+msgstr "core services"
+
+msgid "inicio de sesión"
+msgstr "sign-in"
+
+msgid "en espera"
+msgstr "waiting"
+
+msgid "en curso"
+msgstr "in progress"
+
+msgid "ok"
+msgstr "ok"
+
+msgid "error"
+msgstr "error"

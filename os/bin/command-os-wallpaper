@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Command OS — fondo de pantalla (build/make-wallpaper.py).
-#   command-os-wallpaper           aplica el elegido (o el de serie, interfaz); lo llama autostart
+#   command-os-wallpaper           aplica el elegido (o el de serie, retícula); lo llama autostart
 #   command-os-wallpaper elegir    menú para cambiarlo (ajustes → fondo de pantalla)
 # La elección se guarda en ~/.config/command-os/wallpaper.
 set -uo pipefail
@@ -10,13 +10,14 @@ DIR=/usr/share/command-os/wallpapers
 STATE="${XDG_CONFIG_HOME:-$HOME/.config}/command-os/wallpaper"
 STYLE="$(command-os-config wofi/power.css)"
 TAG="command-os-wallpaper"
-NAMES=(interfaz nucleo placa)
-declare -A LABEL=([interfaz]="$(t 'interfaz')" [nucleo]="$(t 'núcleo')" [placa]="$(t 'placa')")
+NAMES=(reticula plano)
+declare -A LABEL=([reticula]="$(t 'retícula')" [plano]="$(t 'plano')")
 
 current() {
   local name
   name=$(cat "${STATE}" 2>/dev/null)
-  [[ -f "${DIR}/command-${name}.jpg" ]] || name=interfaz
+  # Solo los de la lista: un fondo de antes de la marca v2 (interfaz, núcleo, placa) vuelve al de serie.
+  [[ " ${NAMES[*]} " == *" ${name} "* && -f "${DIR}/command-${name}.png" ]] || name=reticula
   printf '%s' "${name}"
 }
 
@@ -25,11 +26,11 @@ apply() {  # arranca el nuevo swaybg y después cierra el anterior: sin parpadeo
   old=$(pgrep -x swaybg)
   # Cada fondo existe en 16:9 y en 16:10: cada pantalla recibe el más cercano a su proporción, sin
   # recortar ni deformar (4:3 y 5:4 también toman el 16:10, que es el que menos recorta).
-  args=(-o '*' -m fill -c '#0d0b0e' -i "${DIR}/command-$1.jpg")
-  if [[ -f "${DIR}/command-$1-16x10.jpg" ]]; then
+  args=(-o '*' -m fill -c '#0e0e0e' -i "${DIR}/command-$1.png")
+  if [[ -f "${DIR}/command-$1-16x10.png" ]]; then
     while read -r name w h _; do
       if [[ -n "${h}" ]] && (( h > 0 && w * 100 / h < 170 )); then
-        args+=(-o "${name}" -m fill -c '#0d0b0e' -i "${DIR}/command-$1-16x10.jpg")
+        args+=(-o "${name}" -m fill -c '#0e0e0e' -i "${DIR}/command-$1-16x10.png")
       fi
     done < <(command-os-pantallas lista 2>/dev/null)
   fi
@@ -52,8 +53,7 @@ case "${1:-}" in
       if [[ "${n}" == "${now}" ]]; then menu+=("󰄬   ${LABEL[$n]}"); else menu+=("     ${LABEL[$n]}"); fi
     done
     choice=$(printf '%s\n' "${menu[@]}" | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
-      --define hide_search=true --cache-file /dev/null \
-      --width 280 --height $(( 22 + 40 * ${#NAMES[@]} ))) || exit 0
+      --cache-file /dev/null --width 280 --lines ${#NAMES[@]}) || exit 0
     for n in "${NAMES[@]}"; do
       if [[ "${choice}" == *"${LABEL[$n]}" ]]; then
         mkdir -p "$(dirname "${STATE}")"

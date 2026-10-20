@@ -25,8 +25,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   Waybar los enseña a la derecha y `style.css` oculta el botón cuando es `:only-child`. Re-ejecutar
   `install.sh` vuelve a dejar uno solo.
 - **Aviso de actualizaciones** (`custom/updates` en Waybar, `os/bin/command-os-updates`): oculto si no
-  hay nada (el script devuelve texto vacío y Waybar quita el módulo), `upd N` en cian y el número en
-  ámbar si hay versión nueva de command-os. Lo refresca cada minuto y con la señal 8 (`pkill
+  hay nada (el script devuelve texto vacío y Waybar quita el módulo), `upd N` con la etiqueta en Smoke y el
+  número en Warn si hay versión nueva de command-os. Lo refresca cada minuto y con la señal 8 (`pkill
   -RTMIN+8 waybar`). Cómo se comprueba, por qué así y cómo se prueba: `docs/actualizaciones.md` § 7.
 - **fastfetch**: logo de la C generado por `build/make-fastfetch-logo.py` (medios bloques, colores
   `$1`/`$2`) y configuración en `os/branding/fastfetch/`, instalados en `/usr/share/command-os/` y
@@ -38,10 +38,25 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 - **Ajustes por máquina** (los genera `install.sh`, no van en los dotfiles): `environment.d/local.env`
   (teclado de `/etc/command-os/kb_layout`) y `themerc-override` (sin sombras en VM). En VirtualBox,
   `video=1280x720` en la línea del kernel: todo el arranque y el escritorio a esa resolución.
+- **Marca v2, colores y letra** (2026-10-19, verificado en la VM con capturas): inicio de sesión,
+  escritorio, barra, ventanas activa e inactiva, Thunar (GTK 3), pavucontrol (GTK 4), kitty con fastfetch,
+  lanzador, menú de energía, notificación, bloqueo y splash. El menú de GRUB no se vio (el arranque lo
+  oculta): solo las piezas generadas. Menús de labwc y Alt+Tab, sin captura.
+- **Marca v2, forma** (2026-10-19; por qué así, `docs/decisiones.md`): chaflanes con `border-image`
+  (`build/make-chaflanes.py`; regenerar y pasar `tests/marca.sh` al cambiar un color o un tamaño).
+  Las hojas GTK de serie los buscan en `chaflanes/` junto a ellas (enlace a `../../chaflanes` en
+  `/usr/share/command-os/config/gtk-*`; copias en `~/.config/gtk-*/chaflanes/`); wofi, swaync y el
+  inicio de sesión, con ruta absoluta. Las notificaciones son de **swaync** (`os/dotfiles/swaync/`:
+  sonido por urgencia en `scripts`, Super+N `swaync-client --close-all`; solo las ventanas flotantes,
+  sin el centro de notificaciones). **Verificado en la VM** con capturas: lanzador, menú de energía
+  (las tres opciones), inicio de sesión y asistente (panel, escuadras, botones), bloqueo (escuadras),
+  ventanas de muestra GTK 3 y GTK 4 (botones sueltos, unidos, principal, inactivo, menú y popover) y a
+  escala 2 (el filo se ve algo suave: el SVG se pinta a 1x y GTK lo amplía). **No verificado**: un
+  popover con flecha en una app real y el tema dentro de una app Flatpak GTK 3.
 - **GTK**: las apps con cabecera propia (GTK 4, Firefox) no reciben marco de labwc; `gtk-3.0/gtk.css`
-  y `gtk-4.0/gtk.css` les dibujan el mismo filo rojo y halo.
+  y `gtk-4.0/gtk.css` les dibujan el mismo filo (Red Hot si están activas) y la misma sombra oscura.
 - **Verificado en VM VirtualBox** (capturas): escritorio, barra con tareas, ventanas activa/inactiva
-  (borde `#D13449` medido), botones, menú de ventana, Alt+Tab, lanzador con Super, ayuda de atajos,
+  (borde `#D13449` medido; desde la marca v2 es Red Hot `#F5482C`), botones, menú de ventana, Alt+Tab, lanzador con Super, ayuda de atajos,
   mezclador desplegable, bloqueo y desbloqueo, bloqueo automático a los 5 min, notificaciones, crear,
   usar y quitar escritorios, fastfetch, re-ejecución de `install.sh` con la sesión abierta y
   reinicio completo (splash → escritorio). Uso de memoria del sistema: ~616 MB. **No verificado**:
@@ -61,7 +76,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 - **Barra**: el módulo `battery` de Waybar, en texto (`bat 85%`, el tiempo que queda descargándose y
   `+` cargando; el usuario lo quiere así, sin icono). Clic derecho: el panel de la batería.
 - **Avisos** (`command-os-bateria watch`, autostart; `os/lib/bateria.py`): al 20 % normal y al 10 %
-  urgente (mako lo deja hasta cerrarlo, con su sonido), una vez por descarga; al enchufar, un aviso
+  urgente (swaync lo deja hasta cerrarlo, con su sonido), una vez por descarga; al enchufar, un aviso
   breve los sustituye. Mira `/sys/class/power_supply` cada minuto: fuera las baterías de periféricos
   (`scope` = Device); varias baterías cuentan juntas si todas dan energía (o todas carga).
 - **Límite de carga al 80 %** (panel: clic derecho en la batería o menú → ajustes → batería;
@@ -149,29 +164,34 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
   aceleración del ratón virtual; `docs/testing.md`).
 
 
-## Rediseño "ordenador real de Cyberpunk" (2026-10-05, rama `rediseno`)
+## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 
+Historia: entonces el escritorio llevaba el estilo anterior a la marca v2 (`docs/decisiones.md`).
 Criterio del usuario: se queda lo que **sirve** y lo que **crea ambiente y queda bien**; fuera lo que
 ni sirve ni aporta ambiente. Detalle visual en `docs/DISENO.md`. El usuario pidió que se le pregunte
 antes de cada cambio y que se le notifique (PushNotification) cuando haga falta su decisión.
-- **Fondos** (`build/make-wallpaper.py`, numpy): gráfica de producto, **no paisajes** (el usuario
-  rechazó skyline y mapa). `interfaz` (de serie), `nucleo`, `placa` en JPEG q93 y `void` en PNG sin
-  grano para bloqueo y GRUB. Microtexto con JetBrains Mono de `build/fonts/` (OFL, solo para
-  generar). Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`),
-  lo llama `autostart` y el menú ajustes → fondo de pantalla. `.gitattributes`: `*.jpg binary`
-  en `os/branding/` (si no, la regla de texto los corrompería).
+- **Fondos** (`build/make-wallpaper.py`, numpy y Pillow): con la marca v2, **no paisajes** (el usuario
+  rechazó skyline y mapa). `reticula` (de serie) y `plano`, y `void` para el bloqueo, GRUB y el
+  asistente, todos en PNG (sin grano pesan poco). Las cotas de `plano`, con JetBrains Mono de
+  `build/fonts/` (OFL, solo para generar); sus medidas del símbolo se comprueban contra el PNG del
+  logo al generar. Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`;
+  un nombre que ya no está en la lista, como los de antes de la v2, vuelve al de serie), lo llama
+  `autostart` y el menú ajustes → fondo de pantalla. `.gitattributes`: `*.png binary` en
+  `os/branding/` (si no, la regla de texto los corrompería). Para generarlos en Windows, numpy y
+  Pillow en un entorno virtual fuera del repo (el `python3` de Windows es el de la Store).
 - **Barra**: reloj con fecha (Waybar pasa **un** argumento de fecha: con dos `{:...}` el módulo no
   arranca; usar `{0:%d.%m}  {0:%H:%M}`), temperatura (en la VM no hay `thermal_zone0` y el módulo
   se desactiva solo, es normal), batería con tiempo restante (avisos y límite de carga: § «Batería»),
-  señal wifi, umbrales ámbar/rojo.
-- **Ventanas**: barra de título plana, títulos y Alt+Tab en JetBrains Mono, halo de 12 px.
+  señal wifi, umbrales Warn/Red Hot.
+- **Ventanas**: barra de título plana, títulos y Alt+Tab en JetBrains Mono, sombra oscura de 12 px (sin halo rojo desde la marca v2).
 - **Bloqueo**: `immediate_render` (sin él, hyprlock espera hasta 2 s a sus recursos antes de
   bloquear) y el sonido de bloqueo en segundo plano en `hypridle.conf` (antes bloqueaba al terminar
   el sonido). Medido: Super+L → sesión bloqueada en ~350 ms. Línea de estado real
-  (`os/bin/command-os-status`), intentos fallidos y aviso de mayúsculas en ámbar.
+  (`os/bin/command-os-status`), intentos fallidos y aviso de mayúsculas en Warn.
 - **Sonidos** (`build/make-sounds.py`, numpy): de aparato real (clics, pitidos, barridos, golpe de
   encendido), sala seca. `login.wav` eliminado (no se usaba). **No se han escuchado**: verificado
-  solo que no saturan; que el usuario los oiga.
+  solo que no saturan; que el usuario los oiga. Sustituidos el 2026-10-19 por los de la marca v2
+  (`docs/DISENO.md` § «Sonido»).
 - **Paquetes**: fuera las herramientas personales de desarrollo (alacritty, vim, tmux, htop, ripgrep,
   fd, fzf, bat, eza, zoxide, jq, tree, rsync, wget, nodejs, npm…) y sus alias del `bashrc`. python
   ya no está en la lista pero sigue instalado porque kitty depende de él. Se quedan base-devel + git

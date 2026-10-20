@@ -15,14 +15,14 @@ alias ..='cd ..'
 # Actualización segura: fecha validada de Arch e instantánea antes y después (command-os-update).
 alias update='command-os-update'
 
-# Prompt HUD (docs/DISENO.md): usuario en hueso, ruta en cian, rama en gris y flecha roja.
-# Si el último comando falló, se añade su código en amarillo.
+# Prompt (docs/DISENO.md, marca v2): usuario en Bone, ruta en Ash, rama en Smoke y flecha Red Hot.
+# Si el último comando falló, se añade su código en Warn.
 __cmd_prompt() {
   local rc=$?
   local branch; branch=$(git branch --show-current 2>/dev/null)
-  PS1='\[\e[38;2;237;235;230m\]\u@\h\[\e[0m\] \[\e[38;2;91;191;196m\]\w\[\e[0m\]'
-  [[ -n $branch ]] && PS1+=" \[\e[38;2;111;104;112m\]// $branch\[\e[0m\]"
-  (( rc != 0 )) && PS1+=" \[\e[38;2;226;192;68m\][$rc]\[\e[0m\]"
-  PS1+='\n\[\e[38;2;209;52;73m\]›\[\e[0m\] '
+  PS1='\[\e[38;2;237;235;230m\]\u@\h\[\e[0m\] \[\e[38;2;163;160;154m\]\w\[\e[0m\]'
+  [[ -n $branch ]] && PS1+=" \[\e[38;2;133;130;124m\]// $branch\[\e[0m\]"
+  (( rc != 0 )) && PS1+=" \[\e[38;2;255;176;32m\][$rc]\[\e[0m\]"
+  PS1+='\n\[\e[38;2;245;72;44m\]›\[\e[0m\] '
 }
 PROMPT_COMMAND=__cmd_prompt

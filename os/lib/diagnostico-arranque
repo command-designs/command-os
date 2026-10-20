@@ -1,0 +1,60 @@
+#!/bin/bash
+# Command OS — comprobaciones de arranque en el splash (BRAND.md § 9.2, «arranque con diagnóstico»;
+# docs/notas/arranque-e-imagenes.md). Lo lanza command-os-diagnostico.service en cuanto el sistema de
+# verdad toma el relevo del initramfs, mientras se ve el splash, y no retrasa nada: solo mira.
+#
+# Cada comprobación es una unidad de systemd y su resultado es el real (systemctl is-active). Se
+# mandan a Plymouth con `plymouth update --status="cmd-diag IDIOMA ESTADOS"` (por ahí manda systemd
+# sus unidades, y el modo detalles no lo escribe, a diferencia de display-message): un carácter por
+# comprobación, en el orden de diag-1 … diag-6 de build/make-plymouth-textos.py (si cambia la lista,
+# cambiarla también allí):
+#   o hecha · x fallida · c en curso (la primera sin terminar) · e en espera.
+# command.script los pinta como una lista .diag. Termina cuando Plymouth se va (al abrirse la
+# entrada al equipo), cuando no queda nada pendiente o, como mucho, a los tres minutos.
+set -u
+
+COMPROBACIONES=(
+  -.mount                       # disco del sistema: la raíz montada (con el disco cifrado, ya abierto)
+  local-fs.target               # sistemas de archivos: todos los de /etc/fstab montados y revisados
+  systemd-udev-trigger.service  # dispositivos: udev ya ha visto todo el hardware
+  basic.target                  # servicios básicos: el sistema base listo
+  NetworkManager.service        # red
+  greetd.service                # inicio de sesión (Plymouth se va justo antes: queda «en curso»)
+)
+
+# El idioma, como el gancho del initramfs: command-os.idioma= de la línea del kernel (lib/apply-boot).
+idioma=es
+for p in $(</proc/cmdline); do
+  [[ "${p}" =~ ^command-os\.idioma=([a-z]{2,3})$ ]] && idioma=${BASH_REMATCH[1]}
+done
+
+estados() {
+  local estado salida="" pendiente=c
+  while read -r estado; do
+    case "${estado}" in
+      active | reloading) salida+=o ;;
+      failed) salida+=x ;;
+      *) salida+=${pendiente}; pendiente=e ;;
+    esac
+  done < <(systemctl is-active -- "${COMPROBACIONES[@]}" 2>/dev/null)  # «--»: -.mount no es una opción
+  printf '%s' "${salida}"
+}
+
+# Cada 0,1 s, como mucho tres minutos. Espera a que Plymouth atienda y termina cuando se va (o cuando
+# ya no queda nada pendiente).
+anterior=""
+visto=0
+for ((i = 0; i < 1800; i++)); do
+  if plymouth --ping 2>/dev/null; then
+    visto=1
+    ahora=$(estados)
+    if [[ ${#ahora} -eq ${#COMPROBACIONES[@]} && "${ahora}" != "${anterior}" ]]; then
+      plymouth update --status="cmd-diag ${idioma} ${ahora}" 2>/dev/null
+      anterior=${ahora}
+      [[ "${ahora}" == *[ce]* ]] || exit 0
+    fi
+  elif (( visto )); then
+    exit 0
+  fi
+  sleep 0.1
+done

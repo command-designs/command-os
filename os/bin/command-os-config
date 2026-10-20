@@ -1,7 +1,7 @@
 #!/bin/sh
-# Command OS — ruta de la configuración de un programa que no busca en /etc/xdg (waybar, mako,
+# Command OS — ruta de la configuración de un programa que no busca en /etc/xdg (waybar, swaync,
 # hypridle, wofi): la del usuario si existe en ~/.config, y si no la de serie del paquete.
-#   command-os-config mako/config   ->  ~/.config/mako/config  o  /usr/share/command-os/config/mako/config
+#   command-os-config wofi/style.css  ->  ~/.config/wofi/style.css  o  /usr/share/command-os/config/wofi/style.css
 # La de serie con textos {{así}} sale traducida al idioma del sistema (lib/traducir.py,
 # docs/idioma.md): se escribe en $XDG_RUNTIME_DIR/command-os/config/ y se da esa ruta. Si no se
 # puede traducir, sale en castellano: nunca falla ni deja las llaves a la vista.

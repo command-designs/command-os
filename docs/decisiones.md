@@ -3,6 +3,121 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — Cierre de la marca v2 (`tests/marca.sh`, `docs/DISENO.md`)
+
+- **La prueba vigila que el estilo anterior no vuelva**: sus colores también sin `#` (el swaylock de
+  emergencia de `command-os-lock` los llevaba así y nadie lo veía) y sus palabras en `os/` y `build/`.
+  Las palabras que hagan falta se permiten por archivo y con motivo (`PALABRAS_EXTRA`): hoy solo
+  «cian» en `kitty.conf`, que es el nombre del color 6 de ANSI. Descartado: cambiar el comentario de
+  Kitty para esquivar la prueba (escondería el motivo) o buscar cualquier hex suelto (choca con sumas,
+  UUID y claves).
+- **Fuera `TEMPORALES`** (exclusiones mientras se rehacían los generadores): con la marca cerrada no
+  queda ninguna, y quitar el mecanismo impide volver a excluir un archivo sin cambiar la prueba.
+- **`DISENO.md` reescrito** por las secciones de la marca (color, letra, forma, elementos de § 7.2,
+  escritorio, fondos, movimiento, sonido) y la tabla de anclas con lo que falta del objeto; la historia
+  del estilo anterior queda solo aquí y en las notas.
+
+## 2026-10-19 — Sonidos de la marca v2 (`docs/DISENO.md` § «Sonido»)
+
+- **Un instrumento de medida en vez del aparato de Cyberpunk**: fuera el golpe grave de encendido, los
+  ventiladores de ruido, la ráfaga de pitidos al azar y la alarma saturada. Tonos casi puros con la
+  envolvente de la marca (arranca con decisión, se asienta sin rebotes) y una sola tónica con
+  intervalos abiertos: el sonido sigue la regla de función, como la pantalla. El usuario escuchó dos
+  prototipos y eligió el seno casi puro. Descartado: la «barrita metálica» (FM con un filo metálico
+  en el ataque), más física pero menos sobria.
+- **critical sin distorsión**: la urgencia la da la repetición (tres veces el mismo tono, más
+  brillante), no la saturación. **boot** dura ~1,5 s y acompaña a la firma sin imitarla (suena al
+  iniciar la sesión, no durante el splash).
+
+## 2026-10-19 — Arranque de la marca v2 (`docs/DISENO.md` § «Movimiento»)
+
+- **Firma corta de BRAND § 9.1 con el símbolo arriba y el wordmark debajo**, centrados: la versión
+  corta no tiene «ascenso», así que el símbolo se queda donde se traza. Descartado: símbolo y wordmark
+  en una línea (rompe la composición de `lenguaje.html`). Halo solo en la barra del símbolo (la del
+  wordmark, sin él).
+- **Pocas imágenes en el initramfs**: solo el símbolo va en fotogramas (42 pequeños); el wordmark es
+  una imagen que el script destapa con una tapa Void (el fondo es Void liso) y el cabezal es un píxel
+  estirado. El tema pasa de 673 a ~450 KB. Descartado: fotogramas de la pantalla entera (más de 1 MB).
+- **Comprobaciones reales con su resultado, de un servicio aparte**: Plymouth solo recibe de systemd
+  el nombre de cada unidad cuando empieza, nunca si acabó bien. `lib/diagnostico-arranque` pregunta a
+  systemd por seis unidades que marcan fases de verdad y manda los estados. Descartado: marcar «OK» lo
+  anterior al llegar una unidad nueva (sería mentira, BRAND § 7.1) y seguir con la consola de unidades.
+- **Los estados van por `plymouth update --status`**, no por `display-message`: el modo detalles (Esc)
+  escribe los mensajes en pantalla y salían los `cmd-diag` en crudo (visto en la VM).
+- **Estados con palabra (EN CURSO, OK…) en imágenes por idioma**: el tema no sabe el idioma, así que
+  llega con cada estado. Sin porcentaje en el medidor: el avance de Plymouth es una estimación por el
+  tiempo de arranques anteriores (BRAND § 9.3); nunca retrocede.
+- **Panel de GRUB con chaflán**: todas sus piezas miden lo que el corte (14 px), porque GRUB pone el
+  borde con el tamaño de las piezas; `apply-boot` lo suma al alto del menú.
+
+## 2026-10-19 — Fondos de la marca v2 (`docs/DISENO.md` § «Fondos»)
+
+- **Dos fondos de escritorio, retícula (de serie) y plano, y void**, con los elementos de la web
+  (BRAND § 7.2: retícula de 26 px con máscara radial, rejilla de 64 px tras un plano técnico). Fuera
+  interfaz, núcleo y placa: microtipografía, número de serie, código de barras, chip y glitch eran
+  lecturas inventadas o adorno (regla de función, § 7.1). Descartado: rehacerlos con los colores v2
+  (seguirían siendo adorno) y una placa de verdad (se retoma con el hardware, ancla 7).
+- **El plano es la construcción real del símbolo**: las cotas son sus medidas en unidades del
+  `viewBox`, y el generador las comprueba contra el PNG del logo (si el logo cambia, falla en vez de
+  dibujar cotas falsas). Descartado: un plano del cyberdeck (no hay hardware) y cotas sin números.
+- **void sin el resplandor rojo bajo**: el degradado rojo va detrás del elemento principal (§ 7.2) y
+  void no lo tiene (el logo lo pone encima el bloqueo, GRUB o el asistente).
+- **PNG sin grano en vez de JPEG**: sin grano, de 30 a 110 KB cada uno (los JPEG eran de ~1 MB) y sin
+  artefactos en los puntos. Un fondo elegido antes de la v2 vuelve al de serie (`command-os-wallpaper`
+  solo acepta los nombres de su lista). En inglés, `dot grid` y `blueprint`.
+
+## 2026-10-19 — Forma de la marca v2: chaflanes y escuadras (`docs/DISENO.md` § «Forma»)
+
+- **Chaflán con `border-image` de SVG en archivos**, no con CSS: GTK no tiene `clip-path`. GTK 3 no
+  carga imágenes `data:` (probado en la VM: GTK 4 sí), así que los SVG van en
+  `/usr/share/command-os/chaflanes/` y copiados junto a las hojas de `~/.config/gtk-*/` para las apps
+  Flatpak (no ven `/usr`). GTK no pinta el centro de un `border-image` (no admite `fill`): lo rellena
+  un degradado liso del tamaño menos las esquinas. Descartado: degradados en diagonal (no siguen el
+  filo de 1 px) y una imagen por tamaño de widget.
+- **Notificaciones con swaync en vez de mako** (decisión del usuario: lo más fiel a la v2). mako solo
+  dibuja rectángulos con radio y la v2 pide chaflán en los paneles. swaync es GTK 4 (CSS con
+  `border-image`) y los sonidos van en sus `scripts` por urgencia. No se marca `conflicts=mako`: con
+  `--noconfirm` haría fallar la actualización; en los equipos ya instalados mako se queda sin usar.
+  Descartado: dejar mako con esquinas vivas como excepción.
+- **Chaflán en todos los botones con texto** (la v2 hace `.btn--cut` el botón por defecto), también en
+  las apps, pero solo los sueltos: en grupos unidos (`.linked`), barras de herramientas y los de solo
+  icono el corte rompe la forma. Descartado: solo el botón principal en las apps.
+- **Barra de lo activo en Red Hot en el lanzador y los paneles de wofi**, como la paleta de
+  `lenguaje.html` (y da contraste de 3:1 sobre Slate, que Signal Red no da). En listas de las apps y la
+  barra de tareas sigue en Signal Red («indicadores activos», BRAND § 4).
+- **Sin chaflán donde no se puede:** menús de labwc, Alt+Tab y marcos de ventana (labwc solo dibuja
+  rectángulos), popovers con flecha de GTK 3. Escuadras en hyprlock con 8 rectángulos (`shape`).
+- **Paneles de wofi sin `hide_search`**: en wofi 1.5.3 deja ver solo la primera opción (el fallo del
+  menú de energía). El buscador se encoge a cero en `power.css` y el alto lo da `--lines`.
+
+## 2026-10-19 — Marca v2 de Command en vez del estilo Cyberpunk (`docs/DISENO.md`)
+
+- **Se deja el HUD de Cyberpunk 2077 (rojo `#D13449`, cian, glitch, halos) por la marca v2 de
+  command-web** (`BRAND.md` 2.0, que vale ya para todo Command, Command OS incluido): casi monocromo,
+  el rojo como señal, chaflanes, escuadras y la regla de función. Un dispositivo puede tener interfaz
+  propia, pero el estilo Cyberpunk era un disfraz que la marca ya no admite (§ 12.3: lo retro viene del
+  medio, no de un disfraz) y separaba Command OS del resto del ecosistema. Descartado: mantener el
+  HUD solo en Command OS, o mezclar los dos (el cian como secundario).
+- **Dos rojos con papeles fijos:** Signal Red `#A51500` en superficies y barras (botón principal,
+  barra de lo activo, progreso, texto seleccionado con texto blanco) y Red Hot `#F5482C` en texto,
+  iconos y foco (filo de la ventana activa, campo enfocado, enlaces). Signal Red no da contraste de
+  texto sobre oscuro. **Fuera el cian del todo**: las etiquetas de datos pasan a Smoke y los valores a
+  Bone o Ash. **Lo seleccionado** va en Slate con la barra Signal Red a la izquierda (antes, granate).
+- **Estados con OK `#3DDC84` y Warn `#FFB020`, siempre con su texto** (cifra, `upd N`, «acceso
+  denegado»); el crítico, en Red Hot. Descartado: un amarillo propio como el de antes.
+- **Sin brillos:** fuera el halo de las ventanas, el `text-shadow` del texto activo y el de la hora del
+  bloqueo y del inicio de sesión. El halo queda solo en la barra del logo (BRAND § 3). Las ventanas
+  conservan una sombra oscura corta (son flotantes; tokens.css la permite en lo flotante).
+- **Colores extra solo donde hacen falta y documentados en `tests/marca.sh`.** Hoy, los seis de azul,
+  magenta y cian de la terminal (Kitty): los programas usan los 16 colores ANSI con significado y la
+  marca no los tiene. Van apagados, casi grises, para no competir con el rojo. Descartado: grises
+  puros (`ls` y `git diff` dejarían de distinguirse) y añadir una paleta de terminal a `BRAND.md`
+  (decisión del usuario: los principales son los de v2; los extra se permiten donde hagan falta).
+- **`tests/marca.sh` con exclusiones temporales** para los generadores que se rehacen enteros más
+  adelante (`make-wallpaper.py` en «Marca v2 — fondos» del ROADMAP, `make-plymouth.py` en «Marca v2 — arranque»): retocarlos
+  ahora sería trabajo que se tira. La prueba falla si un excluido ya no tiene colores viejos, para que
+  la lista se vacíe.
+
 ## 2026-10-19 — Instalar aplicaciones (`docs/notas/escritorio.md` § «Instalar aplicaciones»)
 
 - **Tienda de Flatpak con Flathub, no de pacman.** Las apps de Flatpak van aparte del sistema: instalar o

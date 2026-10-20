@@ -38,11 +38,12 @@ usuario); ARM, aparcado hasta tener la placa.
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas | `docs/notas/escritorio.md` y `docs/DISENO.md` |
+| colores, letra, forma (chaflanes, escuadras) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` §§ «Color», «Letra» y «Forma», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma» |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
 | cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, panel del disco, `gestionar-disco`, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
-| splash, GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
+| splash, firma de arranque, comprobaciones de arranque (`lib/diagnostico-arranque`), GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | resoluciones, 16:9/16:10, alta densidad (escala), fondos, tema de GRUB, tamaño del splash | `docs/notas/pantallas.md` |
 | VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
 | por qué se decidió algo (y qué se descartó) | `docs/decisiones.md` |
@@ -51,6 +52,14 @@ usuario); ARM, aparcado hasta tener la placa.
 ## Trampas que ya han roto algo (resumen; el porqué está en `docs/notas/`)
 
 - XML de labwc: **ningún comentario puede contener `--`**: labwc deja de leer el archivo entero.
+- Colores: solo los de la paleta v2 (`docs/DISENO.md`); `tests/marca.sh` falla con cualquier otro. Un
+  color extra que haga falta se añade a su lista `EXTRA` con el motivo. Signal Red nunca para texto
+  (no da contraste): texto, iconos y foco en Red Hot. Sin `text-shadow` ni halos (solo la barra del logo).
+  También falla con los colores del estilo anterior aunque vayan sin `#` (swaylock) y con sus palabras
+  en `os/` o `build/` (`PALABRAS`; las que hagan falta, en `PALABRAS_EXTRA` con el motivo).
+- Chaflanes en GTK: `border-image` con los SVG de `build/make-chaflanes.py` (regenerar al cambiarlos)
+  **en archivo** (GTK 3 no carga `data:`) y el centro con un degradado (GTK no lo pinta). wofi: nunca
+  `hide_search` (enseña una sola opción); el alto de un panel, con `--lines`.
 - labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.
 - Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` y se pasa con
   `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch. La hoja va además
@@ -91,6 +100,8 @@ usuario); ARM, aparcado hasta tener la placa.
 - Initramfs: el busybox de mkinitcpio **no tiene `tr` ni `stty`**, y Plymouth pinta la ñ y las tildes
   como cuadrados (`label-freetype` sin locale): textos con acentos en el splash, como imágenes
   (una por idioma; el gancho sabe el idioma por `command-os.idioma=` en la línea del kernel).
+  Datos para el tema del splash, con `plymouth update --status` (`display-message` sale en crudo en el
+  modo detalles). `systemctl` con `-.mount`: siempre `--` antes (si no, lo toma por una opción).
 - Textos: el original es el castellano dentro de `_()` (Python), `t`/`tn` (shell, de `lib/textos.sh`,
   el texto entero y literal), `{{…}}` (Waybar, hyprlock) o el `label="…"` del menú de labwc; un texto
   nuevo o cambiado necesita `bash build/po.sh` y su traducción en `os/po/`, o `tests/idioma.sh` falla.
@@ -98,7 +109,8 @@ usuario); ARM, aparcado hasta tener la placa.
 - El menú de labwc **no** va en `/etc/xdg/labwc` (con `--merge-config` gana el primero que se lee, el del
   sistema, y no se podría traducir): va en `/usr/share/command-os/config/labwc/` y `lib/menus-labwc`
   lo traduce al iniciar la sesión (`docs/idioma.md`). `printf '%-22s'` cuenta bytes: para alinear
-  texto con flechas o «·», rellenar con `${#texto}`.
+  texto con flechas o «·», rellenar con `${#texto}` y `local LC_ALL=C.UTF-8` (sin un locale UTF-8, como en una
+  sesión sin `LANG`, también cuenta bytes).
 - cage se cierra cuando se cierra una tubería que hereda su programa: nada que se lance con `&` dentro
   de su `sh -c` puede quedársela (`pantallas.py vigilar` cierra los descriptores heredados) o la pantalla
   se queda en negro tras el asistente o el inicio de sesión.
@@ -114,7 +126,8 @@ usuario); ARM, aparcado hasta tener la placa.
   ayudantes contestan con códigos y reciben las contraseñas por la entrada estándar. Un texto de
   Python va con `_("…")` (no `self._("…")`: xgettext no lo ve) y cada archivo nuevo entra en `PYTHON` de
   `build/po.sh`. Probando en la VM por SSH: nunca `pkill -f <nombre>` desde la propia línea de SSH (se
-  mata a sí misma), el ratón virtual se acelera (usar teclado: Tab/Intro) y `polkit` solo deja
+  mata a sí misma), ni `sudo -S` con la entrada ocupada por una tubería (tres fallos: sudo bloqueado
+  10 min), el ratón virtual se acelera (usar teclado: Tab/Intro) y `polkit` solo deja
   comprobar actualizaciones a la sesión local activa, no a un proceso lanzado por SSH.
 
 ## Qué se probó y qué se descartó (no repetir)
