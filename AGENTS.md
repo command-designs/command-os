@@ -81,7 +81,8 @@ usuario); ARM, aparcado hasta tener la placa.
   falla, tty2 es la consola de emergencia. `deck`/`deck` es solo de desarrollo (`COMMAND_OS_DEV_USER`).
 - Aviso de actualizaciones: nunca `pacman -Sy` para mirar (usa `checkupdates`, copia de la base de datos).
   La unidad tiene su propio `/tmp` y sistema de archivos de solo lectura: un repositorio de prueba
-  `file://` va fuera de `/tmp`. Waybar oculta el módulo solo si el texto del JSON va vacío.
+  `file://` va fuera de `/tmp`. Waybar oculta el módulo solo si el texto del JSON va vacío. Flatpak
+  como root escribe en `/var/lib/flatpak` hasta para mirar (`remote-ls`): en la unidad, como `nobody`.
 - Instalador en disco entero: **nunca ejecutarlo fuera de una VM o de discos loop** (borra el disco).
   Las comprobaciones de `disk_problems`/`confirm_erase` (`build/x86/lib.sh`) no se relajan sin una
   prueba nueva en `tests/discos.sh`. VM de pruebas: `command-os-instalador` (`docs/testing.md`).
@@ -121,7 +122,9 @@ usuario); ARM, aparcado hasta tener la placa.
 - Copiar a la VM: nunca `build/x86` entero (lleva los discos de las VM, ignorados por git, y llena
   `/tmp`): `git ls-files build | tar -czf - -T -`. `command-os-update` en la VM baja el paquete al
   publicado si el de desarrollo es más nuevo: reinstalar después con `install.sh`.
-- Paneles del escritorio (`lib/panel-*.py`, `comun.ventana`/`Dialogo`): lo que necesita root va a
+- Paneles del escritorio (`lib/panel-*.py`, `comun.PanelBase`/`ventana`/`Dialogo`; hijos de `PanelBase`:
+  Escape, `limpiar` y `en_hilo` ya vienen hechos). Las reglas de contraseña y de usuario viven en
+  `comun.py` y `reglas.sh`: no repetirlas. Lo que necesita root va a
   `lib/gestionar-*` con `pkexec` (nunca `sudo -S` con una contraseña escrita en el panel); esos
   ayudantes contestan con códigos y reciben las contraseñas por la entrada estándar. Un texto de
   Python va con `_("…")` (no `self._("…")`: xgettext no lo ve) y cada archivo nuevo entra en `PYTHON` de

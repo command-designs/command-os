@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: higiene-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   higiene:
     uses: command-designs/command-web/.github/workflows/higiene.yml@main

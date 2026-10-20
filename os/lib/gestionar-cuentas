@@ -15,8 +15,9 @@
 # errores y sale con 3 (códigos al final de la cabecera de cada función y en docs/cuentas.md).
 set -uo pipefail
 
-MIN_CONTRASENA=8
 CONF=/etc/command-os
+# shellcheck source=reglas.sh
+source "$(dirname "${BASH_SOURCE[0]}")/reglas.sh"
 fallo() { echo "error: $1" >&2; exit 3; }
 [[ "$(id -u)" -eq 0 ]] || fallo sin_permiso
 [[ -n "${PKEXEC_UID:-}" ]] || fallo sin_permiso  # solo vía pkexec (polkit ya ha autenticado)
@@ -41,12 +42,11 @@ es_admin() { administradores | grep -qx -- "$1"; }
 leer_clave() {
   local clave
   IFS= read -r clave || true
-  [[ ${#clave} -ge ${MIN_CONTRASENA} ]] || fallo clave_corta
+  ! contrasena_corta "${clave}" || fallo clave_corta
   CLAVE=${clave}
 }
 validar_usuario() {
-  # Nombres de usuario de Linux: minúsculas, números, - y _, empezando por letra (como crear-cuenta).
-  [[ "$1" =~ ^[a-z][a-z0-9_-]{0,31}$ ]] || fallo usuario_invalido
+  usuario_valido "$1" || fallo usuario_invalido
 }
 hogar() { getent passwd "$1" | cut -d: -f6; }
 

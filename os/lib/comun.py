@@ -1,20 +1,26 @@
 # Command OS — piezas comunes de las ventanas GTK 4 de la entrada al equipo (lib/greeter.py y
 # lib/primer-arranque.py): lectura del estado, traducciones, filas del formulario, tema y logo.
 import os
-import subprocess
 import re
+import subprocess
+import threading
 import unicodedata
 
 import gi
 
 gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gdk, GdkPixbuf, Gtk  # noqa: E402
+from gi.repository import Gdk, GdkPixbuf, GLib, Gtk  # noqa: E402
 from traducir import DOMINIO, LOCALES, traductor  # noqa: E402,F401
 
 CONF = "/etc/command-os"
 CSS = "/usr/share/command-os/greeter/command.css"
 LOGO = "/usr/share/command-os/logo/command-wordmark-white.png"
+
+# Reglas de las cuentas. La copia en shell es lib/reglas.sh: misma longitud mínima y mismo patrón de
+# usuario (si se cambia una, se cambia la otra; tests/cuentas.sh comprueba que coinciden).
+MIN_CONTRASENA = 8
+USUARIO_ER = r"[a-z][a-z0-9_-]{0,31}"
 
 
 def leer(ruta, defecto=""):
@@ -32,10 +38,31 @@ def disco_cifrado(cmdline="/proc/cmdline"):
 
 
 def usuario_desde(nombre):
-    """«Daniel Infante» -> «daniel»: primera palabra, sin tildes, en minúsculas."""
+    """«Ana López» -> «ana»: primera palabra, sin tildes, en minúsculas."""
     plano = unicodedata.normalize("NFKD", nombre).encode("ascii", "ignore").decode()
     palabra = (plano.lower().split() or [""])[0]
     return re.sub(r"[^a-z0-9_-]", "", palabra)[:32]
+
+
+def usuario_valido(usuario):
+    return re.fullmatch(USUARIO_ER, usuario) is not None
+
+
+def texto_usuario_invalido(_):
+    return _("usuario: minúsculas, números, - o _, empezando por una letra.")
+
+
+def texto_clave_corta(_):
+    return _("la contraseña tiene que tener al menos {n} caracteres.").format(n=MIN_CONTRASENA)
+
+
+def problema_clave(nueva, repetir, _):
+    """Por qué no vale una contraseña nueva y su repetición (el texto), o None si vale."""
+    if len(nueva) < MIN_CONTRASENA:
+        return texto_clave_corta(_)
+    if nueva != repetir:
+        return _("las contraseñas no coinciden.")
+    return None
 
 
 def fila(etiqueta, widget):
@@ -111,6 +138,38 @@ def ventana(app, titulo, ancho, alto_max=640):
     return v, caja
 
 
+def escape_cierra(ventana):
+    """Escape cierra la ventana (paneles y diálogos)."""
+    def tecla(_controlador, valor, _codigo, _estado):
+        if valor == 0xFF1B:  # Escape
+            ventana.close()
+            return True
+        return False
+    teclas = Gtk.EventControllerKey()
+    teclas.connect("key-pressed", tecla)
+    ventana.add_controller(teclas)
+
+
+class PanelBase:
+    """Lo común de los paneles del escritorio (actualizaciones, cuentas, disco, batería, abrir descarga):
+    la ventana con el tema, Escape para cerrar, limpiar la caja antes de repintar y el trabajo en un
+    hilo. traducir: el traductor del panel (el título lo traduce cada panel, para que xgettext lo vea)."""
+
+    def __init__(self, app, traducir, titulo, ancho, alto_max=640):
+        self._ = traducir
+        self.ventana, self.caja = ventana(app, titulo, ancho, alto_max)
+        escape_cierra(self.ventana)
+
+    def limpiar(self):
+        while (hijo := self.caja.get_first_child()) is not None:
+            self.caja.remove(hijo)
+
+    def en_hilo(self, trabajo, hecho):
+        """trabajo() en un hilo; hecho(resultado) en el hilo de la ventana."""
+        def correr():
+            resultado = trabajo()
+            GLib.idle_add(lambda: (hecho(resultado), False)[1])
+        threading.Thread(target=correr, daemon=True).start()
 
 
 def administrar(ayudante, args, entrada=""):
@@ -183,15 +242,7 @@ class Dialogo(Gtk.Window):
         botones.append(self.boton)
         caja.append(botones)
         self.set_child(caja)
-        teclas = Gtk.EventControllerKey()
-        teclas.connect("key-pressed", self.tecla)
-        self.add_controller(teclas)
-
-    def tecla(self, _controlador, valor, _codigo, _estado):
-        if valor == 0xFF1B:  # Escape
-            self.close()
-            return True
-        return False
+        escape_cierra(self)
 
     def valores(self):
         v = {}

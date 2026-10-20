@@ -3,6 +3,54 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — Subvolumen `@flatpak` para las apps de la tienda (`docs/actualizaciones.md` § 5)
+
+- **`/var/lib/flatpak` en su propio subvolumen** (`btrfs_root`, `build/x86/lib.sh`), como `@pkg`: las
+  instantáneas de `@` dejan de llevar las apps y sus runtimes (cientos de MB cada uno, que snapper
+  guardaba en hasta 10 instantáneas) y volver atrás no las toca. Sustituye a «las apps Flatpak entran
+  en las instantáneas de `@`» (entrada del 2026-10-19). Coste: tras volver atrás, el Flatpak de pacman
+  puede ser algo más viejo que los datos que escribió el nuevo; se acepta porque el formato del repositorio
+  (OSTree) es estable entre versiones.
+- **`command-os-rollback` no cambia:** solo sustituye `@`, la instantánea trae su `fstab` (que monta
+  `@flatpak` por nombre) y el aviso de actualizaciones sigue siendo coherente (§ 7: `.changed`
+  tampoco vuelve atrás).
+- **Solo instalaciones nuevas.** Las que ya están en btrfs siguen con las apps dentro de `@`.
+  Descartado: migrarlas desde `install.sh` (crear `@flatpak`, copiar y montar encima con el sistema en
+  marcha y la tienda quizá abierta): riesgo de dejar las apps a medias para ahorrar espacio.
+
+## 2026-10-20 — Las apps de la tienda en el aviso de actualizaciones (`docs/actualizaciones.md` § 7)
+
+- **`flatpak remote-ls --updates` como `nobody`, dentro de la misma unidad de solo lectura.** Como
+  root, Flatpak da por escribible `/var/lib/flatpak` y guarda ahí el resumen de Flathub
+  (`repo/tmp/cache/summaries`): con la unidad de solo lectura falla («Read-only file system») y
+  `FLATPAK_SYSTEM_CACHE_DIR` no lo cambia. Sin privilegios usa su caché de usuario
+  (`$XDG_CACHE_HOME/flatpak/system-cache`), que va a `/var/cache/command-os/flatpak`. Comprobado en
+  un Arch desechable con `/var/lib/flatpak` montado de solo lectura: lista la versión nueva y no
+  cambia nada dentro. Descartado: abrir `/var/lib/flatpak/repo/tmp/cache` a la unidad (`BindPaths`),
+  porque depende de un detalle interno de Flatpak, y una unidad aparte (más piezas para lo mismo).
+- **En el mismo resultado, con líneas `app<TAB>…`:** una comprobación, una hora. `checkupdates` no
+  escribe tabuladores (el paquete de pacman `flatpak` sigue siendo un paquete). Un cambio de Flatpak
+  posterior (`/var/lib/flatpak/.changed`, que toca cualquier instalación, también la de Bazaar) quita
+  solo las aplicaciones, igual que un cambio de pacman quita la comprobación entera.
+- **Solo la instalación del sistema**: la unidad no ve `/home` (`ProtectHome`) y la tienda instala en
+  el sistema. Las `--user` las sigue actualizando `command-os-update`. **Sin notificación propia**:
+  como los paquetes sueltos de Arch, solo salen en la barra (cambian a menudo).
+
+## 2026-10-20 — Limpieza de los paneles (`lib/comun.py`, `lib/reglas.sh`)
+
+- **Una base para los paneles (`comun.PanelBase`)** con la ventana, Escape, `limpiar` y `en_hilo`, en vez
+  de copiar los cuatro métodos en cada panel (actualizaciones, cuentas, disco, batería, abrir descarga).
+  El panel pasa su traductor y su título ya traducidos: xgettext solo ve `_("…")` escrito en el archivo
+  que lo usa. `comun.py` entra por eso en `PYTHON` de `build/po.sh`.
+- **Las reglas de contraseña y de usuario, una copia por lenguaje**: `comun.py` (Python: asistente,
+  paneles) y `reglas.sh` (shell: `crear-cuenta`, `gestionar-*`). Descartado: una sola copia que lean los
+  dos (el asistente de shell no puede importar Python y al revés, y arrancar uno desde el otro por una
+  constante no compensa); en su lugar `tests/cuentas.sh` falla si las dos se separan. La regla del
+  instalador de PC (`password_problem` de `build/x86/lib.sh`) sigue aparte: corre en el medio de
+  instalación, antes de que exista el paquete.
+- **El selector de zona del panel de cuentas se construye una vez**: repintar el panel (tras cada
+  cambio) volvía a crear las ~400 filas del catálogo; ahora se reutiliza la misma fila con su temporizador.
+
 ## 2026-10-20 — Cierre de la marca v2 (`tests/marca.sh`, `docs/DISENO.md`)
 
 - **La prueba vigila que el estilo anterior no vuelva**: sus colores también sin `#` (el swaylock de
@@ -141,11 +189,11 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   descargan una vez para todas las cuentas. Polkit de serie de Flatpak: `wheel` instala sin contraseña
   en la sesión activa; el resto, con la de un administrador (no hace falta regla propia).
 - **Las apps Flatpak entran en las instantáneas de `@`** (`/var/lib/flatpak`). Volver atrás las deja como
-  estaban (repo y despliegue juntos, coherente) a cambio de instantáneas más grandes. Un subvolumen
-  `@flatpak` toca el instalador: queda en `ROADMAP.md`.
+  estaban (repo y despliegue juntos, coherente) a cambio de instantáneas más grandes. *Sustituida el
+  2026-10-20: subvolumen `@flatpak` en las instalaciones nuevas (entrada de ese día).*
 - **`command-os-update` actualiza las apps al final, sin preguntar.** Pacman ya preguntó y las apps no
-  tocan el sistema; si falla, lo de pacman queda hecho. El aviso de la barra aún no las cuenta (mirarlo
-  sin tocar `/var/lib/flatpak` desde la unidad de solo lectura pide más trabajo): en `ROADMAP.md`.
+  tocan el sistema; si falla, lo de pacman queda hecho. El aviso de la barra las cuenta desde el
+  2026-10-20 (entrada de ese día).
 - **Tema de las apps: copias de GTK, no enlaces.** Con el permiso global de leer
   `xdg-config/gtk-3.0/gtk.css` (y `settings.ini`, y los de `gtk-4.0`) las apps ven esos archivos, pero
   un enlace a `/usr/share/command-os` no lleva a nada dentro de su caja. La copia se pone al día con la

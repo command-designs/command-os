@@ -4,36 +4,22 @@
 # con pkexec (la sesión activa no necesita contraseña: system/polkit-gestionar-bateria.policy).
 # docs/notas/escritorio.md § «Batería».
 import sys
-import threading
 
 import bateria
-from comun import administrar, cargar_tema, traductor, ventana
+from comun import PanelBase, administrar, cargar_tema, traductor
 from gi.repository import GLib, Gtk
 
 HELPER = "/usr/lib/command-os/gestionar-bateria"
 ANCHO = 520
 
 
-class Panel:
+class Panel(PanelBase):
     def __init__(self, app):
-        self._ = _ = traductor()
-        self.ventana, self.caja = ventana(app, _("cmd-os · batería"), ANCHO)
-        teclas = Gtk.EventControllerKey()
-        teclas.connect("key-pressed", self.tecla)
-        self.ventana.add_controller(teclas)
+        _ = traductor()
+        super().__init__(app, _, _("cmd-os · batería"), ANCHO)
         self.ocupado = False
         self.pintar()
         GLib.timeout_add_seconds(30, self.al_reloj)
-
-    def tecla(self, _controlador, valor, _codigo, _estado):
-        if valor == 0xFF1B:  # Escape
-            self.ventana.close()
-            return True
-        return False
-
-    def limpiar(self):
-        while (hijo := self.caja.get_first_child()) is not None:
-            self.caja.remove(hijo)
 
     def interruptor(self, texto, activo, al_cambiar):
         fila = Gtk.Box(spacing=12)
@@ -91,10 +77,6 @@ class Panel:
         self.ocupado = True
         boton.set_sensitive(False)
 
-        def correr():
-            codigo = administrar(HELPER, ["limite", "80" if activo else "no"])
-            GLib.idle_add(lambda: (hecho(codigo), False)[1])
-
         def hecho(codigo):
             self.ocupado = False
             if codigo is None:
@@ -108,7 +90,7 @@ class Panel:
                     "no_soportado": _("este portátil no permite limitar la carga."),
                     "autenticacion": _("no se pudo comprobar la contraseña de administrador."),
                 }.get(codigo, _("no se pudo completar la operación.")))
-        threading.Thread(target=correr, daemon=True).start()
+        self.en_hilo(lambda: administrar(HELPER, ["limite", "80" if activo else "no"]), hecho)
         return True  # el interruptor se repinta con el estado real al terminar
 
 

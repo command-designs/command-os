@@ -15,24 +15,45 @@ source /usr/lib/command-os/textos.sh
 
 STATE=${COMMAND_OS_UPDATES_STATE:-/var/lib/command-os/updates}
 PACMAN_LOCAL=${COMMAND_OS_PACMAN_LOCAL:-/var/lib/pacman/local}
+# Flatpak lo toca tras cada instalación, actualización o desinstalación (también desde la tienda).
+FLATPAK_CHANGED=${COMMAND_OS_FLATPAK_CHANGED:-/var/lib/flatpak/.changed}
 NOTIFIED="${XDG_STATE_HOME:-${HOME}/.local/state}/command-os/updates-notified"
 SIGNAL=8 # el mismo que "signal" del módulo en config.jsonc
 TAG=command-os-updates
 
 # Lee el estado en `comprobado` (segundos), `actual`/`nuevo` (versión de command-os instalada y
-# disponible; `nuevo` vacío si no hay), `otros` (cuántos paquetes más) y `lista` (una línea por
-# paquete, sin command-os). Falla si no hay comprobación o es anterior al último cambio de pacman
-# (algo se instaló después: lo que dice ya no vale).
+# disponible; `nuevo` vacío si no hay), `otros` (cuántos paquetes más), `lista` (una línea por
+# paquete, sin command-os), `apps` (cuántas aplicaciones de la tienda), `lista_apps` (una línea por
+# aplicación) y `filas_apps` (las líneas «app» tal cual, para el panel). Falla si no hay comprobación
+# o es anterior al último cambio de pacman (algo se instaló después: lo que dice ya no vale). Si es
+# anterior al último cambio de Flatpak, vale sin las aplicaciones.
 leer() {
-  comprobado=0 actual="" nuevo="" otros=0 lista=""
+  comprobado=0 actual="" nuevo="" otros=0 lista="" apps=0 lista_apps="" filas_apps=""
   [[ -r "${STATE}" ]] || return 1
   comprobado=$(head -n 1 "${STATE}")
   [[ "${comprobado}" =~ ^[0-9]+$ ]] || return 1
-  local instalado
+  local instalado tocado
   instalado=$(stat -c %Y "${PACMAN_LOCAL}" 2>/dev/null || echo 0)
   (( comprobado >= instalado )) || return 1
-  local nombre antes _flecha despues
-  while read -r nombre antes _flecha despues; do
+  tocado=$(stat -c %Y "${FLATPAK_CHANGED}" 2>/dev/null || echo 0)
+  local linea resto nombre antes _flecha despues
+  while IFS= read -r linea; do
+    if [[ "${linea}" == app$'\t'* ]]; then
+      (( comprobado >= tocado )) || continue
+      # Campos quizá vacíos: con IFS=$'\t' read juntaría los tabuladores seguidos.
+      resto=${linea#app$'\t'} nombre=${resto%%$'\t'*}
+      resto=${resto#*$'\t'} antes=${resto%%$'\t'*} despues=${resto#*$'\t'}
+      [[ -n "${nombre}" ]] || continue
+      apps=$((apps + 1))
+      filas_apps+="${linea}"$'\n'
+      if [[ -n "${antes}" && -n "${despues}" && "${antes}" != "${despues}" ]]; then
+        lista_apps+="${nombre} ${antes} → ${despues}"$'\n'
+      else
+        lista_apps+="${nombre}${despues:+ ${despues}}"$'\n'
+      fi
+      continue
+    fi
+    read -r nombre antes _flecha despues <<< "${linea}"
     [[ -n "${nombre}" && -n "${despues}" ]] || continue
     if [[ "${nombre}" == command-os ]]; then
       actual=${antes%-*} nuevo=${despues%-*}
@@ -43,6 +64,9 @@ leer() {
   done < <(tail -n +2 "${STATE}")
   return 0
 }
+
+# Hay algo que instalar (tras un `leer` que fue bien).
+hay_algo() { [[ -n "${nuevo}" ]] || (( otros > 0 || apps > 0 )); }
 
 # Hace cuánto, en palabras.
 hace() {
@@ -59,22 +83,31 @@ pango() { sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
 json() { tr -d '"\134' | awk 'BEGIN { ORS = "" } NR > 1 { print "\134n" } { print }'; }
 
 estado() {
-  if ! leer || { [[ -z "${nuevo}" ]] && (( otros == 0 )); }; then
+  if ! leer || ! hay_algo; then
     printf '{"text": "", "tooltip": "", "class": "ninguna"}\n'
     return
   fi
-  local total=$(( otros + (${#nuevo} > 0 ? 1 : 0) )) clase=paquetes tip=""
+  local total=$(( otros + apps + (${#nuevo} > 0 ? 1 : 0) )) clase=paquetes tip=""
   if [[ -n "${nuevo}" ]]; then
     clase=nueva
     tip="command-os ${actual} → ${nuevo}"$'\n'
     (( otros > 0 )) && tip+="$(tn 'y %d paquete más' 'y %d paquetes más' "${otros}" "${otros}")"$'\n'
+    (( apps > 0 )) && tip+="$(tn 'y %d aplicación de la tienda' 'y %d aplicaciones de la tienda' "${apps}" "${apps}")"$'\n'
     if [[ "$(uname -m)" == x86_64 && ! -e /etc/command-os/rolling ]]; then
       tip+="$(t 'al actualizar se aplica también la fecha de Arch validada con esa versión')"$'\n'
     fi
   else
-    tip="$(tn '%d paquete de Arch' '%d paquetes de Arch' "${otros}" "${otros}")"$'\n'
-    tip+=$(printf '%s' "${lista}" | head -n 8)$'\n'
-    (( otros > 8 )) && tip+="$(t '… y %d más' $(( otros - 8 )))"$'\n'
+    if (( otros > 0 )); then
+      tip="$(tn '%d paquete de Arch' '%d paquetes de Arch' "${otros}" "${otros}")"$'\n'
+      tip+=$(printf '%s' "${lista}" | head -n 8)$'\n'
+      (( otros > 8 )) && tip+="$(t '… y %d más' $(( otros - 8 )))"$'\n'
+    fi
+    if (( apps > 0 )); then
+      (( otros > 0 )) && tip+=$'\n'
+      tip+="$(tn '%d aplicación de la tienda' '%d aplicaciones de la tienda' "${apps}" "${apps}")"$'\n'
+      tip+=$(printf '%s' "${lista_apps}" | head -n 8)$'\n'
+      (( apps > 8 )) && tip+="$(t '… y %d más' $(( apps - 8 )))"$'\n'
+    fi
   fi
   tip+=$'\n'"$(t 'comprobado %s · clic: ver y actualizar · clic derecho: comprobar ahora' "$(hace "${comprobado}")")"
   printf '{"text": "<span color=\\"#85827c\\">upd</span> %s", "tooltip": "%s", "class": "%s"}\n' \
@@ -87,9 +120,10 @@ estado() {
 #   command-os<TAB>actual<TAB>nuevo       solo si hay versión nueva de command-os
 #   arch<TAB>1|0                          si al actualizar se aplica una fecha nueva de Arch validada
 #   paquete<TAB>nombre<TAB>antes<TAB>después   uno por cada paquete de Arch
+#   app<TAB>nombre<TAB>antes<TAB>después       una por aplicación de la tienda (versiones quizá vacías)
 # Con una comprobación que ya no vale (pacman cambió algo después) sale «nada», igual que la barra.
 datos() {
-  if ! leer || { [[ -z "${nuevo}" ]] && (( otros == 0 )); }; then
+  if ! leer || ! hay_algo; then
     # Si hay una comprobación válida pero sin novedades, el panel dice «al día» y cuándo se miró.
     if leer; then printf 'hace\t%s\n' "$(hace "${comprobado}")"; fi
     echo nada
@@ -104,6 +138,7 @@ datos() {
   while read -r nombre antes _flecha despues; do
     [[ -n "${nombre}" ]] && printf 'paquete\t%s\t%s\t%s\n' "${nombre}" "${antes}" "${despues}"
   done <<< "${lista}"
+  printf '%s' "${filas_apps}"
 }
 
 # El panel gráfico (una sola instancia: la aplicación GTK es única por sesión).
@@ -132,7 +167,7 @@ comprobar() {
   avisar "$(t 'buscando actualizaciones…')" low
   if systemctl start command-os-check-updates@manual.service 2>/dev/null; then
     pkill "-RTMIN+${SIGNAL}" -u "$(id -u)" -x waybar 2>/dev/null
-    if leer && { [[ -n "${nuevo}" ]] || (( otros > 0 )); }; then
+    if leer && hay_algo; then
       avisar "$(t 'hay actualizaciones: clic en la barra para instalarlas')"
     else
       avisar "$(t 'el sistema está al día')"

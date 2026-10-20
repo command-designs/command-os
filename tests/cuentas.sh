@@ -114,6 +114,10 @@ R=$(printf '' | env -u PKEXEC_UID "${GC}" zona UTC 2>&1 >/dev/null | sed -n 's/^
 espero sin_permiso "sin pkexec (PKEXEC_UID) no hace nada"
 gc "${uid_ana}" "${CLAVE}"$'\n' anadir 'Luis Pérez';            espero usuario_invalido "usuario con espacios o tildes: rechazado"
 gc "${uid_ana}" $'corta\n' anadir luis;                         espero clave_corta "contraseña corta: rechazada"
+gc "${uid_ana}" $'ñañañañ\n' anadir luis;                       espero clave_corta "7 caracteres con ñ (10 bytes): rechazada"
+( export LC_ALL=C; source /usr/lib/command-os/reglas.sh
+  contrasena_corta 'ñañañañ' && ! contrasena_corta 'ñañañañá' ) \
+  && ok "longitud en caracteres aun sin locale UTF-8 (7 cortos, 8 valen)" || mal "contrasena_corta cuenta bytes"
 gc "${uid_ana}" "${CLAVE}"$'\n' anadir ana;                     espero usuario_existe "usuario que ya existe: rechazado"
 gc "${uid_ana}" "${CLAVE}"$'\n' anadir video;                   espero nombre_reservado "nombre de grupo del sistema: rechazado"
 gc "${uid_ana}" "${CLAVE}"$'\n' anadir luis --idioma fr_FR.UTF-8; espero idioma_no_disponible "idioma que no está en la lista: rechazado"
@@ -204,6 +208,13 @@ echo 'root=UUID=x notcryptdevice=1' > "${CMD}"
 [[ "$(cifrado "${CMD}")" == False ]] && ok "una palabra que solo lo contiene no cuenta" || mal "detecta cryptdevice= dentro de otra palabra"
 [[ "$(cifrado /no/existe)" == False ]] && ok "sin línea del kernel legible: no cifrado" || mal "falla sin /proc/cmdline"
 rm -f "${CMD}"
+
+echo "==> Reglas de las cuentas: la copia en shell (lib/reglas.sh) y la de Python (lib/comun.py) coinciden"
+py=$(PYTHONPATH=/usr/lib/command-os python3 -W ignore -c 'import comun; print(comun.MIN_CONTRASENA, comun.USUARIO_ER)' 2>/dev/null)
+# shellcheck source=../os/lib/reglas.sh
+sh=$(source /usr/lib/command-os/reglas.sh; patron=$(grep -oE '\^\[a-z\][^$]*' /usr/lib/command-os/reglas.sh | head -n1); echo "${MIN_CONTRASENA} ${patron#^}")
+[[ -n "${py}" && "${py}" == "${sh}" ]] && ok "longitud mínima y patrón de usuario iguales en shell y Python" \
+  || mal "lib/reglas.sh (${sh}) y lib/comun.py (${py}) tienen reglas distintas"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

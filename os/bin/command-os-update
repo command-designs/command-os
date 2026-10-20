@@ -43,6 +43,9 @@ if command -v flatpak >/dev/null; then
       echo "$(t 'command-os: no se pudieron actualizar las aplicaciones de la tienda; se reintentará la próxima vez.')"
     fi
   done
+  # El gancho de pacman comprobó antes de actualizar las apps: sin esto, el aviso se quedaría sin
+  # ellas (es anterior a /var/lib/flatpak/.changed) hasta la siguiente comprobación.
+  /usr/lib/command-os/refresh-updates
 fi
 
 # Si se actualizó el kernel, el que está en marcha ya no tiene sus módulos en el disco (Arch los

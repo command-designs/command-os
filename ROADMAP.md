@@ -18,8 +18,9 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   espacios) y el splash con gráfica NVIDIA.
 - Paneles de actualizaciones, cuentas y disco cifrado (menú → ajustes) en un PC real: el diálogo de
   polkit y, con el disco cifrado, cambiar la contraseña y la clave de recuperación y **reiniciar** para
-  comprobar que el splash pide la nueva (en la VM cifrada se comprobó que la contraseña nueva y la clave
-  nueva abren el disco, pero no el arranque con ellas) y que la clave vieja ya no entra.
+  comprobar que el splash pide la nueva y que la clave vieja ya no entra (en la VM cifrada, con
+  `gestionar-disco` a mano, ya arrancan la contraseña y la clave nuevas y las viejas se rechazan; falta
+  el diálogo de polkit y el panel con el ratón).
 - Hora en un dual boot con Windows de verdad (`docs/cuentas.md` § «Hora»): elegir otra zona en el
   asistente sin red y que Windows y Command OS sigan con la misma hora.
 - Batería en un portátil real (`docs/notas/escritorio.md` § «Batería»; la VM no tiene batería): los
@@ -33,7 +34,13 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   se instaló y abrió Discord): instalar algo desde la tienda (la fijada de la barra o menú → tienda de
   aplicaciones) y abrirlo desde el lanzador; descargar un `.tar.gz` o `.zip` con Firefox y abrirlo con
   **doble clic** en Thunar (xarchiver, sin preguntar) y extraerlo con el clic derecho; abrir un AppImage
-  de verdad y un `.deb` descargados; que una app GTK de Flathub se vea oscura y con el filo rojo.
+  de verdad y un `.deb` descargados; que una app GTK de Flathub se vea oscura y con el filo rojo. Con una
+  app con versión nueva, que `upd` la cuente y el panel la liste en «aplicaciones de la tienda», y que
+  tras `update` (o actualizarla desde la tienda) deje de contarla (`docs/actualizaciones.md` § 7; en
+  un Arch desechable se probó la comprobación con Flatpak de verdad, no la barra en pantalla). En una
+  instalación nueva, que `findmnt /var/lib/flatpak` salga de `@flatpak` y que, tras volver atrás con
+  `command-os-rollback`, las apps instaladas después de la instantánea sigan ahí (`docs/actualizaciones.md`
+  § 5; en disco loop lo cubre `tests/rollback.sh`).
 - Forma de la marca v2 en un PC real (`docs/DISENO.md` § «Forma»): chaflanes en el menú del clic
   derecho de Thunar y Firefox, en sus diálogos (botones), en las notificaciones y en una app GTK 3 de
   Flathub; y cómo se ven a alta densidad (en la VM, a escala 2, el filo sale algo suave).
@@ -41,7 +48,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   y se rellena, su barra, el wordmark) y que una tecla la salte; la lista de comprobaciones con los
   estados de tu equipo y el medidor; el menú de GRUB con el chaflán (Esc al encender); y, con el disco
   cifrado, la contraseña en el sitio de la lista y «disco del sistema» en curso al abrirlo (en la VM
-  cifrada no se ha probado este arranque nuevo).
+  cifrada el splash v2 con el campo de contraseña en el sitio de la lista ya se vio el 2026-10-20; falta
+  «disco del sistema» en curso y el medidor).
 
 ## Aparcado hasta tener el hardware ARM del cyberdeck
 
@@ -53,18 +61,24 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
-   en la ejecución diaria, y caché de paquetes. Antes, arreglar la facturación de GitHub (los trabajos
-   no arrancan: «recent account payments have failed»). *Sonnet, medio.*
-2. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
-   y la clave de recuperación nuevas tras cambiarlas con el panel del disco, y que la vieja ya no
-   entra. *Sonnet, medio.*
-3. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
-   `tecla`, `limpiar` y `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy
-   en bash y Python, cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
-4. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
-   (Flatpak), sin tocar `/var/lib/flatpak` desde la comprobación de solo lectura (`docs/decisiones.md`,
-   2026-10-19). *Opus, medio: toca la unidad de systemd, la barra y el panel.*
-5. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
-   instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
-   alto: toca el instalador y la vuelta atrás.*
+Los puntos 2 y 3 van juntos en la rama actual y en un solo PR (el de «CI en verde»); el 4 y el 5, en ese PR o el siguiente.
+
+2. **Avisar cuando falle la CI programada.** Que el fallo diario de «escritorio con el Arch del día» abra
+   o actualice un issue (desde el 2026-10-16 fallaba sin que nadie lo viera). _Sonnet, esfuerzo bajo._
+3. **Pruebas en WSL como en la CI.** `build/wsl/pruebas.sh`: lanza en el Arch de WSL las mismas pruebas
+   que la CI, para no dar por comprobado lo que solo corrió en parte. _Sonnet, esfuerzo medio._
+4. **Guía de prueba en un PC real.** Convertir «Lo prueba el usuario» en `docs/prueba-en-pc-real.md`
+   (lista ordenada que sigue una sola instalación); aquí queda un enlace. _Sonnet, esfuerzo bajo._
+5. **`AGENTS.md` más corto** (197 líneas, la 30 tiene 705 caracteres): partir esa línea y llevar a `docs/`
+   la historia de QEMU/Packer y lo de la VM vieja. _Sonnet, esfuerzo bajo._
+6. **Bluetooth** (`bluez`, panel o `blueman`, módulo en la barra, textos traducidos, prueba en
+   `tests/escritorio.sh`). _Opus, esfuerzo medio (toca paquete, barra, idioma y marca)._
+7. **Licencia del repo (público y sin licencia).** Decide el usuario: ninguna, permisiva (MIT/Apache-2.0)
+   o copyleft (GPL-3.0). Aplicarla: _Sonnet, esfuerzo bajo._
+8. **Ajustar el diseño de command-os al lenguaje HUD** (`lenguaje.html` de command-web y `BRAND.md` 2.1,
+   en command-designs/command-web#8: plano holográfico, modo HUD, halo solo en la señal y en los LED,
+   arranque con diagnóstico). Ojo: `tests/marca.sh` prohíbe hoy halos y `text-shadow`; la regla cambia
+   con 2.1 y se ajusta primero. Revisar pieza a pieza (barra, menús, paneles, notificaciones, bloqueo,
+   splash, GRUB, fondos, sonidos, apps GTK), anotar cada diferencia, corregirlas y dejar `tests/marca.sh`
+   y `docs/DISENO.md` al día. _Opus, esfuerzo alto (toca tema, generadores y arranque; hay que comparar
+   con el concepto en pantalla)._

@@ -13,6 +13,9 @@
 # ranuras (hay más claves que las dos de siempre: se gestionan a mano con cryptsetup), fallo.
 set -uo pipefail
 
+# shellcheck source=reglas.sh
+source "$(dirname "${BASH_SOURCE[0]}")/reglas.sh"
+
 fallo() { echo "error: $1" >&2; exit 3; }
 [[ "$(id -u)" -eq 0 ]] || fallo sin_permiso
 
@@ -31,7 +34,7 @@ dispositivo() {
 # podría entrar (la misma regla que el instalador, build/x86/lib.sh password_problem).
 comprobar_contrasena() {
   local LC_ALL=C
-  (( ${#1} >= 8 )) || fallo clave_corta
+  ! contrasena_corta "$1" || fallo clave_corta
   [[ "$1" =~ ^[\ -~]+$ ]] || fallo clave_no_ascii
 }
 

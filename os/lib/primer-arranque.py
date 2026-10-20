@@ -12,18 +12,19 @@
 # Códigos de salida: 0 cuenta creada · 3 cambio de teclado (el lanzador vuelve a abrir cage con la
 # distribución nueva, para que lo que se escriba ya salga con ella).
 import os
-import re
 import subprocess
 import sys
 import threading
 
 import zonas
-from comun import CONF, cargar_tema, disco_cifrado, fila, leer, logo, panel, traductor, usuario_desde
+from comun import (
+    CONF, MIN_CONTRASENA, cargar_tema, disco_cifrado, fila, leer, logo, panel, problema_clave, texto_usuario_invalido,
+    traductor, usuario_desde, usuario_valido,
+)
 from selector_zona import SelectorZona
 from gi.repository import GLib, Gtk
 
 CREAR = "/usr/lib/command-os/crear-cuenta"
-MIN_CONTRASENA = 8
 # Ancho máximo (en caracteres) de los textos largos: sin él, una traducción más larga ensancha el panel.
 TEXTO_MAX = 50
 RUNTIME = os.environ.get("XDG_RUNTIME_DIR", "/run/command-os-primer-arranque")
@@ -288,14 +289,10 @@ class Asistente(Gtk.ApplicationWindow):
             return  # ya se está creando
         usuario = self.usuario.get_text().strip()
         clave = self.clave.get_text()
-        if not re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", usuario):
-            return self.fallo(_("usuario: minúsculas, números, - o _, empezando por una letra."))
-        if len(clave) < MIN_CONTRASENA:
-            return self.fallo(
-                _("la contraseña tiene que tener al menos {n} caracteres.").format(n=MIN_CONTRASENA)
-            )
-        if clave != self.clave2.get_text():
-            return self.fallo(_("las contraseñas no coinciden."))
+        if not usuario_valido(usuario):
+            return self.fallo(texto_usuario_invalido(_))
+        if problema := problema_clave(clave, self.clave2.get_text(), _):
+            return self.fallo(problema)
         for w in (self.boton, self.combo_idioma, self.combo, self.boton_zona):
             w.set_sensitive(False)
         self.error.remove_css_class("error")

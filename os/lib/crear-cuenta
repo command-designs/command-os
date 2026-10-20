@@ -18,7 +18,8 @@ set -uo pipefail
 
 ESTADO=/var/lib/command-os
 CONF=/etc/command-os
-MIN_CONTRASENA=8
+# shellcheck source=reglas.sh
+source "$(dirname "${BASH_SOURCE[0]}")/reglas.sh"
 
 export TEXTDOMAIN=command-os TEXTDOMAINDIR=/usr/share/locale
 # t 'texto con %s' ARGS… — el texto traducido (os/po/, docs/idioma.md) o, sin traducción, el original.
@@ -46,8 +47,7 @@ while (( $# )); do
 done
 
 [[ -e "${ESTADO}/configurado" ]] && die "$(t 'el equipo ya está configurado')"
-# Nombres de usuario de Linux: minúsculas, números, - y _, empezando por letra (máx. 32).
-[[ "${usuario}" =~ ^[a-z][a-z0-9_-]{0,31}$ ]] \
+usuario_valido "${usuario}" \
   || die "$(t 'nombre de usuario no válido: minúsculas, números, - o _, empezando por una letra')"
 getent passwd "${usuario}" >/dev/null && die "$(t 'ya existe un usuario llamado %s' "${usuario}")"
 getent group "${usuario}" >/dev/null && die "$(t '%s es un nombre reservado del sistema: elige otro' "${usuario}")"
@@ -67,7 +67,7 @@ if [[ -n "${zona}" ]]; then
 fi
 
 IFS= read -r contrasena || true
-[[ ${#contrasena} -ge ${MIN_CONTRASENA} ]] \
+! contrasena_corta "${contrasena}" \
   || die "$(t 'la contraseña tiene que tener al menos %s caracteres' "${MIN_CONTRASENA}")"
 
 zona_antes=""

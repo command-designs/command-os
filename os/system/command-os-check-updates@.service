@@ -12,7 +12,9 @@ ExecStart=/usr/lib/command-os/check-updates %i
 Nice=10
 IOSchedulingClass=idle
 TimeoutStartSec=5min
-# Solo escribe su estado (/var/lib/command-os) y su copia de la base de datos de pacman.
+# Solo escribe su estado (/var/lib/command-os), su copia de la base de datos de pacman y la caché del
+# resumen de Flathub (/var/cache/command-os/flatpak, de nobody: flatpak corre sin privilegios para no
+# escribir en /var/lib/flatpak).
 StateDirectory=command-os
 StateDirectoryMode=0755
 CacheDirectory=command-os

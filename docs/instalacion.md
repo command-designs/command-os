@@ -87,7 +87,7 @@ se cumple (`build/x86/lib.sh`, probado en `tests/discos.sh` en cada cambio):
 | Partición | Tamaño | Qué es |
 | --- | --- | --- |
 | 1 | 1 GiB, FAT32 (`/efi`) | GRUB: entrada `command-os` en la NVRAM del equipo y el arranque de reserva `EFI/BOOT/BOOTX64.EFI` (arranca aunque la BIOS pierda la entrada) |
-| 2 | el resto, btrfs | subvolúmenes `@` (sistema y kernel), `@home`, `@snapshots`, `@var_log`, `@pkg` |
+| 2 | el resto, btrfs | subvolúmenes `@` (sistema y kernel), `@home`, `@snapshots`, `@var_log`, `@pkg`, `@flatpak` (apps de la tienda) |
 
 Con el disco cifrado:
 

@@ -9,10 +9,9 @@
 import os
 import subprocess
 import sys
-import threading
 
-from comun import cargar_tema, traductor, ventana
-from gi.repository import GLib, Gtk
+from comun import PanelBase, cargar_tema, traductor
+from gi.repository import Gtk
 
 ANCHO = 520
 SIGNAL = 8  # el mismo que "signal" del módulo custom/updates de Waybar
@@ -21,12 +20,12 @@ FILAS = 8
 
 
 def leer_datos():
-    """El estado de `command-os-updates datos`: {hace, nada, command-os, arch, paquetes} o None."""
+    """El estado de `command-os-updates datos`: {hace, nada, command-os, arch, paquetes, apps} o None."""
     try:
         r = subprocess.run(["command-os-updates", "datos"], capture_output=True, text=True, timeout=20)
     except (OSError, subprocess.SubprocessError):
         return None
-    datos = {"hace": "", "nada": False, "command-os": None, "arch": False, "paquetes": []}
+    datos = {"hace": "", "nada": False, "command-os": None, "arch": False, "paquetes": [], "apps": []}
     for linea in r.stdout.splitlines():
         c = linea.split("\t")
         if c[0] == "nada":
@@ -39,6 +38,8 @@ def leer_datos():
             datos["arch"] = c[1] == "1"
         elif c[0] == "paquete" and len(c) == 4:
             datos["paquetes"].append(tuple(c[1:]))
+        elif c[0] == "app" and len(c) == 4:
+            datos["apps"].append(tuple(c[1:]))
     return datos
 
 
@@ -52,25 +53,11 @@ def comprobar():
     return r.returncode == 0
 
 
-class Panel:
+class Panel(PanelBase):
     def __init__(self, app):
-        self._ = _ = traductor()
-        self.ventana, self.caja = ventana(app, _("cmd-os · actualizaciones"), ANCHO)
-        teclas = Gtk.EventControllerKey()
-        teclas.connect("key-pressed", self.tecla)
-        self.ventana.add_controller(teclas)
+        _ = traductor()
+        super().__init__(app, _, _("cmd-os · actualizaciones"), ANCHO)
         self.pintar()
-
-    def tecla(self, _controlador, valor, _codigo, _estado):
-        # Escape cierra, como en los demás paneles.
-        if valor == 0xFF1B:
-            self.ventana.close()
-            return True
-        return False
-
-    def limpiar(self):
-        while (hijo := self.caja.get_first_child()) is not None:
-            self.caja.remove(hijo)
 
     def pintar(self, aviso=""):
         _ = self._
@@ -80,7 +67,7 @@ class Panel:
         titulo.add_css_class("titulo")
         self.caja.append(titulo)
 
-        hay = bool(datos and (datos["command-os"] or datos["paquetes"]))
+        hay = bool(datos and (datos["command-os"] or datos["paquetes"] or datos["apps"]))
         if datos is None or (datos["nada"] and not datos["hace"]):
             resumen = _("no hay una comprobación reciente: pulsa «comprobar ahora».")
         elif not hay:
@@ -110,6 +97,11 @@ class Panel:
                 cuenta.add_css_class("etiqueta")
                 self.caja.append(cuenta)
                 self.caja.append(self.lista(datos["paquetes"]))
+            if datos["apps"]:
+                cuenta = Gtk.Label(label=_("aplicaciones de la tienda: {n}").format(n=len(datos["apps"])), xalign=0)
+                cuenta.add_css_class("etiqueta")
+                self.caja.append(cuenta)
+                self.caja.append(self.lista(datos["apps"]))
 
         if datos and datos["hace"]:
             hace = Gtk.Label(label=_("comprobado {hace}").format(hace=datos["hace"]), xalign=0)
@@ -140,7 +132,9 @@ class Panel:
         rejilla = Gtk.Grid(column_spacing=18, row_spacing=4)
         for i, (nombre, antes, despues) in enumerate(paquetes):
             rejilla.attach(Gtk.Label(label=nombre, xalign=0), 0, i, 1, 1)
-            versiones = Gtk.Label(label=f"{antes} → {despues}", xalign=0, hexpand=True)
+            # Las aplicaciones de la tienda pueden no tener versión (o solo la nueva).
+            texto = f"{antes} → {despues}" if antes and despues and antes != despues else despues
+            versiones = Gtk.Label(label=texto, xalign=0, hexpand=True)
             versiones.add_css_class("tenue")
             rejilla.attach(versiones, 1, i, 1, 1)
         desliza = Gtk.ScrolledWindow(
@@ -161,16 +155,11 @@ class Panel:
         _ = self._
         boton.set_sensitive(False)
         self.estado.set_text(_("buscando actualizaciones…"))
-        threading.Thread(target=self.comprobar_en_hilo, daemon=True).start()
-
-    def comprobar_en_hilo(self):
-        bien = comprobar()
-        GLib.idle_add(self.terminada, bien)
+        self.en_hilo(comprobar, self.terminada)
 
     def terminada(self, bien):
         _ = self._
         self.pintar("" if bien else _("no se pudo comprobar (¿sin red?)"))
-        return False
 
 
 class App(Gtk.Application):

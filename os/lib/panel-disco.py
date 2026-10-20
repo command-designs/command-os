@@ -11,13 +11,14 @@
 import re
 import secrets
 import sys
-import threading
 
-from comun import Dialogo, administrar, cargar_tema, disco_cifrado, traductor, ventana
-from gi.repository import GLib, Gtk
+from comun import (
+    MIN_CONTRASENA, Dialogo, PanelBase, administrar, cargar_tema, disco_cifrado, problema_clave, texto_clave_corta,
+    traductor,
+)
+from gi.repository import Gtk
 
 HELPER = "/usr/lib/command-os/gestionar-disco"
-MIN_CONTRASENA = 8
 CIFRAS = 48
 GRUPO = 6
 ANCHO = 560
@@ -32,31 +33,18 @@ def grupos(clave):
     return [clave[i:i + GRUPO] for i in range(0, len(clave), GRUPO)]
 
 
-class Panel:
+class Panel(PanelBase):
     def __init__(self, app):
-        self._ = _ = traductor()
-        self.ventana, self.caja = ventana(app, _("cmd-os · disco cifrado"), ANCHO)
-        teclas = Gtk.EventControllerKey()
-        teclas.connect("key-pressed", self.tecla)
-        self.ventana.add_controller(teclas)
+        _ = traductor()
+        super().__init__(app, _, _("cmd-os · disco cifrado"), ANCHO)
         self.pintar()
-
-    def tecla(self, _controlador, valor, _codigo, _estado):
-        if valor == 0xFF1B:  # Escape
-            self.ventana.close()
-            return True
-        return False
-
-    def limpiar(self):
-        while (hijo := self.caja.get_first_child()) is not None:
-            self.caja.remove(hijo)
 
     def motivo(self, codigo):
         _ = self._
         return {
             "no_cifrado": _("este equipo no tiene el disco cifrado."),
             "clave_incorrecta": _("la contraseña actual del disco no es correcta (la clave de recuperación no vale aquí)."),
-            "clave_corta": _("la contraseña tiene que tener al menos {n} caracteres.").format(n=MIN_CONTRASENA),
+            "clave_corta": texto_clave_corta(_),
             "clave_no_ascii": _("solo letras sin tilde, cifras, espacios y símbolos (sin ñ ni tildes)"),
             "ranuras": _("el disco tiene más claves de las dos habituales: se gestionan a mano con cryptsetup."),
             "autenticacion": _("no se pudo comprobar la contraseña de administrador."),
@@ -103,12 +91,6 @@ class Panel:
         self.estado.remove_css_class("error")
         self.estado.add_css_class("dato")
 
-    def en_hilo(self, trabajo, hecho):
-        def correr():
-            resultado = trabajo()
-            GLib.idle_add(lambda: (hecho(resultado), False)[1])
-        threading.Thread(target=correr, daemon=True).start()
-
     # ---- Contraseña del disco -------------------------------------------------------------------
 
     def al_contrasena(self, _boton):
@@ -127,8 +109,8 @@ class Panel:
             return self.motivo("clave_corta")
         if not re.fullmatch(r"[ -~]+", v["nueva"]):
             return self.motivo("clave_no_ascii")
-        if v["nueva"] != v["repetir"]:
-            return _("las contraseñas no coinciden.")
+        if problema := problema_clave(v["nueva"], v["repetir"], _):
+            return problema
 
         def hecho(codigo):
             if codigo:

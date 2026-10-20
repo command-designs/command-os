@@ -74,7 +74,7 @@ espejos del día no es seguro).
 
 Las instalaciones nuevas (`build/x86/build-image.sh`, `install-dualboot.sh`) usan btrfs con
 subvolúmenes (`build/x86/lib.sh`): `@` (el sistema, kernel incluido), `@home`, `@snapshots`,
-`@var_log` y `@pkg`. `install.sh` configura snapper (10 instantáneas como mucho, solo las de pacman)
+`@var_log`, `@pkg` y `@flatpak` (`/var/lib/flatpak`, las apps de la tienda). `install.sh` configura snapper (10 instantáneas como mucho, solo las de pacman)
 y snap-pac hace una **antes y otra después de cada operación de pacman**.
 
 - **Volver atrás:** Esc al encender → menú de GRUB → instantáneas (grub-btrfs). Se arranca la
@@ -82,6 +82,10 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
   necesita el initramfs clásico; install.sh lo cambia). Si todo va bien, `command-os-rollback` la
   deja como sistema y se reinicia. Sin arrancarla: `command-os-rollback N` (`--lista` para verlas).
 - `/home` no retrocede: los archivos del usuario se quedan.
+- Las apps de la tienda tampoco (`@flatpak`): van aparte de pacman y no hace falta fotografiarlas
+  (cientos de MB de runtimes que engordarían cada instantánea). Las instalaciones en btrfs anteriores al
+  2026-10-20 las llevan dentro de `@` y vuelven atrás con el sistema; no se migran en marcha
+  (`docs/decisiones.md`).
 - `/boot/grub` tampoco: `command-os-rollback` pone en el sistema recuperado el del anterior. El de la
   instantánea tiene la lista del menú desfasada, módulos que pueden no casar con el GRUB de la
   partición EFI (que no retrocede) y, en las instantáneas de la imagen, ni existe.
@@ -91,7 +95,8 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
   initramfs vuelven a `/boot`; si el kernel ya coincide no se rehace nada), que un fallo a medias
   (`mkinitcpio` que falla) deja la raíz, `/boot` y las copias como estaban, y que la confirmación
   equivocada, una instantánea inexistente, un argumento inválido y la falta de `/.snapshots` no tocan
-  nada. El script lee `COMMAND_OS_LIB`, `COMMAND_OS_SNAPSHOTS` y `COMMAND_OS_BOOT` solo para eso (por
+  nada. Un último caso usa el `btrfs_root` de verdad del instalador: crea los seis subvolúmenes, monta
+  `/var/lib/flatpak` desde `@flatpak`, la instantánea no lleva las apps y volver atrás no las toca. El script lee `COMMAND_OS_LIB`, `COMMAND_OS_SNAPSHOTS` y `COMMAND_OS_BOOT` solo para eso (por
   defecto, las rutas del sistema). Lo que **no** cubre: el arranque real desde GRUB y el reinicio (se
   prueba a mano en `command-os-btrfs`, `docs/notas/estabilidad.md`) ni los kernels de varios paquetes.
 - Las instalaciones antiguas en ext4 no tienen instantáneas (convertirlas exige reinstalar).
@@ -123,19 +128,21 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
 | --- | --- |
 | `command-os-check-updates.timer` | 10 min después de arrancar y cada 6 h (retraso al azar de hasta 15 min); lanza `command-os-check-updates@auto.service`. Se activa una sola vez (`lib/apply-system`, marca `/var/lib/command-os/aviso-actualizaciones`): si el usuario lo desactiva, las actualizaciones no lo vuelven a activar. |
 | `command-os-check-updates@.service` | `lib/check-updates` como root, con el sistema de archivos en solo lectura (solo escribe `/var/lib/command-os` y `/var/cache/command-os`). La instancia es el modo: `auto` o `manual`. |
-| `lib/check-updates` | Ejecuta `checkupdates` (pacman-contrib: sincroniza una **copia** de la base de datos en `/var/cache/command-os/checkup-db`, no la real) y guarda el resultado en `/var/lib/command-os/updates`: primera línea la hora, después `paquete antes -> después`. Si falla, conserva el resultado anterior; si falla con una copia mala, la borra y reintenta de cero. En `auto` no hace nada con una conexión de datos medidos (NetworkManager); `manual` comprueba siempre. |
+| `lib/check-updates` | Ejecuta `checkupdates` (pacman-contrib: sincroniza una **copia** de la base de datos en `/var/cache/command-os/checkup-db`, no la real) y guarda el resultado en `/var/lib/command-os/updates`: primera línea la hora, después `paquete antes -> después`. Luego las aplicaciones de la tienda (instalación del sistema): `flatpak remote-ls --updates --system` **como `nobody`**, con la caché en `/var/cache/command-os/flatpak` (como root, Flatpak escribe el resumen de Flathub en `/var/lib/flatpak/repo/tmp/cache`; sin privilegios lo deja en su caché, comprobado con `/var/lib/flatpak` en solo lectura), una línea `app<TAB>nombre<TAB>antes<TAB>después` por cada una (versiones quizá vacías). Sin aplicaciones instaladas no descarga el resumen (unos 8 MB la primera vez); si Flatpak falla, el resultado sale sin ellas. Si falla `checkupdates`, conserva el resultado anterior; si falla con una copia mala, la borra y reintenta de cero. En `auto` no hace nada con una conexión de datos medidos (NetworkManager); `manual` comprueba siempre. |
 | `hooks/command-os-updates.hook` | Tras cada operación de pacman vuelve a comprobar (`lib/refresh-updates`; solo con systemd en marcha y fuera de un chroot): el aviso no enseña lo que ya está instalado. |
 | `os/system/polkit-check-updates.rules` | Quien está en el equipo (sesión local y activa) puede lanzar `command-os-check-updates@manual.service`, y solo esa unidad, sin contraseña. |
 | `os/bin/command-os-updates` | `status` (JSON para Waybar), `update`, `check`, `notify`, `watch` (autostart de labwc). |
 
-- **Barra:** oculta si no hay nada. `upd N` (N = command-os más el resto); el número va en Warn si hay
-  versión nueva de command-os. Tooltip con las versiones, la lista de paquetes y cuándo se comprobó.
-  Si pacman cambió algo **después** de la comprobación, el módulo se oculta hasta la siguiente (lo que
-  decía ya no vale).
+- **Barra:** oculta si no hay nada. `upd N` (N = command-os, los paquetes y las aplicaciones de la
+  tienda); el número va en Warn si hay versión nueva de command-os. Tooltip con las versiones, la lista
+  de paquetes, la de aplicaciones y cuándo se comprobó. Si pacman cambió algo **después** de la comprobación, el módulo se oculta hasta la siguiente (lo que
+  decía ya no vale). Si Flatpak cambió algo después (`/var/lib/flatpak/.changed`: la tienda o
+  `command-os-update`), la comprobación vale sin las aplicaciones; `command-os-update` vuelve a
+  comprobar al terminar con ellas.
 - **Panel de actualizaciones** (`command-os-updates panel`, `lib/panel-actualizaciones.py`): el clic en
   el aviso de la barra (y menú → ajustes → actualizaciones) abre una ventana con la versión nueva de
-  command-os, la lista de paquetes de Arch (con desplazamiento), cuándo se comprobó y dos botones:
-  «comprobar ahora» (la comprobación manual, polkit) y «actualizar», que abre lo de siempre, abajo. **No
+  command-os, la lista de paquetes de Arch y la de aplicaciones de la tienda (con desplazamiento),
+  cuándo se comprobó y dos botones: «comprobar ahora» (la comprobación manual, polkit) y «actualizar», que abre lo de siempre, abajo. **No
   instala nada por sí mismo** (`docs/decisiones.md`). Lee `command-os-updates datos` (líneas con
   tabuladores, con la misma regla que la barra: una comprobación anterior a un cambio de pacman no vale).
   Una sola ventana por sesión. El clic sobre la notificación sigue yendo directo a actualizar.
@@ -144,7 +151,7 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
   comprueba ahora y lo cuenta en una notificación.
 - **Notificación:** una sola por cada versión nueva de command-os (la última avisada queda en
   `~/.local/state/command-os/updates-notified`); clic en ella = actualizar. Los paquetes sueltos de
-  Arch solo salen en la barra: con Arch del día cambian a diario y avisar sería ruido.
+  Arch y las aplicaciones solo salen en la barra: con Arch del día cambian a diario y avisar sería ruido.
 - **Con la fecha validada (x86):** una versión nueva de command-os trae una fecha nueva de Arch, así que
   los paquetes de esa fecha solo se ven tras instalarla; el tooltip lo dice.
 - **Al terminar `command-os-update`** avisa si hay que reiniciar (los módulos del kernel en marcha ya
@@ -153,7 +160,9 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
   resultado (`/var/lib/command-os/updates`) y la base de datos de pacman van dentro de `@`, así que
   vuelven juntos, y la instantánea conserva las fechas de los archivos: la regla «la comprobación tiene
   que ser posterior al último cambio de pacman» se cumple o no con el estado recuperado, nunca con uno
-  mezclado. Si la instantánea no trae un resultado válido, la barra se oculta hasta la siguiente
+  mezclado. Las apps de la tienda no vuelven atrás (`@flatpak`, § 5) y `/var/lib/flatpak/.changed`
+  tampoco: si cambiaron después de la comprobación recuperada, sus líneas se descartan como siempre; si
+  no, siguen siendo las instaladas. Si la instantánea no trae un resultado válido, la barra se oculta hasta la siguiente
   comprobación (10 min tras arrancar). `/home` no vuelve atrás: si se vuelve de una versión nueva de
   command-os que ya se había avisado, no se avisa otra vez de ella (`updates-notified`). Verificado en
   `command-os-btrfs` con un `checkupdates` de mentira, instalando un paquete y volviendo a la

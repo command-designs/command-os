@@ -144,16 +144,6 @@ msgstr ""
 msgid "crear cuenta"
 msgstr "create account"
 
-msgid "usuario: minúsculas, números, - o _, empezando por una letra."
-msgstr "username: lowercase letters, numbers, - or _, starting with a letter."
-
-#, python-brace-format
-msgid "la contraseña tiene que tener al menos {n} caracteres."
-msgstr "the password must be at least {n} characters long."
-
-msgid "las contraseñas no coinciden."
-msgstr "the passwords do not match."
-
 msgid "creando la cuenta…"
 msgstr "creating the account…"
 
@@ -222,6 +212,10 @@ msgstr "updating also applies the Arch date validated with that version"
 #, python-brace-format
 msgid "paquetes de Arch: {n}"
 msgstr "Arch packages: {n}"
+
+#, python-brace-format
+msgid "aplicaciones de la tienda: {n}"
+msgstr "store apps: {n}"
 
 #, python-brace-format
 msgid "comprobado {hace}"
@@ -296,9 +290,6 @@ msgstr "standard account"
 msgid "idioma de mi cuenta"
 msgstr "language of my account"
 
-msgid "zona horaria (de todo el equipo)"
-msgstr "time zone (for the whole computer)"
-
 msgid "cuentas del equipo"
 msgstr "accounts on this computer"
 
@@ -310,6 +301,9 @@ msgstr "change my password"
 
 msgid "el del equipo"
 msgstr "the computer's"
+
+msgid "zona horaria (de todo el equipo)"
+msgstr "time zone (for the whole computer)"
 
 msgid "tú"
 msgstr "you"
@@ -674,11 +668,54 @@ msgstr "could not add the repository."
 msgid "repositorio añadido: sus aplicaciones ya salen en la tienda."
 msgstr "repository added: its apps now show up in the store."
 
+msgid "usuario: minúsculas, números, - o _, empezando por una letra."
+msgstr "username: lowercase letters, numbers, - or _, starting with a letter."
+
+#, python-brace-format
+msgid "la contraseña tiene que tener al menos {n} caracteres."
+msgstr "the password must be at least {n} characters long."
+
+msgid "las contraseñas no coinciden."
+msgstr "the passwords do not match."
+
 msgid "contraseña del disco  ·  o la clave de recuperación"
 msgstr "disk password  ·  or the recovery key"
 
 msgid "contraseña incorrecta  ·  vuelve a escribirla"
 msgstr "wrong password  ·  type it again"
+
+msgid "comprobaciones de arranque"
+msgstr "boot checks"
+
+msgid "disco del sistema"
+msgstr "system disk"
+
+msgid "sistemas de archivos"
+msgstr "file systems"
+
+msgid "dispositivos"
+msgstr "devices"
+
+msgid "servicios básicos"
+msgstr "core services"
+
+msgid "red"
+msgstr "network"
+
+msgid "inicio de sesión"
+msgstr "sign-in"
+
+msgid "en espera"
+msgstr "waiting"
+
+msgid "en curso"
+msgstr "in progress"
+
+msgid "ok"
+msgstr "ok"
+
+msgid "error"
+msgstr "error"
 
 msgid "Ejecutar como root (pacman, usuarios, servicios)."
 msgstr "Run it as root (pacman, users, services)."
@@ -1158,6 +1195,12 @@ msgstr[0] "and %d more package"
 msgstr[1] "and %d more packages"
 
 #, python-format
+msgid "y %d aplicación de la tienda"
+msgid_plural "y %d aplicaciones de la tienda"
+msgstr[0] "and %d store app"
+msgstr[1] "and %d store apps"
+
+#, python-format
 msgid "%d paquete de Arch"
 msgid_plural "%d paquetes de Arch"
 msgstr[0] "%d Arch package"
@@ -1166,6 +1209,12 @@ msgstr[1] "%d Arch packages"
 #, python-format
 msgid "… y %d más"
 msgstr "… and %d more"
+
+#, python-format
+msgid "%d aplicación de la tienda"
+msgid_plural "%d aplicaciones de la tienda"
+msgstr[0] "%d store app"
+msgstr[1] "%d store apps"
 
 #, python-format
 msgid "comprobado %s · clic: ver y actualizar · clic derecho: comprobar ahora"
@@ -1636,9 +1685,6 @@ msgstr "displays"
 msgid "sonido"
 msgstr "sound"
 
-msgid "red"
-msgstr "network"
-
 msgid "cuentas"
 msgstr "accounts"
 
@@ -1662,33 +1708,3 @@ msgstr "on all desktops"
 
 msgid "mover a escritorio"
 msgstr "move to desktop"
-
-msgid "comprobaciones de arranque"
-msgstr "boot checks"
-
-msgid "disco del sistema"
-msgstr "system disk"
-
-msgid "sistemas de archivos"
-msgstr "file systems"
-
-msgid "dispositivos"
-msgstr "devices"
-
-msgid "servicios básicos"
-msgstr "core services"
-
-msgid "inicio de sesión"
-msgstr "sign-in"
-
-msgid "en espera"
-msgstr "waiting"
-
-msgid "en curso"
-msgstr "in progress"
-
-msgid "ok"
-msgstr "ok"
-
-msgid "error"
-msgstr "error"

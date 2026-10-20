@@ -17,16 +17,22 @@ name: pruebas
 
 on:
   push:
+    branches: [main]
   pull_request:
   schedule:
     - cron: '17 5 * * *'
   workflow_dispatch:
 
+concurrency:
+  group: pruebas-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   scripts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Sintaxis
         run: |
           for f in os/install.sh os/lib/* os/bin/* os/initcpio/*/* os/system/sleep-* os/pkg/PKGBUILD build/x86/*.sh tests/*.sh; do
@@ -52,9 +58,10 @@ jobs:
 
   # Seguridad del instalador en disco entero, con discos loop (nunca discos reales del ejecutor).
   discos:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Herramientas
         # gettext: msgfmt, para las confirmaciones en inglés (cargar_idioma compila os/po/en.po).
         run: sudo apt-get update -q && sudo apt-get install -yq gdisk dosfstools ntfs-3g cryptsetup-bin busybox gettext
@@ -63,13 +70,14 @@ jobs:
 
   # command-os-rollback sobre un btrfs en un disco loop (nunca discos reales del ejecutor).
   rollback:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Herramientas
         # busybox-static: el chroot de la prueba lleva su propio sh (restore_kernel).
         run: sudo apt-get update -q && sudo apt-get install -yq btrfs-progs busybox-static
-      - name: Volver a una instantánea, kernel en /boot y deshacer si falla
+      - name: Volver a una instantánea, kernel en /boot, deshacer si falla y subvolúmenes del instalador
         run: |
           sudo modprobe btrfs || true
           sudo bash tests/rollback.sh
