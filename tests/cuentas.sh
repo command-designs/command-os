@@ -114,6 +114,10 @@ R=$(printf '' | env -u PKEXEC_UID "${GC}" zona UTC 2>&1 >/dev/null | sed -n 's/^
 espero sin_permiso "sin pkexec (PKEXEC_UID) no hace nada"
 gc "${uid_ana}" "${CLAVE}"$'\n' anadir 'Luis Pérez';            espero usuario_invalido "usuario con espacios o tildes: rechazado"
 gc "${uid_ana}" $'corta\n' anadir luis;                         espero clave_corta "contraseña corta: rechazada"
+gc "${uid_ana}" $'ñañañañ\n' anadir luis;                       espero clave_corta "7 caracteres con ñ (10 bytes): rechazada"
+( export LC_ALL=C; source /usr/lib/command-os/reglas.sh
+  contrasena_corta 'ñañañañ' && ! contrasena_corta 'ñañañañá' ) \
+  && ok "longitud en caracteres aun sin locale UTF-8 (7 cortos, 8 valen)" || mal "contrasena_corta cuenta bytes"
 gc "${uid_ana}" "${CLAVE}"$'\n' anadir ana;                     espero usuario_existe "usuario que ya existe: rechazado"
 gc "${uid_ana}" "${CLAVE}"$'\n' anadir video;                   espero nombre_reservado "nombre de grupo del sistema: rechazado"
 gc "${uid_ana}" "${CLAVE}"$'\n' anadir luis --idioma fr_FR.UTF-8; espero idioma_no_disponible "idioma que no está en la lista: rechazado"

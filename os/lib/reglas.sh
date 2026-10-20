@@ -8,5 +8,6 @@ MIN_CONTRASENA=8
 # (máx. 32).
 usuario_valido() { [[ "$1" =~ ^[a-z][a-z0-9_-]{0,31}$ ]]; }
 
-# contrasena_corta CLAVE — verdadero si no llega a la longitud mínima.
-contrasena_corta() { (( ${#1} < MIN_CONTRASENA )); }
+# contrasena_corta CLAVE — verdadero si no llega a la longitud mínima (en caracteres: sin un locale
+# UTF-8, como en una sesión sin LANG, ${#1} contaría bytes y una ñ valdría por dos).
+contrasena_corta() { local LC_ALL=C.UTF-8; (( ${#1} < MIN_CONTRASENA )); }

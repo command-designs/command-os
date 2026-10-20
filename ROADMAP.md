@@ -61,8 +61,4 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Contar la longitud de la contraseña en caracteres y no en bytes: `contrasena_corta` (`os/lib/reglas.sh`,
-   que usan `crear-cuenta` y `gestionar-cuentas`) hace `${#1}`, que sin un locale UTF-8 cuenta bytes (una
-   contraseña con ñ o tildes pasaría con menos caracteres). Fijar `LC_ALL=C.UTF-8` dentro de la función
-   y añadir el caso a `tests/cuentas.sh`; `gestionar-disco` ya trabaja byte a byte a propósito
-   (ASCII). *Sonnet, bajo: cambio pequeño en un solo sitio.*
+Ninguno por ahora (roadmap completado el 2026-10-20; lo que queda lo prueba el usuario, arriba).
