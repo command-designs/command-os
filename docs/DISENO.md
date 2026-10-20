@@ -147,8 +147,8 @@ ver abajo).
 - **Menús de labwc** (clic derecho en el escritorio o en la barra de título): Graphite con filo Steel,
   opción activa en Slate con el texto en Red Hot, rótulos de sección en JetBrains Mono y Smoke sobre
   Void y textos en la voz de la marca (`aplicaciones`, `ajustes`, `mover a`…). **Alt+Tab** es el mismo
-  panel: lista con icono y título, selección con filo Red Hot y el contorno de la ventana elegida en
-  Red Hot.
+  panel: lista con icono y título, la elegida como una tarjeta seleccionada (`#1A1311` con filo Red Hot)
+  y el contorno de la ventana elegida en Red Hot.
 - **Lanzador** (Wofi, `command-os-launcher`): panel con chaflán de 20 px y filo Iron, fila de búsqueda
   sin caja con la lupa en Red Hot y una línea Steel debajo, entradas en Ash y la activa en Bone sobre
   Slate con la barra Red Hot a la izquierda.
@@ -164,11 +164,11 @@ ver abajo).
   mayúsculas, campo en Void con el foco Red Hot y botones con chaflán en mono mayúsculas (el principal
   en Signal Red con texto blanco).
 - **Bloqueo** (hyprlock): hora en Oxanium y campo de contraseña dentro de las escuadras, sobre el fondo
-  `void`. Si hyprlock falla, `command-os-lock` usa su configuración de emergencia y, como último
+  `void`; encima, `SESIÓN BLOQUEADA` como un eyebrow (mono 500 en mayúsculas, Red Hot). Si hyprlock falla, `command-os-lock` usa su configuración de emergencia y, como último
   recurso, swaylock con los mismos colores.
-- **Notificaciones** (swaync, `os/dotfiles/swaync/`): panel Graphite con chaflán y filo Steel (Iron al
-  pasar el ratón; Red Hot la crítica, que no se cierra sola), título en Bone, cuerpo en Ash, sin la
-  hora; barra de progreso Signal Red sobre Steel. Super+N las cierra todas.
+- **Notificaciones** (swaync, `os/dotfiles/swaync/`): panel Graphite con chaflán y filo Steel (Red Hot al
+  pasar el ratón y en la crítica, que no se cierra sola), título en Bone, cuerpo en Ash, sin la
+  hora; barra de progreso de 2 px en Bone sobre Steel (el medidor de `lenguaje.html`). Super+N las cierra todas.
 - **Sin blur ni transparencias, y halos solo en la señal**: la GPU del Pi 5 no da para blur fluido y la interfaz se lee
   mejor opaca. Las ventanas y paneles flotantes llevan una sombra oscura corta. En VM, `install.sh`
   quita el halo y las sombras de las ventanas (`~/.config/labwc/themerc-override`).
@@ -214,8 +214,9 @@ mayúsculas están activadas, con el número de intentos).
   por el tiempo de arranques anteriores) y que nunca retrocede. Las comprueba
   `lib/diagnostico-arranque` con systemd (`docs/notas/arranque-e-imagenes.md`). Con el disco cifrado,
   la contraseña se pide en el sitio de la lista.
-- **GRUB** (tema de `apply-boot`): el menú solo aparece con Esc; lleva el fondo `void` y la selección
-  con chaflán.
+- **GRUB** (tema de `apply-boot`): el menú solo aparece con Esc; lleva el fondo `void`, el panel con
+  chaflán, las entradas en Geist con la elegida en Slate y la barra Red Hot (la paleta) y los rótulos
+  (cuenta atrás y teclas) en mono 500 y mayúsculas.
 
 Del encendido al escritorio no aparece texto del cargador, del kernel ni de systemd.
 

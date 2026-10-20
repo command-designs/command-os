@@ -3,7 +3,7 @@
 GRUB dibuja los recuadros con nueve piezas (esquinas, lados y centro) que estira a lo que haga falta:
 - panel_*: el panel del menú, como el de la pantalla de inicio de sesión: Graphite con filo Steel de
   1 px y el chaflán de .panel (marca v2).
-- sel_*: la entrada elegida, en Slate con la barra Signal Red a la izquierda (como el lanzador).
+- sel_*: la entrada elegida, en Slate con la barra Red Hot a la izquierda (la paleta de lenguaje.html).
 - thumb_c: la barra de desplazamiento (submenús largos, p. ej. las instantáneas).
 - logo-<ancho>.png: el wordmark de 200 a 600 px de ancho, cada 20 (GRUB no escala las imágenes del
   tema; lib/apply-boot elige el que toca para la pantalla).
@@ -22,7 +22,7 @@ GRAPHITE = (21, 21, 21, 255)
 SLATE = (31, 31, 31, 255)
 STEEL = (42, 42, 42, 255)
 SMOKE = (133, 130, 124, 255)
-SIGNAL_RED = (165, 21, 0, 255)
+RED_HOT = (245, 72, 44, 255)
 
 
 def px(name, size, color):
@@ -66,7 +66,7 @@ for nombre, tam, linea in (("n", (1, C), (0, 0, 0, 0)), ("s", (1, C), (0, C - 1,
     img.save(OUT / f"panel_{nombre}.png", optimize=True)
 px("panel_c", (1, 1), GRAPHITE)
 # Entrada elegida: barra Signal Red de 4 px a la izquierda y fondo Slate.
-px("sel_w", (4, 1), SIGNAL_RED)
+px("sel_w", (2, 1), RED_HOT)
 px("sel_c", (1, 1), SLATE)
 px("thumb_c", (1, 1), SMOKE)
 for w in range(200, 601, 20):

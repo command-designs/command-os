@@ -71,7 +71,7 @@ osd.window-switcher.style-classic.item.padding.x: 10
 osd.window-switcher.style-classic.item.padding.y: 5
 osd.window-switcher.style-classic.item.active.border.width: 1
 osd.window-switcher.style-classic.item.active.border.color: #f5482c
-osd.window-switcher.style-classic.item.active.bg.color: #1f1f1f
+osd.window-switcher.style-classic.item.active.bg.color: #1a1311
 osd.window-switcher.style-classic.item.icon.size: 20
 # Contorno de la ventana elegida en el selector: Red Hot entre dos líneas Void.
 osd.window-switcher.preview.border.width: 2

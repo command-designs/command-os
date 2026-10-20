@@ -44,6 +44,10 @@ idioma=${LANG_SISTEMA%%_*}
 [[ "${idioma}" =~ ^[a-z]{2,3}$ ]] || idioma=es
 IDIOMA_ARG="command-os.idioma=${idioma}"
 THEME_FONT=/usr/share/fonts/TTF/JetBrainsMonoNLNerdFont-Regular.ttf
+# Como en lenguaje.html: las entradas del menú en Geist (la paleta de comandos) y los rótulos en mono
+# de peso 500 y en mayúsculas. La Geist variable sale en su peso por defecto, 400. Sin ellas, la mono.
+MENU_FONT=/usr/share/fonts/command-os/Geist[wght].ttf
+LABEL_FONT=/usr/share/fonts/TTF/JetBrainsMonoNLNerdFont-Medium.ttf
 # Latín, puntuación, flechas y cajas (el editor y la consola de GRUB dibujan recuadros).
 FONT_RANGES=0x20-0x7E,0xA0-0x17F,0x2010-0x2027,0x2190-0x2193,0x2500-0x257F
 
@@ -65,12 +69,22 @@ make_grub_theme() {  # make_grub_theme ALTO_PANTALLA -> 0 si el tema queda listo
   cp "/usr/share/command-os/grub/logo-${lw}.png" "${THEME_DIR}/logo.png" || return 1
   cp /usr/share/command-os/wallpapers/command-void.png "${THEME_DIR}/fondo.png" || return 1
   lh=$(( lw * 223 / 1498 ))
-  local name size
-  for name in menu:20 texto:15 consola:18; do
+  local name size font
+  for name in menu:20 texto:14 consola:18; do
     size=$(p "${name#*:}")
+    case "${name%%:*}" in
+      menu) font=${MENU_FONT} ;;
+      texto) font=${LABEL_FONT} ;;
+      *) font=${THEME_FONT} ;;
+    esac
+    [[ -f "${font}" ]] || font=${THEME_FONT}
     grub-mkfont -s "${size}" -n "cmd-${name%%:*}" -r "${FONT_RANGES}" \
-      -o "${THEME_DIR}/cmd-${name%%:*}.pf2" "${THEME_FONT}" || return 1
+      -o "${THEME_DIR}/cmd-${name%%:*}.pf2" "${font}" || return 1
   done
+  # Rótulos en mayúsculas (el %d de la cuenta atrás, en minúscula: GRUB lo cambia por los segundos).
+  local cuenta ayuda
+  cuenta=$(t 'arranca en %d s'); cuenta=${cuenta^^}; cuenta=${cuenta//%D/%d}
+  ayuda=$(t '↑ ↓  elegir      intro  arrancar      e  editar      c  consola'); ayuda=${ayuda^^}
   # Bloque centrado: wordmark, hueco, panel del menú (4 entradas a la vista; si hay más, barra de
   # desplazamiento; + 2 × 14: el borde arriba y abajo, que mide lo que el chaflán de las piezas
   # panel_*, C en build/make-grub-theme.py) y cuenta atrás.
@@ -130,7 +144,7 @@ terminal-border: "0"
   align = "center"
   font = "cmd-texto"
   color = "#a3a09a"
-  text = "$(t 'arranca en %d s')"
+  text = "${cuenta}"
 }
 
 + label {
@@ -141,7 +155,7 @@ terminal-border: "0"
   align = "center"
   font = "cmd-texto"
   color = "#85827c"
-  text = "$(t '↑ ↓  elegir      intro  arrancar      e  editar      c  consola')"
+  text = "${ayuda}"
 }
 EOF
 }

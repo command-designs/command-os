@@ -77,7 +77,7 @@ if command-os-idioma es >/dev/null; then ok "command-os-idioma es"; else mal "co
 locale -a | grep -qix 'es_ES.utf8' && ok "genera es_ES.UTF-8 si falta" || mal "es_ES.UTF-8 sin generar"
 [[ "$(lang_de)" == es_ES.UTF-8 ]] && ok "vuelta al castellano" || mal "locale.conf: $(lang_de)"
 if [[ -f /boot/grub/themes/command/theme.txt ]]; then
-  grep -q 'arranca en %d s' /boot/grub/themes/command/theme.txt && ok "tema de GRUB en castellano" \
+  grep -q 'ARRANCA EN %d S' /boot/grub/themes/command/theme.txt && ok "tema de GRUB en castellano" \
     || mal "el tema de GRUB no vuelve al castellano"
 fi
 if [[ -f /etc/default/grub ]]; then
