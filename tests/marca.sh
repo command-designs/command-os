@@ -2,7 +2,7 @@
 # Command OS — prueba de la marca (docs/DISENO.md): ningún archivo del sistema ni generador de build/
 # usa un color fuera de la paleta v2 de Command (tokens.css de command-web), salvo los colores extra
 # permitidos de la lista de abajo, ni nada del estilo anterior (sus colores, también sin «#», y sus
-# palabras), y nada lleva brillos (el halo es solo de la barra del logo). La
+# palabras), y los halos solo están en la señal (BRAND 2.1 § 7.2; nunca en texto, paneles ni bordes). La
 # forma: los chaflanes generados al día y citados bien, y solo los radios de la marca. El splash:
 # sus imágenes completas y la lista de comprobaciones igual en el servicio, el gancho y el tema.
 # Mira colores hex (#rrggbb y #rrggbbaa), rgb()/rgba(), tuplas RGB de Python, secuencias de color
@@ -19,13 +19,15 @@ import re
 import subprocess
 import sys
 
-# Copia de la paleta de tokens.css v2.0 (command-web). Si la marca cambia, se cambia aquí y en
-# todos los archivos de tema a la vez. El negro solo sale en sombras (como en tokens.css).
+# Copia de la paleta de tokens.css v2.0 (command-web) y de los colores HUD de BRAND.md 2.1 § 7. Si
+# la marca cambia, se cambia aquí y en todos los archivos de tema a la vez. El negro solo sale en
+# sombras (como en tokens.css). --holo y --holo-dim son Bone translúcido y --glow, Red Hot.
 PALETA = {
     "1a1a1a": "Carbon", "0e0e0e": "Void", "151515": "Graphite", "1f1f1f": "Slate",
     "2a2a2a": "Steel", "3a3a3a": "Iron", "ffffff": "White", "edebe6": "Bone", "a3a09a": "Ash",
     "85827c": "Smoke", "a51500": "Signal Red", "f5482c": "Red Hot", "6e0e00": "Red Deep",
     "3ddc84": "OK", "ffb020": "Warn", "6e6c68": "Idle", "000000": "negro (sombras)",
+    "b81a02": "hover del botón principal (2.1)", "1a1311": "fondo de lo seleccionado (2.1)",
 }
 
 # Colores extra: solo donde hacen falta y en el archivo que los necesita (docs/DISENO.md).
@@ -39,11 +41,12 @@ EXTRA = {
     },
 }
 
-# El estilo anterior (HUD de Cyberpunk, cambiado por la marca v2 el 2026-10-19; docs/decisiones.md).
+# El estilo anterior (Cyberpunk, cambiado por la marca v2 el 2026-10-19; docs/decisiones.md).
 # Sus colores se buscan también sin «#» (swaylock los lleva así) y sus palabras no pueden volver.
+# «HUD» ya no es una de ellas: desde BRAND 2.1 es el nombre del lenguaje de la marca.
 VIEJOS = {"d13449", "5bbfc4", "e2c044", "0d0b0e", "15121a", "2e2630", "e8607a", "1d1820", "6f6870",
           "a8a2a6", "a8283a", "2f8a8f", "d9b441", "d6d2d4", "8ad6da"}
-PALABRAS = re.compile(r"\b(cyberpunk|hud|2077|glitch|cian)\b", re.IGNORECASE)
+PALABRAS = re.compile(r"\b(cyberpunk|2077|glitch|cian)\b", re.IGNORECASE)
 # Palabras permitidas por archivo, con el motivo.
 PALABRAS_EXTRA = {
     "os/dotfiles/kitty/kitty.conf": {"cian"},  # el color 6 de ANSI se llama así (EXTRA, arriba)
@@ -118,14 +121,36 @@ sys.exit(1 if fallos else 0)
 PY
 colores=$?
 
-echo "==> Sin brillos (el halo, solo en la barra del logo)"
-brillos=$(grep -n -E 'text-shadow:\s*[^n;]|^\s*shadow_(size|passes|color)\s*=' \
-  os/dotfiles/waybar/*.css os/dotfiles/wofi/*.css os/dotfiles/gtk-*/gtk.css \
+echo "==> Halos solo en la señal (BRAND 2.1 § 7.2: barra del logo, plano, firma y LED)"
+# Nunca en el texto: ni text-shadow ni las sombras de hyprlock (que se aplican a sus textos).
+brillos=$(grep -n -E 'text-shadow:[[:space:]]*[^[:space:]n;]|^\s*shadow_(size|passes|color)\s*=' \
+  os/dotfiles/waybar/*.css os/dotfiles/wofi/*.css os/dotfiles/gtk-*/gtk.css os/dotfiles/swaync/*.css \
   os/branding/greeter/command.css os/dotfiles/hypr/*.conf 2>/dev/null)
+# Ni en paneles ni en bordes: en las hojas, una sombra de color con desenfoque (un halo; las negras
+# son sombras de flotantes) solo puede ir en un LED de estado (un selector con «led»).
+brillos+=$(python3 - <<'PY'
+import glob
+import re
+
+HALO = re.compile(r"box-shadow:([^;]*)")
+DESENFOQUE = re.compile(r"^\s*(?:inset\s+)?-?[\d.]+\w*\s+-?[\d.]+\w*\s+[1-9][\d.]*\w*")
+NEGRO = re.compile(r"rgba?\(\s*0[\s,]+0[\s,]+0\b|#000(?:000)?\b|\bblack\b")
+for ruta in sorted(glob.glob("os/dotfiles/**/*.css", recursive=True) + ["os/branding/greeter/command.css"]):
+    texto = re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group().count("\n"), open(ruta, encoding="utf-8").read(), flags=re.S)
+    for bloque in re.finditer(r"([^{}]+)\{([^{}]*)\}", texto):
+        selector, cuerpo = bloque.group(1).strip(), bloque.group(2)
+        for m in HALO.finditer(cuerpo):
+            # Una capa por coma de primer nivel (las de rgba() no separan capas).
+            capas = [c for c in re.split(r",(?![^()]*\))", m.group(1)) if DESENFOQUE.search(c) and not NEGRO.search(c)]
+            if capas and "led" not in selector.lower():
+                n = texto.count("\n", 0, bloque.start(2) + m.start()) + 1
+                print(f"\n{ruta}:{n}: halo fuera de un LED ({selector.splitlines()[-1].strip()})")
+PY
+)
 if [[ -z "${brillos}" ]]; then
-  echo "  ok   ni text-shadow ni sombras de texto en la barra, el lanzador, GTK, el inicio y el bloqueo"
+  echo "  ok   sin halos en el texto, los paneles ni los bordes (barra, lanzador, GTK, avisos, inicio y bloqueo)"
 else
-  echo "  MAL  brillos en el texto:"; echo "${brillos}" | sed 's/^/         /'
+  echo "  MAL  halos fuera de la señal:"; echo "${brillos}" | sed '/^$/d; s/^/         /'
 fi
 
 echo "==> Forma (chaflanes, escuadras y radios; BRAND § 6)"

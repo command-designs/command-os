@@ -61,7 +61,8 @@ usuario); ARM, aparcado hasta tener la placa.
 - XML de labwc: **ningún comentario puede contener `--`**: labwc deja de leer el archivo entero.
 - Colores: solo los de la paleta v2 (`docs/DISENO.md`); `tests/marca.sh` falla con cualquier otro. Un
   color extra que haga falta se añade a su lista `EXTRA` con el motivo. Signal Red nunca para texto
-  (no da contraste): texto, iconos y foco en Red Hot. Sin `text-shadow` ni halos (solo la barra del logo).
+  (no da contraste): texto, iconos y foco en Red Hot. Halos solo en la señal (barra del logo, trazo rojo
+  del plano, cabezal de la firma y LED; BRAND 2.1): nunca `text-shadow` ni halos en paneles o bordes.
   También falla con los colores del estilo anterior aunque vayan sin `#` (swaylock) y con sus palabras
   en `os/` o `build/` (`PALABRAS`; las que hagan falta, en `PALABRAS_EXTRA` con el motivo).
 - Chaflanes en GTK: `border-image` con los SVG de `build/make-chaflanes.py` (regenerar al cambiarlos)

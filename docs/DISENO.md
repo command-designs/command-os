@@ -1,10 +1,11 @@
 # Command OS — Lenguaje del producto
 
 Cómo se ve, se mueve y suena Command OS (`CMD-OS`). Es el sistema de un dispositivo: su interfaz es la
-de la **marca v2 de Command** (`BRAND.md` 2.0 §§ 3–9, adaptada a la pantalla según § 12.3) y lo une a
-Command el cumplimiento de las anclas de § 12.1 (tabla al final). Fuente de la marca:
-<https://github.com/command-designs/command-web> (`BRAND.md`, `tokens.css`; referencia visual en
-`lenguaje.html`). Por qué esta marca y qué se descartó: `docs/decisiones.md` (2026-10-19).
+de la **marca v2 de Command** con su **lenguaje HUD** (`BRAND.md` 2.1 §§ 3–9, adaptada a la pantalla
+según § 12.3) y lo une a Command el cumplimiento de las anclas de § 12.1 (tabla al final). Fuente de
+la marca: <https://github.com/command-designs/command-web> (`BRAND.md`, `tokens.css`). **Referencia
+visual: `lenguaje.html`** (<https://commandlab.dev/lenguaje>); si `BRAND.md`, el kit o este documento
+dicen otra cosa, manda ella. Por qué esta marca y qué se descartó: `docs/decisiones.md` (2026-10-19).
 
 ## Idea
 
@@ -37,6 +38,12 @@ estilo anterior:
 | Red Hot     | `#F5482C`             | **texto, iconos y foco**: filo de la ventana activa, campo enfocado, enlaces, crítico |
 | Red Deep    | `#6E0E00`             | botón principal pulsado                                              |
 | OK · Warn   | `#3DDC84` · `#FFB020` | estados, **siempre con su texto** (cifra, `upd N`, «acceso denegado») |
+| Hover rojo  | `#B81A02`             | relleno del botón principal al pasar por encima (BRAND 2.1 § 7)      |
+| Seleccionado | `#1A1311`            | fondo de la tarjeta o fila seleccionada, con filo Red Hot (2.1 § 7)  |
+
+**Tokens HUD** (BRAND 2.1 § 7, aún fuera de `tokens.css`): `--holo` Bone al 55 % (trazo del plano
+holográfico), `--holo-dim` Bone al 18 % (sus guías; sustituye a `--line-guide`), `--glow` Red Hot al
+55 % (halo de la señal y del LED rojo) y `--glow-soft` Red Hot al 22 % (halo del cabezal de la firma).
 
 El rojo es una señal (≤ 2 % de la pantalla): lo activo, el foco, la acción principal y la barra del
 logo; los datos van en neutros. **Colores extra**, solo donde hacen falta y con su motivo en
@@ -61,7 +68,7 @@ bordes de 1 px; radio de 2 px solo en los campos de texto (y redondos los botone
 deslizadores). **Escuadras** (cuatro esquinas Red Hot de 1 px y 10 px) solo en la zona principal del
 bloqueo (hora y contraseña) y del inicio de sesión y el asistente (el panel). Lo seleccionado va en
 Slate con la barra Signal Red a la izquierda (Red Hot en el lanzador y los paneles de wofi, como la
-paleta de `lenguaje.html`). Sin brillos.
+paleta de `lenguaje.html`). Sin halos (solo en la señal, ver abajo).
 
 - **Cómo:** el CSS de GTK no tiene `clip-path`. El chaflán es un `border-image` con SVG de nueve partes
   (`build/make-chaflanes.py` → `/usr/share/command-os/chaflanes/`) y el centro, que GTK no pinta, un
@@ -83,7 +90,10 @@ paleta de `lenguaje.html`). Sin brillos.
 - **Retícula de puntos** de 26 px y **rejilla de 64 px** del plano técnico, en los fondos.
 - **Paleta de comandos:** el lanzador (BRAND § 7.2), sin el velo que atenúa la vista porque aquí no hay
   transparencias.
-- **Halo** (brillo rojo suave): solo en la barra del logo (fondos y firma de arranque).
+- **Halo** (brillo suave, BRAND 2.1 § 7.2): solo en la barra del logo, el trazo rojo de un plano y su
+  llamada, el cabezal de la firma y los LED de estado (cada uno con su color, `0 0 .6em`). Nunca en
+  texto, paneles ni bordes: `tests/marca.sh` falla con un `text-shadow`, una sombra de hyprlock o una
+  sombra de color con desenfoque fuera de un selector de LED (las negras son sombras de flotantes).
 - **Iconos:** Papirus-Dark con carpetas grises (`command-os-icon-folders`; el rojo queda para lo
   activo). Iconografía propia, pendiente (BRAND § 12.3 la deja libre).
 
@@ -144,7 +154,7 @@ paleta de `lenguaje.html`). Sin brillos.
 - **Notificaciones** (swaync, `os/dotfiles/swaync/`): panel Graphite con chaflán y filo Steel (Iron al
   pasar el ratón; Red Hot la crítica, que no se cierra sola), título en Bone, cuerpo en Ash, sin la
   hora; barra de progreso Signal Red sobre Steel. Super+N las cierra todas.
-- **Sin blur, transparencias ni brillos**: la GPU del Pi 5 no da para blur fluido y la interfaz se lee
+- **Sin blur ni transparencias, y halos solo en la señal**: la GPU del Pi 5 no da para blur fluido y la interfaz se lee
   mejor opaca. Las ventanas y paneles flotantes llevan una sombra oscura corta. En VM, `install.sh`
   quita el halo y las sombras de las ventanas (`~/.config/labwc/themerc-override`).
 
@@ -242,7 +252,8 @@ con la firma: Plymouth no tiene audio.
 - Recolorear la barra del logo (siempre Signal Red) ni poner el wordmark sobre fondos con ruido fuerte.
 - Colores fuera de la paleta v2, salvo los extra documentados en `tests/marca.sh`; Signal Red para
   texto (no da contraste) o Red Hot para superficies.
-- Halos o `text-shadow` fuera de la barra del logo, blur, glassmorphism, neones o transparencias.
+- Halos fuera de la señal (barra del logo, trazo rojo del plano, cabezal de la firma, LED), y nunca
+  en texto, paneles ni bordes; blur, glassmorphism, neones o transparencias.
 - Esquinas redondeadas o píldoras (solo 2 px en los campos de texto); chaflanes en otro tamaño que los
   de `tokens.css` (6 · 10 · 14 · 20 px) o en las otras dos esquinas.
 - Efectos de interferencia, parpadeos, letras que se barajan o animaciones en bucle por adorno

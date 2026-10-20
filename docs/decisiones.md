@@ -3,6 +3,17 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — Marca 2.1 (lenguaje HUD) en `tests/marca.sh`
+
+- **`lenguaje.html` manda** (BRAND 2.1): ante una duda de cómo se ve algo, se mira ahí antes que en
+  `BRAND.md` o el kit. Sus colores nuevos (`#B81A02`, `#1A1311`) entran en la paleta del test.
+- **«HUD» sale de las palabras prohibidas**: era la etiqueta del estilo Cyberpunk retirado; en 2.1 es
+  el nombre del lenguaje de la marca. Siguen prohibidas las demás (`cyberpunk`, `2077`, `glitch`).
+- **Halo solo en un selector de LED** en las hojas CSS: una sombra con desenfoque y de color (no negra)
+  fuera de un selector con «led» falla. Los otros sitios del halo (barra del logo, trazo del plano,
+  cabezal de la firma) son imágenes generadas, no CSS. Descartado leer el contexto de cada regla:
+  el nombre del selector basta y obliga a llamar «led» a lo que lo es.
+
 ## 2026-10-20 — Licencia del repo: GPL-3.0
 
 - **GPL-3.0** (`LICENSE`, titular command-lab). Es la licencia habitual en el ecosistema Linux/Arch y
