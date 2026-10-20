@@ -53,18 +53,15 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Reducir el gasto de la CI: `push` solo en `main`, los trabajos pesados (contenedor Arch) solo en PR y
-   en la ejecución diaria, y caché de paquetes. Antes, arreglar la facturación de GitHub (los trabajos
-   no arrancan: «recent account payments have failed»). *Sonnet, medio.*
-2. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
+1. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
    y la clave de recuperación nuevas tras cambiarlas con el panel del disco, y que la vieja ya no
    entra. *Sonnet, medio.*
-3. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
+2. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
    `tecla`, `limpiar` y `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy
    en bash y Python, cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
-4. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
+3. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
    (Flatpak), sin tocar `/var/lib/flatpak` desde la comprobación de solo lectura (`docs/decisiones.md`,
    2026-10-19). *Opus, medio: toca la unidad de systemd, la barra y el panel.*
-5. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
+4. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
    instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
    alto: toca el instalador y la vuelta atrás.*
