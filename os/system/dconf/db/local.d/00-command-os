@@ -12,3 +12,8 @@ monospace-font-name='JetBrainsMono Nerd Font 10'
 
 [org/gnome/desktop/wm/preferences]
 button-layout=':minimize,maximize,close'
+
+# Bluetooth: blueman-applet sin icono en la bandeja (la barra ya lleva el módulo `bt`); ShowConnected
+# depende del icono.
+[org/blueman/general]
+plugin-list=['!StatusIcon', '!ShowConnected']

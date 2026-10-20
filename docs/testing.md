@@ -4,6 +4,21 @@
 > por software sin problemas. Cómo probarlo sin ratón: sección "labwc en la VM" al final. QEMU sirve
 > sobre todo para validar el instalador.
 
+## Las pruebas de la CI en WSL
+
+`build/wsl/pruebas.sh` lanza en el Arch de WSL las mismas pruebas que `pruebas.yml`: scripts
+(sintaxis y shellcheck), marca, pantallas, barra, aplicaciones, instalador, discos y rollback. Resumen
+final con bien / FALLA / saltada (falta una herramienta) y salida distinta de 0 si algo no está en verde.
+Se puede pasar una lista (`… pruebas.sh marca rollback`). Desde PowerShell, siempre con el script en archivo:
+
+```
+wsl -d archlinux -u root -- bash /mnt/c/Workspace/command/command-os/build/wsl/pruebas.sh
+```
+
+Paquetes del Arch de WSL: `gptfdisk dosfstools ntfsprogs cryptsetup busybox btrfs-progs gettext
+shellcheck` (en Arch `mkntfs` está en `ntfsprogs`, no en `ntfs-3g`). **No lanza** las del escritorio
+(`escritorio`, `cuentas`, `idioma`, `zona-horaria`, `actualizaciones`): necesitan el paquete instalado y
+`cuentas.sh` crea cuentas; esas corren solo en la CI (`escritorio.yml`).
 ## QEMU: validar el instalador
 
 QEMU con `virtio-gpu` es la herramienta para validar que `os/install.sh` corre sin errores

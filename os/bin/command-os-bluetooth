@@ -1,0 +1,21 @@
+#!/bin/sh
+# Command OS — Bluetooth desde la barra (módulo `bt` de Waybar).
+#   panel     abre blueman-manager bajo la barra (regla de labwc/rc.xml); otro clic lo cierra
+#   cambiar   enciende o apaga el adaptador (al encender, quita también el bloqueo de rfkill)
+case "${1:-}" in
+  panel)
+    pkill -x blueman-manager 2>/dev/null && exit 0
+    exec blueman-manager
+    ;;
+  cambiar)
+    if bluetoothctl show 2>/dev/null | grep -q 'Powered: yes'; then
+      exec bluetoothctl power off
+    fi
+    rfkill unblock bluetooth 2>/dev/null
+    exec bluetoothctl power on
+    ;;
+  *)
+    echo "uso: command-os-bluetooth panel|cambiar" >&2
+    exit 2
+    ;;
+esac

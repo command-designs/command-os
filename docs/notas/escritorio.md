@@ -93,6 +93,27 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   contraseña en la sesión activa). **No probado**: un portátil real (la VM no tiene batería): el límite
   en el firmware y que siga tras reiniciar y tras el reposo.
 
+## Bluetooth (2026-10-20)
+
+- **Barra**: el módulo `bluetooth` de Waybar, en texto como el resto (`bt off`, `bt on` o `bt N` con N
+  dispositivos conectados; sus nombres, al pasar el ratón). Sin adaptador no sale (`format-no-controller`
+  vacío). Apagado, en Smoke como `vol mute`. Clic: `command-os-bluetooth panel` (blueman-manager de
+  520×400 sin barra de título bajo la barra, regla en `labwc/rc.xml`; otro clic lo cierra); clic
+  derecho: `command-os-bluetooth cambiar` (`bluetoothctl power on|off`; al encender quita antes el
+  bloqueo de `rfkill`, que la sesión activa puede tocar sin root).
+- **Apagado de serie**: `lib/apply-system` activa `bluetooth.service` y pone `AutoEnable=false` en
+  `/etc/bluetooth/main.conf`, una sola vez (marca `/var/lib/command-os/bluetooth`). bluez no guarda el
+  encendido entre arranques: cada arranque empieza apagado. blueman 2.4 no tiene ajuste propio de
+  encendido (su `PowerManager` copia el estado del adaptador).
+- **blueman-applet** (autostart): el agente para emparejar con PIN y los avisos de conexión. Sin icono en
+  la bandeja: el dconf de serie desactiva sus plugins `StatusIcon` y `ShowConnected`
+  (`org/blueman/general/plugin-list`). labwc no lanza `/etc/xdg/autostart`, por eso va en el autostart.
+- **Probado**: `tests/barra.sh` (el clic derecho con `bluetoothctl` y `rfkill` de mentira) y
+  `tests/escritorio.sh` (servicio, `AutoEnable`, dconf y programas; la barra arranca sin bus del sistema
+  y Waybar solo lo apunta en el log). **No probado**: con un adaptador de verdad (la VM no tiene):
+  emparejar, el PIN, el desplegable en pantalla y que el `identifier` de la regla case con la ventana
+  (`docs/prueba-en-pc-real.md` § 5).
+
 ## Aplicaciones fijadas (2026-10-15)
 
 - **Cómo va**: Waybar no sabe fijar (`wlr/taskbar` solo enseña ventanas y su clic derecho no lanza

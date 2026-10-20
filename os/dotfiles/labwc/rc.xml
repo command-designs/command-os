@@ -202,6 +202,16 @@
       <action name="MoveToEdge" direction="up" snapWindows="no" />
       <action name="ToggleAlwaysOnTop" />
     </windowRule>
+    <!-- Dispositivos Bluetooth (clic en `bt` de la barra): el mismo desplegable que el mezclador. -->
+    <windowRule identifier="blueman-manager">
+      <skipTaskbar>yes</skipTaskbar>
+      <action name="SetDecorations" decorations="border" forceSSD="yes" />
+      <skipWindowSwitcher>yes</skipWindowSwitcher>
+      <action name="ResizeTo" width="520" height="400" />
+      <action name="MoveToEdge" direction="right" snapWindows="no" />
+      <action name="MoveToEdge" direction="up" snapWindows="no" />
+      <action name="ToggleAlwaysOnTop" />
+    </windowRule>
     <!-- Monitor del sistema (Ctrl+Mayús+Esc). -->
     <windowRule identifier="btop">
       <action name="ResizeTo" width="960" height="600" />

@@ -7,7 +7,7 @@
     // Aplicaciones fijadas (group/fijadas y sus custom/fijada#fN): las escribe command-os-fijadas al
     // abrir la sesión y al cambiar la lista (lib/fijadas.py). Sin el archivo, la barra sale sin ellas.
     "include": ["$XDG_RUNTIME_DIR/command-os/barra/fijadas.jsonc"],
-    "modules-right": ["custom/updates", "ext/workspaces", "cpu", "temperature", "memory", "network", "pulseaudio", "battery", "tray", "custom/power"],
+    "modules-right": ["custom/updates", "ext/workspaces", "cpu", "temperature", "memory", "network", "bluetooth", "pulseaudio", "battery", "tray", "custom/power"],
 
     // Los textos entre dobles llaves se traducen al abrir la sesión (command-os-config, docs/idioma.md).
     // Etiqueta en Smoke + valor en Ash. Colores de la marca v2 (docs/DISENO.md).
@@ -48,7 +48,7 @@
         "tooltip-format": "{title}",
         "on-click": "minimize-raise",
         "on-click-middle": "close",
-        "ignore-list": ["org.pulseaudio.pavucontrol"]
+        "ignore-list": ["org.pulseaudio.pavucontrol", "blueman-manager"]
     },
     // Fecha (apagada) y hora: lo que se mira de un vistazo.
     "clock": {
@@ -78,6 +78,20 @@
         "format-disconnected": "<span color='#f5482c'>net</span> {{sin red}}",
         "tooltip-format": "{ifname} · {ipaddr} · {{clic: conexiones}}",
         "on-click": "nm-connection-editor"
+    },
+    // Bluetooth: oculto si el equipo no tiene adaptador; apagado de serie (lib/apply-system). Con
+    // dispositivos conectados, cuántos. Clic: los dispositivos (blueman); clic derecho: encender o apagar.
+    "bluetooth": {
+        "format": "<span color='#85827c'>bt</span> on",
+        "format-off": "<span color='#85827c'>bt</span> off",
+        "format-disabled": "<span color='#85827c'>bt</span> off",
+        "format-connected": "<span color='#85827c'>bt</span> {num_connections}",
+        "format-no-controller": "",
+        "tooltip-format": "{{clic: dispositivos · clic derecho: encender o apagar}}",
+        "tooltip-format-connected": "{device_enumerate}\n{{clic: dispositivos · clic derecho: encender o apagar}}",
+        "tooltip-format-enumerate-connected": "{device_alias}",
+        "on-click": "command-os-bluetooth panel",
+        "on-click-right": "command-os-bluetooth cambiar"
     },
     "pulseaudio": {
         "format": "<span color='#85827c'>vol</span> {volume}%",

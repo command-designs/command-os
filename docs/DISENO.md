@@ -109,7 +109,7 @@ paleta de `lenguaje.html`). Sin brillos.
 - **Barra (Waybar):** a la izquierda, logo (clic: aplicaciones) y barra de tareas con un icono por
   ventana (la enfocada en Slate con la barra Signal Red debajo, las minimizadas atenuadas); en el
   centro, fecha apagada y hora en Oxanium; a la derecha, los escritorios, la telemetría (cpu,
-  temperatura, memoria, red con la señal wifi, volumen, batería con el tiempo que queda), la bandeja
+  temperatura, memoria, red con la señal wifi, Bluetooth (`bt off`, `bt on` o los conectados; oculto sin adaptador), volumen, batería con el tiempo que queda), la bandeja
   (red de nm-applet) y el botón de energía. Warn al pasar el umbral de aviso, Red Hot al crítico,
   siempre con la cifra.
 - **Escritorios:** uno de serie, y la barra no enseña nada. Super+Ctrl+D (o clic derecho →
