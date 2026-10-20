@@ -18,10 +18,6 @@ Guía ordenada, para seguir con una sola instalación en un PC real: `docs/prueb
 
 ## Pendientes (por orden)
 
-El 5 va en la rama actual (PR de «CI en verde») o en el siguiente.
-
-5. **`AGENTS.md` más corto** (197 líneas, la 30 tiene 705 caracteres): partir esa línea y llevar a `docs/`
-   la historia de QEMU/Packer y lo de la VM vieja. _Sonnet, esfuerzo bajo._
 6. **Bluetooth** (`bluez`, panel o `blueman`, módulo en la barra, textos traducidos, prueba en
    `tests/escritorio.sh`). _Opus, esfuerzo medio (toca paquete, barra, idioma y marca)._
 7. **Licencia del repo (público y sin licencia).** Decide el usuario: ninguna, permisiva (MIT/Apache-2.0)
