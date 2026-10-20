@@ -12,21 +12,21 @@ import grp
 import os
 import pty
 import pwd
-import re
 import select
 import subprocess
 import sys
-import threading
 import time
 
 import zonas
-from comun import CONF, Dialogo, cargar_tema, fila, leer, traductor, usuario_desde, ventana
+from comun import (
+    CONF, Dialogo, PanelBase, cargar_tema, fila, leer, problema_clave, texto_clave_corta, texto_usuario_invalido,
+    traductor, usuario_desde, usuario_valido,
+)
 from comun import administrar as administrar_con
 from gi.repository import GLib, Gtk
 from selector_zona import SelectorZona
 
 HELPER = "/usr/lib/command-os/gestionar-cuentas"
-MIN_CONTRASENA = 8
 ANCHO = 620
 UID_MIN, UID_MAX = 1000, 60000
 ESPERA_PASSWD = 30  # segundos
@@ -126,40 +126,27 @@ def cambiar_clave_propia(actual, nueva):
     return "actual_incorrecta" if "uthentication" in salida else "fallo"
 
 
-class Panel:
+class Panel(PanelBase):
     def __init__(self, app):
-        self._ = _ = traductor()
+        _ = traductor()
+        super().__init__(app, _, _("cmd-os · cuentas"), ANCHO, 680)
         self.app = app
         self.yo = pwd.getpwuid(os.getuid())
         self.idiomas = idiomas()
         self.catalogo = None
-        self.reloj = 0
-        self.ventana, self.caja = ventana(app, _("cmd-os · cuentas"), ANCHO, 680)
-        teclas = Gtk.EventControllerKey()
-        teclas.connect("key-pressed", self.tecla)
-        self.ventana.add_controller(teclas)
+        self.fila_zona = None  # el selector de zona se crea una vez y se reutiliza al repintar
         self.pintar()
-
-    def tecla(self, _controlador, valor, _codigo, _estado):
-        if valor == 0xFF1B:  # Escape
-            self.ventana.close()
-            return True
-        return False
-
-    def limpiar(self):
-        while (hijo := self.caja.get_first_child()) is not None:
-            self.caja.remove(hijo)
 
     # ---- Textos ------------------------------------------------------------------------------
 
     def motivo(self, codigo):
         _ = self._
         return {
-            "usuario_invalido": _("usuario: minúsculas, números, - o _, empezando por una letra."),
+            "usuario_invalido": texto_usuario_invalido(_),
             "usuario_existe": _("ya existe una cuenta con ese usuario."),
             "nombre_reservado": _("ese nombre está reservado por el sistema: elige otro."),
             "nombre_invalido": _("el nombre no puede llevar «:»."),
-            "clave_corta": _("la contraseña tiene que tener al menos {n} caracteres.").format(n=MIN_CONTRASENA),
+            "clave_corta": texto_clave_corta(_),
             "es_la_propia": _("no se puede hacer con tu propia cuenta."),
             "sesion_abierta": _("esa cuenta tiene la sesión abierta: cierra la sesión antes."),
             "ultimo_admin": _("tiene que quedar al menos una cuenta administradora."),
@@ -194,7 +181,7 @@ class Panel:
         ajustes.append(fila(_("contraseña"), self.boton_clave()))
         ajustes.append(fila(_("idioma de mi cuenta"), self.combo_idioma()))
         self.caja.append(ajustes)
-        self.caja.append(fila(_("zona horaria (de todo el equipo)"), self.selector_zona()))
+        self.caja.append(self.selector_zona())
 
         # Las cuentas del equipo.
         cabecera = Gtk.Box(spacing=12)
@@ -235,6 +222,11 @@ class Panel:
         return combo
 
     def selector_zona(self):
+        """La fila de la zona horaria: se construye la primera vez (el catálogo de zonas es lo más caro de
+        pintar) y después se vuelve a poner la misma al repintar el panel."""
+        if self.fila_zona is not None:
+            return self.fila_zona
+        _ = self._
         idioma = os.environ.get("LANG", "es_ES.UTF-8")
         self.catalogo = self.catalogo or zonas.catalogo(idioma, self._)
         validas = {z for z, _c in zonas.zonas()}
@@ -244,11 +236,10 @@ class Panel:
         pared = actual if zonas.reloj_local() and not zonas.sincronizada() else None
         self.zona_pintada = actual
         self.selector = SelectorZona(self.catalogo, self._, actual, self.al_zona, pared)
-        # La hora del botón al día, con un solo temporizador aunque se repinte el panel.
-        if self.reloj:
-            GLib.source_remove(self.reloj)
-        self.reloj = GLib.timeout_add_seconds(20, lambda: self.selector.poner_hora())
-        return self.selector
+        # La hora del botón al día.
+        GLib.timeout_add_seconds(20, lambda: self.selector.poner_hora())
+        self.fila_zona = fila(_("zona horaria (de todo el equipo)"), self.selector)
+        return self.fila_zona
 
     def lista(self, admins, soy_admin):
         _ = self._
@@ -287,15 +278,6 @@ class Panel:
             caja.append(linea)
         return caja
 
-    # ---- Trabajo en segundo plano ---------------------------------------------------------------
-
-    def en_hilo(self, trabajo, hecho):
-        """trabajo() en un hilo; hecho(resultado) en el hilo de la ventana."""
-        def correr():
-            resultado = trabajo()
-            GLib.idle_add(lambda: (hecho(resultado), False)[1])
-        threading.Thread(target=correr, daemon=True).start()
-
     # ---- Mi contraseña ----------------------------------------------------------------------------
 
     def al_cambiar_clave(self, _boton):
@@ -309,10 +291,8 @@ class Panel:
 
     def hacer_clave_propia(self, dialogo, v):
         _ = self._
-        if len(v["nueva"]) < MIN_CONTRASENA:
-            return _("la contraseña tiene que tener al menos {n} caracteres.").format(n=MIN_CONTRASENA)
-        if v["nueva"] != v["repetir"]:
-            return _("las contraseñas no coinciden.")
+        if problema := problema_clave(v["nueva"], v["repetir"], _):
+            return problema
 
         def hecho(codigo):
             if codigo:
@@ -420,10 +400,8 @@ class Panel:
         ]
 
         def aceptar(dialogo, v):
-            if len(v["nueva"]) < MIN_CONTRASENA:
-                return _("la contraseña tiene que tener al menos {n} caracteres.").format(n=MIN_CONTRASENA)
-            if v["nueva"] != v["repetir"]:
-                return _("las contraseñas no coinciden.")
+            if problema := problema_clave(v["nueva"], v["repetir"], _):
+                return problema
 
             def hecho(codigo):
                 if codigo:
@@ -451,12 +429,10 @@ class Panel:
 
         def aceptar(dialogo, v):
             usuario = v["usuario"].strip() or usuario_desde(v["nombre"])
-            if not re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", usuario):
-                return _("usuario: minúsculas, números, - o _, empezando por una letra.")
-            if len(v["nueva"]) < MIN_CONTRASENA:
-                return _("la contraseña tiene que tener al menos {n} caracteres.").format(n=MIN_CONTRASENA)
-            if v["nueva"] != v["repetir"]:
-                return _("las contraseñas no coinciden.")
+            if not usuario_valido(usuario):
+                return texto_usuario_invalido(_)
+            if problema := problema_clave(v["nueva"], v["repetir"], _):
+                return problema
             args = ["anadir", usuario]
             if v["nombre"].strip():
                 args += ["--nombre", v["nombre"].strip()]

@@ -121,7 +121,9 @@ usuario); ARM, aparcado hasta tener la placa.
 - Copiar a la VM: nunca `build/x86` entero (lleva los discos de las VM, ignorados por git, y llena
   `/tmp`): `git ls-files build | tar -czf - -T -`. `command-os-update` en la VM baja el paquete al
   publicado si el de desarrollo es más nuevo: reinstalar después con `install.sh`.
-- Paneles del escritorio (`lib/panel-*.py`, `comun.ventana`/`Dialogo`): lo que necesita root va a
+- Paneles del escritorio (`lib/panel-*.py`, `comun.PanelBase`/`ventana`/`Dialogo`; hijos de `PanelBase`:
+  Escape, `limpiar` y `en_hilo` ya vienen hechos). Las reglas de contraseña y de usuario viven en
+  `comun.py` y `reglas.sh`: no repetirlas. Lo que necesita root va a
   `lib/gestionar-*` con `pkexec` (nunca `sudo -S` con una contraseña escrita en el panel); esos
   ayudantes contestan con códigos y reciben las contraseñas por la entrada estándar. Un texto de
   Python va con `_("…")` (no `self._("…")`: xgettext no lo ve) y cada archivo nuevo entra en `PYTHON` de

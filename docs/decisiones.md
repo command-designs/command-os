@@ -3,6 +3,21 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — Limpieza de los paneles (`lib/comun.py`, `lib/reglas.sh`)
+
+- **Una base para los paneles (`comun.PanelBase`)** con la ventana, Escape, `limpiar` y `en_hilo`, en vez
+  de copiar los cuatro métodos en cada panel (actualizaciones, cuentas, disco, batería, abrir descarga).
+  El panel pasa su traductor y su título ya traducidos: xgettext solo ve `_("…")` escrito en el archivo
+  que lo usa. `comun.py` entra por eso en `PYTHON` de `build/po.sh`.
+- **Las reglas de contraseña y de usuario, una copia por lenguaje**: `comun.py` (Python: asistente,
+  paneles) y `reglas.sh` (shell: `crear-cuenta`, `gestionar-*`). Descartado: una sola copia que lean los
+  dos (el asistente de shell no puede importar Python y al revés, y arrancar uno desde el otro por una
+  constante no compensa); en su lugar `tests/cuentas.sh` falla si las dos se separan. La regla del
+  instalador de PC (`password_problem` de `build/x86/lib.sh`) sigue aparte: corre en el medio de
+  instalación, antes de que exista el paquete.
+- **El selector de zona del panel de cuentas se construye una vez**: repintar el panel (tras cada
+  cambio) volvía a crear las ~400 filas del catálogo; ahora se reutiliza la misma fila con su temporizador.
+
 ## 2026-10-20 — Cierre de la marca v2 (`tests/marca.sh`, `docs/DISENO.md`)
 
 - **La prueba vigila que el estilo anterior no vuelva**: sus colores también sin `#` (el swaylock de

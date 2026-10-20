@@ -42,7 +42,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   y se rellena, su barra, el wordmark) y que una tecla la salte; la lista de comprobaciones con los
   estados de tu equipo y el medidor; el menú de GRUB con el chaflán (Esc al encender); y, con el disco
   cifrado, la contraseña en el sitio de la lista y «disco del sistema» en curso al abrirlo (en la VM
-  cifrada no se ha probado este arranque nuevo).
+  cifrada el splash v2 con el campo de contraseña en el sitio de la lista ya se vio el 2026-10-20; falta
+  «disco del sistema» en curso y el medidor).
 
 ## Aparcado hasta tener el hardware ARM del cyberdeck
 
@@ -54,12 +55,9 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
-   `tecla`, `limpiar` y `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy
-   en bash y Python, cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
-2. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
+1. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
    (Flatpak), sin tocar `/var/lib/flatpak` desde la comprobación de solo lectura (`docs/decisiones.md`,
    2026-10-19). *Opus, medio: toca la unidad de systemd, la barra y el panel.*
-3. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
+2. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
    instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
    alto: toca el instalador y la vuelta atrás.*

@@ -11,7 +11,7 @@ import stat
 import subprocess
 import sys
 
-from comun import cargar_tema, traductor, ventana
+from comun import PanelBase, cargar_tema, traductor
 from descargas import busqueda, otro_procesador, repositorio, tipo
 
 from gi.repository import Gio, GLib, Gtk  # noqa: E402
@@ -19,25 +19,12 @@ from gi.repository import Gio, GLib, Gtk  # noqa: E402
 ANCHO = 500
 
 
-class Panel:
+class Panel(PanelBase):
     def __init__(self, app, ruta):
-        self._ = _ = traductor()
+        _ = traductor()
+        super().__init__(app, _, _("cmd-os · abrir descarga"), ANCHO)
         self.ruta = ruta
-        self.ventana, self.caja = ventana(app, _("cmd-os · abrir descarga"), ANCHO)
-        teclas = Gtk.EventControllerKey()
-        teclas.connect("key-pressed", self.tecla)
-        self.ventana.add_controller(teclas)
         self.pintar()
-
-    def tecla(self, _controlador, valor, _codigo, _estado):
-        if valor == 0xFF1B:  # Escape
-            self.ventana.close()
-            return True
-        return False
-
-    def limpiar(self):
-        while (hijo := self.caja.get_first_child()) is not None:
-            self.caja.remove(hijo)
 
     def texto(self, contenido, clase="tenue"):
         etiqueta = Gtk.Label(label=contenido, xalign=0, wrap=True, max_width_chars=52)

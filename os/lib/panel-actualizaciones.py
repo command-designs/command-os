@@ -9,10 +9,9 @@
 import os
 import subprocess
 import sys
-import threading
 
-from comun import cargar_tema, traductor, ventana
-from gi.repository import GLib, Gtk
+from comun import PanelBase, cargar_tema, traductor
+from gi.repository import Gtk
 
 ANCHO = 520
 SIGNAL = 8  # el mismo que "signal" del módulo custom/updates de Waybar
@@ -52,25 +51,11 @@ def comprobar():
     return r.returncode == 0
 
 
-class Panel:
+class Panel(PanelBase):
     def __init__(self, app):
-        self._ = _ = traductor()
-        self.ventana, self.caja = ventana(app, _("cmd-os · actualizaciones"), ANCHO)
-        teclas = Gtk.EventControllerKey()
-        teclas.connect("key-pressed", self.tecla)
-        self.ventana.add_controller(teclas)
+        _ = traductor()
+        super().__init__(app, _, _("cmd-os · actualizaciones"), ANCHO)
         self.pintar()
-
-    def tecla(self, _controlador, valor, _codigo, _estado):
-        # Escape cierra, como en los demás paneles.
-        if valor == 0xFF1B:
-            self.ventana.close()
-            return True
-        return False
-
-    def limpiar(self):
-        while (hijo := self.caja.get_first_child()) is not None:
-            self.caja.remove(hijo)
 
     def pintar(self, aviso=""):
         _ = self._
@@ -161,16 +146,11 @@ class Panel:
         _ = self._
         boton.set_sensitive(False)
         self.estado.set_text(_("buscando actualizaciones…"))
-        threading.Thread(target=self.comprobar_en_hilo, daemon=True).start()
-
-    def comprobar_en_hilo(self):
-        bien = comprobar()
-        GLib.idle_add(self.terminada, bien)
+        self.en_hilo(comprobar, self.terminada)
 
     def terminada(self, bien):
         _ = self._
         self.pintar("" if bien else _("no se pudo comprobar (¿sin red?)"))
-        return False
 
 
 class App(Gtk.Application):
