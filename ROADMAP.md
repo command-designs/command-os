@@ -59,6 +59,10 @@ se migra con marca, como `layout-2`, sin pisar sus cambios.
    igual (flotantes, barras de título, menú del escritorio, Alt+Tab, atajos, escritorios). Riesgo:
    las apps sin cabecera propia (Thunar, kitty) necesitan `hyprbars`, que no está en Arch y se
    compila para cada versión. No se prueba en la VM (sin 3D): la prueba el usuario en su portátil.
-   Si no llega a la paridad, se queda labwc y se anota en `docs/decisiones.md`.
+   Si no llega a la paridad, se queda labwc y se anota en `docs/decisiones.md`. Condiciones para
+   adoptarla (que una actualización no lo rompa): `hyprbars` compilado por nosotros en el repositorio
+   firmado y atado a la versión exacta de Hyprland, Hyprland solo cambia con la fecha validada de
+   Arch, la CI comprueba plugin y configuración antes de publicar, y labwc queda como sesión de
+   reserva.
 8. **Barra que se oculta sola** (Opus, medio: depende del 7). Con Hyprland, Ironbar (en Arch, con
    ocultado nativo) o Waybar con un ayudante que mire el puntero (`hyprctl cursorpos`).
