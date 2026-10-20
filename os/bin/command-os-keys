@@ -12,7 +12,9 @@ if pkill -f "^wofi --dmenu --prompt ${TAG}" 2>/dev/null; then exit 0; fi
 
 KEYS=()
 # fila TECLAS ACCIÓN: las teclas en 22 columnas (printf cuenta bytes y descuadra las flechas y el «·»).
-fila() { local n=$(( 22 - ${#1} )); (( n < 1 )) && n=1; KEYS+=("$1$(printf '%*s' "${n}" '') $2"); }
+# ${#1} cuenta letras solo con un locale UTF-8: sin LANG en la sesión, o con uno sin generar, también
+# cuenta bytes. C.UTF-8 viene siempre con glibc; aquí no cambia el idioma (t ya se ha llamado).
+fila() { local LC_ALL=C.UTF-8; local n=$(( 22 - ${#1} )); (( n < 1 )) && n=1; KEYS+=("$1$(printf '%*s' "${n}" '') $2"); }
 # Las teclas solo se traducen donde llevan palabras (intro, mayús, impr…).
 fila "super"                 "$(t 'aplicaciones')"
 fila "super + $(t 'intro')"          "$(t 'terminal')"

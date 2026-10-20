@@ -109,7 +109,8 @@ usuario); ARM, aparcado hasta tener la placa.
 - El menú de labwc **no** va en `/etc/xdg/labwc` (con `--merge-config` gana el primero que se lee, el del
   sistema, y no se podría traducir): va en `/usr/share/command-os/config/labwc/` y `lib/menus-labwc`
   lo traduce al iniciar la sesión (`docs/idioma.md`). `printf '%-22s'` cuenta bytes: para alinear
-  texto con flechas o «·», rellenar con `${#texto}`.
+  texto con flechas o «·», rellenar con `${#texto}` y `local LC_ALL=C.UTF-8` (sin un locale UTF-8, como en una
+  sesión sin `LANG`, también cuenta bytes).
 - cage se cierra cuando se cierra una tubería que hereda su programa: nada que se lance con `&` dentro
   de su `sh -c` puede quedársela (`pantallas.py vigilar` cierra los descriptores heredados) o la pantalla
   se queda en negro tras el asistente o el inicio de sesión.

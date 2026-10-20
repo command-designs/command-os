@@ -2,7 +2,8 @@
 # Command OS — prueba de la batería y de las aplicaciones fijadas de la barra sin pantalla ni batería:
 # el estado de una batería simulada (lib/bateria.py: avisos y panel), cuándo avisa de batería baja, el
 # límite de carga (lib/gestionar-bateria sobre un /sys/class/power_supply de mentira) y la parte de la
-# barra que generan las aplicaciones fijadas (lib/fijadas.py). Corre en cualquier Linux con python3
+# barra que generan las aplicaciones fijadas (lib/fijadas.py) y que la ayuda de atajos sale en columnas
+# (bin/command-os-keys). Corre en cualquier Linux con python3
 # (GitHub Actions, ver .github/workflows/pruebas.yml). Sale con 1 si algo falla.
 set -uo pipefail
 
@@ -196,6 +197,24 @@ python3 "${F}" generar >/dev/null && [[ -z "$(leer_barra)" ]] && ok "lista vací
   && ok "si no puede generar, la barra arranca con su hoja de siempre" || mal "sin respaldo de la hoja"
 ! env -u XDG_RUNTIME_DIR python3 "${F}" generar "${T}/base.css" >/dev/null 2>&1 && [[ ! -e /tmp/command-os/barra/fijadas.jsonc ]] \
   && ok "sin XDG_RUNTIME_DIR no escribe nada (nunca en /tmp)" || mal "generó sin XDG_RUNTIME_DIR"
+
+echo "==> Ayuda de atajos (bin/command-os-keys)"
+# wofi de mentira que guarda lo que le llega; la sesión sin locale (LANG=C) es la que descuadraba.
+mkdir -p "${T}/bin"
+printf '#!/bin/sh\ncat > "%s/atajos"\n' "${T}" > "${T}/bin/wofi"
+printf '#!/bin/sh\nexit 1\n' > "${T}/bin/pkill"
+printf '#!/bin/sh\necho "$1"\n' > "${T}/bin/command-os-config"
+chmod +x "${T}/bin/"*
+sed "s|/usr/lib/command-os/textos.sh|${LIB}/textos.sh|" "${RAIZ}/os/bin/command-os-keys" > "${T}/keys"
+env -u LC_ALL PATH="${T}/bin:${PATH}" LANG=C bash "${T}/keys"
+salida=$(LC_ALL=C.UTF-8 python3 -c '
+import sys
+filas = open(sys.argv[1], encoding="utf-8").read().splitlines()
+mal = [f for f in filas if f[22] != " " or f[23] == " "]
+print(len(filas), *mal, sep="\n")' "${T}/atajos")
+[[ "${salida}" =~ ^[0-9]+$ && "${salida}" -gt 20 ]] \
+  && ok "${salida} atajos con la acción en la misma columna, también con flechas, «·» y «…» sin locale" \
+  || mal "atajos descuadrados: ${salida}"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi
