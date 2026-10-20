@@ -133,7 +133,7 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
 | `os/system/polkit-check-updates.rules` | Quien está en el equipo (sesión local y activa) puede lanzar `command-os-check-updates@manual.service`, y solo esa unidad, sin contraseña. |
 | `os/bin/command-os-updates` | `status` (JSON para Waybar), `update`, `check`, `notify`, `watch` (autostart de labwc). |
 
-- **Barra:** oculta si no hay nada. `upd N` (N = command-os, los paquetes y las aplicaciones de la
+- **Barra:** oculta si no hay nada. `UPD N` (N = command-os, los paquetes y las aplicaciones de la
   tienda); el número va en Warn si hay versión nueva de command-os. Tooltip con las versiones, la lista
   de paquetes, la de aplicaciones y cuándo se comprobó. Si pacman cambió algo **después** de la comprobación, el módulo se oculta hasta la siguiente (lo que
   decía ya no vale). Si Flatpak cambió algo después (`/var/lib/flatpak/.changed`: la tienda o

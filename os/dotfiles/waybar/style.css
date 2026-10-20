@@ -1,26 +1,28 @@
-/* Command OS — barra (docs/DISENO.md, marca v2). Neutros casi siempre; el rojo es una señal: Signal
-   Red en las barras de lo activo, Red Hot en texto e iconos. Warn solo para avisos. Esquinas vivas. */
-@define-color void #0e0e0e;
+/* Command OS — barra (docs/DISENO.md, marca v2), como la barra superior de la app de lenguaje.html
+   (§ 03): Graphite con filo Steel, el logo en su celda y lecturas mono en mayúsculas (peso 500,
+   0,14 em). Neutros casi siempre; el rojo es una señal: Red Hot en las líneas de lo activo, el texto y
+   los iconos. Warn solo para avisos. Esquinas vivas. */
 @define-color graphite #151515;
 @define-color slate #1f1f1f;
 @define-color steel #2a2a2a;
 @define-color bone #edebe6;
 @define-color ash #a3a09a;
 @define-color smoke #85827c;
-@define-color red #a51500;
 @define-color red-hot #f5482c;
 @define-color warn #ffb020;
+@define-color ok #3ddc84;
 
 * {
     font-family: "JetBrainsMono Nerd Font";
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 500;
     min-height: 0;
     border-radius: 0;
 }
 
 /* Filo inferior de 1 px: separa la barra sin sombras. */
 window#waybar {
-    background: @void;
+    background: @graphite;
     color: @bone;
     border-bottom: 1px solid @steel;
 }
@@ -42,7 +44,7 @@ tooltip label {
     padding: 0 8px;
     color: @smoke;
     border-bottom: 2px solid transparent;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.14em;
 }
 
 #workspaces button:first-child {
@@ -50,7 +52,7 @@ tooltip label {
 }
 
 #workspaces button:hover {
-    background: @graphite;
+    background: @slate;
     color: @bone;
     box-shadow: none;
 }
@@ -58,7 +60,7 @@ tooltip label {
 #workspaces button.active {
     color: @red-hot;
     background: @slate;
-    border-bottom: 2px solid @red;
+    border-bottom: 2px solid @red-hot;
 }
 
 #workspaces button.urgent {
@@ -94,13 +96,13 @@ tooltip label {
 }
 
 #taskbar button:hover {
-    background: @graphite;
+    background: @slate;
     box-shadow: none;
 }
 
 #taskbar button.active {
     background: @slate;
-    border-bottom: 2px solid @red;
+    border-bottom: 2px solid @red-hot;
 }
 
 #taskbar button.minimized {
@@ -120,7 +122,7 @@ tooltip label {
 }
 
 #custom-fijada:hover {
-    background-color: @graphite;
+    background-color: @slate;
 }
 
 #custom-logo {
@@ -130,7 +132,8 @@ tooltip label {
     background-repeat: no-repeat;
     background-position: center;
     min-width: 16px;
-    padding: 0 10px 0 14px;
+    padding: 0 16px;
+    border-right: 1px solid @steel;
 }
 
 #custom-logo:hover {
@@ -147,16 +150,41 @@ tooltip label {
     color: @bone;
 }
 
-#network, #pulseaudio, #battery, #cpu, #temperature, #memory, #tray, #custom-updates {
+#network, #bluetooth, #pulseaudio, #battery, #cpu, #temperature, #memory, #tray, #custom-updates {
     transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1), background 200ms cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0 10px;
     color: @ash;
+    letter-spacing: 0.14em;
     border-left: 1px solid @steel;
 }
 
-#network:hover, #pulseaudio:hover, #cpu:hover, #memory:hover, #custom-updates:hover {
+#network:hover, #bluetooth:hover, #pulseaudio:hover, #cpu:hover, #memory:hover, #custom-updates:hover {
     color: @bone;
-    background: @graphite;
+    background-color: @slate;
+}
+
+/* LED de estado (lenguaje.html: .led, con su halo de 0,6 em): un punto con un degradado radial a la
+   izquierda del módulo, solo cuando dice algo (conectado, sin red, versión nueva) y siempre con su
+   texto al lado. Es un fondo, no una sombra: el hover cambia el color de fondo sin quitarlo. */
+#network.wifi, #network.ethernet, #network.linked, #network.disconnected,
+#bluetooth.connected, #custom-updates.nueva {
+    padding-left: 24px;
+    background-repeat: no-repeat;
+}
+
+#network.wifi, #network.ethernet, #network.linked, #bluetooth.connected {
+    background-image: radial-gradient(circle 8px at 13px 50%, @ok 0px, @ok 3px,
+        rgba(61, 220, 132, 0.45) 3.5px, rgba(61, 220, 132, 0) 8px);
+}
+
+#network.disconnected {
+    background-image: radial-gradient(circle 8px at 13px 50%, @red-hot 0px, @red-hot 3px,
+        rgba(245, 72, 44, 0.45) 3.5px, rgba(245, 72, 44, 0) 8px);
+}
+
+#custom-updates.nueva {
+    background-image: radial-gradient(circle 8px at 13px 50%, @warn 0px, @warn 3px,
+        rgba(255, 176, 32, 0.4) 3.5px, rgba(255, 176, 32, 0) 8px);
 }
 
 /* Actualizaciones: apagado con paquetes sueltos, Warn (aviso) con una versión nueva de command-os. */
@@ -181,7 +209,7 @@ tooltip label {
     color: @red-hot;
 }
 
-#network.disconnected, #pulseaudio.muted {
+#network.disconnected, #bluetooth.off, #bluetooth.disabled, #pulseaudio.muted {
     color: @smoke;
 }
 
@@ -196,5 +224,5 @@ tooltip label {
 
 #custom-power:hover {
     color: @red-hot;
-    background: @slate;
+    background-color: @slate;
 }

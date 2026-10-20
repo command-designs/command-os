@@ -11,7 +11,7 @@ import stat
 import subprocess
 import sys
 
-from comun import PanelBase, cargar_tema, traductor
+from comun import PanelBase, boton, cargar_tema, traductor
 from descargas import busqueda, otro_procesador, repositorio, tipo
 
 from gi.repository import Gio, GLib, Gtk  # noqa: E402
@@ -35,16 +35,16 @@ class Panel(PanelBase):
     def botones(self, principal=None, al_pulsar=None, cerrar=None):
         _ = self._
         fila = Gtk.Box(spacing=10, halign=Gtk.Align.END)
-        salir = Gtk.Button(label=cerrar or (_("cancelar") if principal else _("cerrar")))
+        salir = boton(cerrar or (_("cancelar") if principal else _("cerrar")))
         salir.add_css_class("flat")
         salir.connect("clicked", lambda _b: self.ventana.close())
         fila.append(salir)
         if principal:
-            boton = Gtk.Button(label=principal)
-            boton.add_css_class("suggested-action")
-            boton.connect("clicked", al_pulsar)
-            fila.append(boton)
-            self.ventana.set_default_widget(boton)
+            accion = boton(principal)
+            accion.add_css_class("suggested-action")
+            accion.connect("clicked", al_pulsar)
+            fila.append(accion)
+            self.ventana.set_default_widget(accion)
         self.caja.append(fila)
 
     def cabecera(self, contenido):

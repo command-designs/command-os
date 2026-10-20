@@ -19,7 +19,7 @@ import time
 
 import zonas
 from comun import (
-    CONF, Dialogo, PanelBase, cargar_tema, fila, leer, problema_clave, texto_clave_corta, texto_usuario_invalido,
+    CONF, Dialogo, PanelBase, boton, cargar_tema, fila, leer, problema_clave, texto_clave_corta, texto_usuario_invalido,
     traductor, usuario_desde, usuario_valido,
 )
 from comun import administrar as administrar_con
@@ -169,7 +169,7 @@ class Panel(PanelBase):
         soy_admin = self.yo.pw_name in admins
 
         # Mi cuenta.
-        etiqueta = Gtk.Label(label=_("mi cuenta"), xalign=0)
+        etiqueta = Gtk.Label(label=_("mi cuenta").upper(), xalign=0)
         etiqueta.add_css_class("etiqueta")
         self.caja.append(etiqueta)
         quien = nombre_de(self.yo) or self.yo.pw_name
@@ -185,11 +185,11 @@ class Panel(PanelBase):
 
         # Las cuentas del equipo.
         cabecera = Gtk.Box(spacing=12)
-        lista_t = Gtk.Label(label=_("cuentas del equipo"), xalign=0, hexpand=True)
+        lista_t = Gtk.Label(label=_("cuentas del equipo").upper(), xalign=0, hexpand=True)
         lista_t.add_css_class("etiqueta")
         cabecera.append(lista_t)
         if soy_admin:
-            nueva = Gtk.Button(label=_("añadir cuenta"))
+            nueva = boton(_("añadir cuenta"))
             nueva.connect("clicked", self.al_anadir)
             cabecera.append(nueva)
         self.caja.append(cabecera)
@@ -198,14 +198,14 @@ class Panel(PanelBase):
         self.estado = Gtk.Label(label=aviso, xalign=0, wrap=True, max_width_chars=60)
         self.estado.add_css_class("error")
         self.caja.append(self.estado)
-        cerrar = Gtk.Button(label=_("cerrar"), halign=Gtk.Align.END)
+        cerrar = boton(_("cerrar"), halign=Gtk.Align.END)
         cerrar.add_css_class("flat")
         cerrar.connect("clicked", lambda _b: self.ventana.close())
         self.caja.append(cerrar)
 
     def boton_clave(self):
         _ = self._
-        b = Gtk.Button(label=_("cambiar mi contraseña"), halign=Gtk.Align.START)
+        b = boton(_("cambiar mi contraseña"), halign=Gtk.Align.START)
         b.connect("clicked", self.al_cambiar_clave)
         return b
 
@@ -264,13 +264,13 @@ class Panel(PanelBase):
             linea.append(texto)
             if soy_admin and p.pw_name != self.yo.pw_name:
                 quitar = p.pw_name in admins
-                b_admin = Gtk.Button(label=_("quitar admin") if quitar else _("hacer admin"))
+                b_admin = boton(_("quitar admin") if quitar else _("hacer admin"))
                 b_admin.add_css_class("flat")
                 b_admin.connect("clicked", self.al_admin, p.pw_name, not quitar)
-                b_clave = Gtk.Button(label=_("contraseña"))
+                b_clave = boton(_("contraseña"))
                 b_clave.add_css_class("flat")
                 b_clave.connect("clicked", self.al_clave_ajena, p.pw_name)
-                b_borrar = Gtk.Button(label=_("borrar"))
+                b_borrar = boton(_("borrar"))
                 b_borrar.add_css_class("flat")
                 b_borrar.connect("clicked", self.al_borrar, p.pw_name)
                 for b in (b_admin, b_clave, b_borrar):

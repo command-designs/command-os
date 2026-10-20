@@ -92,4 +92,25 @@ elif [[ ! -e /var/lib/command-os/hora-por-red ]]; then
     warn "no se pudo activar la hora por la red (systemd-timesyncd)"
   fi
 fi
+
+# Bluetooth: el servicio activado (para poder encenderlo desde la barra) y el adaptador apagado al
+# arrancar (AutoEnable=false de bluez; blueman no guarda el estado, copia el del adaptador). Gasta menos
+# batería y no anuncia el equipo sin que nadie lo pida. Una sola vez, como los de arriba: lo que cambie
+# quien administra el equipo (main.conf, `systemctl disable`) no lo deshace una actualización.
+if [[ ! -e /var/lib/command-os/bluetooth && -f /etc/bluetooth/main.conf ]]; then
+  if grep -qE '^#?AutoEnable=' /etc/bluetooth/main.conf; then
+    sed -i -E 's/^#?AutoEnable=.*/AutoEnable=false/' /etc/bluetooth/main.conf
+  else
+    printf '\n[Policy]\nAutoEnable=false\n' >> /etc/bluetooth/main.conf
+  fi
+  if systemctl enable bluetooth.service >/dev/null 2>&1; then
+    install -d /var/lib/command-os
+    touch /var/lib/command-os/bluetooth
+    if [[ -d /run/systemd/system ]] && ! systemd-detect-virt --chroot --quiet; then
+      systemctl start --no-block bluetooth.service >/dev/null 2>&1 || true
+    fi
+  else
+    warn "no se pudo activar el servicio de Bluetooth"
+  fi
+fi
 exit 0

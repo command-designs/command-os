@@ -27,7 +27,14 @@ de actualizaciones (comprobación cada 6 h sin tocar el sistema, `docs/actualiza
 igual en 16:9 y 16:10 con escala automática de alta densidad y tema de GRUB propio
 (`docs/notas/pantallas.md`). Al instalar en un PC, el disco se cifra (LUKS2, sí por defecto) con la
 contraseña dentro del splash y clave de recuperación (`docs/cifrado.md`). En castellano de serie, con
-el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`). La zona horaria también se elige en el asistente, con hora por la red (`docs/cuentas.md` § «Hora»). La barra lleva la batería (avisos al 20 y al 10 %, límite de carga al 80 % si el portátil lo permite) y aplicaciones fijadas (`docs/notas/escritorio.md`). Desde el 2026-10-19 trae tienda de aplicaciones (Bazaar con Flathub, aparte de pacman), gestor de comprimidos en Thunar y tipos de archivo de serie para que nada descargado pregunte (`docs/notas/escritorio.md` § «Instalar aplicaciones»). Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
+el idioma (castellano o inglés) a elegir en el asistente y traducciones con gettext, escritorio incluido (`docs/idioma.md`).
+La zona horaria también se elige en el asistente, con hora por la red (`docs/cuentas.md` § «Hora»).
+La barra lleva la batería (avisos al 20 y al 10 %, límite de carga al 80 % si el portátil lo permite)
+y aplicaciones fijadas; también el Bluetooth, apagado de serie, con blueman (`docs/notas/escritorio.md`).
+Desde el 2026-10-19 trae tienda de aplicaciones (Bazaar con Flathub, aparte de pacman), gestor de
+comprimidos en Thunar y tipos de archivo de serie para que nada descargado pregunte
+(`docs/notas/escritorio.md` § «Instalar aplicaciones»).
+Verificado en la VM x86_64 de VirtualBox. Falta: hardware real (lo prueba el
 usuario); ARM, aparcado hasta tener la placa.
 
 ## Qué leer según la tarea (detalle en `docs/notas/`, léelo antes de tocar esa zona)
@@ -37,7 +44,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso y panel de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
-| escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas | `docs/notas/escritorio.md` y `docs/DISENO.md` |
+| escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | colores, letra, forma (chaflanes, escuadras) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` §§ «Color», «Letra» y «Forma», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma» |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
@@ -45,7 +52,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, panel del disco, `gestionar-disco`, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
 | splash, firma de arranque, comprobaciones de arranque (`lib/diagnostico-arranque`), GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | resoluciones, 16:9/16:10, alta densidad (escala), fondos, tema de GRUB, tamaño del splash | `docs/notas/pantallas.md` |
-| VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
+| VM de VirtualBox, WSL2, capturas, pruebas a mano, las pruebas de la CI en WSL (`build/wsl/pruebas.sh`) | `docs/notas/vm-virtualbox-wsl.md`, `docs/testing.md` y, para no repetir pruebas fallidas, `docs/notas/historial-vm.md` |
 | por qué se decidió algo (y qué se descartó) | `docs/decisiones.md` |
 | qué viene ahora | `ROADMAP.md` (se quita cada punto al terminarlo y verificarlo) |
 
@@ -54,7 +61,8 @@ usuario); ARM, aparcado hasta tener la placa.
 - XML de labwc: **ningún comentario puede contener `--`**: labwc deja de leer el archivo entero.
 - Colores: solo los de la paleta v2 (`docs/DISENO.md`); `tests/marca.sh` falla con cualquier otro. Un
   color extra que haga falta se añade a su lista `EXTRA` con el motivo. Signal Red nunca para texto
-  (no da contraste): texto, iconos y foco en Red Hot. Sin `text-shadow` ni halos (solo la barra del logo).
+  (no da contraste): texto, iconos y foco en Red Hot. Halos solo en la señal (barra del logo, trazo rojo
+  del plano, cabezal de la firma y LED; BRAND 2.1): nunca `text-shadow` ni halos en paneles o bordes.
   También falla con los colores del estilo anterior aunque vayan sin `#` (swaylock) y con sus palabras
   en `os/` o `build/` (`PALABRAS`; las que hagan falta, en `PALABRAS_EXTRA` con el motivo).
 - Chaflanes en GTK: `border-image` con los SVG de `build/make-chaflanes.py` (regenerar al cambiarlos)
@@ -90,7 +98,8 @@ usuario); ARM, aparcado hasta tener la placa.
   Sus mensajes van traducidos (`t`, `COMMAND_OS_IDIOMA`): nunca decidir buscando palabras en ellos
   (`disk_is_live_usb`, `disk_runs_system`), y las confirmaciones son las del idioma elegido, solo esas.
 - Pantallas: hyprlock ignora la escala (la de serie se escala en `command-os-lock`) y GRUB no escala
-  imágenes ni fuentes (tema generado por `apply-boot`). En VirtualBox, `setvideomodehint` no va (usar
+  imágenes ni fuentes (tema generado por `apply-boot`); busca cada fuente por el nombre entero del PF2
+  (`cmd-menu Regular 14`) y, si no lo encuentra, usa otra sin avisar. En VirtualBox, `setvideomodehint` no va (usar
   `wlr-randr` dentro) y 1366x768 sale roto en `screenshotpng` (capturar con `grim`).
 - VirtualBox: **nunca `snapshot take --live`** con la VM encendida: la deja congelada (pasó con
   `command-os-x86`). Instantáneas con la VM apagada.
@@ -133,36 +142,6 @@ usuario); ARM, aparcado hasta tener la placa.
   10 min), el ratón virtual se acelera (usar teclado: Tab/Intro) y `polkit` solo deja
   comprobar actualizaciones a la sesión local activa, no a un proceso lanzado por SSH.
 
-## Qué se probó y qué se descartó (no repetir)
-
-1. **VirtualBox con `vmsvga`/`vmwgfx` → descartado.** El compositor anterior no inicializaba sobre
-   ese driver. Hoy la VM de VirtualBox usa `vboxsvga` con render por software y labwc va bien (ver
-   "Identidad de marca y VM en VirtualBox").
-
-2. **QEMU + `virtio-gpu-pci` sin aceleración 3D**: sirve para validar que el instalador corre bien
-   (paquetes/servicios/dotfiles); para ver el escritorio, mejor la VM de VirtualBox.
-
-3. **QEMU + `virtio-gpu-gl-pci` con `-display sdl,gl=on` (aceleración 3D)
-   → cuelga la VM.** En este host (Windows + WHPX), ambos vCPUs se van al
-   100% sin avanzar el arranque. No se investigó más a fondo por qué
-   (¿ANGLE/EGL + WHPX incompatibles?). Es la última cosa que se intentó
-   antes de decidir el plan de abajo.
-
-4. **El tecleo automático de Packer (`boot_command`) es frágil** tanto en
-   VirtualBox (PS2) como QEMU (VNC), incluso con `boot_wait` alto y
-   `boot_key_interval` ajustado — a veces la llave SSH no queda bien
-   escrita y Packer se queda esperando SSH indefinidamente. La salida que
-   funcionó: abrir la ISO en una ventana visible de QEMU y que el humano
-   corra 4 comandos cortos a mano (`passwd`, `systemctl start sshd`), y
-   desde ahí inyectar la llave real por una conexión SSH con password
-   (usando `SSH_ASKPASS`, no interactiva). Pasos exactos en
-   `docs/testing.md`.
-
-5. **Nunca matar el proceso de QEMU con `Stop-Process -Force` / kill -9.**
-   Corrompe archivos recién escritos en el disco (nos pasó con
-   `getty@tty1.service.d/override.conf`, quedó lleno de bytes nulos).
-   Siempre `shutdown -h now` por SSH antes de cerrar la ventana/proceso.
-
 ## Siguientes pasos
 
 En `ROADMAP.md`, por orden. Cada punto se quita al terminarlo y verificarlo.
@@ -172,12 +151,9 @@ En `ROADMAP.md`, por orden. Cada punto se quita al terminarlo y verificarlo.
 Ver `docs/testing.md` para comandos exactos. Resumen:
 - Forma preferida para el escritorio: VM de VirtualBox `command-os-x86` (SSH `127.0.0.1:2902` como
   `deck`), ya con labwc.
-- Los discos QEMU (`/root/vm/command-os-dev.qcow2` en WSL, `build/packer/output-arch/` en Windows)
-  son anteriores a labwc y llevan el escritorio viejo: **reconstruirlos** (Packer o
-  `build/x86/build-image.sh`) en vez de re-correr `os/install.sh` encima, que ya no limpia el
-  escritorio anterior.
-- Llave SSH efímera en `build/packer/keys/packer_build_key` (gitignored,
-  regenerar si no existe — ver `docs/testing.md`).
+- Los discos QEMU viejos llevan el escritorio anterior: reconstruirlos, no reinstalar encima. Esto y
+  lo que se probó y se descartó (VirtualBox `vmsvga`, QEMU con 3D, tecleo de Packer):
+  `docs/notas/historial-vm.md`.
 - Credenciales de desarrollo (no usar en producto final): usuario `deck` /
   password `deck` (solo imágenes con `DEV_SSH_PUBKEY`/`COMMAND_OS_DEV_USER`); `root` bloqueado.
 

@@ -48,9 +48,15 @@ cargarlas. A 720 px de alto (la VM) los estados de la lista van a ~8 px: por eso
   cada 20 (**GRUB no escala las imágenes del tema**). Todas las piezas del panel miden lo que el corte:
   GRUB pone el borde con su tamaño, y `apply-boot` lo suma al alto del menú.
 - `lib/apply-boot` genera `/boot/grub/themes/command/` para el alto de la pantalla del equipo (modo
-  preferido de `/sys/class/drm`, la interna si la hay): fuentes JetBrains Mono con `grub-mkfont` (menú
-  20 px, textos 15 px, consola 18 px a 1080 de alto), `theme.txt` con el bloque centrado y
-  `GRUB_GFXMODE=<nativa>,auto`. Sin `grub-mkfont` o sin la fuente, se queda sin tema (fondo `void`).
+  preferido de `/sys/class/drm`, la interna si la hay): fuentes con `grub-mkfont` (menú en Geist 20 px,
+  rótulos en JetBrains Mono Medium 14 px y consola en JetBrains Mono 18 px a 1080 de alto, con un
+  mínimo de 14, 11 y 12 px: son mapas de 1 bit y, más pequeñas, las letras se deforman), `theme.txt` con
+  el bloque centrado y `GRUB_GFXMODE=<nativa>,auto`. Sin `grub-mkfont` o sin la fuente, se queda sin
+  tema (fondo `void`).
+- **GRUB busca cada fuente por su nombre entero**, el que guarda el PF2 (`cmd-menu Regular 14`: el de
+  `-n` más el estilo y el tamaño). Con otro nombre no avisa: usa la última fuente que ha cargado. Hasta
+  el 2026-10-20 el tema pedía `cmd-menu` y todo salía con la de los rótulos (visto en la VM: «Command
+  DS Linux»). `apply-boot` lee el nombre del archivo y `tests/escritorio.sh` lo comprueba.
 - `COMMAND_OS_PANTALLA=ANCHOxALTO` fija la pantalla (pruebas en VM y en CI); `generica` no mira la
   de la máquina (la usa `build-image.sh`: la imagen va a cualquier equipo) y deja `auto` con medidas de
   1080 hasta la siguiente actualización de GRUB o de command-os en el equipo.

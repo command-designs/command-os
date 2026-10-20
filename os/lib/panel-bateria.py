@@ -6,7 +6,7 @@
 import sys
 
 import bateria
-from comun import PanelBase, administrar, cargar_tema, traductor
+from comun import PanelBase, administrar, boton, cargar_tema, traductor
 from gi.repository import GLib, Gtk
 
 HELPER = "/usr/lib/command-os/gestionar-bateria"
@@ -59,7 +59,7 @@ class Panel(PanelBase):
         self.estado = Gtk.Label(label=aviso, xalign=0, wrap=True, max_width_chars=50)
         self.estado.add_css_class("error" if error else "dato")
         self.caja.append(self.estado)
-        cerrar = Gtk.Button(label=_("cerrar"), halign=Gtk.Align.END)
+        cerrar = boton(_("cerrar"), halign=Gtk.Align.END)
         cerrar.add_css_class("flat")
         cerrar.connect("clicked", lambda _b: self.ventana.close())
         self.caja.append(cerrar)

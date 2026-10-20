@@ -5,13 +5,17 @@ Secuencia (command.script la cronometra; aquí solo se dibuja el símbolo):
 - Trazado, 0–900 ms: el contorno del símbolo C en Bone, de 1 px, recorre la forma real del logo
   (el trazado de os/branding/logo/command-mark.svg). Se desvanece de 1050 a 1350 ms.
 - Relleno, 800–1350 ms: el símbolo blanco, de izquierda a derecha.
-- Barra, 1300–1650 ms: la barra Signal Red se extiende desde la izquierda, con su halo (el único
-  halo de la interfaz, BRAND § 7.2).
+- Barra, 1300–1650 ms: la barra Signal Red se extiende desde la izquierda, con su halo (BRAND § 3).
 - Wordmark, 1600–2650 ms: lo destapa command.script con una tapa Void y el cabezal Red Hot.
+Después, la pantalla de carga de lenguaje.html (§ 04): el símbolo pasa al centro del anillo de la
+izquierda y el wordmark, al rótulo de arriba (command.script).
 Salida en os/branding/plymouth/command/:
 - simbolo-N.png: un fotograma cada 40 ms del trazado, el relleno y la barra (el último, el símbolo
   completo). Pequeños (el símbolo mide 128 px a 1080 de alto): van dentro del initramfs.
-- wordmark.png: el wordmark entero, con su barra.
+- wordmark.png: el wordmark entero, con su barra; wordmark-mini.png, el del rótulo de arriba.
+- anillo.png: la pista del anillo de avance (Steel); punto.png, el punto Red Hot con el que
+  command.script dibuja el avance encima (Plymouth no dibuja arcos: muchos puntos solapados).
+- puntos.png: la retícula de puntos de 26 px con máscara radial que va detrás del anillo (a 1x).
 - px-*.png: píxeles sueltos que command.script estira (medidor, filetes, campo de la contraseña,
   tapa del wordmark y cabezal).
 Todo a doble resolución: command.script lo reduce al alto de cada pantalla (nítido en 4K).
@@ -38,6 +42,10 @@ S = 2  # doble resolución
 SS = 4  # supermuestreo del trazado (Pillow no suaviza las líneas)
 SIM_H = 128 * S  # alto del símbolo (con su barra) a 1080 px de alto
 WM_W = 480 * S  # ancho del wordmark a 1080 px de alto
+WM_MINI = 100 * S  # ancho del wordmark del rótulo de arriba
+ANILLO = 500 * S  # lado del anillo de avance a 1080 px de alto (26 % del ancho en 16:9, como § 04)
+TRAZO_ANILLO = ANILLO // 100  # grueso de su trazo: 1 % del lado
+PUNTOS = 1300  # lado de la retícula de detrás del anillo, a 1x
 PAD = 12 * S  # margen transparente de los fotogramas del símbolo: cabe el halo de la barra
 PASO = 40  # ms entre fotogramas del símbolo (command.script los cambia cada 2 refrescos de 20 ms)
 FIN = 1650  # ms: el símbolo ya está completo
@@ -174,14 +182,38 @@ print(n, "fotogramas del símbolo", SIM_W + 2 * PAD, "x", SIM_H + 2 * PAD)
 word = Image.open(ROOT / "logo" / "command-wordmark-white.png").convert("RGBA")
 word = word.resize((WM_W, round(word.height * WM_W / word.width)), Image.Resampling.LANCZOS)
 word.save(OUT / "wordmark.png", optimize=True)
-print("wordmark", word.size)
+mini = Image.open(ROOT / "logo" / "command-wordmark-white.png").convert("RGBA")
+mini = mini.resize((WM_MINI, round(mini.height * WM_MINI / mini.width)), Image.Resampling.LANCZOS)
+mini.save(OUT / "wordmark-mini.png", optimize=True)
+print("wordmark", word.size, "mini", mini.size)
+
+# --- Anillo de avance y retícula (pantalla de carga) ------------------------------------------------
+grande = Image.new("RGBA", (ANILLO * SS, ANILLO * SS), (0, 0, 0, 0))
+m = TRAZO_ANILLO * SS / 2
+ImageDraw.Draw(grande).ellipse((m, m, ANILLO * SS - m, ANILLO * SS - m), outline=STEEL,
+                               width=TRAZO_ANILLO * SS)
+grande.resize((ANILLO, ANILLO), Image.Resampling.LANCZOS).save(OUT / "anillo.png", optimize=True)
+grande = Image.new("RGBA", (TRAZO_ANILLO * SS, TRAZO_ANILLO * SS), (0, 0, 0, 0))
+ImageDraw.Draw(grande).ellipse((0, 0, TRAZO_ANILLO * SS - 1, TRAZO_ANILLO * SS - 1), fill=RED_HOT)
+grande.resize((TRAZO_ANILLO, TRAZO_ANILLO), Image.Resampling.LANCZOS).save(OUT / "punto.png", optimize=True)
+# Como .load .bg de lenguaje.html: Bone al 6 % cada 26 px, que se desvanece del centro hacia fuera.
+puntos = Image.new("RGBA", (PUNTOS, PUNTOS), (0, 0, 0, 0))
+dp = ImageDraw.Draw(puntos)
+c = PUNTOS / 2
+for y in range(13, PUNTOS, 26):
+    for x in range(13, PUNTOS, 26):
+        d = ((x - c) ** 2 + (y - c) ** 2) ** 0.5 / c
+        alfa = 0.06 * min(1.0, max(0.0, (1 - d) / 0.85)) ** 1.4
+        if alfa > 0.004:
+            dp.ellipse((x - 1, y - 1, x + 1, y + 1), fill=BONE[:3] + (round(255 * alfa),))
+puntos.save(OUT / "puntos.png", optimize=True)
+print("anillo", ANILLO, "puntos", PUNTOS)
 
 # --- Píxeles que command.script estira ------------------------------------------------------------
 for nombre, color in {
-    "px-red": SIGNAL_RED,     # medidor (relleno) y barra del wordmark
-    "px-dim": STEEL,          # pista del medidor y línea del campo de la contraseña
+    "px-dim": STEEL,          # pista de la barra de avance, filete del título y línea del campo
     "px-slate": SLATE,        # filetes entre las comprobaciones
-    "px-bone": BONE,          # caracteres tecleados en el campo de la contraseña
+    "px-bone": BONE,          # barra de avance (relleno) y caracteres tecleados en el campo
     "px-red-hot": RED_HOT,    # cabezal del wordmark, comprobación en curso y cursor del campo
     "px-void": VOID,          # tapa que destapa el wordmark (el fondo es Void liso)
 }.items():

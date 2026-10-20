@@ -3,6 +3,67 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — command-os como `lenguaje.html` (punto 8 del roadmap)
+
+- **El objetivo es que se vea y se use como el concepto**, no solo que cumpla las reglas: las líneas
+  finas de lo activo en Red Hot (Signal Red solo en superficies), el hover con filo Red Hot y
+  `#B81A02` en el principal, Alt+Tab con la tarjeta seleccionada `#1A1311`.
+- **Etiquetas, lecturas, estados y botones en mono 500 y mayúsculas** (decisión del usuario). El CSS de
+  GTK no tiene `text-transform`: en Python, `comun.fila` y `comun.boton` hacen `.upper()`; en Waybar y
+  hyprlock, `text_transform` de Pango. Las traducciones siguen en minúsculas (msgid sin cambios).
+  Los mensajes en tono terminal (`› sistema listo`) siguen en minúsculas (BRAND § 2).
+- **LED de la barra como degradado radial de fondo** del módulo (red, Bluetooth conectado, versión
+  nueva): Waybar no tiene otro elemento donde ponerlos. Descartado un `●` de Pango (sin halo) y un
+  módulo aparte por LED (más procesos y se separa de su texto).
+- **El plano lleva llamadas en vez de cotas** (decisión del usuario), como el héroe del concepto; cada
+  una dice la pieza y su medida real. Etiquetas en castellano en todos los idiomas (el PNG es uno).
+- **Splash como la pantalla de carga del concepto, sin porcentaje** (decisiones del usuario): la firma
+  corta sigue en el centro (ancla 2) y después el símbolo pasa al anillo y el wordmark al rótulo de
+  arriba. El avance de Plymouth es una estimación (BRAND § 9.3): anillo y barra sin porcentaje; la cifra
+  es el contador `n / 6`. Un consejo real (un atajo de `rc.xml`) al azar en cada arranque. Plymouth no
+  dibuja arcos: 400 puntos solapados sobre un anillo pintado. Descartado: imágenes del arco por paso
+  (decenas de MB de memoria en el initramfs) y segmentos girados (depende del sentido de `Rotate`).
+- **Sin «saltar · cualquier tecla»** (decisión del usuario, tras verlo en la VM): los textos del splash
+  esperan al idioma, que llega con la primera comprobación de arranque, ya acabada la firma; el aviso no
+  se veía nunca. Arriba a la derecha queda `ESC · DETALLES`; una tecla sigue saltando la firma.
+  Descartado un gancho del initramfs que mandara el idioma al empezar (más piezas en el arranque por un
+  aviso de 2,65 s).
+- **GRUB con un mínimo de tamaño de letra** (14 px el menú, 11 los rótulos): sus fuentes son de 1 bit
+  y la mono Medium a 9 px (768 de alto) pinta la O como una D.
+- **Los paneles pequeños de wofi (energía, atajos, acerca de) siguen en mono**: la ayuda y «acerca de»
+  alinean columnas con espacios. Descartado Geist (como la paleta), que las desalinea.
+
+## 2026-10-20 — Marca 2.1 (lenguaje HUD) en `tests/marca.sh`
+
+- **`lenguaje.html` manda** (BRAND 2.1): ante una duda de cómo se ve algo, se mira ahí antes que en
+  `BRAND.md` o el kit. Sus colores nuevos (`#B81A02`, `#1A1311`) entran en la paleta del test.
+- **«HUD» sale de las palabras prohibidas**: era la etiqueta del estilo Cyberpunk retirado; en 2.1 es
+  el nombre del lenguaje de la marca. Siguen prohibidas las demás (`cyberpunk`, `2077`, `glitch`).
+- **Halo solo en un selector de LED** en las hojas CSS: una sombra con desenfoque y de color (no negra)
+  fuera de un selector con «led» falla. Los otros sitios del halo (barra del logo, trazo del plano,
+  cabezal de la firma) son imágenes generadas, no CSS. Descartado leer el contexto de cada regla:
+  el nombre del selector basta y obliga a llamar «led» a lo que lo es.
+
+## 2026-10-20 — Licencia del repo: GPL-3.0
+
+- **GPL-3.0** (`LICENSE`, titular command-lab). Es la licencia habitual en el ecosistema Linux/Arch y
+  obliga a que cualquier versión modificada que se distribuya siga siendo libre, para que nadie cierre
+  un derivado de Command OS.
+- Descartado: **MIT/Apache-2.0** (permiten que un tercero lo cierre y lo venda sin devolver nada) y
+  **sin licencia** (el repo es público: sin licencia nadie puede legalmente usarlo ni modificarlo).
+- La licencia cubre el código y los scripts del repo; el nombre y la identidad de marca no se ceden.
+
+## 2026-10-20 — Bluetooth con blueman y apagado de serie (`docs/notas/escritorio.md` § «Bluetooth»)
+
+- **Panel: blueman, no uno propio** (decisión del usuario). Ya coge el tema GTK 3, viene traducido y trae
+  el agente de emparejamiento (PIN, confirmar código); un `panel-bluetooth.py` encajaría mejor con la
+  marca, pero habría que escribir ese agente por D-Bus. Se retoma si blueman desentona en pantalla.
+- **Apagado al arrancar, siempre** (decisión del usuario): menos batería y el equipo no se anuncia sin
+  que nadie lo pida. Con `AutoEnable=false` de bluez; descartado recordar el último estado (bluez no lo
+  guarda y blueman 2.4 tampoco).
+- **Encender y apagar desde la barra con `bluetoothctl` y `rfkill`**, no por el D-Bus de blueman-applet:
+  funciona aunque el applet no esté en marcha.
+
 ## 2026-10-20 — Subvolumen `@flatpak` para las apps de la tienda (`docs/actualizaciones.md` § 5)
 
 - **`/var/lib/flatpak` en su propio subvolumen** (`btrfs_root`, `build/x86/lib.sh`), como `@pkg`: las

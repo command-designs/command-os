@@ -21,6 +21,12 @@ uid=$(id -u "${USUARIO}")
 run="/tmp/prueba-runtime"
 rm -rf "${run}"; install -d -m 700 -o "${USUARIO}" "${run}"
 como() { runuser -u "${USUARIO}" -- env HOME="/home/${USUARIO}" XDG_RUNTIME_DIR="${run}" "$@"; }
+# Bus del sistema: el contenedor de la CI no tiene systemd. Sin él, el módulo de Bluetooth de Waybar
+# (habla con bluez por ese bus) deja la barra sin dibujar; en un equipo de verdad siempre está.
+if [[ ! -S /run/dbus/system_bus_socket ]]; then
+  install -d /run/dbus
+  dbus-daemon --system --fork || mal "no arrancó el bus del sistema (dbus-daemon --system)"
+fi
 
 echo "==> Configuración de serie"
 # Configuraciones de hyprlock: hyprlock las lee antes de conectarse a una pantalla.
@@ -45,6 +51,15 @@ if [[ -f /etc/default/grub ]]; then
   else
     mal "GRUB: falta el tema (${tema})"
   fi
+  # GRUB busca cada fuente por su nombre entero («cmd-menu Regular 14») y, sin él, usa otra sin avisar.
+  nombres=$(for f in "${tema}"/*.pf2; do IFS= read -r -d '' n < <(tail -c +21 "${f}"); echo "${n}"; done)
+  faltan=$(grep -oE '(font|terminal-font)[ :=]+"[^"]+"' "${tema}/theme.txt" | sed -E 's/.*"(.*)"/\1/' | sort -u \
+    | while IFS= read -r n; do grep -qxF "${n}" <<<"${nombres}" || echo "${n}"; done)
+  if [[ -z "${faltan}" ]]; then
+    ok "GRUB: las fuentes del tema existen con su nombre"
+  else
+    mal "GRUB: el tema pide fuentes que no hay: ${faltan//$'\n'/, }"
+  fi
   if COMMAND_OS_PANTALLA=2560x1600 /usr/lib/command-os/apply-boot \
       && grep -q 'pantallas de 1600 px' "${tema}/theme.txt" && grep -qxF 'GRUB_GFXMODE=2560x1600,auto' /etc/default/grub; then
     ok "GRUB: tema y modo para 2560x1600"
@@ -61,6 +76,18 @@ if [[ -f /etc/default/grub ]]; then
 else
   mal "no hay /etc/default/grub (falta grub en el contenedor)"
 fi
+# Bluetooth (lib/apply-system): servicio activado, adaptador apagado al arrancar y blueman sin icono en
+# la bandeja (la barra lleva el módulo `bt`, que abre blueman-manager y enciende con bluetoothctl).
+if grep -qx 'AutoEnable=false' /etc/bluetooth/main.conf 2>/dev/null; then ok "bluetooth: apagado al arrancar"; else mal "bluetooth: sin AutoEnable=false en main.conf"; fi
+if systemctl is-enabled bluetooth.service >/dev/null 2>&1; then ok "bluetooth: servicio activado"; else mal "bluetooth: servicio sin activar"; fi
+if [[ "$(como dconf read /org/blueman/general/plugin-list 2>&1)" == *"'!StatusIcon'"* ]]; then
+  ok "bluetooth: blueman sin icono en la bandeja"
+else
+  mal "bluetooth: blueman con icono en la bandeja (dconf)"
+fi
+for p in blueman-manager blueman-applet bluetoothctl rfkill; do
+  command -v "${p}" >/dev/null || mal "bluetooth: falta ${p}"
+done
 for f in /etc/xdg/labwc/rc.xml /usr/share/command-os/config/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
 done
@@ -137,9 +164,9 @@ if grep -aqiE '\[error\]|critical' "${SALIDA}/labwc.log"; then
   # nm-applet suelta avisos internos de GTK sin consecuencias (y, al arrancar, la bandeja de Waybar
   # avisa de su icono aún vacío: «No icon name or pixmap»); la temperatura y la batería no
   # existen en una máquina sin hardware; tampoco rfkill ni el bus del sistema (hypridle lo busca
-  # para logind y en el contenedor de CI no hay systemd).
+  # para logind, y el módulo de Bluetooth de Waybar para bluez, y en el contenedor de CI no hay systemd).
   grep -aiE '\[error\]|critical' "${SALIDA}/labwc.log" \
-    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet|No icon name or pixmap|RFKILL|Couldn.t create the dbus connection' \
+    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet|No icon name or pixmap|RFKILL|Couldn.t create the dbus connection|g_dbus_object_manager_client_new_for_bus_sync' \
     | head -5 > "${SALIDA}/errores-programas.txt"
   if [[ -s "${SALIDA}/errores-programas.txt" ]]; then mal "errores de programas (ver errores-programas.txt)"; fi
 fi

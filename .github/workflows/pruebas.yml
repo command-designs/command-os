@@ -13,6 +13,7 @@
 #   - escritorio con el Arch de la fecha validada: lo que tienen los equipos.
 #   - escritorio con el Arch del día: avisa antes de que una actualización de Arch rompa algo; si
 #     falla, no se valida una fecha nueva hasta arreglarlo (docs/actualizaciones.md).
+#     Si falla en la ejecución diaria, abre un issue (y lo cierra cuando vuelve a pasar).
 name: pruebas
 
 on:
@@ -91,3 +92,29 @@ jobs:
     uses: ./.github/workflows/escritorio.yml
     with:
       arch: hoy
+
+  # Solo en la ejecución diaria: si el Arch del día falla, abre un issue (o añade un comentario al que
+  # ya esté abierto) y, cuando vuelve a ir bien, lo cierra. Dura segundos: casi no gasta minutos.
+  avisar-fallo:
+    if: always() && github.event_name == 'schedule'
+    needs: [escritorio-hoy]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TITULO: 'CI programada: falla el escritorio con el Arch del día'
+      EJECUCION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Abrir, actualizar o cerrar el issue
+        run: |
+          num=$(gh issue list --state open --search "$TITULO in:title" --json number,title \
+            --jq "map(select(.title == \"$TITULO\")) | .[0].number // empty")
+          if [ "${{ needs.escritorio-hoy.result }}" = failure ]; then
+            cuerpo="Ha fallado la prueba diaria con el Arch del día: $EJECUCION. Hasta arreglarlo no se valida una fecha nueva (docs/actualizaciones.md)."
+            if [ -n "$num" ]; then gh issue comment "$num" --body "$cuerpo"; else gh issue create --title "$TITULO" --body "$cuerpo"; fi
+          elif [ -n "$num" ]; then
+            gh issue close "$num" --comment "Vuelve a pasar: $EJECUCION."
+          fi

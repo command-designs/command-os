@@ -1,7 +1,7 @@
 /* Notificaciones de Command OS (swaync, docs/DISENO.md, marca v2): cada una es un panel en Graphite
    con chaflán de 14 px y filo Steel (.panel); al pasar el ratón, filo Iron; la crítica, filo Red Hot
    (.panel--active: el texto ya dice qué pasa). Título en Bone, cuerpo en Ash, Geist. La barra de
-   progreso, Signal Red sobre Steel. El chaflán es un border-image (build/make-chaflanes.py): GTK no
+   progreso, Bone sobre Steel (el medidor de lenguaje.html). El chaflán es un border-image (build/make-chaflanes.py): GTK no
    pinta su centro, así que lo rellena un degradado liso del tamaño menos las esquinas (2 × 15 px).
    Sustituye a la hoja de serie de swaync (solo se usan las notificaciones, no el centro). */
 
@@ -113,7 +113,7 @@ blankwindow {
 
 .notification-content progressbar progress {
     min-height: 2px;
-    background-color: #a51500;
+    background-color: #edebe6;
     border: none;
 }
 

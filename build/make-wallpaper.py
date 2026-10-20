@@ -3,18 +3,22 @@
 
 - reticula (de serie): la retícula de puntos de 26 px con máscara radial, la C en el centro y un
   degradado rojo muy tenue (14 %) detrás de ella, como el héroe de la web.
-- plano: la construcción real del símbolo sobre la rejilla de 64 px: el contorno de la C, las guías
-  de sus medidas (tronco, brazos, hueco y barra), el área de respeto (¼ del ancho) y las cotas en
-  unidades del viewBox. La barra es lo único rojo.
+- plano: el plano holográfico de lenguaje.html (§ 02) con la construcción real del símbolo, sobre la
+  retícula de puntos y la rejilla de 64 px: el contorno de la C en --holo, las guías de sus medidas
+  (tronco, brazos, hueco y barra) y el área de respeto (¼ del ancho) en --holo-dim, y llamadas
+  quebradas que terminan en una etiqueta mono y explican cada pieza con su medida en unidades del
+  viewBox. La barra es lo único rojo; su llamada, la única en Red Hot, con el halo de #hudglow.
 - void: Void con la retícula muy tenue, sin rojo; fondo del bloqueo, de GRUB y del asistente (ya
   llevan su propio logo encima).
 
-La barra del símbolo es siempre Signal Red, con el único halo permitido (BRAND § 3: desenfoque de
-≈ 2 % del ancho del símbolo, opacidad ≈ 55 %). Colores, solo los de la paleta v2 (tests/marca.sh).
+La barra del símbolo es siempre Signal Red, con su halo (BRAND § 3: desenfoque de ≈ 2 % del ancho
+del símbolo, opacidad ≈ 55 %); el otro halo, el de la llamada roja del plano (BRAND 2.1 § 7.2). Colores, solo los de la paleta v2 (tests/marca.sh).
 Los de escritorio salen en 16:9 (2560x1440, command-<nombre>.png) y 16:10 (2560x1600,
 command-<nombre>-16x10.png): cada pantalla usa el suyo y no se recorta (command-os-wallpaper). La
 composición va en proporción al alto; la retícula y la rejilla, en píxeles fijos. void solo en 16:9:
 es liso y se recorta sin perder nada.
+Las etiquetas del plano van en JetBrains Mono Medium (la de la marca, peso 500): se toma la del sistema
+(ttf-jetbrains-mono-nerd en Arch, o la de Windows); build/fonts solo trae la Regular.
 Uso: python build/make-wallpaper.py [16x9|16x10]   (sin argumento, los dos)
 """
 import sys
@@ -39,10 +43,16 @@ STEEL = rgb("#2A2A2A")
 BONE = rgb("#EDEBE6")
 WHITE = rgb("#FFFFFF")
 SIGNAL = rgb("#A51500")
-LINE_PLAN = 0.55  # --line-plan: Bone al 55 %
-LINE_GUIDE = 0.16  # --line-guide: Bone al 16 %
+RED_HOT = rgb("#F5482C")
+ASH = rgb("#A3A09A")
+HOLO = 0.55  # --holo: Bone al 55 % (trazo del plano)
+HOLO_DIM = 0.18  # --holo-dim: Bone al 18 % (guías y llamadas)
 MARK = Image.open(REPO / "logo" / "command-mark-white.png").convert("RGBA")
-MONO = str(ROOT / "build" / "fonts" / "JetBrainsMono-Regular.ttf")  # OFL, solo para generar
+MEDIUM = [  # JetBrains Mono Medium del sistema (OFL), solo para generar
+    "/usr/share/fonts/TTF/JetBrainsMonoNLNerdFont-Medium.ttf",
+    "C:/Windows/Fonts/JetBrainsMonoNLNerdFont-Medium.ttf",
+    str(Path.home() / "AppData/Local/Microsoft/Windows/Fonts/JetBrainsMonoNLNerdFont-Medium.ttf"),
+]
 
 # Medidas del símbolo en unidades de su viewBox (command-mark.svg, 1158 x 1237; el PNG va a 1:1):
 # tronco de la C, brazos, hueco hasta la barra y barra. Se comprueban contra el PNG al cargarlo.
@@ -134,76 +144,120 @@ def reticula():
 
 
 # --------------------------------------------------------------------- plano
+def mono_medium():
+    for ruta in MEDIUM:
+        if Path(ruta).exists():
+            return ruta
+    sys.exit("falta JetBrains Mono Medium (ttf-jetbrains-mono-nerd): " + ", ".join(MEDIUM))
+
+
 def plano():
     img = np.ones((H, W, 3)) * VOID
     hm = round(H * 0.40)
     s = hm / MH
     cx, cy = W / 2, H * 0.47
     x0, y0 = round(cx - MW * s / 2), round(cy - hm / 2)
-    # La rejilla de 64 px pasa por la esquina del símbolo: el dibujo está construido sobre ella.
-    grid = Image.new("L", (W * SS, H * SS), 0)
+    big = (W * SS, H * SS)
+
+    # Fondo del héroe de lenguaje.html: retícula de puntos y rejilla de 64 px (que pasa por la esquina
+    # del símbolo: el dibujo está construido sobre ella) con máscara radial, y un degradado rojo muy
+    # tenue (≤ 14 %) detrás del símbolo.
+    grid = Image.new("L", big, 0)
     gd = ImageDraw.Draw(grid)
     for x in range(x0 % 64, W, 64):
         gd.line((x * SS, 0, x * SS, H * SS), fill=255, width=SS)
     for y in range(y0 % 64, H, 64):
         gd.line((0, y * SS, W * SS, y * SS), fill=255, width=SS)
     fade = np.clip(1.15 - radial(cx, cy, W * 0.6, H * 0.8), 0, 1)
-    img += (a(grid.resize((W, H), Image.Resampling.BOX)) * fade * 0.07)[..., None] * BONE
+    img += (a(grid.resize((W, H), Image.Resampling.BOX)) * fade * 0.05)[..., None] * BONE
+    img += (dots() * fade * 0.07)[..., None] * (BONE - VOID)
+    red = np.clip(1 - radial(cx, cy, H * 0.55, H * 0.5), 0, 1) ** 2
+    img += (red * 0.14)[..., None] * (SIGNAL - VOID)
 
-    # Guías (--line-guide) a lo largo de todo el plano y área de respeto discontinua.
     u = lambda v: v * s * SS  # unidades del viewBox a píxeles del lienzo grande
     X0, Y0 = x0 * SS, y0 * SS
-    guides = Image.new("L", (W * SS, H * SS), 0)
-    gd = ImageDraw.Draw(guides)
-    for vx in (0, TRONCO, MW):
-        gd.line((X0 + u(vx), 0, X0 + u(vx), H * SS), fill=255, width=SS)
-    for vy in (0, BRAZO, C_ALTO - BRAZO, C_ALTO, BARRA_Y, MH):
-        gd.line((0, Y0 + u(vy), W * SS, Y0 + u(vy)), fill=255, width=SS)
     rl, rt, rr, rb = X0 - u(RESPETO), Y0 - u(RESPETO), X0 + u(MW + RESPETO), Y0 + u(MH + RESPETO)
+    ancho = round(1.5 * SS)  # trazo del plano: 1,2 px a la escala de la referencia
+
+    # Guías (--holo-dim) de las medidas, hasta un poco más allá del área de respeto, y el área de
+    # respeto discontinua.
+    dim = Image.new("L", big, 0)
+    dd = ImageDraw.Draw(dim)
+    margen = 64 * SS
+    for vx in (0, TRONCO, MW):
+        dd.line((X0 + u(vx), rt - margen, X0 + u(vx), rb + margen), fill=255, width=SS)
+    for vy in (0, BRAZO, C_ALTO - BRAZO, C_ALTO, BARRA_Y, MH):
+        dd.line((rl - margen, Y0 + u(vy), rr + margen, Y0 + u(vy)), fill=255, width=SS)
     dash = 12 * SS
-    for t in np.arange(rl, rr, dash * 2):
-        gd.line((t, rt, min(t + dash, rr), rt), fill=255, width=SS)
-        gd.line((t, rb, min(t + dash, rr), rb), fill=255, width=SS)
-    for t in np.arange(rt, rb, dash * 2):
-        gd.line((rl, t, rl, min(t + dash, rb)), fill=255, width=SS)
-        gd.line((rr, t, rr, min(t + dash, rb)), fill=255, width=SS)
-    img += (a(guides.resize((W, H), Image.Resampling.BOX)) * LINE_GUIDE)[..., None] * (BONE - VOID)
+    for t_ in np.arange(rl, rr, dash * 2):
+        dd.line((t_, rt, min(t_ + dash, rr), rt), fill=255, width=SS)
+        dd.line((t_, rb, min(t_ + dash, rr), rb), fill=255, width=SS)
+    for t_ in np.arange(rt, rb, dash * 2):
+        dd.line((rl, t_, rl, min(t_ + dash, rb)), fill=255, width=SS)
+        dd.line((rr, t_, rr, min(t_ + dash, rb)), fill=255, width=SS)
 
-    # Cotas (--line-plan): líneas con topes y la medida en unidades del viewBox.
-    plan = Image.new("L", (W * SS, H * SS), 0)
-    pd = ImageDraw.Draw(plan)
-    font = ImageFont.truetype(MONO, round(H * 0.0125) * SS)
-    tick = 8 * SS
+    # Llamadas: línea quebrada (recta, 45° y recta) que sale de la pieza y termina en su etiqueta mono
+    # en mayúsculas (peso 500, 0,16 em), con la medida debajo. Solo la de la barra va en Red Hot.
+    rojo = Image.new("L", big, 0)
+    rd = ImageDraw.Draw(rojo)
+    texto_ash = Image.new("L", big, 0)
+    texto_rojo = Image.new("L", big, 0)
+    letra = round(H * 0.0105) * SS
+    fuente = ImageFont.truetype(mono_medium(), letra)
+    paso = 0.16 * letra
 
-    def cota_h(xa, xb, y, texto):
-        pd.line((xa, y, xb, y), fill=255, width=SS)
-        for x in (xa, xb):
-            pd.line((x, y - tick, x, y + tick), fill=255, width=SS)
-        pd.text(((xa + xb) / 2, y - tick * 1.5), texto, font=font, fill=255, anchor="md")
+    def escribir(capa, x, y, texto, derecha=False):
+        anchos = [fuente.getlength(c) + paso for c in texto]
+        total = sum(anchos) - paso
+        x = x - total if derecha else x
+        d = ImageDraw.Draw(capa)
+        for c, w in zip(texto, anchos):
+            d.text((x, y), c, font=fuente, fill=255, anchor="ls")
+            x += w
 
-    def cota_v(ya, yb, x, texto, lado=1):
-        pd.line((x, ya, x, yb), fill=255, width=SS)
-        for y in (ya, yb):
-            pd.line((x - tick, y, x + tick, y), fill=255, width=SS)
-        pd.text((x + lado * tick * 1.5, (ya + yb) / 2), texto, font=font, fill=255,
-                anchor="lm" if lado > 0 else "rm")
+    def llamada(px, py, lado, nombre, medida, caliente=False):
+        """Desde (px, py) del lienzo grande hacia `lado` (+1 derecha, -1 izquierda)."""
+        borde = rr if lado > 0 else rl
+        x1 = borde + lado * 48 * SS
+        sube = 28 * SS
+        x2 = x1 + lado * sube
+        x3 = x2 + lado * 230 * SS
+        y2 = py - sube
+        trazo = rd if caliente else dd
+        trazo.line([(px, py), (x1, py), (x2, y2), (x3, y2)], fill=255,
+                   width=round(2 * SS) if caliente else SS, joint="curve")
+        xt = x2 + lado * 6 * SS
+        escribir(texto_rojo if caliente else texto_ash, xt, y2 - 10 * SS, nombre, derecha=lado < 0)
+        escribir(texto_ash, xt, y2 + letra + 10 * SS, medida, derecha=lado < 0)
 
-    top = Y0 - u(RESPETO) / 2
-    cota_h(X0, X0 + u(MW), top, f"{MW}")
-    cota_h(X0, X0 + u(TRONCO), Y0 + u(MH + RESPETO / 2), f"{TRONCO}")
-    cota_h(X0 - u(RESPETO), X0, Y0 + u(MH / 2), "¼")
-    right = X0 + u(MW + RESPETO / 2)
-    cota_v(Y0, Y0 + u(MH), X0 + u(MW + RESPETO) + 24 * SS, f"{MH}")
-    cota_v(Y0, Y0 + u(BRAZO), right, f"{BRAZO}")
-    cota_v(Y0 + u(C_ALTO), Y0 + u(BARRA_Y), right, f"{BARRA_Y - C_ALTO}")
-    cota_v(Y0 + u(BARRA_Y), Y0 + u(MH), right, f"{MH - BARRA_Y}")
-    img += (a(plan.resize((W, H), Image.Resampling.BOX)) * LINE_PLAN)[..., None] * (BONE - VOID)
+    llamada(X0 + u(MW), Y0 + u(BRAZO / 2), +1, "BRAZO", f"ALTO {BRAZO}")
+    llamada(X0 + u((TRONCO + MW) / 2), Y0 + u(C_ALTO / 2), +1, "HUECO", f"ALTO {C_ALTO - 2 * BRAZO}")
+    llamada(X0 + u(MW), Y0 + u((BARRA_Y + MH) / 2), +1, "BARRA", f"ALTO {MH - BARRA_Y} · ÚNICO ROJO",
+            caliente=True)
+    llamada(X0 + u(TRONCO / 2), Y0 + u(C_ALTO / 2), -1, "TRONCO", f"ANCHO {TRONCO}")
+    llamada(rl, Y0 + u(MH * 0.12), -1, "ÁREA DE RESPETO", "¼ DEL ANCHO")
+    pie = f"SÍMBOLO C · {MW} × {MH}"
+    escribir(texto_ash, (X0 + u(MW / 2)) - sum(fuente.getlength(c) + paso for c in pie) / 2 + paso / 2,
+             rb + 56 * SS, pie)
 
-    # El símbolo dibujado en línea (--line-plan) y la barra, lo único rojo, con su halo.
+    baja = lambda capa: a(capa.resize((W, H), Image.Resampling.BOX))
+    img += (baja(dim) * HOLO_DIM)[..., None] * (BONE - VOID)
+    img += (baja(texto_ash))[..., None] * (ASH - VOID)
+
+    # El símbolo dibujado en línea (--holo).
     c, bar = mark_masks(hm)
     cm = place(c, x0, y0)
     edge = np.clip(a(cm) - a(cm.filter(ImageFilter.MinFilter(3))), 0, 1)
-    img += (edge * LINE_PLAN)[..., None] * (BONE - VOID)
+    img += (edge * HOLO)[..., None] * (BONE - VOID)
+
+    # La llamada roja con el halo de #hudglow (feGaussianBlur 2, opacidad .5) y su etiqueta.
+    r = baja(rojo)
+    img += (a(Image.fromarray((r * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(2))) * 0.5)[..., None] * RED_HOT
+    img = img * (1 - r[..., None]) + r[..., None] * RED_HOT
+    tr = baja(texto_rojo)[..., None]
+    img = img * (1 - tr) + tr * RED_HOT
+
+    # La barra, lo único rojo del símbolo, en Signal Red con su halo.
     bm = place(bar, x0, y0)
     img += a(bm.filter(ImageFilter.GaussianBlur(0.02 * c.width)))[..., None] * SIGNAL * 0.55
     bma = a(bm)[..., None]

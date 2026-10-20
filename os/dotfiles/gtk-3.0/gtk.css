@@ -37,10 +37,10 @@
 @define-color window_fg_color @cmd_bone;
 @define-color view_bg_color @cmd_void;
 @define-color view_fg_color @cmd_bone;
-@define-color headerbar_bg_color @cmd_void;
+@define-color headerbar_bg_color @cmd_graphite;
 @define-color headerbar_fg_color @cmd_bone;
 @define-color headerbar_border_color @cmd_steel;
-@define-color headerbar_backdrop_color @cmd_void;
+@define-color headerbar_backdrop_color @cmd_graphite;
 @define-color headerbar_shade_color rgba(0, 0, 0, 0.5);
 @define-color headerbar_darker_shade_color rgba(0, 0, 0, 0.9);
 @define-color sidebar_bg_color @cmd_graphite;
@@ -144,7 +144,8 @@ headerbar,
     box-shadow: inset 0 -1px @cmd_steel;
 }
 
-/* Selección en listas: Slate con el texto en Bone y la barra Signal Red a la izquierda. */
+/* Selección en listas: Slate con el texto en Bone y la barra Red Hot de 2 px a la izquierda (la
+   entrada activa de la paleta de lenguaje.html). */
 .view:selected,
 iconview:selected,
 treeview.view:selected,
@@ -155,7 +156,7 @@ row:selected {
 }
 
 row:selected {
-    box-shadow: inset 2px 0 @cmd_red;
+    box-shadow: inset 2px 0 @cmd_red_hot;
 }
 
 .view:selected:focus,
@@ -236,9 +237,10 @@ tooltip.background {
     border-image-repeat: stretch;
 }
 
-/* Botones con texto (.btn--cut): chaflán de 10 px en Graphite con filo Iron; al pasar, filo Smoke;
-   pulsado, Slate; con el foco, filo Red Hot. El principal (y el destructivo), en Signal Red con texto
-   blanco. Solo los sueltos: en un grupo unido (.linked), en barras de herramientas o los de solo
+/* Botones con texto (.btn--cut): chaflán de 10 px en Graphite con filo Iron; al pasar, filo Red Hot
+   y texto blanco (lenguaje.html: .btn:hover); pulsado, Slate; con el foco, filo Red Hot. El principal
+   (y el destructivo), en Signal Red con texto blanco; al pasar, #B81A02 con filo Red Hot; con el
+   foco, solo el filo. Solo los sueltos: en un grupo unido (.linked), en barras de herramientas o los de solo
    icono, el corte rompería la forma y se quedan como estaban. */
 box:not(.linked) > button.text-button:not(.flat),
 buttonbox:not(.linked) > button.text-button:not(.flat),
@@ -263,6 +265,7 @@ box:not(.linked) > button.text-button:not(.flat):hover,
 buttonbox:not(.linked) > button.text-button:not(.flat):hover,
 headerbar > button.text-button:not(.flat):hover,
 grid > button.text-button:not(.flat):hover {
+    color: @cmd_white;
     border-image-source: url("chaflanes/boton-hover.svg");
 }
 
@@ -280,6 +283,31 @@ headerbar > button.text-button:not(.flat):active,
 grid > button.text-button:not(.flat):active {
     background-image: linear-gradient(@cmd_slate, @cmd_slate);
     border-image-source: url("chaflanes/boton-pulsado.svg");
+}
+
+/* Un botón que se queda pulsado (alternar, como .chip.is-on): además, el texto en Red Hot. */
+box:not(.linked) > button.text-button:not(.flat):checked {
+    color: @cmd_red_hot;
+}
+
+/* Casillas como la lista de lenguaje.html (.check): cuadrado de filo Iron; marcada, en Bone con la
+   marca en Graphite (el rojo queda para lo activo). adw-gtk3 la pinta con background-image: se
+   cambia esa (un background-color quedaría debajo, sin verse). */
+check {
+    border-radius: 0;
+}
+
+check:checked,
+check:indeterminate {
+    background-image: image(@cmd_bone);
+    border-color: @cmd_bone;
+    color: @cmd_graphite;
+}
+
+check:checked:disabled,
+check:indeterminate:disabled {
+    background-image: image(alpha(@cmd_bone, 0.5));
+    border-color: transparent;
 }
 
 box:not(.linked) > button.text-button:not(.flat):disabled,
@@ -302,20 +330,24 @@ grid > button.destructive-action:not(.flat) {
     border-image-source: url("chaflanes/principal.svg");
 }
 
-box:not(.linked) > button.suggested-action:not(.flat):hover,
 box:not(.linked) > button.suggested-action:not(.flat):focus,
-box:not(.linked) > button.destructive-action:not(.flat):hover,
 box:not(.linked) > button.destructive-action:not(.flat):focus,
-buttonbox:not(.linked) > button.suggested-action:not(.flat):hover,
 buttonbox:not(.linked) > button.suggested-action:not(.flat):focus,
-buttonbox:not(.linked) > button.destructive-action:not(.flat):hover,
 buttonbox:not(.linked) > button.destructive-action:not(.flat):focus,
-headerbar > button.suggested-action:not(.flat):hover,
 headerbar > button.suggested-action:not(.flat):focus,
-headerbar > button.destructive-action:not(.flat):hover,
 headerbar > button.destructive-action:not(.flat):focus,
-grid > button.suggested-action:not(.flat):hover,
 grid > button.suggested-action:not(.flat):focus {
+    border-image-source: url("chaflanes/principal-foco.svg");
+}
+
+box:not(.linked) > button.suggested-action:not(.flat):hover,
+box:not(.linked) > button.destructive-action:not(.flat):hover,
+buttonbox:not(.linked) > button.suggested-action:not(.flat):hover,
+buttonbox:not(.linked) > button.destructive-action:not(.flat):hover,
+headerbar > button.suggested-action:not(.flat):hover,
+headerbar > button.destructive-action:not(.flat):hover,
+grid > button.suggested-action:not(.flat):hover {
+    background-image: linear-gradient(#b81a02, #b81a02);
     border-image-source: url("chaflanes/principal-hover.svg");
 }
 

@@ -25,8 +25,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   Waybar los enseña a la derecha y `style.css` oculta el botón cuando es `:only-child`. Re-ejecutar
   `install.sh` vuelve a dejar uno solo.
 - **Aviso de actualizaciones** (`custom/updates` en Waybar, `os/bin/command-os-updates`): oculto si no
-  hay nada (el script devuelve texto vacío y Waybar quita el módulo), `upd N` con la etiqueta en Smoke y el
-  número en Warn si hay versión nueva de command-os. Lo refresca cada minuto y con la señal 8 (`pkill
+  hay nada (el script devuelve texto vacío y Waybar quita el módulo), `UPD N` con la etiqueta en Smoke y el
+  número y un LED en Warn si hay versión nueva de command-os. Lo refresca cada minuto y con la señal 8 (`pkill
   -RTMIN+8 waybar`). Cómo se comprueba, por qué así y cómo se prueba: `docs/actualizaciones.md` § 7.
 - **fastfetch**: logo de la C generado por `build/make-fastfetch-logo.py` (medios bloques, colores
   `$1`/`$2`) y configuración en `os/branding/fastfetch/`, instalados en `/usr/share/command-os/` y
@@ -92,6 +92,27 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   un sysfs de mentira) y en la VM con una batería simulada (panel, avisos de mako, polkit sin
   contraseña en la sesión activa). **No probado**: un portátil real (la VM no tiene batería): el límite
   en el firmware y que siga tras reiniciar y tras el reposo.
+
+## Bluetooth (2026-10-20)
+
+- **Barra**: el módulo `bluetooth` de Waybar, en texto como el resto (`bt off`, `bt on` o `bt N` con N
+  dispositivos conectados; sus nombres, al pasar el ratón). Sin adaptador no sale (`format-no-controller`
+  vacío). Apagado, en Smoke como `vol mute`. Clic: `command-os-bluetooth panel` (blueman-manager de
+  520×400 sin barra de título bajo la barra, regla en `labwc/rc.xml`; otro clic lo cierra); clic
+  derecho: `command-os-bluetooth cambiar` (`bluetoothctl power on|off`; al encender quita antes el
+  bloqueo de `rfkill`, que la sesión activa puede tocar sin root).
+- **Apagado de serie**: `lib/apply-system` activa `bluetooth.service` y pone `AutoEnable=false` en
+  `/etc/bluetooth/main.conf`, una sola vez (marca `/var/lib/command-os/bluetooth`). bluez no guarda el
+  encendido entre arranques: cada arranque empieza apagado. blueman 2.4 no tiene ajuste propio de
+  encendido (su `PowerManager` copia el estado del adaptador).
+- **blueman-applet** (autostart): el agente para emparejar con PIN y los avisos de conexión. Sin icono en
+  la bandeja: el dconf de serie desactiva sus plugins `StatusIcon` y `ShowConnected`
+  (`org/blueman/general/plugin-list`). labwc no lanza `/etc/xdg/autostart`, por eso va en el autostart.
+- **Probado**: `tests/barra.sh` (el clic derecho con `bluetoothctl` y `rfkill` de mentira) y
+  `tests/escritorio.sh` (servicio, `AutoEnable`, dconf y programas; la barra arranca sin bus del sistema
+  y Waybar solo lo apunta en el log). **No probado**: con un adaptador de verdad (la VM no tiene):
+  emparejar, el PIN, el desplegable en pantalla y que el `identifier` de la regla case con la ventana
+  (`docs/prueba-en-pc-real.md` § 5).
 
 ## Aplicaciones fijadas (2026-10-15)
 
@@ -174,9 +195,9 @@ ni sirve ni aporta ambiente. Detalle visual en `docs/DISENO.md`. El usuario pidi
 antes de cada cambio y que se le notifique (PushNotification) cuando haga falta su decisión.
 - **Fondos** (`build/make-wallpaper.py`, numpy y Pillow): con la marca v2, **no paisajes** (el usuario
   rechazó skyline y mapa). `reticula` (de serie) y `plano`, y `void` para el bloqueo, GRUB y el
-  asistente, todos en PNG (sin grano pesan poco). Las cotas de `plano`, con JetBrains Mono de
-  `build/fonts/` (OFL, solo para generar); sus medidas del símbolo se comprueban contra el PNG del
-  logo al generar. Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`;
+  asistente, todos en PNG (sin grano pesan poco). Las llamadas de `plano`, con la JetBrains Mono Medium del
+  sistema (`ttf-jetbrains-mono-nerd`, o la de Windows; solo para generar); sus medidas del símbolo se
+  comprueban contra el PNG del logo al generar. Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`;
   un nombre que ya no está en la lista, como los de antes de la v2, vuelve al de serie), lo llama
   `autostart` y el menú ajustes → fondo de pantalla. `.gitattributes`: `*.png binary` en
   `os/branding/` (si no, la regla de texto los corrompería). Para generarlos en Windows, numpy y

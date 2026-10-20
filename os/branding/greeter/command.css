@@ -49,6 +49,7 @@ window {
     font-family: "Oxanium", "Geist", sans-serif;
     font-size: 20px;
     font-weight: 600;
+    letter-spacing: -0.02em;
     color: #edebe6;
 }
 
@@ -56,6 +57,7 @@ window {
     font-family: "Oxanium", "JetBrains Mono", monospace;
     font-size: 56px;
     font-weight: 600;
+    letter-spacing: -0.02em;
     color: #edebe6;
 }
 
@@ -72,11 +74,23 @@ button.flat:hover {
     color: #a3a09a;
 }
 
+/* Etiquetas mono como las de lenguaje.html: 11 px, peso 500, mayúsculas (las pone comun.fila) y
+   espaciado de 0,14 em. */
 .etiqueta {
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-    font-size: 12px;
-    letter-spacing: 0.06em;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
     color: #85827c;
+}
+
+/* Botones de los paneles en mono mayúsculas (BRAND § 5; el texto lo pone en mayúsculas comun.boton). */
+.panel button.text-button,
+.panel-ventana button.text-button {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
 }
 
 .dato {

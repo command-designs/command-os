@@ -65,10 +65,16 @@ def problema_clave(nueva, repetir, _):
     return None
 
 
+def boton(texto, **kw):
+    """Botón con el texto en mayúsculas: los botones van en mono mayúsculas (BRAND § 5) y el CSS de
+    GTK no tiene text-transform. El texto traducible sigue en minúsculas (`_("cerrar")`)."""
+    return Gtk.Button(label=texto.upper(), **kw)
+
+
 def fila(etiqueta, widget):
-    """Etiqueta en Smoke encima del campo."""
+    """Etiqueta mono en Smoke y en mayúsculas (como las de lenguaje.html) encima del campo."""
     caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-    texto = Gtk.Label(label=etiqueta, xalign=0)
+    texto = Gtk.Label(label=etiqueta.upper(), xalign=0)
     texto.add_css_class("etiqueta")
     caja.append(texto)
     caja.append(widget)
@@ -232,11 +238,11 @@ class Dialogo(Gtk.Window):
         self.error.add_css_class("error")
         caja.append(self.error)
         botones = Gtk.Box(spacing=10, halign=Gtk.Align.END)
-        cancelar = Gtk.Button(label=_("cancelar"))
+        cancelar = boton(_("cancelar"))
         cancelar.add_css_class("flat")
         cancelar.connect("clicked", lambda _b: self.close())
         botones.append(cancelar)
-        self.boton = Gtk.Button(label=texto_boton)
+        self.boton = boton(texto_boton)
         self.boton.add_css_class("suggested-action")
         self.boton.connect("clicked", self.aceptar)
         botones.append(self.boton)

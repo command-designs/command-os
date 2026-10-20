@@ -107,6 +107,11 @@ pamixer
 network-manager-applet
 nm-connection-editor
 networkmanager
+# Bluetooth: bluez (servicio), bluetoothctl (encender y apagar desde la barra) y blueman (el panel de
+# dispositivos y, con blueman-applet, el agente para emparejar con PIN). Apagado de serie (apply-system).
+bluez
+bluez-utils
+blueman
 
 # Audio (PipeWire con puentes ALSA/PulseAudio) y sonidos del sistema
 pipewire

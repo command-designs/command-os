@@ -18,7 +18,7 @@ import sys
 import threading
 import time
 
-from comun import CONF, cargar_tema, fila, leer, logo, panel, traductor
+from comun import CONF, boton, cargar_tema, fila, leer, logo, panel, traductor
 from gi.repository import GLib, Gtk
 
 SESION = ["command-os-session"]
@@ -92,7 +92,7 @@ class Pantalla(Gtk.ApplicationWindow):
         self.hora.add_css_class("hora")
         caja.append(self.hora)
         self.fecha = Gtk.Label(xalign=0.5)
-        self.fecha.add_css_class("tenue")
+        self.fecha.add_css_class("etiqueta")  # lectura: mono en mayúsculas
         caja.append(self.fecha)
         self.reloj()
         GLib.timeout_add_seconds(5, self.reloj)
@@ -120,14 +120,14 @@ class Pantalla(Gtk.ApplicationWindow):
         self.error.add_css_class("error")
         caja.append(self.error)
 
-        self.boton = Gtk.Button(label=_("entrar"))
+        self.boton = boton(_("entrar"))
         self.boton.add_css_class("suggested-action")
         self.boton.connect("clicked", self.on_entrar)
         caja.append(self.boton)
 
         energia = Gtk.Box(spacing=8, halign=Gtk.Align.CENTER)
         for texto, orden in ((_("reiniciar"), "reboot"), (_("apagar"), "poweroff")):
-            b = Gtk.Button(label=texto)
+            b = boton(texto)
             b.add_css_class("flat")
             b.connect("clicked", lambda _b, o=orden: subprocess.Popen(["systemctl", o]))
             energia.append(b)
@@ -139,8 +139,8 @@ class Pantalla(Gtk.ApplicationWindow):
     def reloj(self):
         t = time.localtime()
         self.hora.set_text(time.strftime("%H:%M", t))
-        # Día y mes abreviados en el idioma del sistema («mar 7 oct», «Tue 7 Oct»), en minúsculas.
-        self.fecha.set_text(time.strftime("%a %-d %b", t).replace(".", "").lower())
+        # Día y mes abreviados en el idioma del sistema («MAR 7 OCT», «TUE 7 OCT»), en mayúsculas.
+        self.fecha.set_text(time.strftime("%a %-d %b", t).replace(".", "").upper())
         return True
 
     def on_entrar(self, *_args):

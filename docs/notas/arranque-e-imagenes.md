@@ -82,8 +82,10 @@ de arranque (desde el 2026-10-19, marca v2; antes, una consola de 6 líneas con 
   ejecuta `grub-mkconfig` si existe `/boot/grub/grub.cfg`.
 - **Splash** (`command.script`, marca v2): la firma corta (el símbolo se traza y se rellena, su barra
   con halo, el wordmark con cabezal Red Hot; `build/make-plymouth.py` dibuja los 42 fotogramas del
-  símbolo y el script destapa el wordmark con una tapa Void), la lista de comprobaciones y el medidor
-  (`docs/DISENO.md` § «Movimiento»). Al apagar, solo el logo completo. **Esc** pasa al modo detalles de
+  símbolo y el script destapa el wordmark con una tapa Void) y, después, la pantalla de carga de
+  `lenguaje.html` § 04: anillo, comprobaciones, estado, barra y consejo (`docs/DISENO.md` §
+  «Movimiento»; los textos, imágenes de `build/make-plymouth-textos.py`, que toma la JetBrains Mono
+  Medium del sistema y la Geist de `os/branding/fonts/`). Al apagar, solo el logo completo. **Esc** pasa al modo detalles de
   Plymouth (soporte técnico; `details.so` va en el initramfs). Cualquier tecla salta la firma
   (`Plymouth.SetKeyboardInputFunction`: va al final, el arranque no se toca). Medido en la VM el
   2026-10-19 con capturas cada ~90 ms: ~2,8 s del primer fotograma al logo completo; con una tecla
