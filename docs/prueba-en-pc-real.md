@@ -18,12 +18,17 @@ punto al probarlo y avisa de los fallos; lo que salga bien se quita de esta guí
    Command OS sigan con la misma hora.
 4. Instalación nueva: `findmnt /var/lib/flatpak` sale de `@flatpak`.
 
-## 3. Arranque de la marca v2 (`docs/DISENO.md` § «Movimiento»)
+## 3. Arranque y aspecto de `lenguaje.html` (`docs/DISENO.md` § «Movimiento»)
 
-1. La firma (el símbolo se traza y se rellena, su barra, el wordmark) y que una tecla la salte.
-2. La lista de comprobaciones con los estados de tu equipo y el medidor.
-3. El menú de GRUB con el chaflán (Esc al encender).
-4. Con el disco cifrado: la contraseña en el sitio de la lista y «disco del sistema» en curso al abrirlo
+1. La firma (el símbolo se traza y se rellena, su barra, el wordmark), el paso del símbolo al anillo y
+   que una tecla la salte.
+2. La lista de comprobaciones con los estados de tu equipo, el anillo, la barra y un consejo distinto
+   en cada arranque.
+3. El menú de GRUB con el chaflán (Esc al encender): las entradas en Geist y los rótulos en mono
+   mayúsculas se leen bien a la resolución de tu pantalla (en la VM, a 1024x768, sí).
+4. A ritmo real (la VM va por software): el LED de la barra con su halo, el hover de los botones de las
+   apps (filo Red Hot; el principal, más oscuro) y la entrada del bloqueo.
+5. Con el disco cifrado: la contraseña en el sitio de la lista y «disco del sistema» en curso al abrirlo
    (en la VM cifrada el splash v2 con el campo de contraseña ya se vio el 2026-10-20; faltan
    «disco del sistema» en curso y el medidor).
 

@@ -741,9 +741,6 @@ msgstr "system ready"
 msgid "una comprobación ha fallado · esc: detalles"
 msgstr "a check has failed · esc: details"
 
-msgid "saltar · cualquier tecla"
-msgstr "skip · any key"
-
 msgid "esc · detalles"
 msgstr "esc · details"
 
@@ -1756,3 +1753,6 @@ msgstr "on all desktops"
 
 msgid "mover a escritorio"
 msgstr "move to desktop"
+
+#~ msgid "saltar · cualquier tecla"
+#~ msgstr "skip · any key"

@@ -215,7 +215,7 @@ mayúsculas están activadas, con el número de intentos).
 - **Arranque con diagnóstico** (BRAND § 9.2), como la pantalla de carga de `lenguaje.html` (§ 04):
   acabada la firma, el símbolo pasa en 0,6 s al centro de un anillo a la izquierda y el wordmark se
   encoge hasta el rótulo de arriba (`command · CMD-OS`), y aparece el resto:
-  - arriba a la derecha, `SALTAR · CUALQUIER TECLA` mientras dura la firma y `ESC · DETALLES` después;
+  - arriba a la derecha, `ESC · DETALLES` (la firma se salta con cualquier tecla, sin aviso);
   - el anillo (pista Steel, avance Red Hot) sobre una retícula de puntos con máscara radial;
   - a la derecha, las comprobaciones reales, en orden (disco del sistema, sistemas de archivos,
     dispositivos, servicios básicos, red, inicio de sesión), con el número, el nombre en Geist y el

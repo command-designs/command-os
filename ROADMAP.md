@@ -18,10 +18,5 @@ Guía ordenada, para seguir con una sola instalación en un PC real: `docs/prueb
 
 ## Pendientes (por orden)
 
-8. **Ajustar el diseño de command-os al lenguaje HUD** (`lenguaje.html` de command-web y `BRAND.md` 2.1,
-   en command-designs/command-web#8: plano holográfico, modo HUD, halo solo en la señal y en los LED,
-   arranque con diagnóstico). Ojo: `tests/marca.sh` prohíbe hoy halos y `text-shadow`; la regla cambia
-   con 2.1 y se ajusta primero. Revisar pieza a pieza (barra, menús, paneles, notificaciones, bloqueo,
-   splash, GRUB, fondos, sonidos, apps GTK), anotar cada diferencia, corregirlas y dejar `tests/marca.sh`
-   y `docs/DISENO.md` al día. _Opus, esfuerzo alto (toca tema, generadores y arranque; hay que comparar
-   con el concepto en pantalla)._
+Nada pendiente de desarrollo: el roadmap anterior está completo (2026-10-20). Los puntos nuevos se
+añaden aquí cuando el usuario les dé el visto bueno.

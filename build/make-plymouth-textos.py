@@ -77,7 +77,6 @@ TEXTOS = {
     "linea-5": (_("arrancando la red"), SMOKE, ETIQUETA),
     "linea-6": (_("sistema listo"), BONE, ETIQUETA),
     "linea-error": (_("una comprobación ha fallado · esc: detalles"), RED_HOT, ETIQUETA),
-    "saltar": (_("saltar · cualquier tecla"), SMOKE, ETIQUETA),
     "detalles": (_("esc · detalles"), SMOKE, ETIQUETA),
     "consejo": (_("consejo"), RED_HOT, ETIQUETA),
     # Consejos (uno por arranque, al azar): atajos reales de os/dotfiles/labwc/rc.xml.

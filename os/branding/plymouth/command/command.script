@@ -6,9 +6,9 @@
 # (1,3–1,65 s) y el wordmark se revela de izquierda a derecha con un cabezal Red Hot (1,6–2,3 s) y
 # luego su barra (2,3–2,65 s). Después (2,65–3,25 s), el símbolo pasa al centro del anillo de la
 # izquierda, el wordmark se encoge hasta el rótulo de arriba y aparece la pantalla de carga:
-# - arriba, el wordmark con «· CMD-OS» y, a la derecha, «saltar · cualquier tecla» mientras dura la
-#   firma (cualquier tecla la salta; el arranque no se toca) y «esc · detalles» después (Esc, como
-#   siempre, pasa al modo detalles de Plymouth, para soporte técnico);
+# - arriba, el wordmark con «· CMD-OS» y, a la derecha, «esc · detalles» (Esc, como siempre, pasa al
+#   modo detalles de Plymouth, para soporte técnico). Cualquier tecla salta la firma (el arranque
+#   no se toca), sin aviso: el idioma de los textos llega cuando la firma ya ha terminado;
 # - a la izquierda, el anillo con el avance de Plymouth (el tiempo de arranques anteriores) sobre una
 #   retícula de puntos;
 # - a la derecha, las comprobaciones de arranque: las reales, en orden y con su resultado
@@ -122,7 +122,6 @@ for (i = 0; i < 2; i++) {
     estado_img[l + "c"] = cargar("estado-curso." + l + ".png");
     estado_img[l + "e"] = cargar("estado-espera." + l + ".png");
     linea_error[l] = cargar("linea-error." + l + ".png");
-    saltar_img[l] = cargar("saltar." + l + ".png");
     detalles_img[l] = cargar("detalles." + l + ".png");
     consejo_titulo[l] = cargar("consejo." + l + ".png");
     consejo_img[l] = cargar("consejo-" + consejo_n + "." + l + ".png");
@@ -180,7 +179,7 @@ arco_n = 0;
 
 codigo = Sprite(codigo_img);
 codigo.SetPosition(WX + MX + wm_mini.GetWidth() + px(14), TOP_Y + Math.Int((wm_mini.GetHeight() - ETQ_H) / 2), 3);
-esquina = Sprite();  # «saltar · cualquier tecla» y, después, «esc · detalles»
+esquina = Sprite();  # «esc · detalles»
 
 titulo = Sprite();
 titulo.SetPosition(lx, head_y + Math.Int((HEAD_H - FILETE - ETQ_H) / 2) - px(6), 3);
@@ -309,8 +308,7 @@ fun mostrar() {
     }
     for (i = 0; i < arco_n; i++) arco[i].SetOpacity(visible);
     if (idioma != "") {
-        if (tick < FIN_CARGA) esquina.SetImage(saltar_img[idioma]);
-        else esquina.SetImage(detalles_img[idioma]);
+        esquina.SetImage(detalles_img[idioma]);
         esquina.SetPosition(WX + WW - MX - esquina.GetImage().GetWidth(), TOP_Y + Math.Int((wm_mini.GetHeight() - ETQ_H) / 2), 3);
     }
 }
