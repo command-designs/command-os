@@ -89,7 +89,7 @@ echo "==> Splash: textos de la contraseña del disco y de las comprobaciones de 
 # Cada imagen que carga command.script existe, en cada idioma (build/make-plymouth-textos.py).
 script="${REPO}/os/branding/plymouth/command/command.script"
 faltan=""
-for img in $(grep -oE '"[a-z0-9.-]+\.png"' "${script}" | tr -d '"'); do
+for img in $(grep -oE '"[a-z0-9][a-z0-9.-]*\.png"' "${script}" | tr -d '"'); do
   [[ -f "${REPO}/os/branding/plymouth/command/${img}" ]] || faltan+=" ${img}"
 done
 [[ -z "${faltan}" ]] && ok "el splash tiene todas sus imágenes" || mal "faltan imágenes del splash:${faltan}"
