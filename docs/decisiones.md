@@ -23,6 +23,8 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   es el contador `n / 6`. Un consejo real (un atajo de `rc.xml`) al azar en cada arranque. Plymouth no
   dibuja arcos: 400 puntos solapados sobre un anillo pintado. Descartado: imágenes del arco por paso
   (decenas de MB de memoria en el initramfs) y segmentos girados (depende del sentido de `Rotate`).
+- **GRUB con un mínimo de tamaño de letra** (14 px el menú, 11 los rótulos): sus fuentes son de 1 bit
+  y la mono Medium a 9 px (768 de alto) pinta la O como una D.
 - **Los paneles pequeños de wofi (energía, atajos, acerca de) siguen en mono**: la ayuda y «acerca de»
   alinean columnas con espacios. Descartado Geist (como la paleta), que las desalinea.
 

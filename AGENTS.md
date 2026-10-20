@@ -98,7 +98,8 @@ usuario); ARM, aparcado hasta tener la placa.
   Sus mensajes van traducidos (`t`, `COMMAND_OS_IDIOMA`): nunca decidir buscando palabras en ellos
   (`disk_is_live_usb`, `disk_runs_system`), y las confirmaciones son las del idioma elegido, solo esas.
 - Pantallas: hyprlock ignora la escala (la de serie se escala en `command-os-lock`) y GRUB no escala
-  imágenes ni fuentes (tema generado por `apply-boot`). En VirtualBox, `setvideomodehint` no va (usar
+  imágenes ni fuentes (tema generado por `apply-boot`); busca cada fuente por el nombre entero del PF2
+  (`cmd-menu Regular 14`) y, si no lo encuentra, usa otra sin avisar. En VirtualBox, `setvideomodehint` no va (usar
   `wlr-randr` dentro) y 1366x768 sale roto en `screenshotpng` (capturar con `grim`).
 - VirtualBox: **nunca `snapshot take --live`** con la VM encendida: la deja congelada (pasó con
   `command-os-x86`). Instantáneas con la VM apagada.

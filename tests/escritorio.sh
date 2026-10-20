@@ -51,6 +51,15 @@ if [[ -f /etc/default/grub ]]; then
   else
     mal "GRUB: falta el tema (${tema})"
   fi
+  # GRUB busca cada fuente por su nombre entero («cmd-menu Regular 14») y, sin él, usa otra sin avisar.
+  nombres=$(for f in "${tema}"/*.pf2; do IFS= read -r -d '' n < <(tail -c +21 "${f}"); echo "${n}"; done)
+  faltan=$(grep -oE '(font|terminal-font)[ :=]+"[^"]+"' "${tema}/theme.txt" | sed -E 's/.*"(.*)"/\1/' | sort -u \
+    | while IFS= read -r n; do grep -qxF "${n}" <<<"${nombres}" || echo "${n}"; done)
+  if [[ -z "${faltan}" ]]; then
+    ok "GRUB: las fuentes del tema existen con su nombre"
+  else
+    mal "GRUB: el tema pide fuentes que no hay: ${faltan//$'\n'/, }"
+  fi
   if COMMAND_OS_PANTALLA=2560x1600 /usr/lib/command-os/apply-boot \
       && grep -q 'pantallas de 1600 px' "${tema}/theme.txt" && grep -qxF 'GRUB_GFXMODE=2560x1600,auto' /etc/default/grub; then
     ok "GRUB: tema y modo para 2560x1600"
