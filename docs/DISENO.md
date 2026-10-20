@@ -34,10 +34,10 @@ estilo anterior:
 | Iron        | `#3A3A3A`             | selección de texto en la terminal, filo del lanzador y de los botones |
 | Bone        | `#EDEBE6`             | texto principal                                                      |
 | Ash · Smoke | `#A3A09A` · `#85827C` | texto secundario / etiquetas y datos apagados                        |
-| Signal Red  | `#A51500`             | **superficies y barras**: barra del logo, botón principal (texto blanco), barra de lo activo, progreso, texto seleccionado |
-| Red Hot     | `#F5482C`             | **texto, iconos y foco**: filo de la ventana activa, campo enfocado, enlaces, crítico |
+| Signal Red  | `#A51500`             | **superficies**: barra del logo, botón principal (texto blanco), texto seleccionado |
+| Red Hot     | `#F5482C`             | **texto, iconos, foco y las líneas de lo activo** (1–2 px): filo de la ventana activa, campo enfocado, enlaces, barra de la selección, subrayado del activo, crítico |
 | Red Deep    | `#6E0E00`             | botón principal pulsado                                              |
-| OK · Warn   | `#3DDC84` · `#FFB020` | estados, **siempre con su texto** (cifra, `upd N`, «acceso denegado») |
+| OK · Warn   | `#3DDC84` · `#FFB020` | estados, **siempre con su texto** (cifra, `UPD N`, «acceso denegado») |
 | Hover rojo  | `#B81A02`             | relleno del botón principal al pasar por encima (BRAND 2.1 § 7)      |
 | Seleccionado | `#1A1311`            | fondo de la tarjeta o fila seleccionada, con filo Red Hot (2.1 § 7)  |
 
@@ -125,15 +125,20 @@ ver abajo).
   chaflanes van copiados junto a las hojas (`~/.config/gtk-*/chaflanes/`) para que también los vean
   las apps Flatpak. Qt sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). `dconf` pone el modo oscuro para
   todo el sistema (Firefox y portales incluidos).
-- **Barra (Waybar):** a la izquierda, logo (clic: aplicaciones) y barra de tareas con un icono por
-  ventana (la enfocada en Slate con la barra Signal Red debajo, las minimizadas atenuadas); en el
-  centro, fecha apagada y hora en Oxanium; a la derecha, los escritorios, la telemetría (cpu,
-  temperatura, memoria, red con la señal wifi, Bluetooth (`bt off`, `bt on` o los conectados; oculto sin adaptador), volumen, batería con el tiempo que queda), la bandeja
-  (red de nm-applet) y el botón de energía. Warn al pasar el umbral de aviso, Red Hot al crítico,
-  siempre con la cifra.
+- **Barra (Waybar):** como la barra superior de la app de `lenguaje.html` (§ 03): Graphite con filo
+  Steel y lecturas mono en mayúsculas (peso 500, 0,14 em). A la izquierda, el logo en su celda (filo
+  Steel a la derecha; clic: aplicaciones) y la barra de tareas con un icono por ventana (la enfocada en
+  Slate con la línea Red Hot debajo, las minimizadas atenuadas); en el centro, fecha apagada y hora en
+  Oxanium; a la derecha, los escritorios, la telemetría (`CPU`, `TMP`, `MEM`, `NET` con la señal wifi,
+  `BT` (`OFF`, `ON` o los conectados; oculto sin adaptador), `VOL`, `BAT` con el tiempo que queda), la
+  bandeja (red de nm-applet) y el botón de energía. Warn al pasar el umbral de aviso, Red Hot al
+  crítico, siempre con la cifra. **LED de estado** con su halo (`.led`), solo cuando dicen algo y con
+  su texto: verde con red y con Bluetooth conectado, Red Hot sin red (`SIN RED`) y Warn con una versión
+  nueva de command-os (`UPD N`). Son un degradado radial de fondo (Waybar no tiene otro elemento donde
+  ponerlos); los textos traducidos van en mayúsculas con `text_transform` de Pango.
 - **Escritorios:** uno de serie, y la barra no enseña nada. Super+Ctrl+D (o clic derecho →
   `escritorios`) crea otro, hasta 4, y salta a él; entonces aparecen sus números (`01 02…`) a la
-  derecha de la barra, el activo en Red Hot sobre Slate con la barra Signal Red. Super+Ctrl+F4 quita
+  derecha de la barra, el activo en Red Hot sobre Slate con la línea Red Hot debajo. Super+Ctrl+F4 quita
   el último y sus ventanas pasan al 01 (`command-os-desktops`).
 - **fastfetch:** la C de Command con su barra en Signal Red (`build/make-fastfetch-logo.py`), claves en
   castellano y minúsculas en Smoke, separador `›` Red Hot, valores en Bone y porcentajes en OK, Warn o

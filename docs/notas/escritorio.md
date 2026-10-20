@@ -25,8 +25,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   Waybar los enseña a la derecha y `style.css` oculta el botón cuando es `:only-child`. Re-ejecutar
   `install.sh` vuelve a dejar uno solo.
 - **Aviso de actualizaciones** (`custom/updates` en Waybar, `os/bin/command-os-updates`): oculto si no
-  hay nada (el script devuelve texto vacío y Waybar quita el módulo), `upd N` con la etiqueta en Smoke y el
-  número en Warn si hay versión nueva de command-os. Lo refresca cada minuto y con la señal 8 (`pkill
+  hay nada (el script devuelve texto vacío y Waybar quita el módulo), `UPD N` con la etiqueta en Smoke y el
+  número y un LED en Warn si hay versión nueva de command-os. Lo refresca cada minuto y con la señal 8 (`pkill
   -RTMIN+8 waybar`). Cómo se comprueba, por qué así y cómo se prueba: `docs/actualizaciones.md` § 7.
 - **fastfetch**: logo de la C generado por `build/make-fastfetch-logo.py` (medios bloques, colores
   `$1`/`$2`) y configuración en `os/branding/fastfetch/`, instalados en `/usr/share/command-os/` y
