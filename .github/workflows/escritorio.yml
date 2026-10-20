@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.ref }}
 
@@ -65,7 +65,7 @@ jobs:
 
       - name: Resultados (registros y captura)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: escritorio-${{ inputs.arch == 'validada' && 'validada' || inputs.arch == 'hoy' && 'hoy' || 'fecha' }}
           path: resultados
