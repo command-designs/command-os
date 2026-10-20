@@ -74,6 +74,10 @@ de alta densidad y resoluciones: [`docs/notas/pantallas.md`](docs/notas/pantalla
 
 En [`ROADMAP.md`](ROADMAP.md), por orden.
 
+## Licencia
+
+[GPL-3.0](LICENSE) © command-lab. El nombre y la identidad de marca de Command OS no se ceden con ella.
+
 ## ARM: cuando haya hardware
 
 **Por ahora la prioridad es x86** (PC y VM): todavía no se sabe qué hardware ARM llevará el cyberdeck,

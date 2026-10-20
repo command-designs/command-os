@@ -73,8 +73,6 @@ Los puntos 2 y 3 van juntos en la rama actual y en un solo PR (el de «CI en ver
    la historia de QEMU/Packer y lo de la VM vieja. _Sonnet, esfuerzo bajo._
 6. **Bluetooth** (`bluez`, panel o `blueman`, módulo en la barra, textos traducidos, prueba en
    `tests/escritorio.sh`). _Opus, esfuerzo medio (toca paquete, barra, idioma y marca)._
-7. **Licencia del repo (público y sin licencia).** Decide el usuario: ninguna, permisiva (MIT/Apache-2.0)
-   o copyleft (GPL-3.0). Aplicarla: _Sonnet, esfuerzo bajo._
 8. **Ajustar el diseño de command-os al lenguaje HUD** (`lenguaje.html` de command-web y `BRAND.md` 2.1,
    en command-designs/command-web#8: plano holográfico, modo HUD, halo solo en la señal y en los LED,
    arranque con diagnóstico). Ojo: `tests/marca.sh` prohíbe hoy halos y `text-shadow`; la regla cambia
