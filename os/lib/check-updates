@@ -14,14 +14,21 @@
 # (docs/actualizaciones.md) lee los repositorios de esa fecha más el repositorio de Command OS: una
 # versión nueva de command-os es la que trae la fecha nueva.
 #
+# Las aplicaciones de la tienda (Flatpak, instalación del sistema) se miran después con `flatpak
+# remote-ls --updates` como `nobody`: así Flatpak ve /var/lib/flatpak de solo lectura y guarda el
+# resumen de Flathub en su caché ($FLATPAK_CACHE), no en el repositorio (como root lo escribiría en
+# /var/lib/flatpak/repo/tmp/cache). Si eso falla, el resultado sale sin aplicaciones (se avisa).
+#
 # Resultado: $DIR/updates, escrito de golpe: primera línea la hora de la comprobación (segundos
-# desde 1970) y después una línea «paquete versión-actual -> versión-nueva» por actualización.
-# Lo lee command-os-updates (barra de Waybar y notificación).
+# desde 1970), después una línea «paquete versión-actual -> versión-nueva» por actualización de pacman
+# y una «app<TAB>nombre<TAB>versión-actual<TAB>versión-nueva» por aplicación (las versiones pueden ir
+# vacías; checkupdates nunca escribe tabuladores). Lo lee command-os-updates (barra, panel y notificación).
 set -uo pipefail
 
 modo=${1:-auto}
 DIR=${COMMAND_OS_UPDATES_DIR:-/var/lib/command-os}
 export CHECKUPDATES_DB=${CHECKUPDATES_DB:-/var/cache/command-os/checkup-db}
+FLATPAK_CACHE=${COMMAND_OS_FLATPAK_CACHE:-/var/cache/command-os/flatpak}
 
 case "${modo}" in auto | manual) ;; *) echo "uso: check-updates [auto|manual]" >&2; exit 2 ;; esac
 
@@ -58,6 +65,37 @@ case ${rc} in
   124) echo "command-os: la comprobación tardó demasiado" >&2; exit 1 ;;
   *) echo "command-os: no se pudo comprobar (¿sin red?); se conserva el resultado anterior" >&2; exit 1 ;;
 esac
+
+# Flatpak sin privilegios (como nobody si somos root) y con un límite de tiempo.
+flatpak_ro() {
+  local como=()
+  (( EUID == 0 )) && como=(setpriv --reuid=nobody --regid=nobody --clear-groups)
+  timeout 120 "${como[@]}" env HOME="${FLATPAK_CACHE}" XDG_CACHE_HOME="${FLATPAK_CACHE}" flatpak "$@"
+}
+
+aplicaciones() {
+  command -v flatpak >/dev/null || return 0
+  local instaladas nuevas
+  if (( EUID == 0 )); then
+    install -d -o nobody -g nobody -m 755 "${FLATPAK_CACHE}"
+  else
+    install -d -m 755 "${FLATPAK_CACHE}"
+  fi
+  instaladas=$(flatpak_ro list --system --columns=ref,version 2>/dev/null) || return 0
+  [[ -n "${instaladas}" ]] || return 0 # sin aplicaciones no se descarga el resumen de Flathub
+  if ! nuevas=$(flatpak_ro remote-ls --updates --system --columns=ref,name,version); then
+    echo "command-os: no se pudieron mirar las aplicaciones de la tienda; el resultado sale sin ellas" >&2
+    return 0
+  fi
+  # Columnas separadas por tabuladores y quizá vacías: awk con -F'\t' no junta los vacíos (read sí).
+  # El ref se compara sin «app/» ni «runtime/» delante (list y remote-ls no lo escriben igual).
+  awk -F'\t' 'function ref(r) { sub(/^(app|runtime)\//, "", r); return r }
+    NR == FNR { antes[ref($1)] = $2; next }
+    $1 != "" { nombre = ($2 != "" ? $2 : ref($1)); printf "app\t%s\t%s\t%s\n", nombre, antes[ref($1)], $3 }' \
+    <(printf '%s\n' "${instaladas}") <(printf '%s\n' "${nuevas}")
+}
+
+aplicaciones >> "${tmp}"
 
 chmod 644 "${tmp}"
 mv -f "${tmp}" "${DIR}/updates"

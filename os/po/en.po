@@ -214,6 +214,10 @@ msgid "paquetes de Arch: {n}"
 msgstr "Arch packages: {n}"
 
 #, python-brace-format
+msgid "aplicaciones de la tienda: {n}"
+msgstr "store apps: {n}"
+
+#, python-brace-format
 msgid "comprobado {hace}"
 msgstr "checked {hace}"
 
@@ -1191,6 +1195,12 @@ msgstr[0] "and %d more package"
 msgstr[1] "and %d more packages"
 
 #, python-format
+msgid "y %d aplicación de la tienda"
+msgid_plural "y %d aplicaciones de la tienda"
+msgstr[0] "and %d store app"
+msgstr[1] "and %d store apps"
+
+#, python-format
 msgid "%d paquete de Arch"
 msgid_plural "%d paquetes de Arch"
 msgstr[0] "%d Arch package"
@@ -1199,6 +1209,12 @@ msgstr[1] "%d Arch packages"
 #, python-format
 msgid "… y %d más"
 msgstr "… and %d more"
+
+#, python-format
+msgid "%d aplicación de la tienda"
+msgid_plural "%d aplicaciones de la tienda"
+msgstr[0] "%d store app"
+msgstr[1] "%d store apps"
 
 #, python-format
 msgid "comprobado %s · clic: ver y actualizar · clic derecho: comprobar ahora"

@@ -126,7 +126,8 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
 - **Actualizar**: `command-os-update` (`update`) actualiza las apps al final, contra Flathub del día y
   sin preguntar (las del sistema y las que quien lo lanza instaló solo para su cuenta, `--user`), y quita
   los runtimes que ya no usa nadie; si falla (sin red), lo de pacman queda hecho.
-  El aviso de la barra todavía no cuenta las apps (`ROADMAP.md`). Bazaar también las actualiza.
+  El aviso de la barra y su panel cuentan las apps del sistema con versión nueva (no las `--user`:
+  `docs/actualizaciones.md` § 7). Bazaar también las actualiza.
 - **Lanzador y fijadas**: `command-os-session` carga `/etc/profile.d/flatpak.sh` (greetd no abre un shell
   de entrada), así que `XDG_DATA_DIRS` lleva las carpetas `exports/share` de Flatpak: wofi y las fijadas
   ven sus `.desktop` e iconos.

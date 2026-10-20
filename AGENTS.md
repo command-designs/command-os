@@ -81,7 +81,8 @@ usuario); ARM, aparcado hasta tener la placa.
   falla, tty2 es la consola de emergencia. `deck`/`deck` es solo de desarrollo (`COMMAND_OS_DEV_USER`).
 - Aviso de actualizaciones: nunca `pacman -Sy` para mirar (usa `checkupdates`, copia de la base de datos).
   La unidad tiene su propio `/tmp` y sistema de archivos de solo lectura: un repositorio de prueba
-  `file://` va fuera de `/tmp`. Waybar oculta el módulo solo si el texto del JSON va vacío.
+  `file://` va fuera de `/tmp`. Waybar oculta el módulo solo si el texto del JSON va vacío. Flatpak
+  como root escribe en `/var/lib/flatpak` hasta para mirar (`remote-ls`): en la unidad, como `nobody`.
 - Instalador en disco entero: **nunca ejecutarlo fuera de una VM o de discos loop** (borra el disco).
   Las comprobaciones de `disk_problems`/`confirm_erase` (`build/x86/lib.sh`) no se relajan sin una
   prueba nueva en `tests/discos.sh`. VM de pruebas: `command-os-instalador` (`docs/testing.md`).
