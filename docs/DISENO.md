@@ -181,14 +181,17 @@ fondo de pantalla en el menú del escritorio):
 
 - **retícula** (de serie): la retícula de puntos de 26 px (Steel sobre Void) con máscara radial, la C
   en el centro y un degradado rojo radial al 14 % detrás de ella, como el héroe de la web.
-- **plano**: la construcción real del símbolo sobre la rejilla de 64 px (que pasa por su esquina): el
-  contorno de la C en `--line-plan`, las guías de sus medidas en `--line-guide` (tronco, brazos, hueco
-  y barra), el área de respeto discontinua (¼ del ancho) y las cotas en unidades del `viewBox`
-  (1158 × 1237). La barra es lo único rojo.
+- **plano**: el plano holográfico del héroe de `lenguaje.html` (§ 02) con la construcción real del
+  símbolo, sobre la retícula de puntos, la rejilla de 64 px (que pasa por su esquina) y el degradado
+  rojo al 14 %: el contorno de la C en `--holo`, las guías de sus medidas (tronco, brazos, hueco y
+  barra) y el área de respeto discontinua (¼ del ancho) en `--holo-dim`, y **llamadas** quebradas que
+  terminan en una etiqueta mono 500 en mayúsculas con la medida de la pieza en unidades del `viewBox`
+  (1158 × 1237). La barra es lo único rojo del símbolo; su llamada, la única en Red Hot, con el halo de
+  `#hudglow`. Las etiquetas van en castellano (el idioma principal de la marca) en todos los idiomas.
 - **void**: Void con la retícula muy tenue y sin rojo; solo para el bloqueo, GRUB y el asistente, que
   ya llevan el logo encima.
 
-La barra del símbolo es siempre Signal Red y lleva el único halo (2 % del ancho, 55 %). En PNG sin
+La barra del símbolo es siempre Signal Red y lleva su halo (2 % del ancho, 55 %). En PNG sin
 grano (de 30 a 110 KB).
 
 ## Movimiento

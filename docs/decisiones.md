@@ -3,6 +3,23 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — command-os como `lenguaje.html` (punto 8 del roadmap)
+
+- **El objetivo es que se vea y se use como el concepto**, no solo que cumpla las reglas: las líneas
+  finas de lo activo en Red Hot (Signal Red solo en superficies), el hover con filo Red Hot y
+  `#B81A02` en el principal, Alt+Tab con la tarjeta seleccionada `#1A1311`.
+- **Etiquetas, lecturas, estados y botones en mono 500 y mayúsculas** (decisión del usuario). El CSS de
+  GTK no tiene `text-transform`: en Python, `comun.fila` y `comun.boton` hacen `.upper()`; en Waybar y
+  hyprlock, `text_transform` de Pango. Las traducciones siguen en minúsculas (msgid sin cambios).
+  Los mensajes en tono terminal (`› sistema listo`) siguen en minúsculas (BRAND § 2).
+- **LED de la barra como degradado radial de fondo** del módulo (red, Bluetooth conectado, versión
+  nueva): Waybar no tiene otro elemento donde ponerlos. Descartado un `●` de Pango (sin halo) y un
+  módulo aparte por LED (más procesos y se separa de su texto).
+- **El plano lleva llamadas en vez de cotas** (decisión del usuario), como el héroe del concepto; cada
+  una dice la pieza y su medida real. Etiquetas en castellano en todos los idiomas (el PNG es uno).
+- **Los paneles pequeños de wofi (energía, atajos, acerca de) siguen en mono**: la ayuda y «acerca de»
+  alinean columnas con espacios. Descartado Geist (como la paleta), que las desalinea.
+
 ## 2026-10-20 — Marca 2.1 (lenguaje HUD) en `tests/marca.sh`
 
 - **`lenguaje.html` manda** (BRAND 2.1): ante una duda de cómo se ve algo, se mira ahí antes que en

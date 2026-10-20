@@ -195,9 +195,9 @@ ni sirve ni aporta ambiente. Detalle visual en `docs/DISENO.md`. El usuario pidi
 antes de cada cambio y que se le notifique (PushNotification) cuando haga falta su decisión.
 - **Fondos** (`build/make-wallpaper.py`, numpy y Pillow): con la marca v2, **no paisajes** (el usuario
   rechazó skyline y mapa). `reticula` (de serie) y `plano`, y `void` para el bloqueo, GRUB y el
-  asistente, todos en PNG (sin grano pesan poco). Las cotas de `plano`, con JetBrains Mono de
-  `build/fonts/` (OFL, solo para generar); sus medidas del símbolo se comprueban contra el PNG del
-  logo al generar. Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`;
+  asistente, todos en PNG (sin grano pesan poco). Las llamadas de `plano`, con la JetBrains Mono Medium del
+  sistema (`ttf-jetbrains-mono-nerd`, o la de Windows; solo para generar); sus medidas del símbolo se
+  comprueban contra el PNG del logo al generar. Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`;
   un nombre que ya no está en la lista, como los de antes de la v2, vuelve al de serie), lo llama
   `autostart` y el menú ajustes → fondo de pantalla. `.gitattributes`: `*.png binary` en
   `os/branding/` (si no, la regla de texto los corrompería). Para generarlos en Windows, numpy y
