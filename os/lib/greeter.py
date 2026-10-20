@@ -92,7 +92,7 @@ class Pantalla(Gtk.ApplicationWindow):
         self.hora.add_css_class("hora")
         caja.append(self.hora)
         self.fecha = Gtk.Label(xalign=0.5)
-        self.fecha.add_css_class("tenue")
+        self.fecha.add_css_class("etiqueta")  # lectura: mono en mayúsculas
         caja.append(self.fecha)
         self.reloj()
         GLib.timeout_add_seconds(5, self.reloj)
@@ -139,8 +139,8 @@ class Pantalla(Gtk.ApplicationWindow):
     def reloj(self):
         t = time.localtime()
         self.hora.set_text(time.strftime("%H:%M", t))
-        # Día y mes abreviados en el idioma del sistema («mar 7 oct», «Tue 7 Oct»), en minúsculas.
-        self.fecha.set_text(time.strftime("%a %-d %b", t).replace(".", "").lower())
+        # Día y mes abreviados en el idioma del sistema («MAR 7 OCT», «TUE 7 OCT»), en mayúsculas.
+        self.fecha.set_text(time.strftime("%a %-d %b", t).replace(".", "").upper())
         return True
 
     def on_entrar(self, *_args):

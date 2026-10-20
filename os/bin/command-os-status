@@ -1,6 +1,8 @@
 #!/bin/sh
 # Command OS — línea de estado de una sola línea (la usa la pantalla de bloqueo):
 #   bat 76% · net casa · deck@command-os
+# Con --pango, como lectura de la marca (mono 500 en mayúsculas, 0,14 em; docs/DISENO.md) y con el
+# texto escapado para el markup de hyprlock (el nombre de una red puede llevar & o <).
 . /usr/lib/command-os/textos.sh 2>/dev/null || t() { _f=$1; shift; printf -- "${_f}" "$@"; }
 # La batería solo aparece si el equipo tiene; la red es la conexión activa de NetworkManager.
 out=""
@@ -13,4 +15,8 @@ for bat in /sys/class/power_supply/BAT*; do
 done
 net=$(nmcli -t -f NAME connection show --active 2>/dev/null | grep -v '^lo$' | head -n 1)
 out="${out}net ${net:-$(t 'sin red')}  ·  $(id -un)@$(cat /etc/hostname 2>/dev/null || uname -n)"
+if [ "${1:-}" = "--pango" ]; then
+  out=$(printf '%s' "${out}" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+  out="<span text_transform=\"uppercase\" font_weight=\"500\" letter_spacing=\"1434\">${out}</span>"
+fi
 printf '%s\n' "${out}"

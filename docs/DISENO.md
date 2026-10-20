@@ -164,7 +164,9 @@ ver abajo).
   mayúsculas, campo en Void con el foco Red Hot y botones con chaflán en mono mayúsculas (el principal
   en Signal Red con texto blanco).
 - **Bloqueo** (hyprlock): hora en Oxanium y campo de contraseña dentro de las escuadras, sobre el fondo
-  `void`; encima, `SESIÓN BLOQUEADA` como un eyebrow (mono 500 en mayúsculas, Red Hot). Si hyprlock falla, `command-os-lock` usa su configuración de emergencia y, como último
+  `void`; encima, `SESIÓN BLOQUEADA` como un eyebrow (mono 500 en mayúsculas, Red Hot). La línea de
+  estado de arriba (`command-os-status --pango`) y el aviso de contraseña incorrecta van también en
+  mayúsculas, como lecturas. Si hyprlock falla, `command-os-lock` usa su configuración de emergencia y, como último
   recurso, swaylock con los mismos colores.
 - **Notificaciones** (swaync, `os/dotfiles/swaync/`): panel Graphite con chaflán y filo Steel (Red Hot al
   pasar el ratón y en la crítica, que no se cierra sola), título en Bone, cuerpo en Ash, sin la

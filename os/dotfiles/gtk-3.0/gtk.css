@@ -291,15 +291,23 @@ box:not(.linked) > button.text-button:not(.flat):checked {
 }
 
 /* Casillas como la lista de lenguaje.html (.check): cuadrado de filo Iron; marcada, en Bone con la
-   marca en Graphite (el rojo queda para lo activo). */
+   marca en Graphite (el rojo queda para lo activo). adw-gtk3 la pinta con background-image: se
+   cambia esa (un background-color quedaría debajo, sin verse). */
 check {
     border-radius: 0;
 }
 
 check:checked,
 check:indeterminate {
-    background-color: @cmd_bone;
+    background-image: image(@cmd_bone);
+    border-color: @cmd_bone;
     color: @cmd_graphite;
+}
+
+check:checked:disabled,
+check:indeterminate:disabled {
+    background-image: image(alpha(@cmd_bone, 0.5));
+    border-color: transparent;
 }
 
 box:not(.linked) > button.text-button:not(.flat):disabled,
