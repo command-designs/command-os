@@ -1,4 +1,4 @@
-"""Genera los fondos de Command OS con el lenguaje de la marca v2 (docs/DISENO.md § «Pantalla»; BRAND.md
+"""Genera los fondos de Command OS con el lenguaje de la marca v2 (docs/DISENO.md § «Fondos»; BRAND.md
 §§ 3, 6 y 7 de command-web). Regla de función: nada de lecturas, números de serie ni adornos inventados.
 
 - reticula (de serie): la retícula de puntos de 26 px con máscara radial, la C en el centro y un

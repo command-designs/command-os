@@ -3,6 +3,20 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-20 — Cierre de la marca v2 (`tests/marca.sh`, `docs/DISENO.md`)
+
+- **La prueba vigila que el estilo anterior no vuelva**: sus colores también sin `#` (el swaylock de
+  emergencia de `command-os-lock` los llevaba así y nadie lo veía) y sus palabras en `os/` y `build/`.
+  Las palabras que hagan falta se permiten por archivo y con motivo (`PALABRAS_EXTRA`): hoy solo
+  «cian» en `kitty.conf`, que es el nombre del color 6 de ANSI. Descartado: cambiar el comentario de
+  Kitty para esquivar la prueba (escondería el motivo) o buscar cualquier hex suelto (choca con sumas,
+  UUID y claves).
+- **Fuera `TEMPORALES`** (exclusiones mientras se rehacían los generadores): con la marca cerrada no
+  queda ninguna, y quitar el mecanismo impide volver a excluir un archivo sin cambiar la prueba.
+- **`DISENO.md` reescrito** por las secciones de la marca (color, letra, forma, elementos de § 7.2,
+  escritorio, fondos, movimiento, sonido) y la tabla de anclas con lo que falta del objeto; la historia
+  del estilo anterior queda solo aquí y en las notas.
+
 ## 2026-10-19 — Sonidos de la marca v2 (`docs/DISENO.md` § «Sonido»)
 
 - **Un instrumento de medida en vez del aparato de Cyberpunk**: fuera el golpe grave de encendido, los
@@ -36,7 +50,7 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **Panel de GRUB con chaflán**: todas sus piezas miden lo que el corte (14 px), porque GRUB pone el
   borde con el tamaño de las piezas; `apply-boot` lo suma al alto del menú.
 
-## 2026-10-19 — Fondos de la marca v2 (`docs/DISENO.md` § «Pantalla», fondos)
+## 2026-10-19 — Fondos de la marca v2 (`docs/DISENO.md` § «Fondos»)
 
 - **Dos fondos de escritorio, retícula (de serie) y plano, y void**, con los elementos de la web
   (BRAND § 7.2: retícula de 26 px con máscara radial, rejilla de 64 px tras un plano técnico). Fuera
@@ -52,7 +66,7 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
   artefactos en los puntos. Un fondo elegido antes de la v2 vuelve al de serie (`command-os-wallpaper`
   solo acepta los nombres de su lista). En inglés, `dot grid` y `blueprint`.
 
-## 2026-10-19 — Forma de la marca v2: chaflanes y escuadras (`docs/DISENO.md` § «Pantalla»)
+## 2026-10-19 — Forma de la marca v2: chaflanes y escuadras (`docs/DISENO.md` § «Forma»)
 
 - **Chaflán con `border-image` de SVG en archivos**, no con CSS: GTK no tiene `clip-path`. GTK 3 no
   carga imágenes `data:` (probado en la VM: GTK 4 sí), así que los SVG van en

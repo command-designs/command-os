@@ -164,8 +164,9 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
   aceleración del ratón virtual; `docs/testing.md`).
 
 
-## Rediseño "ordenador real de Cyberpunk" (2026-10-05, rama `rediseno`)
+## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 
+Historia: entonces el escritorio llevaba el estilo anterior a la marca v2 (`docs/decisiones.md`).
 Criterio del usuario: se queda lo que **sirve** y lo que **crea ambiente y queda bien**; fuera lo que
 ni sirve ni aporta ambiente. Detalle visual en `docs/DISENO.md`. El usuario pidió que se le pregunte
 antes de cada cambio y que se le notifique (PushNotification) cuando haga falta su decisión.
