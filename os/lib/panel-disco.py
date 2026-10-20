@@ -13,7 +13,7 @@ import secrets
 import sys
 
 from comun import (
-    MIN_CONTRASENA, Dialogo, PanelBase, administrar, cargar_tema, disco_cifrado, problema_clave, texto_clave_corta,
+    MIN_CONTRASENA, Dialogo, PanelBase, administrar, boton, cargar_tema, disco_cifrado, problema_clave, texto_clave_corta,
     traductor,
 )
 from gi.repository import Gtk
@@ -71,16 +71,16 @@ class Panel(PanelBase):
             )
             intro.add_css_class("tenue")
             self.caja.append(intro)
-            clave = Gtk.Button(label=_("cambiar la contraseña del disco"), halign=Gtk.Align.START)
+            clave = boton(_("cambiar la contraseña del disco"), halign=Gtk.Align.START)
             clave.connect("clicked", self.al_contrasena)
             self.caja.append(clave)
-            recup = Gtk.Button(label=_("generar una clave de recuperación nueva"), halign=Gtk.Align.START)
+            recup = boton(_("generar una clave de recuperación nueva"), halign=Gtk.Align.START)
             recup.connect("clicked", self.al_recuperacion)
             self.caja.append(recup)
         self.estado = Gtk.Label(label=aviso, xalign=0, wrap=True, max_width_chars=54)
         self.estado.add_css_class("error")
         self.caja.append(self.estado)
-        cerrar = Gtk.Button(label=_("cerrar"), halign=Gtk.Align.END)
+        cerrar = boton(_("cerrar"), halign=Gtk.Align.END)
         cerrar.add_css_class("flat")
         cerrar.connect("clicked", lambda _b: self.ventana.close())
         self.caja.append(cerrar)

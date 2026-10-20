@@ -10,7 +10,7 @@ import os
 import subprocess
 import sys
 
-from comun import PanelBase, cargar_tema, traductor
+from comun import PanelBase, boton, cargar_tema, traductor
 from gi.repository import Gtk
 
 ANCHO = 520
@@ -93,12 +93,12 @@ class Panel(PanelBase):
                     nota.add_css_class("tenue")
                     self.caja.append(nota)
             if datos["paquetes"]:
-                cuenta = Gtk.Label(label=_("paquetes de Arch: {n}").format(n=len(datos["paquetes"])), xalign=0)
+                cuenta = Gtk.Label(label=_("paquetes de Arch: {n}").format(n=len(datos["paquetes"])).upper(), xalign=0)
                 cuenta.add_css_class("etiqueta")
                 self.caja.append(cuenta)
                 self.caja.append(self.lista(datos["paquetes"]))
             if datos["apps"]:
-                cuenta = Gtk.Label(label=_("aplicaciones de la tienda: {n}").format(n=len(datos["apps"])), xalign=0)
+                cuenta = Gtk.Label(label=_("aplicaciones de la tienda: {n}").format(n=len(datos["apps"])).upper(), xalign=0)
                 cuenta.add_css_class("etiqueta")
                 self.caja.append(cuenta)
                 self.caja.append(self.lista(datos["apps"]))
@@ -113,15 +113,15 @@ class Panel(PanelBase):
         self.caja.append(self.estado)
 
         botones = Gtk.Box(spacing=10, halign=Gtk.Align.END)
-        cerrar = Gtk.Button(label=_("cerrar"))
+        cerrar = boton(_("cerrar"))
         cerrar.add_css_class("flat")
         cerrar.connect("clicked", lambda _b: self.ventana.close())
         botones.append(cerrar)
-        self.boton_comprobar = Gtk.Button(label=_("comprobar ahora"))
+        self.boton_comprobar = boton(_("comprobar ahora"))
         self.boton_comprobar.connect("clicked", self.al_comprobar)
         botones.append(self.boton_comprobar)
         if hay:
-            actualizar = Gtk.Button(label=_("actualizar"))
+            actualizar = boton(_("actualizar"))
             actualizar.add_css_class("suggested-action")
             actualizar.connect("clicked", self.al_actualizar)
             botones.append(actualizar)

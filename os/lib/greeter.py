@@ -18,7 +18,7 @@ import sys
 import threading
 import time
 
-from comun import CONF, cargar_tema, fila, leer, logo, panel, traductor
+from comun import CONF, boton, cargar_tema, fila, leer, logo, panel, traductor
 from gi.repository import GLib, Gtk
 
 SESION = ["command-os-session"]
@@ -120,14 +120,14 @@ class Pantalla(Gtk.ApplicationWindow):
         self.error.add_css_class("error")
         caja.append(self.error)
 
-        self.boton = Gtk.Button(label=_("entrar"))
+        self.boton = boton(_("entrar"))
         self.boton.add_css_class("suggested-action")
         self.boton.connect("clicked", self.on_entrar)
         caja.append(self.boton)
 
         energia = Gtk.Box(spacing=8, halign=Gtk.Align.CENTER)
         for texto, orden in ((_("reiniciar"), "reboot"), (_("apagar"), "poweroff")):
-            b = Gtk.Button(label=texto)
+            b = boton(texto)
             b.add_css_class("flat")
             b.connect("clicked", lambda _b, o=orden: subprocess.Popen(["systemctl", o]))
             energia.append(b)

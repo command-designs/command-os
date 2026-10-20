@@ -18,7 +18,7 @@ import threading
 
 import zonas
 from comun import (
-    CONF, MIN_CONTRASENA, cargar_tema, disco_cifrado, fila, leer, logo, panel, problema_clave, texto_usuario_invalido,
+    CONF, MIN_CONTRASENA, boton, cargar_tema, disco_cifrado, fila, leer, logo, panel, problema_clave, texto_usuario_invalido,
     traductor, usuario_desde, usuario_valido,
 )
 from selector_zona import SelectorZona
@@ -197,7 +197,7 @@ class Asistente(Gtk.ApplicationWindow):
         self.error.add_css_class("error")
         caja.append(self.error)
 
-        self.boton = Gtk.Button(label=_("crear cuenta"))
+        self.boton = boton(_("crear cuenta"))
         self.boton.add_css_class("suggested-action")
         self.boton.connect("clicked", self.on_crear)
         caja.append(self.boton)

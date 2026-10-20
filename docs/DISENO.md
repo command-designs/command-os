@@ -55,7 +55,11 @@ gris, porque los programas los usan con significado (`ls`, `git diff`) y la marc
 BRAND § 5: **JetBrains Mono** en barra, terminal, títulos de ventana, Alt+Tab, etiquetas y rótulos de
 los menús; **Geist** en lanzador, menús y notificaciones; **Oxanium** en titulares (paneles,
 asistente, inicio de sesión), el reloj de la barra y la hora del bloqueo. Nunca mono para titulares.
-Oxanium y Geist no están en los repos de Arch y se instalan desde `os/branding/fonts/` (licencia OFL
+Como en `lenguaje.html`: las etiquetas, lecturas, estados y botones en mono van en **mayúsculas**,
+peso 500 y espaciado de 0,14 em (el CSS de GTK no tiene `text-transform`: el texto lo pasan a
+mayúsculas `comun.fila` y `comun.boton`, y las traducciones siguen en minúsculas); los titulares en
+Oxanium 600 con −0,02 em. Los mensajes en tono terminal (`› sistema listo`) siguen en minúsculas
+(BRAND § 2). Oxanium y Geist no están en los repos de Arch y se instalan desde `os/branding/fonts/` (licencia OFL
 incluida).
 
 ## Forma
@@ -67,8 +71,11 @@ lanzador (20 px), botones con texto (10 px) y pistas (6 px). El resto, esquinas 
 bordes de 1 px; radio de 2 px solo en los campos de texto (y redondos los botones de radio y los
 deslizadores). **Escuadras** (cuatro esquinas Red Hot de 1 px y 10 px) solo en la zona principal del
 bloqueo (hora y contraseña) y del inicio de sesión y el asistente (el panel). Lo seleccionado va en
-Slate con la barra Signal Red a la izquierda (Red Hot en el lanzador y los paneles de wofi, como la
-paleta de `lenguaje.html`). Sin halos (solo en la señal, ver abajo).
+Slate con la barra Red Hot de 2 px a la izquierda, como la paleta de `lenguaje.html` (las líneas finas
+que marcan lo activo son Red Hot; Signal Red queda para superficies); una tarjeta o fila elegida sin
+barra, en `#1A1311` con filo Red Hot (Alt+Tab, GRUB). Al pasar el ratón, el filo pasa a Red Hot (y el
+texto del botón a blanco); el botón principal se rellena de `#B81A02`. Sin halos (solo en la señal,
+ver abajo).
 
 - **Cómo:** el CSS de GTK no tiene `clip-path`. El chaflán es un `border-image` con SVG de nueve partes
   (`build/make-chaflanes.py` → `/usr/share/command-os/chaflanes/`) y el centro, que GTK no pinta, un
@@ -109,10 +116,12 @@ paleta de `lenguaje.html`). Sin halos (solo en la señal, ver abajo).
   maximiza; lados, media pantalla) con una guía Bone translúcida y filo Red Hot.
 - **Apps (GTK 3/4 y Qt):** mismo tema que el escritorio, sin ventanas blancas. Base `adw-gtk3-dark`
   recoloreada en `~/.config/gtk-3.0/gtk.css` y `gtk-4.0/gtk.css` (colores con nombre y variables de
-  libadwaita): ventana en Graphite, listas en Void, cabeceras en Void con filo Steel, menús y popovers
-  en Slate con chaflán y filo Steel, selección en Slate con la barra Signal Red a la izquierda, texto
-  seleccionado en Signal Red con texto blanco, botones con texto con chaflán (en Graphite con filo
-  Iron; el principal en Signal Red), foco y enlaces en Red Hot, OK y Warn para estados. Los SVG de los
+  libadwaita): ventana y cabeceras en Graphite (la cabecera con filo Steel debajo), listas en Void,
+  menús y popovers en Slate con chaflán y filo Steel, selección en Slate con la barra Red Hot a la
+  izquierda, texto seleccionado en Signal Red con texto blanco, botones con texto con chaflán (en
+  Graphite con filo Iron, Red Hot al pasar; el principal en Signal Red, `#B81A02` al pasar), botones
+  que se quedan pulsados con el texto en Red Hot, casillas marcadas en Bone, foco y enlaces en Red Hot,
+  OK y Warn para estados. Los SVG de los
   chaflanes van copiados junto a las hojas (`~/.config/gtk-*/chaflanes/`) para que también los vean
   las apps Flatpak. Qt sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). `dconf` pone el modo oscuro para
   todo el sistema (Firefox y portales incluidos).
@@ -146,8 +155,9 @@ paleta de `lenguaje.html`). Sin halos (solo en la señal, ver abajo).
   hardware y si se puede volver atrás. El mezclador de volumen (clic en `vol`) es pavucontrol de
   460×340 sin barra de título, fijado bajo la barra arriba a la derecha; otro clic lo cierra.
 - **Inicio de sesión, asistente y paneles** (`greeter/command.css`): panel Graphite con chaflán y filo
-  Steel dentro de las escuadras de la zona principal, titular en Oxanium, etiquetas en Smoke, campo en
-  Void con el foco Red Hot y botones con chaflán (el principal en Signal Red con texto blanco).
+  Steel dentro de las escuadras de la zona principal, titular en Oxanium, etiquetas mono en Smoke y
+  mayúsculas, campo en Void con el foco Red Hot y botones con chaflán en mono mayúsculas (el principal
+  en Signal Red con texto blanco).
 - **Bloqueo** (hyprlock): hora en Oxanium y campo de contraseña dentro de las escuadras, sobre el fondo
   `void`. Si hyprlock falla, `command-os-lock` usa su configuración de emergencia y, como último
   recurso, swaylock con los mismos colores.

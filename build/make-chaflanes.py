@@ -17,6 +17,8 @@ OUT = Path(__file__).resolve().parent.parent / "os" / "branding" / "chaflanes"
 
 # Paleta v2 (tokens.css de command-web).
 GRAPHITE, SLATE = "#151515", "#1f1f1f"
+# BRAND 2.1 § 7: relleno del botón principal al pasar por encima.
+HOVER_ROJO = "#b81a02"
 STEEL, IRON, SMOKE = "#2a2a2a", "#3a3a3a", "#85827c"
 SIGNAL_RED, RED_HOT, RED_DEEP = "#a51500", "#f5482c", "#6e0e00"
 
@@ -28,18 +30,19 @@ ESCUADRA = 10
 # pieza: (corte, relleno, filo)
 CHAFLANES = {
     "panel": (MD, GRAPHITE, STEEL),             # .panel: paneles, notificaciones, menú de energía
-    "panel-hover": (MD, GRAPHITE, IRON),        # .panel--interactive:hover: notificación al pasar
+    "panel-hover": (MD, GRAPHITE, RED_HOT),     # .panel--interactive:hover (.dev:hover): notificación al pasar
     "panel-activo": (MD, GRAPHITE, RED_HOT),    # .panel--active: notificación crítica
     "menu": (MD, SLATE, STEEL),                 # menús y popovers de las apps
     "paleta": (LG, GRAPHITE, IRON),             # lanzador (paleta de comandos)
     "pista": (XS, SLATE, STEEL),                # tooltips
     "boton": (SM, GRAPHITE, IRON),              # .btn--cut
-    "boton-hover": (SM, GRAPHITE, SMOKE),
-    "boton-pulsado": (SM, SLATE, SMOKE),
+    "boton-hover": (SM, GRAPHITE, RED_HOT),     # .btn:hover: filo Red Hot (y texto blanco, en la hoja)
+    "boton-pulsado": (SM, SLATE, RED_HOT),
     "boton-foco": (SM, GRAPHITE, RED_HOT),
     "boton-inactivo": (SM, GRAPHITE, STEEL),
     "principal": (SM, SIGNAL_RED, SIGNAL_RED),  # .btn--cut.btn--primary (texto blanco)
-    "principal-hover": (SM, SIGNAL_RED, RED_HOT),
+    "principal-hover": (SM, HOVER_ROJO, RED_HOT),  # .btn.primary:hover: #B81A02 con filo Red Hot
+    "principal-foco": (SM, SIGNAL_RED, RED_HOT),   # con el foco del teclado: solo el filo
     "principal-pulsado": (SM, RED_DEEP, RED_DEEP),
 }
 
