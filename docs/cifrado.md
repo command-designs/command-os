@@ -147,5 +147,10 @@ Con `/boot` aparte, **el kernel no entra en las instantáneas** (sin cifrar sí,
   - **Dual boot cifrado** junto a una tabla como la de Windows (EFI con `bootmgfw.efi`, MSR, NTFS):
     Windows queda igual (tabla, MSR, NTFS y los archivos de su EFI); menú de GRUB con su tema, desde el
     `/boot` sin cifrar, y la entrada de Windows; Esc en el campo pasa al modo detalles y la pide igual.
+- VM `command-os-instalador` (2026-10-20), instalación cifrada nueva con `expect` y cambio de claves con
+  `lib/gestionar-disco` (lo que lanza el panel, como root por SSH): tras cambiar la contraseña y la clave
+  de recuperación, el splash rechaza en rojo la contraseña vieja y la clave vieja; arranca con la
+  contraseña nueva y, en otro reinicio, con la clave nueva. `cryptsetup --test-passphrase` confirma que
+  las viejas ya no abren y las nuevas sí.
 - **Sin probar**: un PC real (teclado USB distinto, contraseña con símbolos, gráfica NVIDIA en el
   splash; lo prueba el usuario) y arrancar una instantánea desde el menú con un kernel más nuevo que ella.

@@ -18,8 +18,9 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
   espacios) y el splash con gráfica NVIDIA.
 - Paneles de actualizaciones, cuentas y disco cifrado (menú → ajustes) en un PC real: el diálogo de
   polkit y, con el disco cifrado, cambiar la contraseña y la clave de recuperación y **reiniciar** para
-  comprobar que el splash pide la nueva (en la VM cifrada se comprobó que la contraseña nueva y la clave
-  nueva abren el disco, pero no el arranque con ellas) y que la clave vieja ya no entra.
+  comprobar que el splash pide la nueva y que la clave vieja ya no entra (en la VM cifrada, con
+  `gestionar-disco` a mano, ya arrancan la contraseña y la clave nuevas y las viejas se rechazan; falta
+  el diálogo de polkit y el panel con el ratón).
 - Hora en un dual boot con Windows de verdad (`docs/cuentas.md` § «Hora»): elegir otra zona en el
   asistente sin red y que Windows y Command OS sigan con la misma hora.
 - Batería en un portátil real (`docs/notas/escritorio.md` § «Batería»; la VM no tiene batería): los
@@ -53,15 +54,12 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-1. Probar en la VM cifrada (`command-os-instalador`, con instantánea) el **arranque** con la contraseña
-   y la clave de recuperación nuevas tras cambiarlas con el panel del disco, y que la vieja ya no
-   entra. *Sonnet, medio.*
-2. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
+1. Limpieza de los paneles (`lib/panel-*.py`, `abrir-descarga.py`, `comun.py`): una clase base con
    `tecla`, `limpiar` y `en_hilo`, una sola copia de las reglas de contraseña y de nombre de usuario (hoy
    en bash y Python, cinco sitios) y reutilizar el selector de zona entre repintados. *Sonnet, medio.*
-3. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
+2. Que el aviso de actualizaciones de la barra y su panel cuenten también las apps de la tienda
    (Flatpak), sin tocar `/var/lib/flatpak` desde la comprobación de solo lectura (`docs/decisiones.md`,
    2026-10-19). *Opus, medio: toca la unidad de systemd, la barra y el panel.*
-4. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
+3. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
    instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
    alto: toca el instalador y la vuelta atrás.*
