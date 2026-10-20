@@ -61,10 +61,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 
 ## Pendientes (por orden)
 
-El 3 va en la rama actual y en el PR de «CI en verde»; el 4 y el 5, en ese PR o el siguiente.
+El 4 y el 5 van en la rama actual (PR de «CI en verde») o en el siguiente.
 
-3. **Pruebas en WSL como en la CI.** `build/wsl/pruebas.sh`: lanza en el Arch de WSL las mismas pruebas
-   que la CI, para no dar por comprobado lo que solo corrió en parte. _Sonnet, esfuerzo medio._
 4. **Guía de prueba en un PC real.** Convertir «Lo prueba el usuario» en `docs/prueba-en-pc-real.md`
    (lista ordenada que sigue una sola instalación); aquí queda un enlace. _Sonnet, esfuerzo bajo._
 5. **`AGENTS.md` más corto** (197 líneas, la 30 tiene 705 caracteres): partir esa línea y llevar a `docs/`

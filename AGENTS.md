@@ -45,7 +45,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | cifrado del disco (LUKS), contraseña en el splash, clave de recuperación, panel del disco, `gestionar-disco`, `os/initcpio/`, `/boot` aparte | `docs/cifrado.md` |
 | splash, firma de arranque, comprobaciones de arranque (`lib/diagnostico-arranque`), GRUB, arranque silencioso, imagen x86, USB, dual boot, bare metal | `docs/notas/arranque-e-imagenes.md` y `docs/dualboot.md` |
 | resoluciones, 16:9/16:10, alta densidad (escala), fondos, tema de GRUB, tamaño del splash | `docs/notas/pantallas.md` |
-| VM de VirtualBox, WSL2, capturas, pruebas a mano | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
+| VM de VirtualBox, WSL2, capturas, pruebas a mano, las pruebas de la CI en WSL (`build/wsl/pruebas.sh`) | `docs/notas/vm-virtualbox-wsl.md` y `docs/testing.md` |
 | por qué se decidió algo (y qué se descartó) | `docs/decisiones.md` |
 | qué viene ahora | `ROADMAP.md` (se quita cada punto al terminarlo y verificarlo) |
 
