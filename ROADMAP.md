@@ -63,6 +63,8 @@ se migra con marca, como `layout-2`, sin pisar sus cambios.
    adoptarla (que una actualización no lo rompa): `hyprbars` compilado por nosotros en el repositorio
    firmado y atado a la versión exacta de Hyprland, Hyprland solo cambia con la fecha validada de
    Arch, la CI comprueba plugin y configuración antes de publicar, y labwc queda como sesión de
-   reserva.
+   reserva. Si se adopta: Hyprland de serie y, si no arranca o se cierra al empezar,
+   `command-os-session` arranca labwc solo y avisa (también en equipos sin aceleración 3D, como la
+   VM); el selector de sesión queda discreto (inicio de sesión y Ajustes) para fallos que no la cierran.
 8. **Barra que se oculta sola** (Opus, medio: depende del 7). Con Hyprland, Ironbar (en Arch, con
    ocultado nativo) o Waybar con un ayudante que mire el puntero (`hyprctl cursorpos`).
