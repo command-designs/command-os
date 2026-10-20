@@ -81,9 +81,10 @@ Los puntos 1–3 van juntos en la rama actual y en un solo PR; los 4 y 5, en ese
    `tests/escritorio.sh`). _Opus, esfuerzo medio (toca paquete, barra, idioma y marca)._
 7. **Licencia del repo (público y sin licencia).** Decide el usuario: ninguna, permisiva (MIT/Apache-2.0)
    o copyleft (GPL-3.0). Aplicarla: _Sonnet, esfuerzo bajo._
-8. **Ajustar el diseño de command-os al concepto de diseño v2** (`lenguaje.html` de command-web, la
-   «prueba HUD»: plano holográfico, modo HUD, arranque con diagnóstico). Depende de que command-web esté
-   actualizado con ese concepto. Revisar pieza a pieza (barra, menús, paneles, notificaciones, bloqueo,
+8. **Ajustar el diseño de command-os al lenguaje HUD** (`lenguaje.html` de command-web y `BRAND.md` 2.1,
+   en command-designs/command-web#8: plano holográfico, modo HUD, halo solo en la señal y en los LED,
+   arranque con diagnóstico). Ojo: `tests/marca.sh` prohíbe hoy halos y `text-shadow`; la regla cambia
+   con 2.1 y se ajusta primero. Revisar pieza a pieza (barra, menús, paneles, notificaciones, bloqueo,
    splash, GRUB, fondos, sonidos, apps GTK), anotar cada diferencia, corregirlas y dejar `tests/marca.sh`
    y `docs/DISENO.md` al día. _Opus, esfuerzo alto (toca tema, generadores y arranque; hay que comparar
    con el concepto en pantalla)._
