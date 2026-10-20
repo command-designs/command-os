@@ -61,3 +61,8 @@ de hardware ARM hasta saber qué placa lleva el cyberdeck (`AGENTS.md`).
 2. Subvolumen `@flatpak` en las instalaciones nuevas, para que las apps de la tienda no engorden las
    instantáneas de `@` (`build/x86/lib.sh`, `tests/rollback.sh`, `docs/actualizaciones.md` § 5). *Opus,
    alto: toca el instalador y la vuelta atrás.*
+3. Contar la longitud de la contraseña en caracteres y no en bytes: `contrasena_corta` (`os/lib/reglas.sh`,
+   que usan `crear-cuenta` y `gestionar-cuentas`) hace `${#1}`, que sin un locale UTF-8 cuenta bytes (una
+   contraseña con ñ o tildes pasaría con menos caracteres). Fijar `LC_ALL=C.UTF-8` dentro de la función
+   y añadir el caso a `tests/cuentas.sh`; `gestionar-disco` ya trabaja byte a byte a propósito
+   (ASCII). *Sonnet, bajo: cambio pequeño en un solo sitio.*
