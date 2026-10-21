@@ -80,6 +80,13 @@ package() {
   install -m 644 "${s}/dotfiles/hypr/hyprlock.conf" "${d}/etc/xdg/hypr/"
   install -m 644 "${s}/branding/fastfetch/config.jsonc" "${d}/etc/xdg/fastfetch/"
   install -m 644 "${s}/dotfiles/xdg-desktop-portal/labwc-portals.conf" "${d}/etc/xdg/xdg-desktop-portal/"
+  # Firefox: políticas (barra de título de labwc, página nueva sin patrocinados ni VPN) y la hoja con
+  # la marca, que pone su autoconfiguración en todas las cuentas (docs/notas/escritorio.md
+  # § «Ventanas iguales»).
+  install -Dm 644 "${s}/dotfiles/firefox/policies.json" "${d}/etc/firefox/policies/policies.json"
+  install -Dm 644 "${s}/dotfiles/firefox/autoconfig.js" "${d}/usr/lib/firefox/defaults/pref/command-os.js"
+  install -Dm 644 "${s}/dotfiles/firefox/command-os.cfg" "${d}/usr/lib/firefox/command-os.cfg"
+  install -Dm 644 "${s}/dotfiles/firefox/command.css" "${d}/usr/share/command-os/firefox/command.css"
 
   # --- Configuración de serie de los programas que no miran /etc/xdg ---
   # command-os-config elige la copia del usuario si existe; si no, esta.

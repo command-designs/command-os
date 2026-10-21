@@ -1,0 +1,118 @@
+/* Command OS — Firefox con la marca v2 (docs/DISENO.md). La carga command-os.cfg (autoconfiguración de
+   Firefox) como hoja de usuario para toda la interfaz, en todas las cuentas y desde el primer arranque.
+   Solo cambia las variables que pone el propio tema de Firefox (ThemeVariableMap y
+   LightweightThemeConsumer) y sus radios, sin depender de cómo esté hecha la interfaz por dentro: si una
+   versión nueva renombra una variable, esa parte vuelve al tema oscuro de Firefox, sin romperse.
+   Van con !important porque el tema las pone en línea sobre :root. Las páginas web no se tocan. */
+
+/* Forma (BRAND § 6), en la interfaz y en las páginas propias de Firefox: esquinas vivas; radio de 2 px
+   solo en el campo de direcciones. En «*» porque Firefox redefine algunas en elementos concretos. */
+@-moz-document url("chrome://browser/content/browser.xhtml"), url-prefix("about:") {
+    * {
+        --border-radius-xsmall: 0 !important;
+        --border-radius-small: 0 !important;
+        --border-radius-medium: 0 !important;
+        --border-radius-large: 0 !important;
+        --border-radius-xlarge: 0 !important;
+        --button-border-radius: 0 !important;
+        --toolbarbutton-border-radius: 0 !important;
+        --tab-border-radius: 0 !important;
+        --panel-border-radius: 0 !important;
+        --popup-border-radius: 0 !important;
+        --menuitem-border-radius: 0 !important;
+        --panel-menuitem-border-radius: 0 !important;
+        --card-border-radius: 0 !important;
+        --page-nav-button-border-radius: 0 !important;
+        --input-search-border-radius: 2px !important;
+        --urlbar-border-radius: 2px !important;
+        --urlbarview-border-radius: 0 !important;
+    }
+}
+
+@-moz-document url("chrome://browser/content/browser.xhtml") {
+    * {
+        /* La fila de pestañas: Firefox la redefine según la ventana tenga el foco o no. */
+        --toolbox-background-color: #0e0e0e !important;
+        --toolbox-background-color-inactive: #0e0e0e !important;
+    }
+
+    :root {
+        /* Fila de pestañas en Void; la barra de herramientas y la pestaña activa, en Graphite. */
+        --lwt-accent-color: #0e0e0e !important;
+        --lwt-accent-color-inactive: #0e0e0e !important;
+        --lwt-text-color: #a3a09a !important;
+        --lwt-tab-line-color: #f5482c !important;
+        --lwt-background-tab-separator-color: #2a2a2a !important;
+        --tab-background-color-selected: #151515 !important;
+        --tab-text-color-selected: #edebe6 !important;
+        --tab-icon-fill-loading: #f5482c !important;
+        --toolbar-background-color: #151515 !important;
+        --toolbar-text-color: #edebe6 !important;
+        --toolbarbutton-icon-fill: #a3a09a !important;
+        --toolbarbutton-icon-fill-attention: #f5482c !important;
+        --toolbarbutton-background-color-hover: #1f1f1f !important;
+        --toolbarbutton-background-color-active: #2a2a2a !important;
+        --toolbarseparator-color: #2a2a2a !important;
+        --tabs-navbar-separator-color: #2a2a2a !important;
+        --chrome-content-separator-color: #2a2a2a !important;
+        --tabpanel-background-color: #0e0e0e !important;
+
+        /* Campo de direcciones: Void con filo Steel; con el foco, filo Red Hot. */
+        --toolbar-field-background-color: #0e0e0e !important;
+        --toolbar-field-text-color: #edebe6 !important;
+        --toolbar-field-border-color: #2a2a2a !important;
+        --toolbar-field-background-color-focus: #0e0e0e !important;
+        --toolbar-field-text-color-focus: #edebe6 !important;
+        --toolbar-field-border-color-focus: #f5482c !important;
+        --lwt-toolbar-field-highlight: #a51500 !important;
+        --lwt-toolbar-field-highlight-text: #ffffff !important;
+        --focus-outline-color: #f5482c !important;
+
+        /* Menús, paneles y sugerencias: Slate con filo Steel; lo elegido, en Steel. */
+        --panel-background-color: #1f1f1f !important;
+        --panel-text-color: #edebe6 !important;
+        --panel-border-color: #2a2a2a !important;
+        --urlbarview-background-color-selected: #2a2a2a !important;
+        --urlbarview-text-color-selected: #edebe6 !important;
+        --sidebar-background-color: #151515 !important;
+        --sidebar-text-color: #edebe6 !important;
+        --sidebar-border-color: #2a2a2a !important;
+
+        /* El botón principal, en Signal Red con texto blanco (#B81A02 al pasar, Red Deep pulsado). */
+        --color-accent-primary: #a51500 !important;
+        --color-accent-primary-hover: #b81a02 !important;
+        --color-accent-primary-active: #6e0e00 !important;
+        --color-accent-primary-selected: #a51500 !important;
+    }
+
+    /* La pestaña activa, con la línea Red Hot de lo activo (2 px, arriba: la pestaña se une a la barra). */
+    .tabbrowser-tab[selected] .tab-background {
+        box-shadow: inset 0 2px #f5482c !important;
+    }
+}
+
+/* Páginas propias de Firefox (página nueva, ajustes, restaurar sesión): el fondo de la marca y su botón
+   principal en vez del morado de Firefox. No son webs: las pinta Firefox con sus mismos tokens. */
+@-moz-document url-prefix("about:") {
+    :root {
+        --newtab-background-color: #0e0e0e !important;
+        --newtab-background-color-secondary: #151515 !important;
+        --newtab-text-primary-color: #edebe6 !important;
+        --background-color-canvas: #0e0e0e !important;
+        --background-color-box: #151515 !important;
+        --color-accent-primary: #a51500 !important;
+        --color-accent-primary-hover: #b81a02 !important;
+        --color-accent-primary-active: #6e0e00 !important;
+        --color-accent-primary-selected: #a51500 !important;
+        --focus-outline-color: #f5482c !important;
+        --link-color: #f5482c !important;
+        --link-color-hover: #f5482c !important;
+        --link-color-active: #f5482c !important;
+    }
+
+    /* La sección elegida (ajustes), como en los menús: Slate con el texto en Red Hot, sin relleno rojo. */
+    * {
+        --page-nav-button-background-color-selected: #1f1f1f !important;
+        --page-nav-button-text-color-selected: #f5482c !important;
+    }
+}
