@@ -1,11 +1,12 @@
-# Command OS — Ajustes → barra (lib/ajustes.py). La telemetría (CPU, temperatura y memoria: oculta de
-# serie, es lo único de la barra que se despierta solo) y las aplicaciones fijadas: quitar, cambiar de
-# sitio y fijar otra (lib/fijadas.py, lo mismo que el clic derecho en la barra).
+# Command OS — Ajustes → barra (lib/ajustes.py). El lado de la pantalla y si va flotante, la telemetría
+# (CPU, temperatura y memoria: oculta de serie, es lo único de la barra que se despierta solo) y las
+# aplicaciones fijadas: quitar, cambiar de sitio y fijar otra (lib/fijadas.py, lo mismo que el clic
+# derecho en la barra).
 # docs/notas/escritorio.md §§ «Barra» y «Aplicaciones fijadas».
 import os
 
 import fijadas
-from comun import Seccion, boton, interruptor
+from comun import Seccion, boton, fila, interruptor
 from gi.repository import Gtk, Pango
 
 
@@ -14,10 +15,21 @@ class Pagina(Seccion):
         super().__init__(ventana, traducir)
         _ = self._
         self.titulo(_("› barra"))
-        fila, self.switch = interruptor(
+        self.lados = list(fijadas.LADOS)
+        nombres = {"arriba": _("arriba"), "abajo": _("abajo"), "izquierda": _("izquierda"), "derecha": _("derecha")}
+        self.combo = Gtk.DropDown.new_from_strings([nombres[lado] for lado in self.lados])
+        self.pintado = self.lados.index(fijadas.ajustes()["lado"])
+        self.combo.set_selected(self.pintado)
+        self.combo.connect("notify::selected", self.al_lado)
+        self.caja.append(fila(_("lado de la pantalla"), self.combo))
+        caja, self.switch_flotante = interruptor(
+            _("flotante"), fijadas.ajustes()["flotante"] == "si", self.al_flotante,
+            _("separada de los bordes, con aire alrededor."))
+        self.caja.append(caja)
+        caja, self.switch = interruptor(
             _("cpu, temperatura y memoria"), fijadas.ajustes()["telemetria"] == "si", self.al_telemetria,
             _("se ponen al día cada 10 segundos. ocultas, la barra no gasta nada en reposo."))
-        self.caja.append(fila)
+        self.caja.append(caja)
         cabecera = Gtk.Box(spacing=12)
         rotulo = Gtk.Label(label=_("aplicaciones fijadas").upper(), xalign=0, hexpand=True)
         rotulo.add_css_class("etiqueta")
@@ -31,7 +43,11 @@ class Pagina(Seccion):
         self.pintar()
 
     def al_mostrar(self):
-        self.switch.set_state(fijadas.ajustes()["telemetria"] == "si")
+        valores = fijadas.ajustes()
+        self.pintado = self.lados.index(valores["lado"])
+        self.combo.set_selected(self.pintado)
+        self.switch_flotante.set_state(valores["flotante"] == "si")
+        self.switch.set_state(valores["telemetria"] == "si")
         self.pintar()
 
     def pintar(self):
@@ -69,6 +85,18 @@ class Pagina(Seccion):
     def al_fijar(self, _boton):
         # El lanzador de siempre, pero fija en vez de abrir; espera a que se elija (en un hilo).
         self.en_hilo(fijadas.fijar, lambda _r: self.pintar())
+
+    def al_lado(self, combo, _param):
+        i = combo.get_selected()
+        if i == self.pintado:
+            return
+        self.pintado = i
+        self.en_hilo(lambda: fijadas.poner("lado", self.lados[i]), lambda _r: None)
+
+    def al_flotante(self, switch, activo):
+        self.en_hilo(lambda: fijadas.poner("flotante", "si" if activo else "no"),
+                     lambda valor: switch.set_state(valor == "si"))
+        return True
 
     def al_telemetria(self, switch, activo):
         def hecho(valor):

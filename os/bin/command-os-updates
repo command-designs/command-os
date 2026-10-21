@@ -84,7 +84,7 @@ json() { tr -d '"\134' | awk 'BEGIN { ORS = "" } NR > 1 { print "\134n" } { prin
 
 estado() {
   if ! leer || ! hay_algo; then
-    printf '{"text": "", "tooltip": "", "class": "ninguna"}\n'
+    printf '{"text": "", "alt": "", "tooltip": "", "class": "ninguna"}\n'
     return
   fi
   local total=$(( otros + apps + (${#nuevo} > 0 ? 1 : 0) )) clase=paquetes tip=""
@@ -110,8 +110,9 @@ estado() {
     fi
   fi
   tip+=$'\n'"$(t 'comprobado %s · clic: ver y actualizar · clic derecho: comprobar ahora' "$(hace "${comprobado}")")"
-  printf '{"text": "<span color=\\"#85827c\\">UPD</span> %s", "tooltip": "%s", "class": "%s"}\n' \
-    "${total}" "$(printf '%s' "${tip}" | pango | json)" "${clase}"
+  # alt: lo mismo en dos líneas, para la barra a un lado de la pantalla (lib/fijadas.py, VERTICAL).
+  printf '{"text": "<span color=\\"#85827c\\">UPD</span> %s", "alt": "<span color=\\"#85827c\\">UPD</span>\\n%s", "tooltip": "%s", "class": "%s"}\n' \
+    "${total}" "${total}" "$(printf '%s' "${tip}" | pango | json)" "${clase}"
 }
 
 # Lo que enseña el panel (lib/ajustes_actualizaciones.py), una cosa por línea y con tabuladores:

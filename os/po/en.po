@@ -626,6 +626,27 @@ msgstr "could not forget {disp}."
 msgid "› barra"
 msgstr "› bar"
 
+msgid "arriba"
+msgstr "top"
+
+msgid "abajo"
+msgstr "bottom"
+
+msgid "izquierda"
+msgstr "left"
+
+msgid "derecha"
+msgstr "right"
+
+msgid "lado de la pantalla"
+msgstr "screen edge"
+
+msgid "flotante"
+msgstr "floating"
+
+msgid "separada de los bordes, con aire alrededor."
+msgstr "away from the edges, with space around it."
+
 msgid "cpu, temperatura y memoria"
 msgstr "cpu, temperature and memory"
 

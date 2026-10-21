@@ -5,19 +5,23 @@ Waybar no sabe fijar aplicaciones (wlr/taskbar solo enseña ventanas, y su clic 
 órdenes): cada aplicación fijada es un módulo custom/fijada#fN con su icono de fondo, dentro de
 group/fijadas. Este programa escribe esa parte de la configuración (la incluye config.jsonc) y una hoja
 de estilo que importa la de la barra y añade los iconos; al cambiar la lista, recarga Waybar (SIGUSR2).
-docs/notas/escritorio.md § «Aplicaciones fijadas».
+También escribe la configuración que se le pasa a Waybar (barra.jsonc): incluye la de serie (o la del
+usuario) y fija encima el lado de la pantalla y si va flotante, porque en un «include» de Waybar gana
+el archivo que incluye. docs/notas/escritorio.md §§ «Aplicaciones fijadas» y «Barra».
 
-    fijadas.py generar [ESTILO]   escribe la configuración y la hoja de estilo; imprime la ruta de la hoja
+    fijadas.py generar [ESTILO [CONFIG]]   escribe las configuraciones y la hoja de estilo; imprime la ruta de la hoja
     fijadas.py abrir ID           abre la aplicación (clic)
     fijadas.py menu ID            quitar, mover o fijar otra (clic derecho en una fijada)
     fijadas.py fijar              elige una aplicación del lanzador y la fija (clic derecho en el logo)
     fijadas.py anadir ID | quitar ID | mover ID -1|1   lo mismo sin preguntar
     fijadas.py telemetria [si|no|cambiar]   enseña u oculta CPU/TMP/MEM; imprime cómo queda (si o no)
+    fijadas.py lado [arriba|abajo|izquierda|derecha]   el lado de la pantalla de la barra; imprime cómo queda
+    fijadas.py flotante [si|no|cambiar]     separada de los bordes; imprime cómo queda
 
 ID es el nombre del .desktop (firefox.desktop). La lista va en ~/.config/command-os/fijadas, una por
 línea; sin el archivo, las de serie (navegador, archivos, terminal y tienda). Los ajustes de la barra,
-en ~/.config/command-os/barra (clave=valor; telemetria=no de serie). No usa GTK: lo prueba
-tests/barra.sh sin pantalla.
+en ~/.config/command-os/barra (clave=valor; de serie telemetria=no, lado=arriba y flotante=no). No
+usa GTK: lo prueba tests/barra.sh sin pantalla.
 """
 import configparser
 import json
@@ -32,8 +36,12 @@ from traducir import traductor
 CONFIG = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
 LISTA = os.path.join(CONFIG, "command-os", "fijadas")
 AJUSTES = os.path.join(CONFIG, "command-os", "barra")
-DE_SERIE_AJUSTES = {"telemetria": "no"}
+DE_SERIE_AJUSTES = {"telemetria": "no", "lado": "arriba", "flotante": "no"}
+LADOS = {"arriba": "top", "abajo": "bottom", "izquierda": "left", "derecha": "right"}
+VALORES = {"telemetria": ("si", "no"), "lado": tuple(LADOS), "flotante": ("si", "no")}
 TELEMETRIA = ["cpu", "temperature", "memory"]
+GROSOR = 36  # alto de la barra (o ancho, en un lado): el de style.css
+MARGEN = 8  # flotante: el aire alrededor
 RUN = os.path.join(os.environ.get("XDG_RUNTIME_DIR") or "", "command-os", "barra")
 DE_SERIE = ["firefox.desktop", "thunar.desktop", "kitty.desktop", "io.github.kolunmi.Bazaar.desktop"]
 TEMAS = ["Papirus-Dark", "Papirus", "hicolor"]
@@ -151,23 +159,74 @@ def ajustes():
         with open(AJUSTES, encoding="utf-8") as f:
             for ln in f:
                 clave, igual, valor = ln.strip().partition("=")
-                if igual and clave in valores:
+                if igual and valor.strip() in VALORES.get(clave, ()):
                     valores[clave] = valor.strip()
     except OSError:
         pass
     return valores
 
 
-def telemetria(valor):
-    """Enseña (si) u oculta (no) CPU/TMP/MEM, o lo cambia (cambiar). Devuelve cómo queda."""
+def poner(clave, valor):
+    """Cambia un ajuste de la barra (en los de si o no, «cambiar» le da la vuelta) y recarga Waybar.
+    Devuelve cómo queda."""
     valores = ajustes()
-    if valor == "cambiar":
-        valor = "no" if valores["telemetria"] == "si" else "si"
-    valores["telemetria"] = valor
+    if valor == "cambiar" and VALORES[clave] == ("si", "no"):
+        valor = "no" if valores[clave] == "si" else "si"
+    if valor not in VALORES[clave]:
+        raise ValueError(valor)
+    valores[clave] = valor
     os.makedirs(os.path.dirname(AJUSTES), exist_ok=True)
     escribir(AJUSTES, "".join(f"{c}={v}\n" for c, v in valores.items()))
     recargar()
-    return valores["telemetria"]
+    return valores[clave]
+
+
+def telemetria(valor):
+    """Enseña (si) u oculta (no) CPU/TMP/MEM, o lo cambia (cambiar). Devuelve cómo queda."""
+    return poner("telemetria", valor)
+
+
+def lectura(etiqueta, valor):
+    """Una lectura de la barra en un lado: la etiqueta encima del valor (en horizontal van en una línea)."""
+    return f"<span color='#85827c'>{etiqueta}</span>\n{valor}"
+
+
+# En un lado la barra es estrecha: cada lectura en dos líneas de tres caracteres como mucho, la hora
+# encima de los minutos y el aviso de actualizaciones con su texto alternativo (command-os-updates).
+VERTICAL = {
+    "clock": {"format": "{0:%H}\n{0:%M}"},
+    "cpu": {"format": lectura("CPU", "{usage}")},
+    "temperature": {"format": lectura("TMP", "{temperatureC}°")},
+    "memory": {"format": lectura("MEM", "{percentage}")},
+    "network": {"format-wifi": lectura("NET", "{signalStrength}"), "format-ethernet": lectura("NET", "ETH"),
+                "format-disconnected": lectura("NET", "—")},
+    "bluetooth": {"format": lectura("BT", "ON"), "format-off": lectura("BT", "OFF"),
+                  "format-disabled": lectura("BT", "OFF"), "format-connected": lectura("BT", "{num_connections}")},
+    "pulseaudio": {"format": lectura("VOL", "{volume}"), "format-muted": lectura("VOL", "OFF")},
+    "battery": {"format": lectura("BAT", "{capacity}"), "format-discharging": lectura("BAT", "{capacity}"),
+                "format-charging": lectura("BAT", "{capacity}+")},
+    "custom/updates": {"format": "{alt}"},
+}
+
+
+def config_barra(base, incluida, valores):
+    """La configuración que recibe Waybar: BASE (la de serie o la del usuario) e INCLUIDA (fijadas.jsonc)
+    incluidas, con el lado, el grosor y el margen encima (en un «include» gana el archivo que incluye)."""
+    lado = valores["lado"]
+    config = {"include": [ruta for ruta in (base, incluida) if ruta], "position": LADOS[lado]}
+    if lado in ("izquierda", "derecha"):
+        # height 0: a lo largo de todo el lado (la de serie trae 36, el alto de la barra horizontal).
+        config.update({"width": GROSOR, "height": 0})
+        for modulo, formatos in VERTICAL.items():
+            config[modulo] = {**formatos, "justify": "center"}
+    else:
+        config["height"] = GROSOR
+    if valores["flotante"] == "si":
+        # El nombre es una clase de la ventana (window#waybar.flotante en style.css): el filo, alrededor.
+        config["name"] = "flotante"
+        for borde in ("top", "right", "bottom", "left"):
+            config[f"margin-{borde}"] = MARGEN
+    return config
 
 
 def pango(texto):
@@ -180,9 +239,25 @@ def css_url(ruta):
     return 'url("file://' + ruta.replace("\\", "\\\\").replace('"', '\\"') + '")'
 
 
-def generar(estilo=None, tr=None):
-    """Escribe RUN/fijadas.jsonc (lo incluye config.jsonc) y RUN/estilo.css (la hoja de la barra más
-    los iconos). Devuelve la ruta de la hoja. ESTILO es la hoja de la barra; sin él, la de la última vez."""
+def base(nombre, dada, de_serie):
+    """La hoja o la configuración de la barra de la que parte lo generado: la DADA (se guarda para la
+    próxima vez), la de la última vez o la de serie."""
+    guardada = os.path.join(RUN, nombre)
+    if dada:
+        with open(guardada, "w", encoding="utf-8") as f:
+            f.write(dada)
+        return dada
+    try:
+        with open(guardada, encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return ruta_config(de_serie)
+
+
+def generar(estilo=None, config=None, tr=None):
+    """Escribe RUN/fijadas.jsonc (lo incluye config.jsonc), RUN/barra.jsonc (la configuración para Waybar) y
+    RUN/estilo.css (la hoja de la barra más los iconos). Devuelve la ruta de la hoja. ESTILO y CONFIG son
+    la hoja y la configuración de la barra; sin ellas, las de la última vez."""
     _ = tr or traductor()
     # Solo en el XDG_RUNTIME_DIR de la cuenta (como command-os-config): nunca en /tmp, donde otra
     # cuenta podría dejar antes una configuración de Waybar con sus propias órdenes.
@@ -190,16 +265,8 @@ def generar(estilo=None, tr=None):
     if not os.path.isabs(run) or not os.path.isdir(run) or os.stat(run).st_uid != os.getuid():
         raise RuntimeError("sin XDG_RUNTIME_DIR propio")
     os.makedirs(RUN, mode=0o700, exist_ok=True)
-    base_guardada = os.path.join(RUN, "estilo-base")
-    if estilo:
-        with open(base_guardada, "w", encoding="utf-8") as f:
-            f.write(estilo)
-    else:
-        try:
-            with open(base_guardada, encoding="utf-8") as f:
-                estilo = f.read().strip()
-        except OSError:
-            estilo = ruta_config("waybar/style.css")
+    estilo = base("estilo-base", estilo, "waybar/style.css")
+    config_base = base("config-base", config, "waybar/config.jsonc")
     modulos, config = [], {}
     reglas = [f"@import {css_url(os.path.abspath(estilo))};"]
     for n, ident in enumerate(lista()):
@@ -215,13 +282,19 @@ def generar(estilo=None, tr=None):
         ruta = icono(entrada.get("Icon", "")) or icono("application-x-executable")
         if ruta:
             reglas.append(f"#custom-fijada.f{n} {{ background-image: {css_url(ruta)}; }}")
-    config["group/fijadas"] = {"orientation": "horizontal", "modules": modulos}
+    # «inherit»: en una barra a un lado, los grupos van en columna.
+    config["group/fijadas"] = {"orientation": "inherit", "modules": modulos}
     # Telemetría: oculta, el grupo va vacío y su celda sin filo ni relleno (la hoja de la barra se los da).
-    ver = ajustes()["telemetria"] == "si"
-    config["group/telemetria"] = {"orientation": "horizontal", "modules": TELEMETRIA if ver else []}
+    valores = ajustes()
+    ver = valores["telemetria"] == "si"
+    config["group/telemetria"] = {"orientation": "inherit", "modules": TELEMETRIA if ver else []}
     if not ver:
-        reglas.append("#telemetria { padding: 0; border: none; }")
-    escribir(os.path.join(RUN, "fijadas.jsonc"), json.dumps(config, ensure_ascii=False, indent=2) + "\n")
+        reglas.append("#telemetria, window#waybar.left #telemetria, window#waybar.right #telemetria "
+                      "{ padding: 0; border: none; }")
+    incluida = os.path.join(RUN, "fijadas.jsonc")
+    escribir(incluida, json.dumps(config, ensure_ascii=False, indent=2) + "\n")
+    escribir(os.path.join(RUN, "barra.jsonc"),
+             json.dumps(config_barra(config_base, incluida, valores), ensure_ascii=False, indent=2) + "\n")
     hoja = os.path.join(RUN, "estilo.css")
     escribir(hoja, "\n".join(reglas) + "\n")
     return hoja
@@ -296,8 +369,11 @@ def abrir(ident):
 
 
 def ruta_config(ruta):
-    """La configuración del usuario o la de serie (command-os-config)."""
-    r = subprocess.run(["command-os-config", ruta], capture_output=True, text=True, check=False)
+    """La configuración del usuario o la de serie (command-os-config); "" si no se sabe."""
+    try:
+        r = subprocess.run(["command-os-config", ruta], capture_output=True, text=True, check=False)
+    except OSError:
+        return ""
     return r.stdout.strip()
 
 
@@ -355,8 +431,8 @@ def fijar():
 
 def main(args):
     orden, resto = (args[0], args[1:]) if args else ("", [])
-    if orden == "generar":
-        print(generar(resto[0] if resto else None))
+    if orden == "generar" and len(resto) <= 2:
+        print(generar(*resto))
     elif orden == "abrir" and len(resto) == 1:
         abrir(resto[0])
     elif orden == "menu" and len(resto) == 1:
@@ -369,10 +445,11 @@ def main(args):
         quitar(resto[0])
     elif orden == "mover" and len(resto) == 2 and resto[1] in ("-1", "1"):
         mover(resto[0], int(resto[1]))
-    elif orden == "telemetria" and not resto:
-        print(ajustes()["telemetria"])
-    elif orden == "telemetria" and len(resto) == 1 and resto[0] in ("si", "no", "cambiar"):
-        print(telemetria(resto[0]))
+    elif orden in VALORES and not resto:
+        print(ajustes()[orden])
+    elif orden in VALORES and len(resto) == 1 and (resto[0] in VALORES[orden]
+                                                  or resto[0] == "cambiar" and VALORES[orden] == ("si", "no")):
+        print(poner(orden, resto[0]))
     else:
         print((__doc__ or "").strip().split("\n\n")[2], file=sys.stderr)
         return 2

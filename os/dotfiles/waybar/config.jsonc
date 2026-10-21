@@ -1,4 +1,7 @@
 {
+    // El lado de la pantalla, el grosor y si va flotante los fija encima la configuración que genera
+    // command-os-fijadas (barra.jsonc, que incluye esta: en un «include» gana el que incluye). Sin ella,
+    // arriba y fija.
     "layer": "top",
     "position": "top",
     "height": 36,
@@ -51,7 +54,8 @@
         "tooltip-format": "{title}",
         "on-click": "minimize-raise",
         "on-click-middle": "close",
-        "ignore-list": ["org.pulseaudio.pavucontrol", "blueman-manager", "dev.commandlab.Centro"]
+        "ignore-list": ["org.pulseaudio.pavucontrol", "blueman-manager", "dev.commandlab.Centro",
+                        "dev.commandlab.CentroAbajo", "dev.commandlab.CentroIzquierda"]
     },
     // Fecha (apagada) y hora: lo que se mira de un vistazo.
     "clock": {
@@ -80,7 +84,7 @@
     // «sincronizado» de lenguaje.html. El clic en cualquiera abre el centro de control (command-os-centro;
     // otro clic lo cierra); el clic derecho va directo a lo de cada uno.
     "group/estado": {
-        "orientation": "horizontal",
+        "orientation": "inherit",
         "modules": ["network", "bluetooth", "pulseaudio", "battery"]
     },
     "network": {
