@@ -43,7 +43,7 @@ done
 if command -v Hyprland >/dev/null; then
   if como Hyprland --verify-config --config /etc/xdg/hypr/hyprland.lua > "${SALIDA}/hyprland-verify.txt" 2>&1 \
       && grep -qx 'config ok' "${SALIDA}/hyprland-verify.txt"; then
-    ok "hyprland: /etc/xdg/hypr/hyprland.lua ($(Hyprland --version | awk 'NR == 1 { print $2 }'))"
+    ok "hyprland: /etc/xdg/hypr/hyprland.lua ($(Hyprland --version 2>&1 | grep -oE '^Hyprland [0-9.]+'))"
   else
     mal "hyprland: errores en /etc/xdg/hypr/hyprland.lua (ver hyprland-verify.txt)"
   fi
