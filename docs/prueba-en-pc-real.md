@@ -54,10 +54,28 @@ punto al probarlo y avisa de los fallos; lo que salga bien se quita de esta guí
    panel de la batería (clic derecho en `bat`) enseña «limitar la carga al 80 %», que el portátil deje de
    cargar ahí y siga limitado tras reiniciar y tras el reposo.
 7. Bluetooth (`docs/notas/escritorio.md` § «Bluetooth»; la VM no tiene adaptador): `bt off` en la barra
-   al arrancar; clic derecho lo enciende (`bt on`) y otro lo apaga; clic abre los dispositivos bajo la
-   barra y otro clic los cierra. Emparejar unos auriculares y un teclado (si pide PIN, que salga el
+   al arrancar; clic derecho lo enciende (`bt on`) y otro lo apaga; clic → «bluetooth» en el panel de
+   estado abre los dispositivos bajo la barra y otro clic los cierra. Emparejar unos auriculares y un teclado (si pide PIN, que salga el
    diálogo), ver `bt 1` y su nombre al pasar el ratón, oír el sonido por los auriculares y, tras
    reiniciar, que vuelva a salir `bt off`.
+8. Ventanas iguales (`docs/notas/escritorio.md` § «Ventanas iguales»), tras actualizar sin reinstalar:
+   Thunar, la tienda y Firefox con la misma barra de título (alto, botones, Graphite activa y Void
+   inactiva); pasar el ratón por los botones de la tienda (Bone sobre Steel, cerrar en Signal Red) y
+   maximizarla (el botón cambia a dos marcos); Firefox con sus pestañas cuadradas, la línea roja en la
+   activa, página nueva sin patrocinados ni el tiempo y sin el botón de VPN; y una app Flatpak GTK 4 con
+   los mismos botones.
+9. Barra 2.1 (`docs/notas/escritorio.md` § «Barra»), tras actualizar sin reinstalar: sin el icono de la
+   red en la bandeja; pasar el ratón por el grupo de estado (se ilumina entero) y clic (panel bajo la
+   barra con wi-fi, bluetooth, sonido, batería y telemetría). Wi-Fi (la VM no tiene): clic derecho en
+   `NET` → la lista de redes; conectar a una abierta, a una con contraseña (sale el diálogo y conecta),
+   a una ya guardada (sin preguntar), escribir mal una contraseña (avisa de que no pudo) y desconectar
+   la conectada. Enseñar y ocultar CPU/TMP/MEM desde el panel y que se mantenga al reiniciar.
+10. Movimiento (`docs/DISENO.md` § «Movimiento»; la VM renderiza por software y no sirve para juzgar la
+    fluidez): al cambiar de ventana, la línea roja de la barra entra por la izquierda y la anterior se va
+    por la derecha; al pasar el ratón por botones, filas y campos de Thunar, Firefox y la tienda, el
+    color cambia suave (no de golpe) y sin tirones; una notificación (`notify-send hola`) entra con un
+    desliz corto; el panel del inicio de sesión entra con un fundido. Nada debe moverse con el
+    escritorio en reposo (`top`: Waybar y labwc cerca del 0 % de CPU).
 
 ## 6. Paneles de ajustes (menú → ajustes)
 

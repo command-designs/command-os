@@ -154,6 +154,18 @@ echo '<svg>2</svg>' > "${SYS}/chaflanes/boton.svg"
 preparar
 [[ "$(cat "${CFG}/gtk-4.0/chaflanes/boton.svg")" == '<svg>2</svg>' ]] && ok "chaflanes: siguen a los de serie" \
   || mal "chaflanes: no se pusieron al día"
+# Botones de la barra de título (los de labwc), igual que los chaflanes, en botones/.
+mkdir -p "${SYS}/botones"
+echo '<svg>c</svg>' > "${SYS}/botones/close-active.svg"
+for g in gtk-3.0 gtk-4.0; do ln -s ../botones "${SYS}/${g}/botones"; done
+preparar
+if [[ "$(cat "${CFG}/gtk-3.0/botones/close-active.svg" 2>/dev/null)" == '<svg>c</svg>' \
+    && "$(cat "${CFG}/gtk-4.0/botones/close-active.svg" 2>/dev/null)" == '<svg>c</svg>' \
+    && ! -L "${CFG}/gtk-4.0/botones/close-active.svg" ]]; then
+  ok "botones: copias junto a las hojas"
+else
+  mal "botones: sin copiar ($(ls -l "${CFG}/gtk-4.0" 2>&1 | tr '\n' ' '))"
+fi
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

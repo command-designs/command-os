@@ -34,7 +34,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   `LOGO=` de `os-release`).
 - **Piezas**: swaybg (fondo), Waybar con `ext/workspaces` (labwc implementa ext-workspace) y
   `wlr/taskbar`, hyprlock/hypridle (bloqueo e inactividad por protocolos estándar; pantalla con
-  `wlopm`), polkit-gnome, nm-applet en la bandeja, wdisplays, xorg-xwayland (arranca bajo demanda).
+  `wlopm`), polkit-gnome, wdisplays, xorg-xwayland (arranca bajo demanda). La red, sin nm-applet
+  (§ «Barra»).
 - **Ajustes por máquina** (los genera `install.sh`, no van en los dotfiles): `environment.d/local.env`
   (teclado de `/etc/command-os/kb_layout`) y `themerc-override` (sin sombras en VM). En VirtualBox,
   `video=1280x720` en la línea del kernel: todo el arranque y el escritorio a esa resolución.
@@ -53,8 +54,9 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   ventanas de muestra GTK 3 y GTK 4 (botones sueltos, unidos, principal, inactivo, menú y popover) y a
   escala 2 (el filo se ve algo suave: el SVG se pinta a 1x y GTK lo amplía). **No verificado**: un
   popover con flecha en una app real y el tema dentro de una app Flatpak GTK 3.
-- **GTK**: las apps con cabecera propia (GTK 4, Firefox) no reciben marco de labwc; `gtk-3.0/gtk.css`
-  y `gtk-4.0/gtk.css` les dibujan el mismo filo (Red Hot si están activas) y la misma sombra oscura.
+- **GTK**: las apps con cabecera propia (GTK 4) no reciben marco de labwc; `gtk-3.0/gtk.css` y
+  `gtk-4.0/gtk.css` les dibujan el mismo filo (Red Hot si están activas), la misma sombra oscura y la
+  misma barra de título (§ «Ventanas iguales»).
 - **Verificado en VM VirtualBox** (capturas): escritorio, barra con tareas, ventanas activa/inactiva
   (borde `#D13449` medido; desde la marca v2 es Red Hot `#F5482C`), botones, menú de ventana, Alt+Tab, lanzador con Super, ayuda de atajos,
   mezclador desplegable, bloqueo y desbloqueo, bloqueo automático a los 5 min, notificaciones, crear,
@@ -97,7 +99,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 
 - **Barra**: el módulo `bluetooth` de Waybar, en texto como el resto (`bt off`, `bt on` o `bt N` con N
   dispositivos conectados; sus nombres, al pasar el ratón). Sin adaptador no sale (`format-no-controller`
-  vacío). Apagado, en Smoke como `vol mute`. Clic: `command-os-bluetooth panel` (blueman-manager de
+  vacío). Apagado, en Smoke como `vol mute`. Clic: el panel de estado (§ «Barra»), y en él
+  «bluetooth» abre `command-os-bluetooth panel` (blueman-manager de
   520×400 sin barra de título bajo la barra, regla en `labwc/rc.xml`; otro clic lo cierra); clic
   derecho: `command-os-bluetooth cambiar` (`bluetoothctl power on|off`; al encender quita antes el
   bloqueo de `rfkill`, que la sesión activa puede tocar sin root).
@@ -186,6 +189,85 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
   táctil virtual de uinput (`ABS_X/ABS_Y` + `BTN_TOUCH`, `INPUT_PROP_DIRECT`: coordenadas exactas, sin la
   aceleración del ratón virtual; `docs/testing.md`).
 
+## Ventanas iguales (2026-10-21)
+
+Punto 2 de la tanda «Diseño 2.1» (`ROADMAP.md`): una sola barra de título para labwc, GTK 3,
+GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones.md`.
+
+- **Barra de título**: 32 px (botones de 36×32 en `themerc` y `build/make-labwc-buttons.py`, que
+  también comprueba con `--comprobar` en `tests/marca.sh`). Las cabeceras GTK la copian en `gtk.css`
+  con los mismos SVG: el paquete los pone también en `/usr/share/command-os/botones` (enlace
+  `botones/` junto a las hojas de serie) y `command-os-user-setup` los copia a `~/.config/gtk-*/botones/`
+  como los chaflanes (las apps Flatpak los leen por el permiso global de `lib/apply-system`). En GTK 4
+  los botones de ventana no llevan `.titlebutton`: su regla sube la especificidad con un `:not()` para
+  no encogerse con la de los demás botones de la cabecera.
+- **libadwaita**: el filo va con `outline` por dentro (con `box-shadow` por fuera solo asomaba en un
+  lado) y se quita su `filter: opacity(.5)` de la cabecera sin foco (`headerbar` y `toolbarview >
+  .top-bar`): la inactiva ya se distingue por Void y Smoke, como en labwc. Lo que la app mete en la
+  cabecera (pestañas, buscador, botones con chaflán) se encoge a 24–28 px para caber.
+- **Límites**: los diálogos GTK 3 con cabecera (abrir archivo) se quedan en 36 px: GTK 3 reserva sitio
+  para un subtítulo (`has-subtitle`) y eso no se cambia desde CSS. Los rótulos de la barra lateral de
+  Thunar («Lugares», «Dispositivos») siguen en Geist negrita: Thunar 4.20 los pinta como filas de un
+  `GtkTreeView` y el CSS no llega a ellas sin poner en mono la barra entera. La raya bajo la cabecera
+  de Bazaar la dibuja libadwaita (`toolbarview`), en Steel.
+- **Firefox**: barra de título de labwc (`browser.tabs.inTitlebar = 0`) y políticas de serie en
+  `/etc/firefox/policies/policies.json` (página nueva sin patrocinados, historias, tiempo ni widgets;
+  sin el botón de VPN, `IPProtectionAvailable`; sin estudios ni recomendaciones; todo sin bloquear).
+  Firefox **descarta entera una política que no cuadra con su esquema** y solo lo dice en
+  `about:policies` (en la 158, `Widgets` pasó de sí/no a objeto y volvieron los patrocinados):
+  `tests/escritorio.sh` las compara con el esquema de la versión instalada. Los colores y la forma, con
+  `command.css` (`/usr/share/command-os/firefox/`), que registra la autoconfiguración de Firefox
+  (`/usr/lib/firefox/defaults/pref/command-os.js` → `/usr/lib/firefox/command-os.cfg`) como hoja de
+  usuario: solo variables del propio tema de Firefox y radios, más la línea Red Hot de la pestaña
+  activa; también en sus páginas `about:` (fondo Void, botón principal en Signal Red, la sección
+  elegida en Slate con texto Red Hot). Con GTK oscuro Firefox no usa los colores GTK (ni con
+  `browser.theme.native-theme`): usa su propio tema oscuro, de ahí la hoja.
+- **Probado en la VM** (capturas y medidas de píxeles): kitty (labwc) y Bazaar activo e inactivo con la
+  misma barra (32 px, Graphite/Void, raya Steel, mismos botones), el filo de Bazaar en los cuatro lados,
+  las preferencias de Bazaar (rótulos de grupo en mono Smoke), un diálogo GTK 3 con el principal
+  desactivado, Firefox (barra de labwc, pestañas cuadradas, línea Red Hot, campo Void, sin VPN, página
+  nueva limpia, ajustes) y el inicio de sesión (selector y contraseña, los dos de 36 px). **No
+  probado**: una app GTK 4 con botones de texto en la cabecera y una app Flatpak GTK con los botones
+  nuevos (el permiso de `botones/` llega al reinstalar).
+
+## Barra (2026-10-21)
+
+Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app HUD de `lenguaje.html`
+(cómo se ve: `docs/DISENO.md` § «Escritorio»). Por qué así y qué se descartó: `docs/decisiones.md`.
+
+- **Archivos**: `os/dotfiles/waybar/{config.jsonc,style.css}`; 36 px. Las reglas de labwc que cuelgan
+  paneles bajo la barra (`MoveToEdge` arriba) respetan su zona reservada: no dependen del alto.
+- **Grupo de estado** (`group/estado`: red, Bluetooth, volumen, batería). Waybar no da clic a un grupo:
+  cada módulo lleva el mismo `on-click` (`command-os-estado`) y el hover del grupo (`#estado:hover`) llega
+  a todos. Clic derecho: red → `command-os-wifi`, Bluetooth → encender o apagar, volumen → mezclador,
+  batería → su panel.
+- **Telemetría** (`group/telemetria`: CPU, TMP, MEM, cada 10 s). Oculta de serie: es lo único de la
+  barra que se despierta solo. El ajuste va en `~/.config/command-os/barra` (`telemetria=si|no`) y lo
+  aplica `command-os-fijadas` al escribir la parte generada de la barra (`fijadas.jsonc`, con el grupo
+  vacío si está oculta, y en `estilo.css` la celda sin filo); `command-os-fijadas telemetria
+  si|no|cambiar` lo cambia y recarga Waybar. Lo enseña u oculta el panel de estado.
+- **Panel de estado** (`os/bin/command-os-estado`): wofi con `power.css`, arriba a la derecha
+  (`--location top_right --xoffset -24 --yoffset 8`: con un margen menor wofi corta el chaflán derecho).
+  Bluetooth solo si hay adaptador en `/sys/class/bluetooth`: sin adaptador, `bluetoothctl show` se queda
+  esperando.
+- **Wi-Fi** (`os/bin/command-os-wifi`, sustituye a nm-applet): redes de `nmcli` (la conectada primero,
+  luego por señal, una vez cada nombre, sin las ocultas); la conectada, desconectar con confirmación;
+  una guardada (perfil con el nombre de la red), `connection up`; una nueva abierta, directa; con
+  contraseña, el diálogo de los paneles (`os/lib/clave-wifi.py`, `comun.Dialogo`) y la contraseña va a
+  `nmcli --ask` por la entrada, nunca en la línea de órdenes. Lo raro (ocultas, empresa, VPN), en
+  «ajustes de red avanzados» (`nm-connection-editor`). La contraseña no va en wofi: con el campo
+  enfocado GTK 3 no enseña el texto de ayuda, y una línea en la lista hace que Intro devuelva esa línea
+  en vez de lo escrito.
+- **Sin nm-applet**: fuera del autostart y de `packages.txt` (en los equipos ya instalados queda como
+  dependencia huérfana, sin arrancar). La bandeja queda para apps de terceros.
+- **Probado**: `tests/barra.sh` (telemetría, selector de wi-fi y panel de estado con `nmcli`, `wofi` y
+  `bluetoothctl` de mentira) y en la VM: barra a 36 px (logo, iconos apagados, activa con filo Steel y
+  línea Red Hot, un solo grupo, sin bandeja ni celda vacía), hover del grupo entero (Slate medido),
+  panel de estado bajo la barra, telemetría enseñada desde él, aviso sin tarjeta wi-fi y el diálogo de
+  la contraseña (devuelve lo escrito). Memoria en reposo tras arrancar: 661 MB antes y 669 MB después
+  (ruido entre arranques; nm-applet ocupaba 56 MB de RSS, casi todo bibliotecas GTK compartidas).
+  **No probado** (la VM no tiene wi-fi ni Bluetooth): conectar a una red de verdad, con y sin
+  contraseña, y una contraseña cambiada (`docs/prueba-en-pc-real.md` § 5).
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 
@@ -243,7 +325,7 @@ antes de cada cambio y que se le notifique (PushNotification) cuando haga falta 
   `~/.config/command-os/bashrc` (alias, prompt de marca, `EDITOR=nano`) enganchado desde `~/.bashrc`
   con marcadores, y `~/.config/nano/nanorc`.
 - **Animaciones**: con labwc no hay animaciones de ventana; el movimiento está en los paneles
-  (entrada de Wofi con `@keyframes`) y en las transiciones CSS de Waybar (ver `docs/DISENO.md`).
+  y en las transiciones CSS de la barra, las apps GTK y las notificaciones (`docs/DISENO.md` § «Movimiento»).
 - **Sonidos**: `build/make-sounds.py` los genera en `os/branding/sounds/`; `os/bin/command-os-sound`
   los reproduce (arranque, notificación, urgente, bloqueo, desbloqueo, tecla de volumen).
 - **VirtualBox**: 4 vCPU solo con CPU hotplug (sin hotplug, 2 vCPU = cuelgue en `DXE_AP`), 6 GB de

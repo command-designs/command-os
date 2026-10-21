@@ -13,10 +13,10 @@ set -euo pipefail
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 PO="${REPO}/os/po"
 # Archivos con textos traducibles: Python con _() y N_(); shell con t y tn (lib/textos.sh).
-PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py os/lib/zonas.py os/lib/selector_zona.py os/lib/panel-actualizaciones.py os/lib/panel-cuentas.py os/lib/panel-disco.py os/lib/panel-bateria.py os/lib/bateria.py os/lib/fijadas.py os/lib/abrir-descarga.py os/lib/comun.py build/make-plymouth-textos.py)
+PYTHON=(os/lib/greeter.py os/lib/primer-arranque.py os/lib/zonas.py os/lib/selector_zona.py os/lib/panel-actualizaciones.py os/lib/panel-cuentas.py os/lib/panel-disco.py os/lib/panel-bateria.py os/lib/bateria.py os/lib/fijadas.py os/lib/clave-wifi.py os/lib/abrir-descarga.py os/lib/comun.py build/make-plymouth-textos.py)
 SHELL_=(
   os/install.sh os/lib/crear-cuenta os/lib/apply-boot
-  os/bin/command-os-{about,captura,clipboard,desktops,idioma,keys,launcher,lock,login,power,rollback,status,update,updates,wallpaper,zona-horaria}
+  os/bin/command-os-{about,captura,clipboard,desktops,estado,idioma,keys,launcher,lock,login,power,rollback,status,update,updates,wallpaper,wifi,zona-horaria}
   build/x86/{instalar,lib,install-disco,install-dualboot}.sh
 )
 # Archivos de configuración que no pueden llamar a gettext (lib/traducir.py, docs/idioma.md): los

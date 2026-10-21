@@ -1,7 +1,9 @@
 /* Command OS — barra (docs/DISENO.md, marca v2), como la barra superior de la app de lenguaje.html
-   (§ 03): Graphite con filo Steel, el logo en su celda y lecturas mono en mayúsculas (peso 500,
-   0,14 em). Neutros casi siempre; el rojo es una señal: Red Hot en las líneas de lo activo, el texto y
-   los iconos. Warn solo para avisos. Esquinas vivas. */
+   (§ 03): Graphite con filo Steel, el logo en su celda cuadrada, los iconos como el carril (.a-rail:
+   apagados en reposo, a color en la ventana activa y al pasar el ratón) y lecturas mono en mayúsculas
+   (peso 500, 0,14 em) en un solo grupo de estado. Neutros casi siempre; el rojo es una señal: Red Hot en
+   las líneas de lo activo, el texto y los iconos. Warn solo para avisos. Esquinas vivas. Movimiento solo
+   al pasar el ratón o al cambiar de estado, con la curva de salida de la marca (--ease-out). */
 @define-color graphite #151515;
 @define-color slate #1f1f1f;
 @define-color steel #2a2a2a;
@@ -36,12 +38,119 @@ tooltip label {
     color: @bone;
 }
 
-/* Escritorios, a la derecha junto a los datos. Con uno solo no se enseña nada: el botón se queda
-   sin ancho ni texto. Con dos o más, el primero abre con el mismo filo Steel que los datos. */
-#workspaces button {
-    transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms cubic-bezier(0.16, 1, 0.3, 1),
-        border-color 250ms cubic-bezier(0.16, 1, 0.3, 1);
+/* El logo, en su celda cuadrada (el alto de la barra) con el filo Steel a la derecha. */
+#custom-logo {
+    transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    background-image: url("/usr/share/command-os/logo/command-mark-32.png");
+    background-size: 16px 17px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-width: 35px;
+    padding: 0;
+    border-right: 1px solid @steel;
+}
+
+#custom-logo:hover {
+    background-color: @slate;
+}
+
+/* Iconos (fijadas y ventanas) como el carril de lenguaje.html: apagados en reposo y a color al pasar el
+   ratón y en la ventana activa, que va en Slate con filo Steel y la línea Red Hot debajo. GTK 3 no
+   tiene filtro de gris: se atenúan con opacidad. El filo transparente en reposo evita que el icono
+   salte al activarse. */
+#taskbar {
+    margin-left: 4px;
+    padding-left: 4px;
+    border-left: 1px solid @steel;
+}
+
+#taskbar button,
+#custom-fijada {
     padding: 0 8px;
+    margin: 3px 1px 0;
+    border: 1px solid transparent;
+    border-bottom: 2px solid transparent;
+}
+
+/* La línea Red Hot de lo activo (ventana y escritorio) es el subrayado de BRAND § 9.2.3: un fondo de
+   2 px abajo que crece desde la izquierda al activarse y se va por la derecha al dejar de estarlo
+   (280 ms, --ease-out). La posición salta sin transición; solo se anima el ancho. */
+#taskbar button,
+#workspaces button {
+    background-image: linear-gradient(@red-hot, @red-hot);
+    background-repeat: no-repeat;
+    background-position: right bottom;
+    background-size: 0 2px;
+}
+
+#taskbar button.active,
+#workspaces button.active {
+    background-position: left bottom;
+    background-size: 100% 2px;
+}
+
+#taskbar button {
+    transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1), border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+        background-size 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#taskbar button image {
+    transition: opacity 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0.55;
+}
+
+#taskbar button:hover,
+#custom-fijada:hover {
+    background-color: @slate;
+    box-shadow: none;
+}
+
+#taskbar button:hover image,
+#taskbar button.active image {
+    opacity: 1;
+}
+
+#taskbar button.active {
+    background-color: @slate;
+    border-color: @steel;
+    border-bottom-color: transparent;
+}
+
+#taskbar button.minimized image {
+    opacity: 0.3;
+}
+
+/* Aplicaciones fijadas (command-os-fijadas): el icono va de fondo (lo pone la hoja que genera
+   lib/fijadas.py, que importa esta), así que se atenúa el botón entero. */
+#custom-fijada {
+    transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    background-size: 18px 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-width: 18px;
+    opacity: 0.55;
+}
+
+#custom-fijada:hover {
+    opacity: 1;
+}
+
+/* Reloj en Oxanium: fecha apagada y hora en hueso. */
+#clock {
+    font-family: "Oxanium", "JetBrainsMono Nerd Font";
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    padding: 0 16px;
+    color: @bone;
+}
+
+/* Escritorios, a la derecha. Con uno solo no se enseña nada: el botón se queda sin ancho ni texto.
+   Con dos o más, el primero abre con el filo Steel de las celdas. */
+#workspaces button {
+    transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1), background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 160ms cubic-bezier(0.16, 1, 0.3, 1), background-size 280ms cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0 9px;
     color: @smoke;
     border-bottom: 2px solid transparent;
     letter-spacing: 0.14em;
@@ -52,15 +161,14 @@ tooltip label {
 }
 
 #workspaces button:hover {
-    background: @slate;
+    background-color: @slate;
     color: @bone;
     box-shadow: none;
 }
 
 #workspaces button.active {
     color: @red-hot;
-    background: @slate;
-    border-bottom: 2px solid @red-hot;
+    background-color: @slate;
 }
 
 #workspaces button.urgent {
@@ -82,114 +190,84 @@ tooltip label {
     font-size: 1px;
 }
 
-/* Barra de tareas: un icono por ventana; la enfocada, con el mismo filo rojo que el espacio activo. */
-#taskbar {
-    margin-left: 6px;
-    padding-left: 6px;
+/* Celdas de la derecha: cada una con el filo Steel a la izquierda y sin cajas dentro. El grupo de estado
+   se ilumina entero al pasar el ratón (un solo clic para todo). Si la telemetría está oculta, la hoja
+   generada le quita el filo y el relleno a su celda vacía. */
+#telemetria,
+#estado,
+#custom-updates,
+#tray {
+    padding: 0 7px;
     border-left: 1px solid @steel;
 }
 
-#taskbar button {
-    transition: background 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 250ms cubic-bezier(0.16, 1, 0.3, 1);
-    padding: 0 7px;
-    border-bottom: 2px solid transparent;
+#estado {
+    transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#taskbar button:hover {
-    background: @slate;
-    box-shadow: none;
-}
-
-#taskbar button.active {
-    background: @slate;
-    border-bottom: 2px solid @red-hot;
-}
-
-#taskbar button.minimized {
-    opacity: 0.45;
-}
-
-/* Aplicaciones fijadas (command-os-fijadas): como los botones de la barra de tareas, con el icono de
-   fondo (lo pone la hoja que genera lib/fijadas.py, que importa esta). */
-#custom-fijada {
-    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
-    background-size: 16px 16px;
-    background-repeat: no-repeat;
-    background-position: center;
-    min-width: 16px;
-    padding: 0 7px;
-    border-bottom: 2px solid transparent;
-}
-
-#custom-fijada:hover {
+#estado:hover,
+#custom-updates:hover {
     background-color: @slate;
 }
 
-#custom-logo {
-    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
-    background-image: url("/usr/share/command-os/logo/command-mark-32.png");
-    background-size: 15px 16px;
-    background-repeat: no-repeat;
-    background-position: center;
-    min-width: 16px;
-    padding: 0 16px;
-    border-right: 1px solid @steel;
-}
-
-#custom-logo:hover {
-    background-color: @slate;
-}
-
-/* Reloj en Oxanium: fecha apagada y hora en hueso. */
-#clock {
-    font-family: "Oxanium", "JetBrainsMono Nerd Font";
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    padding: 0 16px;
-    color: @bone;
-}
-
-#network, #bluetooth, #pulseaudio, #battery, #cpu, #temperature, #memory, #tray, #custom-updates {
-    transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1), background 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 0 10px;
+#cpu, #temperature, #memory, #network, #bluetooth, #pulseaudio, #battery, #custom-updates {
+    transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1);
     color: @ash;
     letter-spacing: 0.14em;
-    border-left: 1px solid @steel;
 }
 
-#network:hover, #bluetooth:hover, #pulseaudio:hover, #cpu:hover, #memory:hover, #custom-updates:hover {
+/* Entre lecturas, el doble de aire que entre etiqueta y valor: se leen como pares sin separadores. */
+#cpu, #temperature, #memory, #network, #bluetooth, #pulseaudio, #battery {
+    padding: 0 8px;
+}
+
+#custom-updates {
+    padding: 0 12px;
+}
+
+#estado:hover #network, #estado:hover #bluetooth, #estado:hover #pulseaudio, #estado:hover #battery,
+#custom-updates:hover {
     color: @bone;
-    background-color: @slate;
 }
 
 /* LED de estado (lenguaje.html: .led, con su halo de 0,6 em): un punto con un degradado radial a la
-   izquierda del módulo, solo cuando dice algo (conectado, sin red, versión nueva) y siempre con su
-   texto al lado. Es un fondo, no una sombra: el hover cambia el color de fondo sin quitarlo. */
-#network.wifi, #network.ethernet, #network.linked, #network.disconnected,
-#bluetooth.connected, #custom-updates.nueva {
-    padding-left: 24px;
+   izquierda, solo en la red (como el «sincronizado» de la referencia) y en una versión nueva, y siempre
+   con su texto al lado. Es un fondo, no una sombra: el hover del grupo no lo quita. */
+#network.wifi, #network.ethernet, #network.linked, #network.disconnected, #custom-updates.nueva {
+    padding-left: 22px;
     background-repeat: no-repeat;
 }
 
-#network.wifi, #network.ethernet, #network.linked, #bluetooth.connected {
-    background-image: radial-gradient(circle 8px at 13px 50%, @ok 0px, @ok 3px,
+#network.wifi, #network.ethernet, #network.linked {
+    background-image: radial-gradient(circle 8px at 11px 50%, @ok 0px, @ok 3px,
         rgba(61, 220, 132, 0.45) 3.5px, rgba(61, 220, 132, 0) 8px);
 }
 
 #network.disconnected {
-    background-image: radial-gradient(circle 8px at 13px 50%, @red-hot 0px, @red-hot 3px,
+    background-image: radial-gradient(circle 8px at 11px 50%, @red-hot 0px, @red-hot 3px,
         rgba(245, 72, 44, 0.45) 3.5px, rgba(245, 72, 44, 0) 8px);
 }
 
 #custom-updates.nueva {
-    background-image: radial-gradient(circle 8px at 13px 50%, @warn 0px, @warn 3px,
+    background-image: radial-gradient(circle 8px at 11px 50%, @warn 0px, @warn 3px,
         rgba(255, 176, 32, 0.4) 3.5px, rgba(255, 176, 32, 0) 8px);
 }
 
-/* Actualizaciones: apagado con paquetes sueltos, Warn (aviso) con una versión nueva de command-os. */
+/* Actualizaciones: apagado con paquetes sueltos, Warn (aviso) con una versión nueva de command-os. El
+   aviso aparece una sola vez con un fundido (280 ms, --ease-out); nunca parpadea. */
+@keyframes aviso-entra {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 #custom-updates.nueva {
     color: @warn;
+    animation: aviso-entra 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Umbrales: Warn de aviso, Red Hot crítico (el texto de la etiqueta y el valor siguen ahí). */
@@ -213,10 +291,19 @@ tooltip label {
     color: @smoke;
 }
 
+#bluetooth.connected {
+    color: @bone;
+}
+
+/* Bandeja: solo para apps de terceros (la red está en el grupo de estado). Sin iconos, Waybar la oculta. */
+#tray > .passive {
+    opacity: 0.55;
+}
+
 /* Botón de energía: al final de la barra, apagado hasta que se pasa por encima. */
 #custom-power {
-    transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms cubic-bezier(0.16, 1, 0.3, 1);
-    padding: 0 14px 0 12px;
+    transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1), background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0 14px 0 13px;
     color: @smoke;
     font-size: 14px;
     border-left: 1px solid @steel;

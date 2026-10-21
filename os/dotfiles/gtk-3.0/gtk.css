@@ -10,6 +10,7 @@
 @define-color cmd_steel #2a2a2a;
 @define-color cmd_bone #edebe6;
 @define-color cmd_ash #a3a09a;
+@define-color cmd_smoke #85827c;
 @define-color cmd_white #ffffff;
 @define-color cmd_red #a51500;
 @define-color cmd_red_hot #f5482c;
@@ -40,7 +41,7 @@
 @define-color headerbar_bg_color @cmd_graphite;
 @define-color headerbar_fg_color @cmd_bone;
 @define-color headerbar_border_color @cmd_steel;
-@define-color headerbar_backdrop_color @cmd_graphite;
+@define-color headerbar_backdrop_color @cmd_void;
 @define-color headerbar_shade_color rgba(0, 0, 0, 0.5);
 @define-color headerbar_darker_shade_color rgba(0, 0, 0, 0.9);
 @define-color sidebar_bg_color @cmd_graphite;
@@ -95,6 +96,25 @@ scale slider {
     border-radius: 9999px;
 }
 
+/* Movimiento (BRAND § 9): el hover, el foco y el cambio de estado cambian el color, el relleno y el
+   filo en 160 ms (--dur-fast) con la curva de salida de la marca (--ease-out), en vez de saltar.
+   Solo al pasar el ratón o al cambiar de estado: nada se mueve en reposo. GTK no anima el
+   border-image: el filo de los chaflanes cambia de golpe (docs/DISENO.md § «Movimiento»). */
+button,
+entry,
+spinbutton,
+row,
+check,
+radio,
+switch,
+switch slider,
+notebook > header > tabs > tab,
+menuitem,
+modelbutton,
+scale slider {
+    transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Marco de ventana. labwc enmarca las apps que le ceden la decoración (Thunar, kitty) con el tema
    Command; las que dibujan su propia cabecera llevan aquí el mismo marco: filo Red Hot si están
    activas, Steel si no, y una sombra oscura corta (sin halo rojo). Maximizadas, encajadas o a
@@ -139,10 +159,79 @@ window.solid-csd decoration {
     box-shadow: inset 0 0 0 1px @cmd_red_hot;
 }
 
+/* Barra de título: la misma que labwc dibuja a las demás ventanas (themerc). 32 px, Graphite (Void
+   sin foco) con filo Steel debajo, título en JetBrains Mono negrita (normal y en Smoke sin foco) y
+   los botones de labwc (botones/, copia de build/make-labwc-buttons.py) pegados a la esquina. Lo que
+   la app pone dentro (pestañas, buscador) se encoge para caber. */
 headerbar,
 .titlebar {
+    min-height: 32px;
+    padding: 0 0 0 4px;
+    border: none;
+    background-color: @cmd_graphite;
     box-shadow: inset 0 -1px @cmd_steel;
 }
+
+headerbar:backdrop,
+.titlebar:backdrop {
+    background-color: @cmd_void;
+}
+
+headerbar .title {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 10pt;
+    font-weight: bold;
+}
+
+headerbar:backdrop .title {
+    font-weight: normal;
+    color: @cmd_smoke;
+}
+
+headerbar button:not(.titlebutton),
+headerbar entry,
+headerbar spinbutton {
+    min-height: 24px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+headerbar button.titlebutton,
+.titlebar button.titlebutton {
+    min-width: 36px;
+    min-height: 32px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 36px 32px;
+}
+
+button.titlebutton image {
+    opacity: 0;
+}
+
+button.titlebutton.close { background-image: url("botones/close-active.svg"); }
+button.titlebutton.close:backdrop { background-image: url("botones/close-inactive.svg"); }
+button.titlebutton.close:hover,
+button.titlebutton.close:active { background-image: url("botones/close_hover-active.svg"); }
+button.titlebutton.maximize { background-image: url("botones/max-active.svg"); }
+button.titlebutton.maximize:backdrop { background-image: url("botones/max-inactive.svg"); }
+button.titlebutton.maximize:hover,
+button.titlebutton.maximize:active { background-image: url("botones/max_hover-active.svg"); }
+.maximized button.titlebutton.maximize { background-image: url("botones/max_toggled-active.svg"); }
+.maximized button.titlebutton.maximize:backdrop { background-image: url("botones/max_toggled-inactive.svg"); }
+.maximized button.titlebutton.maximize:hover,
+.maximized button.titlebutton.maximize:active { background-image: url("botones/max_toggled_hover-active.svg"); }
+button.titlebutton.minimize { background-image: url("botones/iconify-active.svg"); }
+button.titlebutton.minimize:backdrop { background-image: url("botones/iconify-inactive.svg"); }
+button.titlebutton.minimize:hover,
+button.titlebutton.minimize:active { background-image: url("botones/iconify_hover-active.svg"); }
 
 /* Selección en listas: Slate con el texto en Bone y la barra Red Hot de 2 px a la izquierda (la
    entrada activa de la paleta de lenguaje.html). */
@@ -360,4 +449,26 @@ headerbar > button.destructive-action:not(.flat):active,
 grid > button.suggested-action:not(.flat):active {
     background-image: linear-gradient(@cmd_red_deep, @cmd_red_deep);
     border-image-source: url("chaflanes/principal-pulsado.svg");
+}
+
+/* El principal desactivado (un «Abrir» sin nada elegido): como cualquier botón desactivado, sin el
+   relleno rojo. */
+box:not(.linked) > button.suggested-action:not(.flat):disabled,
+box:not(.linked) > button.destructive-action:not(.flat):disabled,
+buttonbox:not(.linked) > button.suggested-action:not(.flat):disabled,
+buttonbox:not(.linked) > button.destructive-action:not(.flat):disabled,
+headerbar > button.suggested-action:not(.flat):disabled,
+headerbar > button.destructive-action:not(.flat):disabled,
+grid > button.suggested-action:not(.flat):disabled,
+grid > button.destructive-action:not(.flat):disabled {
+    color: @cmd_smoke;
+    background-image: linear-gradient(@cmd_graphite, @cmd_graphite);
+    border-image-source: url("chaflanes/boton-inactivo.svg");
+}
+
+/* En la barra de título, los botones con chaflán caben en sus 32 px: 2 px de aire arriba y abajo. */
+headerbar > button.text-button:not(.flat):not(.titlebutton) {
+    min-height: 20px;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }

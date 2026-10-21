@@ -3,7 +3,8 @@
 # el estado de una batería simulada (lib/bateria.py: avisos y panel), cuándo avisa de batería baja, el
 # límite de carga (lib/gestionar-bateria sobre un /sys/class/power_supply de mentira) y la parte de la
 # barra que generan las aplicaciones fijadas (lib/fijadas.py) y que la ayuda de atajos sale en columnas
-# (bin/command-os-keys) y lo que hace el clic derecho en el Bluetooth (bin/command-os-bluetooth). Corre en cualquier Linux con python3
+# (bin/command-os-keys), lo que hace el clic derecho en el Bluetooth (bin/command-os-bluetooth), la telemetría
+# opcional, el selector de wi-fi (bin/command-os-wifi) y el panel de estado (bin/command-os-estado). Corre en cualquier Linux con python3
 # (GitHub Actions, ver .github/workflows/pruebas.yml). Sale con 1 si algo falla.
 set -uo pipefail
 
@@ -198,6 +199,23 @@ python3 "${F}" generar >/dev/null && [[ -z "$(leer_barra)" ]] && ok "lista vací
 ! env -u XDG_RUNTIME_DIR python3 "${F}" generar "${T}/base.css" >/dev/null 2>&1 && [[ ! -e /tmp/command-os/barra/fijadas.jsonc ]] \
   && ok "sin XDG_RUNTIME_DIR no escribe nada (nunca en /tmp)" || mal "generó sin XDG_RUNTIME_DIR"
 
+echo "==> Telemetría de la barra (lib/fijadas.py telemetria)"
+telemetria() {  # módulos del grupo y si la hoja vacía su celda
+  python3 -c 'import json, sys; c = json.load(open(sys.argv[1])); print(" ".join(c["group/telemetria"]["modules"]))' \
+    "${XDG_RUNTIME_DIR}/command-os/barra/fijadas.jsonc"
+  grep -c '^#telemetria { padding: 0; border: none; }$' "${XDG_RUNTIME_DIR}/command-os/barra/estilo.css"
+}
+python3 "${F}" generar "${T}/base.css" >/dev/null
+[[ "$(python3 "${F}" telemetria)" == no && "$(telemetria | tr '\n' '|')" == "|1|" ]] \
+  && ok "oculta de serie: grupo vacío y celda sin filo" || mal "de serie: $(telemetria | tr '\n' '|')"
+[[ "$(python3 "${F}" telemetria cambiar)" == si && "$(telemetria | tr '\n' '|')" == "cpu temperature memory|0|" ]] \
+  && ok "cambiar: CPU, TMP y MEM a la vista" || mal "cambiar: $(telemetria | tr '\n' '|')"
+[[ "$(cat "${XDG_CONFIG_HOME}/command-os/barra")" == "telemetria=si" && "$(python3 "${F}" telemetria)" == si ]] \
+  && ok "el ajuste queda guardado" || mal "ajuste: $(cat "${XDG_CONFIG_HOME}/command-os/barra")"
+python3 "${F}" telemetria no >/dev/null && [[ "$(telemetria | tr '\n' '|')" == "|1|" ]] \
+  && ok "no: oculta otra vez" || mal "no: $(telemetria | tr '\n' '|')"
+! python3 "${F}" telemetria quizas 2>/dev/null && ok "solo acepta si, no o cambiar" || mal "aceptó otro valor"
+
 echo "==> Ayuda de atajos (bin/command-os-keys)"
 # wofi de mentira que guarda lo que le llega; la sesión sin locale (LANG=C) es la que descuadraba.
 mkdir -p "${T}/bin"
@@ -225,6 +243,99 @@ bt() { echo "$1" > "${T}/bt"; : > "${T}/bt-ordenes"; PATH="${T}/bin:${PATH}" sh 
 [[ "$(bt no)" == "rfkill unblock bluetooth;bluetoothctl power on;" ]] && ok "apagado: quita el bloqueo y lo enciende" \
   || mal "apagado: $(bt no)"
 [[ "$(bt yes)" == "bluetoothctl power off;" ]] && ok "encendido: lo apaga" || mal "encendido: $(bt yes)"
+
+# wofi de mentira para los paneles: guarda lo que le llega (wofi-N) y sus opciones (wofi-args) y elige
+# la primera línea que case con WOFI_ELIGE.
+cat > "${T}/bin/wofi" <<EOF
+#!/bin/sh
+n=\$(( \$(cat "${T}/wofi-n" 2>/dev/null || echo 0) + 1 )); echo "\${n}" > "${T}/wofi-n"
+cat > "${T}/wofi-\${n}"
+echo "\$*" >> "${T}/wofi-args"
+grep -m1 -F -- "\${WOFI_ELIGE:-nada}" "${T}/wofi-\${n}"
+EOF
+# nmcli de mentira: una tarjeta wlan0, las redes de ${T}/redes, las guardadas de ${T}/guardadas; apunta
+# cada orden en ${T}/nm-ordenes y, con --ask, lo que le llega por la entrada.
+cat > "${T}/bin/nmcli" <<EOF
+#!/bin/sh
+echo "nmcli \$*" >> "${T}/nm-ordenes"
+case "\$*" in
+  "-t -e no -f DEVICE,TYPE device") printf 'lo:loopback\nwlan0:wifi\n' ;;
+  "-t -e no -f TYPE,STATE,CONNECTION device") printf 'loopback:connected (externally):lo\nwifi:connected:Oficina\n' ;;
+  "radio wifi") echo enabled ;;
+  *"device wifi list"*) cat "${T}/redes" ;;
+  "-t -e no -f NAME connection show") cat "${T}/guardadas" ;;
+  *--ask*) echo "entrada: \$(cat)" >> "${T}/nm-ordenes" ;;
+esac
+exit 0
+EOF
+printf '#!/bin/sh\necho "$*" >> "%s/avisos"\n' "${T}" > "${T}/bin/notify-send"
+# Diálogo de la contraseña (lib/clave-wifi.py) de mentira: apunta para qué red se abrió y escribe
+# WIFI_PW; sin ella, como si se cancelara.
+cat > "${T}/clave-wifi" <<EOF
+#!/bin/sh
+echo "\$1" >> "${T}/clave-pedida"
+[ -n "\${WIFI_PW}" ] || exit 1
+printf '%s\n' "\${WIFI_PW}"
+EOF
+chmod +x "${T}/bin/"* "${T}/clave-wifi"
+sed "s|/usr/lib/command-os|${LIB}|g" "${RAIZ}/os/bin/command-os-wifi" > "${T}/wifi"
+# wifi ELIGE [CONTRASEÑA]   abre el selector y elige la red que case con ELIGE
+wifi() {
+  rm -f "${T}"/wofi-* "${T}/nm-ordenes" "${T}/avisos" "${T}/clave-pedida"
+  PATH="${T}/bin:${PATH}" COMMAND_OS_CLAVE_WIFI="${T}/clave-wifi" WOFI_ELIGE="$1" WIFI_PW="${2:-}" bash "${T}/wifi"
+}
+ordenes() { grep -vE 'device$|radio wifi|wifi list|connection show$' "${T}/nm-ordenes" | tr '\n' ';'; }
+
+echo "==> Wi-Fi (bin/command-os-wifi)"
+printf '%s\n' ':45:WPA2:Casa' '*:70:WPA2:Oficina' ':90::Bar abierto' ':30:WPA2:Casa' ':50:WPA2:' ':60:WPA1 WPA2:Red:con:dos puntos' \
+  > "${T}/redes"
+: > "${T}/guardadas"
+wifi nada
+lista=$(cat "${T}/wofi-1" 2>/dev/null)
+if [[ "${lista}" == $'󰤥   Oficina · conectada\n󰤨   Bar abierto\n󰤥   Red:con:dos puntos   󰌾\n󰤢   Casa   󰌾' ]]; then
+  ok "la conectada primero, luego por señal; cada red una vez, sin ocultas, con candado y «:» en el nombre"
+else
+  mal "lista de redes: ${lista}"
+fi
+wifi "Red:con" 's3cr eto'
+if [[ "$(ordenes)" == "nmcli --ask --wait 30 device wifi connect Red:con:dos puntos ifname wlan0;entrada: s3cr eto;" ]] \
+    && [[ "$(cat "${T}/clave-pedida")" == "Red:con:dos puntos" ]] && [[ "$(grep -c 's3cr eto' "${T}/nm-ordenes")" == 1 ]]; then
+  ok "red nueva con contraseña: la pide y se la da a nmcli por la entrada, no en la orden"
+else
+  mal "red nueva con contraseña: $(ordenes)"
+fi
+grep -q 'conectada a Red:con:dos puntos' "${T}/avisos" && ok "avisa al conectar" || mal "aviso: $(cat "${T}/avisos")"
+wifi "Bar abierto"
+[[ "$(ordenes)" == "nmcli --wait 30 device wifi connect Bar abierto ifname wlan0;" ]] && [[ ! -e "${T}/clave-pedida" ]] \
+  && ok "red abierta: sin contraseña" || mal "red abierta: $(ordenes)"
+echo Casa > "${T}/guardadas"
+wifi "Casa"
+[[ "$(ordenes)" == "nmcli --wait 30 connection up id Casa;" ]] && ok "red guardada: entra sin preguntar" || mal "red guardada: $(ordenes)"
+wifi "Red:con" ''
+[[ -z "$(ordenes)" ]] && ok "sin contraseña (cancelar) no intenta conectar" || mal "conectó sin contraseña: $(ordenes)"
+
+echo "==> Panel de estado (bin/command-os-estado)"
+printf '#!/bin/sh\ncase "$1" in --get-mute) echo false ;; --get-volume) echo 45 ;; esac\n' > "${T}/bin/pamixer"
+printf '#!/bin/sh\necho "fijadas $*" >> "%s/estado-ordenes"\n[ "$*" = telemetria ] && echo no\nexit 0\n' "${T}" > "${T}/bin/command-os-fijadas"
+chmod +x "${T}/bin/"*
+sed "s|/usr/lib/command-os|${LIB}|g" "${RAIZ}/os/bin/command-os-estado" > "${T}/estado"
+rm -rf "${PS}"; mkdir -p "${PS}"
+bateria BAT0 type=Battery status=Discharging capacity=64
+echo yes > "${T}/bt"
+mkdir -p "${T}/sys-bt/hci0"
+rm -f "${T}"/wofi-* "${T}/estado-ordenes"
+PATH="${T}/bin:${PATH}" COMMAND_OS_BLUETOOTH_SYS="${T}/sys-bt" WOFI_ELIGE="mostrar cpu" bash "${T}/estado"
+panel=$(cat "${T}/wofi-1" 2>/dev/null)
+if [[ "${panel}" == $'󰖩   wi-fi · Oficina\n󰂯   bluetooth · encendido\n󰕾   sonido · 45 %\n󰁹   batería · 64 %\n󰍛   mostrar cpu, temperatura y memoria\n󰒓   ajustes de red avanzados' ]]; then
+  ok "red, bluetooth, sonido, batería, telemetría y red avanzada"
+else
+  mal "panel: ${panel}"
+fi
+grep -qx 'fijadas telemetria cambiar' "${T}/estado-ordenes" && ok "telemetría: la enseña" || mal "telemetría: $(cat "${T}/estado-ordenes")"
+rm -f "${T}"/wofi-* "${T}/bt-ordenes"
+PATH="${T}/bin:${PATH}" COMMAND_OS_BLUETOOTH_SYS="${T}/no-hay" bash "${T}/estado"
+! grep -q bluetooth "${T}/wofi-1" && [[ ! -s "${T}/bt-ordenes" ]] \
+  && ok "sin adaptador: ni bluetooth en el panel ni bluetoothctl (se quedaría esperando)" || mal "sin adaptador: $(cat "${T}/wofi-1")"
 
 echo
 if (( fallos )); then echo "==> ${fallos} fallo(s)"; exit 1; fi

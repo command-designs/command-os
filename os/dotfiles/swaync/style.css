@@ -38,6 +38,14 @@ blankwindow {
     border-image-slice: 15;
     border-image-width: 15px;
     border-image-repeat: stretch;
+    transition: border-image-source 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Botones de cerrar y de acción: el hover cambia el color y el relleno en 160 ms (--ease-out). */
+.close-button,
+.notification-action > button {
+    transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1), background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+        border-image-source 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .notification-row .notification-background .notification:hover {

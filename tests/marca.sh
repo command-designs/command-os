@@ -5,6 +5,7 @@
 # palabras), y los halos solo están en la señal (BRAND 2.1 § 7.2; nunca en texto, paneles ni bordes). La
 # forma: los chaflanes generados al día y citados bien, y solo los radios de la marca. El splash:
 # sus imágenes completas y la lista de comprobaciones igual en el servicio, el gancho y el tema.
+# El movimiento: solo las curvas de la marca y ninguna animación en bucle (BRAND § 9).
 # Mira colores hex (#rrggbb y #rrggbbaa), rgb()/rgba(), tuplas RGB de Python, secuencias de color
 # de terminal (38;2;r;g;b) y los colores de Plymouth (0.93, 0.92, 0.90). Corre en cualquier Linux con
 # python3 (GitHub Actions, ver .github/workflows/pruebas.yml). Sale con 1 si algo falla.
@@ -161,16 +162,24 @@ python3 build/make-chaflanes.py --comprobar || forma=1
 for nombre in $(grep -rhoE 'chaflanes/[a-z-]+\.svg' os/dotfiles os/branding/greeter | sort -u); do
   if [[ ! -f "os/branding/${nombre}" ]]; then echo "  MAL  una hoja cita ${nombre}, que no existe"; forma=1; fi
 done
+# Los botones de la barra de título son los de su generador, y los que citan las hojas GTK (en
+# botones/, una copia de los de labwc) existen: una sola barra de título para todas las ventanas.
+python3 build/make-labwc-buttons.py --comprobar || forma=1
+for nombre in $(grep -rhoE 'botones/[a-z_-]+\.svg' os/dotfiles | sort -u); do
+  if [[ ! -f "os/branding/labwc/Command/labwc/${nombre#botones/}" ]]; then
+    echo "  MAL  una hoja cita ${nombre}, que no existe"; forma=1
+  fi
+done
 # Radios: 0 (esquinas vivas), 2 px en los campos de texto y redondos los radios y deslizadores.
 radios=$(grep -rnE 'border-radius:\s*[^;]+' os/dotfiles os/branding/greeter --include='*.css' \
-  | grep -vE 'border-radius:\s*(0|0px|2px|9999px)\s*;')
+  | grep -vE 'border-radius:\s*(0|0px|2px|9999px)\s*(!important)?\s*;')
 if [[ -n "${radios}" ]]; then echo "  MAL  radios fuera de la marca:"; echo "${radios}" | sed 's/^/         /'; forma=1; fi
 # wofi 1.5 con hide_search deja ver solo la primera opción: los paneles ocultan el buscador en su hoja.
 if grep -rn 'hide_search' os/bin os/lib >/dev/null; then
   echo "  MAL  hide_search en un panel de wofi (enseña una sola opción):"
   grep -rn 'hide_search' os/bin os/lib | sed 's/^/         /'; forma=1
 fi
-(( forma == 0 )) && echo "  ok   chaflanes al día y citados bien, radios de la marca, paneles de wofi sin hide_search"
+(( forma == 0 )) && echo "  ok   chaflanes y botones al día y citados bien, radios de la marca, paneles de wofi sin hide_search"
 
 echo "==> Splash (firma corta y comprobaciones de arranque; BRAND § 9)"
 splash=0
@@ -221,5 +230,26 @@ fi
 (( splash == 0 )) && echo "  ok   ${frames} fotogramas del símbolo, ${filas} comprobaciones iguales en el servicio, el gancho y el tema"
 
 echo
-if (( colores != 0 )) || [[ -n "${brillos}" ]] || (( forma != 0 )) || (( splash != 0 )); then echo "==> Hay fallos"; exit 1; fi
+echo "==> Movimiento (BRAND § 9)"
+movimiento=0
+# En las hojas, solo las curvas de la marca (--ease-out, --ease-in-out y --ease-snap), ni las de otros
+# sistemas (Material: 0.4, 0, 0.2, 1) ni las palabras de CSS (ease, linear…), que no son de la marca.
+hojas=(os/dotfiles os/branding/greeter)
+curvas=$(grep -rnoE 'cubic-bezier\([^)]*\)' "${hojas[@]}" --include='*.css' \
+  | grep -vE 'cubic-bezier\((0\.16, 1, 0\.3, 1|0\.65, 0, 0\.35, 1|0\.2, 0\.9, 0\.1, 1\.25)\)$')
+palabras=$(grep -rnE '(transition|animation)(-timing-function)?:[^;]*\b(ease|ease-in|ease-out|ease-in-out|linear)\b' \
+  "${hojas[@]}" --include='*.css')
+if [[ -n "${curvas}${palabras}" ]]; then
+  echo "  MAL  curvas fuera de la marca:"; printf '%s\n%s\n' "${curvas}" "${palabras}" | sed '/^$/d; s/^/         /'
+  movimiento=1
+fi
+# Nada se mueve en reposo (AGENTS.md § «Ligereza»): ninguna animación en bucle.
+bucles=$(grep -rnE 'infinite' "${hojas[@]}" --include='*.css')
+if [[ -n "${bucles}" ]]; then echo "  MAL  animaciones en bucle:"; echo "${bucles}" | sed 's/^/         /'; movimiento=1; fi
+(( movimiento == 0 )) && echo "  ok   solo las curvas de la marca y ninguna animación en bucle"
+
+echo
+if (( colores != 0 )) || [[ -n "${brillos}" ]] || (( forma != 0 )) || (( splash != 0 )) || (( movimiento != 0 )); then
+  echo "==> Hay fallos"; exit 1
+fi
 echo "==> Todo correcto"

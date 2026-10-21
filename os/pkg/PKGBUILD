@@ -61,6 +61,10 @@ package() {
   # serie los buscan junto a ellas (chaflanes/, enlace) como las copias de ~/.config (user-setup).
   install -d "${d}/usr/share/command-os/chaflanes"
   install -m 644 "${s}"/branding/chaflanes/*.svg "${d}/usr/share/command-os/chaflanes/"
+  # Botones de la barra de título (build/make-labwc-buttons.py): los mismos de labwc para las
+  # cabeceras GTK 3/4, que los buscan en botones/ junto a ellas, como los chaflanes.
+  install -d "${d}/usr/share/command-os/botones"
+  install -m 644 "${s}"/branding/labwc/Command/labwc/*.svg "${d}/usr/share/command-os/botones/"
   # Oxanium y Geist (BRAND.md § 5) no están en los repos de Arch (licencia OFL incluida).
   install -d "${d}/usr/share/fonts/command-os" "${d}/usr/share/licenses/${pkgname}"
   install -m 644 "${s}"/branding/fonts/*.ttf "${d}/usr/share/fonts/command-os/"
@@ -80,6 +84,13 @@ package() {
   install -m 644 "${s}/dotfiles/hypr/hyprlock.conf" "${d}/etc/xdg/hypr/"
   install -m 644 "${s}/branding/fastfetch/config.jsonc" "${d}/etc/xdg/fastfetch/"
   install -m 644 "${s}/dotfiles/xdg-desktop-portal/labwc-portals.conf" "${d}/etc/xdg/xdg-desktop-portal/"
+  # Firefox: políticas (barra de título de labwc, página nueva sin patrocinados ni VPN) y la hoja con
+  # la marca, que pone su autoconfiguración en todas las cuentas (docs/notas/escritorio.md
+  # § «Ventanas iguales»).
+  install -Dm 644 "${s}/dotfiles/firefox/policies.json" "${d}/etc/firefox/policies/policies.json"
+  install -Dm 644 "${s}/dotfiles/firefox/autoconfig.js" "${d}/usr/lib/firefox/defaults/pref/command-os.js"
+  install -Dm 644 "${s}/dotfiles/firefox/command-os.cfg" "${d}/usr/lib/firefox/command-os.cfg"
+  install -Dm 644 "${s}/dotfiles/firefox/command.css" "${d}/usr/share/command-os/firefox/command.css"
 
   # --- Configuración de serie de los programas que no miran /etc/xdg ---
   # command-os-config elige la copia del usuario si existe; si no, esta.
@@ -97,6 +108,8 @@ package() {
   install -m 644 "${s}"/dotfiles/gtk-4.0/{gtk.css,settings.ini} "${c}/gtk-4.0/"
   ln -s ../../chaflanes "${c}/gtk-3.0/chaflanes"
   ln -s ../../chaflanes "${c}/gtk-4.0/chaflanes"
+  ln -s ../../botones "${c}/gtk-3.0/botones"
+  ln -s ../../botones "${c}/gtk-4.0/botones"
   install -m 644 "${s}/dotfiles/nano/nanorc" "${c}/nano/"
   install -m 644 "${s}/dotfiles/bash/command-os.bashrc" "${c}/bash/bashrc"
 

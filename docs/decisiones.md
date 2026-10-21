@@ -3,6 +3,57 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-21 — Movimiento 2.1 (`docs/DISENO.md` § «Movimiento»)
+
+- **El botón principal de GTK funde el relleno; no hace el barrido** de BRAND § 9.2.4. GTK no anima
+  el `border-image`, y la banda de 11 px del chaflán lleva el color dentro del SVG. Descartado: dos
+  capas de fondo con el ancho animado (medido en la VM: el barrido solo cruzaba la franja central,
+  entre bandas que cambiaban de golpe).
+- **El subrayado de lo activo en la barra es un fondo de 2 px**, no el `border-bottom`: GTK 3 no tiene
+  `transform`, pero sí anima `background-size`. La posición salta sin transición (izquierda al
+  activarse, derecha al dejar de estarlo) para que entre por la izquierda y salga por la derecha.
+- **Notificaciones con la animación de swaync** (`transition-time` 280 ms). Descartado: una
+  `@keyframes` propia encima (dos fundidos a la vez), y no hay forma de animar la salida de la última
+  notificación (swaync cierra la ventana).
+
+## 2026-10-21 — Barra 2.1: grupo de estado y red sin nm-applet (`docs/notas/escritorio.md` § «Barra»)
+
+- **36 px**, no 40: en 1280×720 o en la pantalla pequeña del cyberdeck, 40 ya es un 5,5 % del alto.
+- **Telemetría oculta de serie**: la barra queda limpia y deja de despertarse cada 5 s (ahora 10 s
+  cuando se enseña). Descartado: siempre a la vista (ocho lecturas que compiten, auditoría 2.1 B3).
+- **El clic en el grupo abre un panel wofi provisional** (`command-os-estado`) hasta el centro de
+  control del punto 5: se abre al usarlo y no se queda en memoria. Descartado: dejar el clic propio de
+  cada lectura (el grupo no sería una sola pieza).
+- **Fuera nm-applet ya, con un selector de wi-fi en dos pasos** (`command-os-wifi`) en vez de esperar al
+  punto 5: su icono no se puede quitar de la bandeja ni recolorear, y era un proceso residente para un
+  menú. La contraseña, en el diálogo GTK de los paneles: en wofi no se puede decir para qué red es
+  (GTK 3 oculta el texto de ayuda del campo enfocado y, con una línea en la lista, Intro devuelve la
+  línea). Llega a `nmcli --ask` por la entrada estándar. Memoria en reposo: sin cambio medible en la VM
+  (las bibliotecas GTK de nm-applet las comparte Waybar).
+
+## 2026-10-21 — Una sola barra de título y Firefox con la marca (`docs/notas/escritorio.md` § «Ventanas iguales»)
+
+- **32 px para todas las ventanas**, subiendo labwc (antes 28) en vez de bajar las cabeceras GTK: por
+  debajo de 32 los botones y buscadores que las apps meten en su cabecera (Bazaar) ya no caben.
+  Activa en Graphite (antes Slate), como el fondo de las apps, para que barra y ventana sean una pieza.
+- **Las cabeceras GTK usan los mismos SVG que labwc** (copiados por `command-os-user-setup`), no un
+  dibujo aparte en CSS: un solo generador y una sola forma de los botones.
+- **Firefox: hoja de sistema por su autoconfiguración** (`mozilla.cfg`, decisión del usuario). Con GTK
+  oscuro Firefox ignora los colores GTK (ni `browser.theme.native-theme` lo cambia). Descartados: solo
+  políticas (se queda morado y redondeado), `userChrome.css` por perfil (no llega hasta el siguiente
+  inicio de sesión tras abrir Firefox por primera vez y depende de selectores que cambian), un tema
+  firmado en AMO (necesita la cuenta del usuario y no quita los redondeos). La hoja solo toca variables
+  del propio tema y radios: si Firefox renombra una, esa parte vuelve a su tema oscuro, sin romperse.
+  Coste: nada residente; una hoja más al abrir Firefox. Las políticas quitan además las historias y el
+  tiempo de la página nueva (menos peticiones de red).
+
+## 2026-10-21 — Ligereza como requisito (`AGENTS.md` § «Ligereza»)
+
+- **Command OS tiene que ser lo más ligero posible, mucho más que Windows y macOS** (decisión del
+  usuario, «de vital importancia»). Pesa igual que la fidelidad a la marca: el diseño y el movimiento se
+  hacen con lo que menos gasta (curvas del compositor y de CSS, sin bucles ni procesos de más). Cada
+  pieza nueva se mide (memoria en reposo, CPU en reposo, disco, arranque) y, si cuesta, se justifica aquí.
+
 ## 2026-10-20 — command-os como `lenguaje.html` (punto 8 del roadmap)
 
 - **El objetivo es que se vea y se use como el concepto**, no solo que cumpla las reglas: las líneas

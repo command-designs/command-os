@@ -12,9 +12,11 @@ docs/notas/escritorio.md § «Aplicaciones fijadas».
     fijadas.py menu ID            quitar, mover o fijar otra (clic derecho en una fijada)
     fijadas.py fijar              elige una aplicación del lanzador y la fija (clic derecho en el logo)
     fijadas.py anadir ID | quitar ID | mover ID -1|1   lo mismo sin preguntar
+    fijadas.py telemetria [si|no|cambiar]   enseña u oculta CPU/TMP/MEM; imprime cómo queda (si o no)
 
 ID es el nombre del .desktop (firefox.desktop). La lista va en ~/.config/command-os/fijadas, una por
-línea; sin el archivo, las de serie (navegador, archivos, terminal y tienda). No usa GTK: lo prueba
+línea; sin el archivo, las de serie (navegador, archivos, terminal y tienda). Los ajustes de la barra,
+en ~/.config/command-os/barra (clave=valor; telemetria=no de serie). No usa GTK: lo prueba
 tests/barra.sh sin pantalla.
 """
 import configparser
@@ -29,6 +31,9 @@ from traducir import traductor
 
 CONFIG = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
 LISTA = os.path.join(CONFIG, "command-os", "fijadas")
+AJUSTES = os.path.join(CONFIG, "command-os", "barra")
+DE_SERIE_AJUSTES = {"telemetria": "no"}
+TELEMETRIA = ["cpu", "temperature", "memory"]
 RUN = os.path.join(os.environ.get("XDG_RUNTIME_DIR") or "", "command-os", "barra")
 DE_SERIE = ["firefox.desktop", "thunar.desktop", "kitty.desktop", "io.github.kolunmi.Bazaar.desktop"]
 TEMAS = ["Papirus-Dark", "Papirus", "hicolor"]
@@ -139,6 +144,32 @@ def guardar(ids):
     os.replace(LISTA + ".nuevo", LISTA)
 
 
+def ajustes():
+    """Los ajustes de la barra: los de serie con lo que el usuario haya cambiado encima."""
+    valores = dict(DE_SERIE_AJUSTES)
+    try:
+        with open(AJUSTES, encoding="utf-8") as f:
+            for ln in f:
+                clave, igual, valor = ln.strip().partition("=")
+                if igual and clave in valores:
+                    valores[clave] = valor.strip()
+    except OSError:
+        pass
+    return valores
+
+
+def telemetria(valor):
+    """Enseña (si) u oculta (no) CPU/TMP/MEM, o lo cambia (cambiar). Devuelve cómo queda."""
+    valores = ajustes()
+    if valor == "cambiar":
+        valor = "no" if valores["telemetria"] == "si" else "si"
+    valores["telemetria"] = valor
+    os.makedirs(os.path.dirname(AJUSTES), exist_ok=True)
+    escribir(AJUSTES, "".join(f"{c}={v}\n" for c, v in valores.items()))
+    recargar()
+    return valores["telemetria"]
+
+
 def pango(texto):
     # Waybar trata tooltip-format como marcado de Pango y {…} como sus campos.
     return (texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -185,6 +216,11 @@ def generar(estilo=None, tr=None):
         if ruta:
             reglas.append(f"#custom-fijada.f{n} {{ background-image: {css_url(ruta)}; }}")
     config["group/fijadas"] = {"orientation": "horizontal", "modules": modulos}
+    # Telemetría: oculta, el grupo va vacío y su celda sin filo ni relleno (la hoja de la barra se los da).
+    ver = ajustes()["telemetria"] == "si"
+    config["group/telemetria"] = {"orientation": "horizontal", "modules": TELEMETRIA if ver else []}
+    if not ver:
+        reglas.append("#telemetria { padding: 0; border: none; }")
     escribir(os.path.join(RUN, "fijadas.jsonc"), json.dumps(config, ensure_ascii=False, indent=2) + "\n")
     hoja = os.path.join(RUN, "estilo.css")
     escribir(hoja, "\n".join(reglas) + "\n")
@@ -333,6 +369,10 @@ def main(args):
         quitar(resto[0])
     elif orden == "mover" and len(resto) == 2 and resto[1] in ("-1", "1"):
         mover(resto[0], int(resto[1]))
+    elif orden == "telemetria" and not resto:
+        print(ajustes()["telemetria"])
+    elif orden == "telemetria" and len(resto) == 1 and resto[0] in ("si", "no", "cambiar"):
+        print(telemetria(resto[0]))
     else:
         print((__doc__ or "").strip().split("\n\n")[2], file=sys.stderr)
         return 2

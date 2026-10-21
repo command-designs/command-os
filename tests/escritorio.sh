@@ -88,6 +88,11 @@ fi
 for p in blueman-manager blueman-applet bluetoothctl rfkill; do
   command -v "${p}" >/dev/null || mal "bluetooth: falta ${p}"
 done
+# Grupo de estado de la barra (command-os-estado, command-os-wifi): la red va por nmcli, sin nm-applet.
+for p in nmcli pamixer nm-connection-editor notify-send; do
+  command -v "${p}" >/dev/null || mal "barra: falta ${p}"
+done
+grep -q 'nm-applet' /etc/xdg/labwc/autostart 2>/dev/null && mal "barra: nm-applet sigue en el autostart"
 for f in /etc/xdg/labwc/rc.xml /usr/share/command-os/config/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
 done
@@ -117,6 +122,45 @@ for p in bazaar xarchiver; do
     ok "${p}: enlaza con las bibliotecas de esta fecha"
   fi
 done
+# Firefox descarta entera una política que no cuadra con su esquema, sin avisar más que en
+# about:policies (en la 158, «Widgets» pasó de sí/no a un objeto y volvieron los patrocinados): las
+# nuestras se comprueban contra el esquema de la versión instalada.
+esquema=$(mktemp)
+if ! unzip -p /usr/lib/firefox/browser/omni.ja modules/policies/policies-schema.json > "${esquema}" 2>/dev/null \
+    && [[ ! -s "${esquema}" ]]; then
+  mal "firefox: no se pudo leer su esquema de políticas"
+elif ! errores=$(python3 - /etc/firefox/policies/policies.json "${esquema}" 2>&1 <<'PY'
+import json, sys
+tipos = {"boolean": bool, "object": dict, "array": list, "string": str, "number": (int, float),
+         "integer": int}
+def mirar(valor, regla, ruta):
+    tipo = regla.get("type")
+    if tipo in tipos and not isinstance(valor, tipos[tipo]):
+        print(f"{ruta}: tiene que ser {tipo}")
+    elif isinstance(valor, dict) and "properties" in regla:
+        for clave, dentro in valor.items():
+            if clave in regla["properties"]:
+                mirar(dentro, regla["properties"][clave], f"{ruta}.{clave}")
+            elif "patternProperties" not in regla and "additionalProperties" not in regla:
+                print(f"{ruta}.{clave}: no existe")
+esquema = json.load(open(sys.argv[2]))
+for nombre, valor in json.load(open(sys.argv[1]))["policies"].items():
+    if nombre not in esquema["properties"]:
+        print(f"{nombre}: no existe")
+    else:
+        mirar(valor, esquema["properties"][nombre], nombre)
+PY
+); then
+  mal "firefox: no se pudieron comprobar las políticas: ${errores//$'\n'/; }"
+elif [[ -n "${errores}" ]]; then
+  mal "firefox: políticas que Firefox descartaría: ${errores//$'\n'/; }"
+else
+  ok "firefox: las políticas cuadran con el esquema de la versión instalada"
+fi
+rm -f "${esquema}"
+[[ -r /usr/lib/firefox/command-os.cfg && -r /usr/share/command-os/firefox/command.css ]] \
+  && grep -q 'command-os.cfg' /usr/lib/firefox/defaults/pref/command-os.js \
+  && ok "firefox: autoconfiguración con la hoja de la marca" || mal "firefox: falta la autoconfiguración o la hoja"
 if flatpak remotes --system --columns=name 2>/dev/null | grep -qx flathub; then ok "flatpak: Flathub de serie"; else mal "flatpak: sin Flathub"; fi
 permisos=$(sed -n 's/^filesystems=//p' /var/lib/flatpak/overrides/global 2>/dev/null)
 if [[ ";${permisos}" == *";xdg-config/gtk-3.0/gtk.css:ro;"* && ";${permisos}" == *";xdg-config/gtk-4.0/gtk.css:ro;"* \
@@ -161,12 +205,12 @@ else
   ok "labwc: configuración sin errores"
 fi
 if grep -aqiE '\[error\]|critical' "${SALIDA}/labwc.log"; then
-  # nm-applet suelta avisos internos de GTK sin consecuencias (y, al arrancar, la bandeja de Waybar
-  # avisa de su icono aún vacío: «No icon name or pixmap»); la temperatura y la batería no
+  # La bandeja de Waybar avisa al arrancar de un icono aún vacío («No icon name or pixmap») y las apps
+  # de la bandeja sueltan avisos internos de GTK sin consecuencias; la temperatura y la batería no
   # existen en una máquina sin hardware; tampoco rfkill ni el bus del sistema (hypridle lo busca
   # para logind, y el módulo de Bluetooth de Waybar para bluez, y en el contenedor de CI no hay systemd).
   grep -aiE '\[error\]|critical' "${SALIDA}/labwc.log" \
-    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet|No icon name or pixmap|RFKILL|Couldn.t create the dbus connection|g_dbus_object_manager_client_new_for_bus_sync' \
+    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|No icon name or pixmap|RFKILL|Couldn.t create the dbus connection|g_dbus_object_manager_client_new_for_bus_sync' \
     | head -5 > "${SALIDA}/errores-programas.txt"
   if [[ -s "${SALIDA}/errores-programas.txt" ]]; then mal "errores de programas (ver errores-programas.txt)"; fi
 fi

@@ -107,13 +107,16 @@ ver abajo).
 ## Escritorio
 
 - **Ventanas (labwc, tema `Command` en `os/branding/labwc/`):** flotantes, con barra de título y
-  botones a la derecha (minimizar · maximizar · cerrar). La activa: filo Red Hot de 1 px y barra plana
-  en Slate con el título en JetBrains Mono negrita. La inactiva: filo Steel, barra Void, título y
-  botones en Smoke. Las dos, con una sombra oscura corta que las separa del fondo. Botones dibujados a
-  propósito (`build/make-labwc-buttons.py`): maximizar son escuadras; al pasar por encima, Bone sobre
-  Steel, y cerrar en blanco sobre Signal Red. Las apps que se dibujan su propia cabecera (GTK 4,
-  Firefox) llevan el mismo filo desde `gtk.css`. Arrastrar al borde encaja la ventana (arriba
-  maximiza; lados, media pantalla) con una guía Bone translúcida y filo Red Hot.
+  botones a la derecha (minimizar · maximizar · cerrar). **Una sola barra de título para todas**: 32 px;
+  la activa, filo Red Hot de 1 px y barra plana en Graphite con el título en JetBrains Mono negrita;
+  la inactiva, filo Steel, barra Void, título y botones en Smoke. Las dos, con una sombra oscura corta
+  que las separa del fondo. Botones dibujados a propósito (`build/make-labwc-buttons.py`, 36×32):
+  maximizar son escuadras; al pasar por encima, Bone sobre Steel, y cerrar en blanco sobre Signal Red.
+  Las apps GTK 3/4 que se dibujan su propia cabecera (Bazaar, diálogos) copian esa barra en `gtk.css`
+  con los mismos SVG (`botones/`) y el filo por dentro (`outline`), y sin la atenuación de libadwaita
+  al perder el foco; Firefox usa la de labwc (`docs/notas/escritorio.md` § «Ventanas iguales»). Arrastrar al
+  borde encaja la ventana (arriba maximiza; lados, media pantalla) con una guía Bone translúcida y
+  filo Red Hot.
 - **Apps (GTK 3/4 y Qt):** mismo tema que el escritorio, sin ventanas blancas. Base `adw-gtk3-dark`
   recoloreada en `~/.config/gtk-3.0/gtk.css` y `gtk-4.0/gtk.css` (colores con nombre y variables de
   libadwaita): ventana y cabeceras en Graphite (la cabecera con filo Steel debajo), listas en Void,
@@ -121,21 +124,34 @@ ver abajo).
   izquierda, texto seleccionado en Signal Red con texto blanco, botones con texto con chaflán (en
   Graphite con filo Iron, Red Hot al pasar; el principal en Signal Red, `#B81A02` al pasar), botones
   que se quedan pulsados con el texto en Red Hot, casillas marcadas en Bone, foco y enlaces en Red Hot,
-  OK y Warn para estados. Los SVG de los
+  OK y Warn para estados; el principal desactivado, como cualquier botón desactivado (sin rojo). Los
+  rótulos de sección (título de un grupo de ajustes, `.caption-heading`) en mono 500 y Smoke con
+  0,16 em, como las etiquetas de `lenguaje.html`; no todo `.heading`, que las apps usan también para
+  nombres. Los SVG de los
   chaflanes van copiados junto a las hojas (`~/.config/gtk-*/chaflanes/`) para que también los vean
   las apps Flatpak. Qt sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). `dconf` pone el modo oscuro para
   todo el sistema (Firefox y portales incluidos).
-- **Barra (Waybar):** como la barra superior de la app de `lenguaje.html` (§ 03): Graphite con filo
-  Steel y lecturas mono en mayúsculas (peso 500, 0,14 em). A la izquierda, el logo en su celda (filo
-  Steel a la derecha; clic: aplicaciones) y la barra de tareas con un icono por ventana (la enfocada en
-  Slate con la línea Red Hot debajo, las minimizadas atenuadas); en el centro, fecha apagada y hora en
-  Oxanium; a la derecha, los escritorios, la telemetría (`CPU`, `TMP`, `MEM`, `NET` con la señal wifi,
+- **Barra (Waybar):** como la barra superior de la app de `lenguaje.html` (§ 03): 36 px, Graphite con
+  filo Steel y lecturas mono en mayúsculas (peso 500, 0,14 em). A la izquierda, el logo en su celda
+  cuadrada (filo Steel a la derecha; clic: aplicaciones), las fijadas y una celda con un icono por
+  ventana. Los iconos, como el carril (`.a-rail`): apagados en reposo (opacidad 0,55: GTK 3 no tiene
+  filtro de gris) y a color al pasar el ratón y en la ventana activa, que va en Slate con filo Steel y la
+  línea Red Hot debajo; las minimizadas, más apagadas. En el centro, fecha apagada y hora en Oxanium. A
+  la derecha, celdas separadas por un filo Steel y sin cajas dentro: el aviso `UPD N`, los escritorios,
+  la telemetría (`CPU`, `TMP`, `MEM`; oculta de serie), **el grupo de estado** (`NET` con la señal wifi,
   `BT` (`OFF`, `ON` o los conectados; oculto sin adaptador), `VOL`, `BAT` con el tiempo que queda), la
-  bandeja (red de nm-applet) y el botón de energía. Warn al pasar el umbral de aviso, Red Hot al
-  crítico, siempre con la cifra. **LED de estado** con su halo (`.led`), solo cuando dicen algo y con
-  su texto: verde con red y con Bluetooth conectado, Red Hot sin red (`SIN RED`) y Warn con una versión
-  nueva de command-os (`UPD N`). Son un degradado radial de fondo (Waybar no tiene otro elemento donde
-  ponerlos); los textos traducidos van en mayúsculas con `text_transform` de Pango.
+  bandeja (solo apps de terceros; sin iconos no se ve) y el botón de energía. El grupo de estado es una
+  sola pieza, como la lectura «sincronizado» de la referencia: se ilumina entero en Slate al pasar el
+  ratón y el clic en cualquier lectura abre el panel de estado; el clic derecho va a lo de cada una.
+  Warn al pasar el umbral de aviso, Red Hot al crítico, siempre con la cifra. **LED de estado** con su
+  halo (`.led`), solo cuando dicen algo y con su texto: verde con red, Red Hot sin red (`SIN RED`) y Warn
+  con una versión nueva de command-os (`UPD N`). Son un degradado radial de fondo (Waybar no tiene otro
+  elemento donde ponerlos); los textos traducidos van en mayúsculas con `text_transform` de Pango.
+- **Panel de estado y wi-fi** (`command-os-estado`, `command-os-wifi`): paneles wofi como el menú de
+  energía, colgados bajo la barra a la derecha. El de estado, con la red, el Bluetooth, el sonido, la
+  batería, enseñar u ocultar la telemetría y los ajustes de red avanzados (lo sustituirá el centro de
+  control). El de wi-fi, con las redes por señal (la conectada primero, candado si piden contraseña);
+  la contraseña, en el diálogo de los paneles (`lib/clave-wifi.py`).
 - **Escritorios:** uno de serie, y la barra no enseña nada. Super+Ctrl+D (o clic derecho →
   `escritorios`) crea otro, hasta 4, y salta a él; entonces aparecen sus números (`01 02…`) a la
   derecha de la barra, el activo en Red Hot sobre Slate con la línea Red Hot debajo. Super+Ctrl+F4 quita
@@ -157,12 +173,12 @@ ver abajo).
   la barra Red Hot; se abre con Super+Escape o con el botón 󰐥 al final de la barra. La ayuda de atajos
   (`command-os-keys`, Super+F1) usa el mismo panel en dos columnas; «acerca de cmd-os»
   (`command-os-about`, Super+F2 o el menú del escritorio) también: nombre, paquete, Arch validado,
-  hardware y si se puede volver atrás. El mezclador de volumen (clic en `vol`) es pavucontrol de
+  hardware y si se puede volver atrás. El mezclador de volumen (clic derecho en `vol`) es pavucontrol de
   460×340 sin barra de título, fijado bajo la barra arriba a la derecha; otro clic lo cierra.
 - **Inicio de sesión, asistente y paneles** (`greeter/command.css`): panel Graphite con chaflán y filo
   Steel dentro de las escuadras de la zona principal, titular en Oxanium, etiquetas mono en Smoke y
-  mayúsculas, campo en Void con el foco Red Hot y botones con chaflán en mono mayúsculas (el principal
-  en Signal Red con texto blanco).
+  mayúsculas, campo en Void con el foco Red Hot (los desplegables, como la cuenta, son un campo igual)
+  y botones con chaflán en mono mayúsculas (el principal en Signal Red con texto blanco).
 - **Bloqueo** (hyprlock): hora en Oxanium y campo de contraseña dentro de las escuadras, sobre el fondo
   `void`; encima, `SESIÓN BLOQUEADA` como un eyebrow (mono 500 en mayúsculas, Red Hot). La línea de
   estado de arriba (`command-os-status --pango`) y el aviso de contraseña incorrecta van también en
@@ -198,13 +214,37 @@ grano (de 30 a 110 KB).
 
 ## Movimiento
 
-BRAND § 9. Curva `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`), sin rebotes. Entradas secas
-(200–300 ms). **labwc no anima ventanas** (abrir, cerrar y mover son inmediatos): es parte de su
-ligereza. El movimiento del escritorio vive en los paneles: el lanzador y el menú de energía entran
-con un fundido y un desliz corto de 200–220 ms, y la barra hace transiciones de color en los
-espacios, la barra de tareas y el logo. El bloqueo entra con un fundido de 0,4 s y su campo de
-contraseña cambia de color con la misma curva (filo Red Hot; Ash comprobando, Warn si falla o si las
-mayúsculas están activadas, con el número de intentos).
+BRAND § 9. Solo las curvas de la marca: `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`, casi todo),
+`(0.65, 0, 0.35, 1)` (`--ease-in-out`) y `(0.2, 0.9, 0.1, 1.25)` (`--ease-snap`); sin rebotes ni
+curvas de otros sistemas. Duraciones de la marca: 160 ms (`--dur-fast`) para hover, foco y cambio de
+estado, y 280 ms (`--dur-base`) para lo que entra. Solo al entrar, al salir o al pasar el ratón:
+**nada se mueve en reposo** (ligereza). `tests/marca.sh` falla con otra curva o con una animación en
+bucle (`infinite`). **labwc no anima ventanas** (abrir, cerrar y mover son inmediatos): eso queda para
+la tanda 3 (`ROADMAP.md`).
+
+- **Apps GTK 3 y 4** (`gtk.css`): botones, campos, filas, casillas, interruptores, pestañas y menús
+  cambian el color y el relleno en 160 ms. El foco de los campos funde su filo Red Hot.
+- **Barra:** el color de los iconos, los espacios y el grupo de estado cambia en 160 ms. La línea
+  Red Hot de lo activo (ventana y escritorio) es el subrayado de § 9.2.3: un fondo de 2 px que crece
+  desde la izquierda en 280 ms y se va por la derecha (solo se anima el ancho; la posición salta). El
+  aviso de una versión nueva aparece una vez con un fundido de 280 ms.
+- **Lanzador y menú de energía** (wofi): entran con un fundido y un desliz corto de 200–220 ms; la fila
+  elegida cambia en 160 ms.
+- **Notificaciones:** entran con el desliz y el fundido de swaync (`transition-time` 280 ms); el hover
+  del panel y de sus botones, en 160 ms.
+- **Inicio de sesión y asistente:** el panel entra con sus escuadras una sola vez (fundido y 8 px de
+  desliz, 280 ms); sus campos y botones, como las apps GTK 4.
+- **Bloqueo:** entra con un fundido de 0,4 s y su campo de contraseña cambia de color con la misma
+  curva (filo Red Hot; Ash comprobando, Warn si falla o si las mayúsculas están activadas, con el
+  número de intentos).
+
+Límites medidos en la VM (2026-10-21), que no se arreglan con CSS:
+
+- **GTK no anima el `border-image`.** El filo de los chaflanes y su banda de 11 px cambian de golpe:
+  el botón principal funde su relleno (de Signal Red a #B81A02) en vez del barrido de § 9.2.4. Con
+  dos capas de fondo, el barrido solo se veía en la franja central, entre las bandas del chaflán.
+- **swaync** usa su propia curva (fija en su código, no se configura) y, al irse la última
+  notificación, cierra la ventana sin animación de salida.
 
 - **Firma de arranque** (BRAND § 9.1, versión corta; `os/branding/plymouth/`): sobre Void liso, el
   contorno del símbolo C se traza en Bone (1 px, la forma real del logo) y se rellena de izquierda a

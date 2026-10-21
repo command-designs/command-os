@@ -13,6 +13,18 @@ el cyberdeck, así que se trabaja y se prueba en x86_64 (PC y VM). Command OS si
 dos arquitecturas (paquete `any`, scripts sin nada propio de x86 si no hace falta), pero **no se hace
 nada específico de hardware ARM** (Raspberry Pi 5, `cmdline.txt`, imagen ARM) hasta tener la placa.
 
+**Ligereza: requisito de primer orden** (decisión del usuario, 2026-10-21). Command OS tiene que ser lo
+más ligero posible, mucho más que Windows y macOS, en memoria en reposo, CPU en reposo, disco y tiempo
+de arranque. Se aplica a cada cambio, también al diseño y al movimiento:
+- Nada residente que no haga falta: mejor un temporizador, un socket o lanzarlo al usarlo que un demonio.
+  Los paneles (`lib/panel-*.py`) se abren y se cierran; no se quedan en memoria.
+- Nada que gaste CPU en reposo: animaciones solo al entrar, salir o pasar el ratón, nunca en bucle;
+  módulos de la barra con intervalos largos o por señal, no por sondeo frecuente.
+- Ante dos opciones, la más ligera, salvo que la otra sea necesaria; el coste extra se mide y se anota
+  en `docs/decisiones.md`. Nada de Electron ni de apps web empaquetadas de serie.
+- Un paquete, servicio o compositor nuevo (Hyprland incluido) entra solo si su coste en memoria y
+  arranque se mide y es asumible frente a lo que aporta.
+
 Ecosistema Command: sigue `ESTANDAR.md` de `command-web`
 (https://github.com/command-designs/command-web/blob/main/ESTANDAR.md) en lo que aplique a un proyecto
 que no es web (§ 12 para dispositivos).
@@ -44,8 +56,9 @@ usuario); ARM, aparcado hasta tener la placa.
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso y panel de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
-| escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` y `docs/DISENO.md` |
-| colores, letra, forma (chaflanes, escuadras) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` §§ «Color», «Letra» y «Forma», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma» |
+| escritorio labwc, Waybar (grupo de estado, telemetría, `command-os-estado`), wi-fi (`command-os-wifi`, `lib/clave-wifi.py`), fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` (§ «Barra») y `docs/DISENO.md` |
+| colores, letra, forma (chaflanes, escuadras), movimiento (transiciones y curvas) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` §§ «Color», «Letra», «Forma» y «Movimiento», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma» |
+| barra de título y botones de ventana (labwc y cabeceras GTK), Firefox (políticas, `os/dotfiles/firefox/`) | `docs/notas/escritorio.md` § «Ventanas iguales» |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
@@ -68,11 +81,16 @@ usuario); ARM, aparcado hasta tener la placa.
 - Chaflanes en GTK: `border-image` con los SVG de `build/make-chaflanes.py` (regenerar al cambiarlos)
   **en archivo** (GTK 3 no carga `data:`) y el centro con un degradado (GTK no lo pinta). wofi: nunca
   `hide_search` (enseña una sola opción); el alto de un panel, con `--lines`.
+- Botones de ventana: un solo dibujo (`build/make-labwc-buttons.py`) para labwc y las cabeceras GTK
+  (`botones/`); cambiar el alto en `themerc`, el generador y los dos `gtk.css` a la vez. Firefox
+  descarta entera una política que no cuadra con su esquema: `tests/escritorio.sh` lo comprueba.
 - labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.
 - Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` y se pasa con
   `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch. La hoja va además
   por `command-os-fijadas generar` (los iconos de las aplicaciones fijadas). `wlr/taskbar` no ejecuta
-  órdenes al hacer clic: lo que tenga que lanzar algo va en un módulo `custom`. Los tests que importan
+  órdenes al hacer clic: lo que tenga que lanzar algo va en un módulo `custom`. Un grupo no tiene clic
+  propio: el mismo `on-click` en cada módulo. Sin adaptador, `bluetoothctl show` se queda esperando:
+  mirar antes `/sys/class/bluetooth`. Los tests que importan
   `os/lib/*.py` van con `PYTHONDONTWRITEBYTECODE=1` (un `__pycache__` entraría en el paquete).
 - hyprlock con errores de configuración no sale: pantalla en negro y sin campo. `command-os-lock` revisa antes.
 - VirtualBox: **apagar la VM antes de que el PC entre en reposo** (se congela; recuperación en `docs/notas/vm-virtualbox-wsl.md`).

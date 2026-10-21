@@ -69,11 +69,11 @@ copia gtk-3.0/gtk.css "${SYS}/gtk-3.0/gtk.css"
 copia gtk-3.0/settings.ini "${SYS}/gtk-3.0/settings.ini"
 copia gtk-4.0/gtk.css "${SYS}/gtk-4.0/gtk.css"
 copia gtk-4.0/settings.ini "${SYS}/gtk-4.0/settings.ini"
-# Los chaflanes de la marca (SVG) que esas hojas buscan en chaflanes/, junto a ellas; las apps
-# Flatpak no verían los de /usr/share/command-os.
+# Los chaflanes y los botones de la barra de título (SVG) que esas hojas buscan en chaflanes/ y
+# botones/, junto a ellas; las apps Flatpak no verían los de /usr/share/command-os.
 for g in gtk-3.0 gtk-4.0; do
-  for svg in "${SYS}/${g}/chaflanes/"*.svg; do
-    [[ -r "${svg}" ]] && copia "${g}/chaflanes/$(basename "${svg}")" "${svg}"
+  for svg in "${SYS}/${g}/chaflanes/"*.svg "${SYS}/${g}/botones/"*.svg; do
+    [[ -r "${svg}" ]] && copia "${g}/$(basename "$(dirname "${svg}")")/$(basename "${svg}")" "${svg}"
   done
 done
 

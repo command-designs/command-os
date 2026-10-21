@@ -1,0 +1,35 @@
+{
+  "policies": {
+    "FirefoxHome": {
+      "Search": true,
+      "TopSites": true,
+      "SponsoredTopSites": false,
+      "Highlights": false,
+      "Pocket": false,
+      "Stories": false,
+      "SponsoredPocket": false,
+      "SponsoredStories": false,
+      "Weather": false,
+      "Snippets": false,
+      "Widgets": { "Enabled": false },
+      "Locked": false
+    },
+    "FirefoxSuggest": {
+      "SponsoredSuggestions": false,
+      "ImproveSuggest": false,
+      "Locked": false
+    },
+    "UserMessaging": {
+      "ExtensionRecommendations": false,
+      "FeatureRecommendations": false,
+      "MoreFromMozilla": false,
+      "SkipOnboarding": true,
+      "Locked": false
+    },
+    "IPProtectionAvailable": false,
+    "DisableFirefoxStudies": true,
+    "Preferences": {
+      "browser.tabs.inTitlebar": { "Value": 0, "Status": "default" }
+    }
+  }
+}
