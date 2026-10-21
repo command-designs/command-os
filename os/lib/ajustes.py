@@ -37,18 +37,25 @@ DISPONIBLE = {
 }
 
 # Otros nombres con los que se puede pedir una sección (órdenes de antes y atajos).
-ALIAS = {"wifi": "red", "wi-fi": "red", "hora": "idioma", "zona": "idioma"}
+ALIAS = {"wifi": "red", "wi-fi": "red", "hora": "idioma", "zona": "idioma", "about": "sistema"}
 
 
 def secciones(traducir):
     """[(clave, módulo, icono, nombre)] en el orden de la lista, solo las que tienen sentido aquí."""
     _ = traducir
     todas = [
-        ("cuentas", "ajustes_cuentas", "system-users-symbolic", _("cuentas")),
+        ("red", "ajustes_red", "network-wireless-symbolic", _("wi-fi y red")),
+        ("bluetooth", "ajustes_bluetooth", "bluetooth-symbolic", _("bluetooth")),
+        ("barra", "ajustes_barra", "view-app-grid-symbolic", _("barra")),
+        ("pantalla", "ajustes_pantalla", "video-display-symbolic", _("pantalla")),
+        ("sonido", "ajustes_sonido", "audio-speakers-symbolic", _("sonido")),
+        ("fondo", "ajustes_fondo", "preferences-desktop-wallpaper-symbolic", _("fondo")),
         ("bateria", "ajustes_bateria", "battery-good-symbolic", _("batería")),
+        ("cuentas", "ajustes_cuentas", "system-users-symbolic", _("cuentas")),
         ("disco", "ajustes_disco", "drive-harddisk-symbolic", _("disco cifrado")),
         ("actualizaciones", "ajustes_actualizaciones", "software-update-available-symbolic", _("actualizaciones")),
         ("idioma", "ajustes_idioma", "globe-symbolic", _("idioma y hora")),
+        ("sistema", "ajustes_sistema", "computer-symbolic", _("sistema")),
     ]
     return [s for s in todas if DISPONIBLE.get(s[0], lambda: True)()]
 

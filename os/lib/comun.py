@@ -157,6 +157,86 @@ def escape_cierra(ventana):
     ventana.add_controller(teclas)
 
 
+def en_hilo(trabajo, hecho):
+    """trabajo() en un hilo (lo que tarda: nmcli, pkexec…); hecho(resultado) en el hilo de la ventana."""
+    def correr():
+        resultado = trabajo()
+        GLib.idle_add(lambda: (hecho(resultado), False)[1])
+    threading.Thread(target=correr, daemon=True).start()
+
+
+def interruptor(texto, activo, al_cambiar, detalle=""):
+    """Fila con el texto (y un detalle tenue debajo) a la izquierda y un interruptor a la derecha.
+    al_cambiar(interruptor, activo) es la señal state-set de GTK: devuelve True para dejar el
+    interruptor como estaba hasta saber el resultado. Devuelve (fila, interruptor)."""
+    fila = Gtk.Box(spacing=12)
+    textos = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, valign=Gtk.Align.CENTER)
+    textos.append(Gtk.Label(label=texto, xalign=0, wrap=True, max_width_chars=44))
+    if detalle:
+        d = Gtk.Label(label=detalle, xalign=0, wrap=True, max_width_chars=44)
+        d.add_css_class("tenue")
+        textos.append(d)
+    fila.append(textos)
+    boton = Gtk.Switch(active=activo, valign=Gtk.Align.CENTER)
+    boton.connect("state-set", al_cambiar)
+    fila.append(boton)
+    return fila, boton
+
+
+class Deslizador(Gtk.Box):
+    """Un nivel de 0 a 100 (volumen, brillo) con su icono delante y la cifra detrás. Al arrastrar, aplica
+    el último valor cada 80 ms como mucho, no en cada píxel; poner() lo cambia desde fuera sin aplicarlo.
+    al_icono: clic en el icono (silenciar), o None."""
+
+    def __init__(self, icono, valor, aplicar, al_icono=None, minimo=0):
+        super().__init__(spacing=10)
+        self.add_css_class("deslizador")
+        self.aplicar = aplicar
+        self.pendiente = None
+        self.desde_fuera = False
+        if al_icono:
+            self.icono = Gtk.Button(icon_name=icono, valign=Gtk.Align.CENTER)
+            self.icono.add_css_class("flat")
+            self.icono.connect("clicked", lambda _b: al_icono())
+        else:
+            self.icono = Gtk.Image.new_from_icon_name(icono)
+        self.append(self.icono)
+        self.escala = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, minimo, 100, 1)
+        self.escala.set_hexpand(True)
+        self.escala.set_draw_value(False)
+        self.escala.set_value(valor)
+        self.escala.connect("value-changed", self.al_mover)
+        self.append(self.escala)
+        self.cifra = Gtk.Label(label=f"{int(valor)} %", xalign=1, width_chars=5)
+        self.cifra.add_css_class("dato")
+        self.append(self.cifra)
+
+    def poner(self, valor, icono=None):
+        self.desde_fuera = True
+        self.escala.set_value(valor)
+        self.desde_fuera = False
+        self.cifra.set_text(f"{int(valor)} %")
+        if icono and isinstance(self.icono, Gtk.Button):
+            self.icono.set_icon_name(icono)
+        elif icono:
+            self.icono.set_from_icon_name(icono)
+
+    def al_mover(self, escala):
+        valor = int(escala.get_value())
+        self.cifra.set_text(f"{valor} %")
+        if self.desde_fuera:
+            return
+        if self.pendiente is None:
+            GLib.timeout_add(80, self.aplicar_pendiente)
+        self.pendiente = valor
+
+    def aplicar_pendiente(self):
+        valor, self.pendiente = self.pendiente, None
+        if valor is not None:
+            self.aplicar(valor)
+        return False
+
+
 def lanzar(orden):
     """Abre un programa aparte (las herramientas de «avanzado», la terminal): sigue solo al cerrar la ventana."""
     try:
@@ -176,11 +256,7 @@ class Contenido:
             self.caja.remove(hijo)
 
     def en_hilo(self, trabajo, hecho):
-        """trabajo() en un hilo; hecho(resultado) en el hilo de la ventana."""
-        def correr():
-            resultado = trabajo()
-            GLib.idle_add(lambda: (hecho(resultado), False)[1])
-        threading.Thread(target=correr, daemon=True).start()
+        en_hilo(trabajo, hecho)
 
     def titulo(self, texto):
         """El titular de la ventana o la sección (`› cuentas`), en Oxanium."""

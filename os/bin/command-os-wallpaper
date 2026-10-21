@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Command OS — fondo de pantalla (build/make-wallpaper.py).
 #   command-os-wallpaper           aplica el elegido (o el de serie, retícula); lo llama autostart
-#   command-os-wallpaper elegir    menú para cambiarlo (ajustes → fondo de pantalla)
+#   command-os-wallpaper elegir    menú para cambiarlo (wofi)
+#   command-os-wallpaper poner NOMBRE   lo cambia (Ajustes → fondo; NOMBRE: los de NAMES)
+#   command-os-wallpaper actual    el elegido
 # La elección se guarda en ~/.config/command-os/wallpaper.
 set -uo pipefail
 source /usr/lib/command-os/textos.sh
@@ -61,7 +63,14 @@ case "${1:-}" in
         apply "${n}"
       fi
     done ;;
+  poner)
+    [[ " ${NAMES[*]} " == *" ${2:-} "* ]] || { echo "uso: command-os-wallpaper poner <${NAMES[*]}>" >&2; exit 2; }
+    mkdir -p "$(dirname "${STATE}")"
+    printf '%s\n' "$2" > "${STATE}"
+    apply "$2" ;;
+  actual)
+    current; echo ;;
   *)
-    echo "uso: command-os-wallpaper [elegir]" >&2
+    echo "uso: command-os-wallpaper [elegir | poner NOMBRE | actual]" >&2
     exit 2 ;;
 esac

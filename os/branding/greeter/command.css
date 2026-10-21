@@ -233,6 +233,9 @@ button.suggested-action {
     padding: 4px 0;
     color: #a3a09a;
     background-color: transparent;
+    font-family: "Geist", sans-serif;
+    font-weight: normal;
+    letter-spacing: 0;
 }
 
 .avanzado button.flat:hover {
@@ -273,4 +276,56 @@ button.suggested-action {
 
 .entra-b {
     animation: seccion-entra-b 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Listas de Ajustes y del centro de control (redes wi-fi): filas planas que se iluminan en Slate al
+   pasar, sin la barra roja de la selección (aquí nada queda elegido: se pulsa y se conecta). */
+.redes {
+    background-color: transparent;
+}
+
+.redes row {
+    padding: 8px 10px;
+}
+
+.redes row:hover {
+    background-color: #1f1f1f;
+}
+
+/* Volumen y brillo: el icono, la barra (pista Steel, relleno Bone y tirador Bone, como el medidor de
+   lenguaje.html) y la cifra en mono. */
+.deslizador scale trough {
+    background-color: #2a2a2a;
+    min-height: 4px;
+}
+
+.deslizador scale highlight {
+    background-color: #edebe6;
+}
+
+.deslizador scale slider {
+    background-color: #edebe6;
+    min-width: 14px;
+    min-height: 14px;
+    margin: -6px;
+}
+
+.deslizador .dato {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 12px;
+}
+
+/* Fondos: la miniatura con filo Steel; la elegida, con filo Red Hot (la selección). */
+button.fondo-muestra {
+    padding: 8px;
+    border: 1px solid #2a2a2a;
+    background-color: #0e0e0e;
+}
+
+button.fondo-muestra:hover {
+    border-color: #85827c;
+}
+
+button.fondo-muestra.elegido {
+    border-color: #f5482c;
 }
