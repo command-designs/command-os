@@ -7,7 +7,7 @@
 #
 # Se abre al usarlo y se cierra al perder el foco, con Escape o con otro clic en la barra: nada se queda en
 # memoria (AGENTS.md § «Ligereza»). Ventana GTK 4 sin decorar y transparente con el panel con chaflán; la
-# coloca una regla de labwc (rc.xml, dev.commandlab.Centro) bajo la barra, a la derecha. Lo que sale se
+# coloca una regla de labwc (rc.xml, dev.commandlab.Centro…) junto al grupo de estado de la barra. Lo que sale se
 # decide mirando /sys; los datos llegan en un hilo después de enseñarse: abrir no espera a nmcli ni a
 # bluetoothctl. docs/notas/escritorio.md § «Ajustes y centro de control».
 import os
@@ -16,6 +16,7 @@ import time
 
 import bateria
 import bt
+import fijadas
 import red
 import sonido
 from comun import Deslizador, boton, cargar_tema, en_hilo, escape_cierra, lanzar, traductor
@@ -27,6 +28,16 @@ CADA = 5  # segundos entre lecturas mientras está abierto (teclas de volumen, l
 # Si el clic en la barra le quita el foco, el panel se cierra antes de que llegue la orden de ese mismo
 # clic: una orden tan seguida al cierre era para cerrarlo, no para volver a abrirlo.
 REPETIDO = 0.5
+# Dónde cuelga, según el lado de la barra (Ajustes → Barra): labwc lo coloca con una regla por sitio, que
+# mira el id de la ventana (rc.xml). Con la barra arriba, bajo ella a la derecha; abajo o a la derecha, en
+# la esquina de abajo a la derecha, y a la izquierda, en la de abajo a la izquierda (el grupo de estado va
+# al final de la barra).
+LADO = fijadas.ajustes()["lado"]
+IDS = {"arriba": "dev.commandlab.Centro", "abajo": "dev.commandlab.CentroAbajo",
+       "derecha": "dev.commandlab.CentroAbajo", "izquierda": "dev.commandlab.CentroIzquierda"}
+# Colgado de abajo, si creciera se saldría de la pantalla por abajo: labwc no lo vuelve a colocar. Así
+# que la lista de redes tiene un alto fijo y, al cambiar de página, el panel se abre otra vez.
+DESDE_ABAJO = LADO != "arriba"
 
 
 def marca_cierre():
@@ -118,10 +129,12 @@ class Mosaico(Gtk.Box):
 class Panel:
     def __init__(self, app, pagina):
         self._ = _ = traductor()
+        self.app = app
         self.v = Gtk.ApplicationWindow(application=app, title=_("centro de control"))
         self.v.set_decorated(False)
         self.v.set_resizable(False)
         self.v.add_css_class("centro")
+        self.v.add_css_class(f"lado-{LADO}")
         escape_cierra(self.v)
         self.leyendo = False
         self.otra_vez = False
@@ -211,7 +224,7 @@ class Panel:
         titulo.add_css_class("titulo")
         cabecera.append(titulo)
         caja.append(cabecera)
-        self.redes = ListaRedes(_, completa=False, filas=6, al_cambiar=self.leer)
+        self.redes = ListaRedes(_, completa=False, filas=6, al_cambiar=self.leer, fija=DESDE_ABAJO)
         caja.append(self.redes)
         mas = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         mas.add_css_class("avanzado")
@@ -224,6 +237,9 @@ class Panel:
         return caja
 
     def ir(self, pagina):
+        if DESDE_ABAJO and self.pagina is not None and pagina != self.pagina:
+            self.app.reabrir(pagina)
+            return
         if pagina == "redes" and self.redes is None:
             self.pila.add_named(self.pagina_redes(), "redes")
         elif pagina == "redes" and self.pagina != "redes":
@@ -338,7 +354,7 @@ class Panel:
 
 class App(Gtk.Application):
     def __init__(self):
-        super().__init__(application_id="dev.commandlab.Centro", flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+        super().__init__(application_id=IDS[LADO], flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
         self.panel = None
 
     def do_command_line(self, linea):
@@ -356,6 +372,14 @@ class App(Gtk.Application):
             self.panel.ir(pagina)
             self.panel.v.present()
         return 0
+
+    def reabrir(self, pagina):
+        """Cambia de página abriendo otro panel (colgado de abajo): la regla de labwc lo coloca al abrirse."""
+        viejo = self.panel
+        viejo.cerrando = True  # pierde el foco por el nuevo: que no apunte un cierre
+        self.panel = Panel(self, pagina)
+        self.panel.v.present()
+        viejo.v.close()
 
 
 if __name__ == "__main__":

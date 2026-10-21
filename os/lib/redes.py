@@ -13,9 +13,10 @@ ICONOS = ["network-wireless-signal-none-symbolic", "network-wireless-signal-weak
 
 class ListaRedes(Gtk.Box):
     """completa: también «olvidar» las guardadas (Ajustes); en el centro de control, solo conectar.
-    filas: cuántas redes caben sin desplazar. al_cambiar(): tras conectar o desconectar."""
+    filas: cuántas redes caben sin desplazar (con fija, el alto de la lista aunque haya menos).
+    al_cambiar(): tras conectar o desconectar."""
 
-    def __init__(self, traducir, completa=True, filas=8, al_cambiar=None):
+    def __init__(self, traducir, completa=True, filas=8, al_cambiar=None, fija=False):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self._ = _ = traducir
         self.completa = completa
@@ -52,7 +53,7 @@ class ListaRedes(Gtk.Box):
         self.filas.add_css_class("redes")
         self.filas.connect("row-activated", lambda _l, f: self.elegir(f.red))
         desliza = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, propagate_natural_height=True,
-                                     max_content_height=filas * 48)
+                                     max_content_height=filas * 48, min_content_height=filas * 48 if fija else -1)
         desliza.set_child(self.filas)
         lista.append(desliza)
         self.pila.add_named(lista, "lista")

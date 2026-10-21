@@ -203,6 +203,25 @@
       <action name="MoveToEdge" direction="up" snapWindows="no" />
       <action name="ToggleAlwaysOnTop" />
     </windowRule>
+    <!-- El mismo centro con la barra en otro lado (Ajustes, barra): lib/centro.py cambia de id y cuelga
+         junto al grupo de estado, al final de la barra. Abajo o a la derecha, en la esquina de abajo a la
+         derecha; a la izquierda, en la de abajo a la izquierda. -->
+    <windowRule identifier="dev.commandlab.CentroAbajo">
+      <skipTaskbar>yes</skipTaskbar>
+      <skipWindowSwitcher>yes</skipWindowSwitcher>
+      <action name="SetDecorations" decorations="none" />
+      <action name="MoveToEdge" direction="right" snapWindows="no" />
+      <action name="MoveToEdge" direction="down" snapWindows="no" />
+      <action name="ToggleAlwaysOnTop" />
+    </windowRule>
+    <windowRule identifier="dev.commandlab.CentroIzquierda">
+      <skipTaskbar>yes</skipTaskbar>
+      <skipWindowSwitcher>yes</skipWindowSwitcher>
+      <action name="SetDecorations" decorations="none" />
+      <action name="MoveToEdge" direction="left" snapWindows="no" />
+      <action name="MoveToEdge" direction="down" snapWindows="no" />
+      <action name="ToggleAlwaysOnTop" />
+    </windowRule>
     <!-- Mezclador de volumen (clic en `vol` de la barra): desplegable fijo arriba a la derecha, bajo la
          barra, solo con el filo (sin barra de título). -->
     <windowRule identifier="org.pulseaudio.pavucontrol">
