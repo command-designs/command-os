@@ -313,3 +313,219 @@ tooltip label {
     color: @red-hot;
     background-color: @slate;
 }
+
+/* ---- La barra en otro lado de la pantalla y flotante (Ajustes → Barra, lib/fijadas.py) ----------------
+   Waybar le pone a la ventana el lado como clase (.top, .bottom, .left, .right) y el nombre «flotante» si
+   lo va. El filo pasa al borde que da a la pantalla y la línea Red Hot de lo activo va por el borde de
+   dentro (abajo: encima de cada botón; a un lado: crece de arriba abajo). A un lado, las celdas se apilan:
+   el filo entre ellas, encima de cada una. Flotante: el filo, alrededor. */
+window#waybar.bottom {
+    border-bottom: none;
+    border-top: 1px solid @steel;
+}
+
+window#waybar.left {
+    border-bottom: none;
+    border-right: 1px solid @steel;
+}
+
+window#waybar.right {
+    border-bottom: none;
+    border-left: 1px solid @steel;
+}
+
+window#waybar.flotante {
+    border: 1px solid @steel;
+}
+
+/* Abajo: el aire y la línea, al revés que arriba. */
+window#waybar.bottom #taskbar button,
+window#waybar.bottom #custom-fijada {
+    margin: 0 1px 3px;
+    border: 1px solid transparent;
+    border-top: 2px solid transparent;
+}
+
+window#waybar.bottom #taskbar button,
+window#waybar.bottom #workspaces button {
+    background-position: right top;
+}
+
+window#waybar.bottom #taskbar button.active,
+window#waybar.bottom #workspaces button.active {
+    background-position: left top;
+}
+
+window#waybar.bottom #taskbar button.active {
+    border-color: @steel;
+    border-top-color: transparent;
+}
+
+window#waybar.bottom #workspaces button {
+    border-bottom: none;
+    border-top: 2px solid transparent;
+}
+
+window#waybar.bottom #workspaces button.urgent {
+    border-top-color: @warn;
+}
+
+/* A un lado. */
+window#waybar.left #custom-logo,
+window#waybar.right #custom-logo {
+    min-width: 0;
+    min-height: 35px;
+    border-right: none;
+    border-bottom: 1px solid @steel;
+}
+
+window#waybar.left #taskbar,
+window#waybar.right #taskbar {
+    margin: 4px 0 0;
+    padding: 4px 0 0;
+    border-left: none;
+    border-top: 1px solid @steel;
+}
+
+window#waybar.left #taskbar button,
+window#waybar.left #custom-fijada {
+    padding: 6px 0;
+    margin: 1px 0 1px 3px;
+    border: 1px solid transparent;
+    border-right: 2px solid transparent;
+}
+
+window#waybar.right #taskbar button,
+window#waybar.right #custom-fijada {
+    padding: 6px 0;
+    margin: 1px 3px 1px 0;
+    border: 1px solid transparent;
+    border-left: 2px solid transparent;
+}
+
+window#waybar.left #taskbar button,
+window#waybar.left #workspaces button {
+    background-position: right bottom;
+    background-size: 2px 0;
+}
+
+window#waybar.right #taskbar button,
+window#waybar.right #workspaces button {
+    background-position: left bottom;
+    background-size: 2px 0;
+}
+
+window#waybar.left #taskbar button.active,
+window#waybar.left #workspaces button.active {
+    background-position: right top;
+    background-size: 2px 100%;
+}
+
+window#waybar.right #taskbar button.active,
+window#waybar.right #workspaces button.active {
+    background-position: left top;
+    background-size: 2px 100%;
+}
+
+window#waybar.left #taskbar button.active {
+    border-color: @steel;
+    border-right-color: transparent;
+}
+
+window#waybar.right #taskbar button.active {
+    border-color: @steel;
+    border-left-color: transparent;
+}
+
+window#waybar.left #workspaces button,
+window#waybar.right #workspaces button {
+    padding: 6px 0;
+    border-bottom: none;
+}
+
+window#waybar.left #workspaces button {
+    border-right: 2px solid transparent;
+}
+
+window#waybar.right #workspaces button {
+    border-left: 2px solid transparent;
+}
+
+window#waybar.left #workspaces button:first-child,
+window#waybar.right #workspaces button:first-child {
+    border-top: 1px solid @steel;
+}
+
+window#waybar.left #workspaces button.urgent {
+    border-right-color: @warn;
+}
+
+window#waybar.right #workspaces button.urgent {
+    border-left-color: @warn;
+}
+
+window#waybar.left #workspaces button:only-child,
+window#waybar.right #workspaces button:only-child {
+    padding: 0;
+    border: none;
+}
+
+window#waybar.left #clock,
+window#waybar.right #clock {
+    padding: 10px 0;
+}
+
+window#waybar.left #telemetria,
+window#waybar.left #estado,
+window#waybar.left #custom-updates,
+window#waybar.left #tray,
+window#waybar.left #custom-power,
+window#waybar.right #telemetria,
+window#waybar.right #estado,
+window#waybar.right #custom-updates,
+window#waybar.right #tray,
+window#waybar.right #custom-power {
+    padding: 7px 0;
+    border-left: none;
+    border-top: 1px solid @steel;
+}
+
+window#waybar.left #cpu, window#waybar.left #temperature, window#waybar.left #memory,
+window#waybar.left #network, window#waybar.left #bluetooth, window#waybar.left #pulseaudio,
+window#waybar.left #battery,
+window#waybar.right #cpu, window#waybar.right #temperature, window#waybar.right #memory,
+window#waybar.right #network, window#waybar.right #bluetooth, window#waybar.right #pulseaudio,
+window#waybar.right #battery {
+    padding: 4px 0;
+}
+
+window#waybar.left #custom-power,
+window#waybar.right #custom-power {
+    padding: 10px 0;
+}
+
+/* El LED, encima de la lectura en vez de a su izquierda. */
+window#waybar.left #network.wifi, window#waybar.left #network.ethernet, window#waybar.left #network.linked,
+window#waybar.left #network.disconnected, window#waybar.left #custom-updates.nueva,
+window#waybar.right #network.wifi, window#waybar.right #network.ethernet, window#waybar.right #network.linked,
+window#waybar.right #network.disconnected, window#waybar.right #custom-updates.nueva {
+    padding: 16px 0 4px;
+}
+
+window#waybar.left #network.wifi, window#waybar.left #network.ethernet, window#waybar.left #network.linked,
+window#waybar.right #network.wifi, window#waybar.right #network.ethernet, window#waybar.right #network.linked {
+    background-image: radial-gradient(circle 8px at 50% 8px, @ok 0px, @ok 3px,
+        rgba(61, 220, 132, 0.45) 3.5px, rgba(61, 220, 132, 0) 8px);
+}
+
+window#waybar.left #network.disconnected,
+window#waybar.right #network.disconnected {
+    background-image: radial-gradient(circle 8px at 50% 8px, @red-hot 0px, @red-hot 3px,
+        rgba(245, 72, 44, 0.45) 3.5px, rgba(245, 72, 44, 0) 8px);
+}
+
+window#waybar.left #custom-updates.nueva,
+window#waybar.right #custom-updates.nueva {
+    background-image: radial-gradient(circle 8px at 50% 8px, @warn 0px, @warn 3px,
+        rgba(255, 176, 32, 0.4) 3.5px, rgba(255, 176, 32, 0) 8px);
+}

@@ -1,11 +1,25 @@
 #!/bin/sh
-# Command OS — aplicaciones fijadas en la barra (lib/fijadas.py; docs/notas/escritorio.md
-# § «Aplicaciones fijadas»).
+# Command OS — aplicaciones fijadas y ajustes de la barra (lib/fijadas.py; docs/notas/escritorio.md
+# §§ «Aplicaciones fijadas» y «Barra»).
+#   command-os-fijadas waybar           arranca Waybar con lo generado: la configuración con el lado y si va
+#                                       flotante, y la hoja con los iconos de las fijadas; si algo falla, con
+#                                       las de serie (o las del usuario): la barra arranca igual, arriba y
+#                                       sin las fijadas
 #   command-os-fijadas generar ESTILO   la hoja de estilo para Waybar (la de la barra más los iconos de
-#                                       las fijadas); si algo falla, ESTILO tal cual: la barra arranca
-#                                       igual, sin las fijadas
-#   command-os-fijadas abrir|menu|fijar|anadir|quitar|mover …   ver lib/fijadas.py
+#                                       las fijadas); si algo falla, ESTILO tal cual
+#   command-os-fijadas abrir|menu|fijar|anadir|quitar|mover|telemetria|lado|flotante …   ver lib/fijadas.py
 export PYTHONPATH=/usr/lib/command-os
+if [ "${1:-}" = waybar ]; then
+  estilo=$(command-os-config waybar/style.css)
+  config=$(command-os-config waybar/config.jsonc)
+  barra="${XDG_RUNTIME_DIR:-/nonexistent}/command-os/barra/barra.jsonc"
+  if hoja=$(python3 /usr/lib/command-os/fijadas.py generar "${estilo}" "${config}") \
+      && [ -s "${hoja}" ] && [ -s "${barra}" ]; then
+    estilo=${hoja}
+    config=${barra}
+  fi
+  exec waybar --config "${config}" --style "${estilo}"
+fi
 if [ "${1:-}" = generar ]; then
   if hoja=$(python3 /usr/lib/command-os/fijadas.py generar "${2:?uso: command-os-fijadas generar ESTILO}") \
       && [ -s "${hoja}" ]; then

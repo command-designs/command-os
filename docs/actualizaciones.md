@@ -139,8 +139,8 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
   decía ya no vale). Si Flatpak cambió algo después (`/var/lib/flatpak/.changed`: la tienda o
   `command-os-update`), la comprobación vale sin las aplicaciones; `command-os-update` vuelve a
   comprobar al terminar con ellas.
-- **Panel de actualizaciones** (`command-os-updates panel`, `lib/panel-actualizaciones.py`): el clic en
-  el aviso de la barra (y menú → ajustes → actualizaciones) abre una ventana con la versión nueva de
+- **Panel de actualizaciones** (Ajustes → actualizaciones: `command-os-updates panel`,
+  `lib/ajustes_actualizaciones.py`): el clic en el aviso de la barra abre la sección con la versión nueva de
   command-os, la lista de paquetes de Arch y la de aplicaciones de la tienda (con desplazamiento),
   cuándo se comprobó y dos botones: «comprobar ahora» (la comprobación manual, polkit) y «actualizar», que abre lo de siempre, abajo. **No
   instala nada por sí mismo** (`docs/decisiones.md`). Lee `command-os-updates datos` (líneas con

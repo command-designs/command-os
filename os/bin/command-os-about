@@ -8,11 +8,18 @@ source /usr/lib/command-os/textos.sh
 STYLE="$(command-os-config wofi/power.css)"
 TAG="command-os-about"
 
+# `datos`: las mismas líneas con un tabulador entre la etiqueta y el valor, sin panel (lo lee Ajustes →
+# sistema, lib/ajustes_sistema.py).
+DATOS=0
+[[ "${1:-}" == datos ]] && DATOS=1
+
 # Si ya está abierto, el segundo atajo lo cierra.
-if pkill -f "^wofi --dmenu --prompt ${TAG}" 2>/dev/null; then exit 0; fi
+if (( ! DATOS )) && pkill -f "^wofi --dmenu --prompt ${TAG}" 2>/dev/null; then exit 0; fi
 
 SHARE=/usr/share/command-os
-row() { printf '%-9s %s\n' "$1" "$2"; }
+row() {
+  if (( DATOS )); then printf '%s\t%s\n' "$1" "$2"; else printf '%-9s %s\n' "$1" "$2"; fi
+}
 
 version=$(cat "${SHARE}/version" 2>/dev/null || true)
 if [[ -e /etc/command-os/rolling || ! -s "${SHARE}/pacman/snapshot-date" ]]; then
@@ -49,7 +56,10 @@ fi
   row "gpu" "${gpu:--}"
   row "$(t 'memoria')" "${mem:--}"
   row "$(t 'volver')" "${snaps}"
-  row "" "$(t 'más detalle: fastfetch')"
-} | wofi --dmenu --prompt "${TAG}" --style "${STYLE}" \
-  --cache-file /dev/null --width 560 --lines 11 >/dev/null
+  (( DATOS )) || row "" "$(t 'más detalle: fastfetch')"
+} | if (( DATOS )); then
+  cat
+else
+  wofi --dmenu --prompt "${TAG}" --style "${STYLE}" --cache-file /dev/null --width 560 --lines 11 >/dev/null
+fi
 exit 0

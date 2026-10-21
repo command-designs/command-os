@@ -3,6 +3,48 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-21 — Barra configurable (`docs/notas/escritorio.md` § «Barra»)
+
+- **La configuración generada incluye a la de serie** (`barra.jsonc` con `include`), no al revés: en un
+  `include` de Waybar gana el archivo que incluye, así que desde `fijadas.jsonc` (incluido por la de
+  serie) no se puede cambiar `position` ni `height`. Descartado: quitar `position` y `height` de la de
+  serie (sin la generada la barra saldría con un alto cualquiera) y una configuración entera por lado
+  (cuatro copias que mantener).
+- **Formatos de dos líneas a un lado**, no iconos: la barra sigue siendo de lecturas (BRAND), y en 36 px
+  de ancho caben tres caracteres. Lo que no cabe (el tiempo de batería, «sin red», la fecha) queda en
+  el tooltip o en el centro de control.
+- **El centro de control cambia de id según el lado** (una regla de labwc por sitio), no
+  `gtk4-layer-shell` ni colocarse él mismo: Wayland no deja a una ventana normal elegir su sitio y las
+  reglas solo miran el id. Colgado de abajo, labwc lo coloca una vez por su esquina de arriba: si
+  creciera se saldría por abajo, así que la lista de redes tiene alto fijo y cambiar de página abre otro
+  panel. Descartado: un panel de alto fijo con aire transparente encima (taparía clics en las ventanas
+  de debajo).
+- **El mezclador y blueman se quedan arriba a la derecha** con cualquier lado: son ventanas normales,
+  labwc las deja fuera de la zona de la barra y no tapan nada; duplicar sus reglas por lado no aporta.
+
+## 2026-10-21 — Ajustes y centro de control (`docs/notas/escritorio.md` § «Ajustes y centro de control»)
+
+- **GTK 4 con `GSK_RENDERER=cairo`** en Ajustes y en el centro: 98 MB de RSS y 54 MB de PSS medidos en
+  la VM, con la ventana en 0,6–0,75 s. Sin GPU, el renderizador por defecto no aporta nada.
+  Descartado: GTK 3 + wofi (no se puede decir para qué red es la contraseña ni dibujar un panel).
+- **Ventana normal con una regla de labwc** (`dev.commandlab.Centro`: arriba a la derecha, siempre
+  encima), no `gtk4-layer-shell`: una dependencia más para algo que son unas líneas de `rc.xml`, y así
+  la ventana pierde el foco y se cierra como cualquier otra.
+- **`Unfocus` al hacer clic en el fondo** (`rc.xml`, contexto `Root`): sin él, clicar el escritorio no
+  le quita el foco al centro y no se cierra. Waybar no quita el foco al clicar en la barra, así que
+  ese otro clic lo resuelve el propio centro (el segundo clic dentro de 0,5 s del cierre no lo reabre).
+- **Emparejar Bluetooth en blueman**: el centro y la sección encienden, apagan y conectan o desconectan
+  los ya emparejados. Emparejar (PIN, confirmaciones) lo hace blueman, que ya estaba. Descartado:
+  reimplementar el agente de emparejamiento de BlueZ.
+- **`pactl` en texto con `LC_ALL=C`**, no `-f json`: `pactl` 17 escribe `(null)` en las
+  descripciones con tildes de la salida JSON (`lib/sonido.py`).
+- **Copias de los `.desktop` técnicos en ejecución** (`command-os-session`), no editar los originales:
+  son del sistema y pacman los pisaría. Cuestan unos bytes en `/run` y se rehacen al entrar. Descartado:
+  un gancho de pacman (reescribir el sistema para ocultar un icono).
+- **`command-os-estado` y `command-os-wifi` se quedan** como envoltorios: atajos y configuraciones
+  antiguas siguen funcionando. `lib/clave-wifi.py` se borra: la contraseña la pide `lib/redes.py` en el
+  propio panel.
+
 ## 2026-10-21 — Movimiento 2.1 (`docs/DISENO.md` § «Movimiento»)
 
 - **El botón principal de GTK funde el relleno; no hace el barrido** de BRAND § 9.2.4. GTK no anima
@@ -21,10 +63,12 @@ al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qu
 - **36 px**, no 40: en 1280×720 o en la pantalla pequeña del cyberdeck, 40 ya es un 5,5 % del alto.
 - **Telemetría oculta de serie**: la barra queda limpia y deja de despertarse cada 5 s (ahora 10 s
   cuando se enseña). Descartado: siempre a la vista (ocho lecturas que compiten, auditoría 2.1 B3).
-- **El clic en el grupo abre un panel wofi provisional** (`command-os-estado`) hasta el centro de
+- **El clic en el grupo abre un panel wofi provisional** (`command-os-estado`; ya sustituido por el
+  centro de control, ver «Ajustes y centro de control») hasta el centro de
   control del punto 5: se abre al usarlo y no se queda en memoria. Descartado: dejar el clic propio de
   cada lectura (el grupo no sería una sola pieza).
-- **Fuera nm-applet ya, con un selector de wi-fi en dos pasos** (`command-os-wifi`) en vez de esperar al
+- **Fuera nm-applet ya, con un selector de wi-fi en dos pasos** (`command-os-wifi`; hoy un envoltorio
+  del centro de control, con la contraseña en su propio panel y sin `clave-wifi.py`) en vez de esperar al
   punto 5: su icono no se puede quitar de la bandeja ni recolorear, y era un proceso residente para un
   menú. La contraseña, en el diálogo GTK de los paneles: en wofi no se puede decir para qué red es
   (GTK 3 oculta el texto de ayuda del campo enfocado y, con una línea en la lista, Intro devuelve la

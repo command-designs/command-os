@@ -76,10 +76,30 @@ punto al probarlo y avisa de los fallos; lo que salga bien se quita de esta guí
     color cambia suave (no de golpe) y sin tirones; una notificación (`notify-send hola`) entra con un
     desliz corto; el panel del inicio de sesión entra con un fundido. Nada debe moverse con el
     escritorio en reposo (`top`: Waybar y labwc cerca del 0 % de CPU).
+11. Ajustes y centro de control (`docs/notas/escritorio.md` § «Ajustes y centro de control»), con
+    wi-fi, Bluetooth, brillo y batería de verdad (la VM no tiene): el clic en el grupo de estado abre
+    el centro bajo la barra, a la derecha, con el desliz de 280 ms; **un clic fuera (en el escritorio,
+    en otra ventana o en la barra), Escape o el mismo clic en la barra lo cierran**, y al cerrarlo no
+    queda ningún proceso (`pgrep -f command-os-centro`). Wi-Fi: el interruptor enciende y apaga; la
+    flecha (o clic derecho en `NET`) lista las redes; conectar a una abierta, a una con contraseña
+    (se pide en el propio panel), a una guardada y escribir mal la contraseña. Bluetooth: el
+    interruptor y la flecha (emparejar abre blueman). Volumen y brillo con el deslizador y que sigan
+    a las teclas; la batería con su porcentaje y el estado de carga. Ajustes (menú → ajustes), cada
+    sección: que lo cambiado se mantenga al reiniciar. Y que `lstopo`, `btop` y
+    `Advanced Network Configuration` ya no salgan en el lanzador.
+12. Barra configurable (`docs/notas/escritorio.md` § «Barra»), en Ajustes → Barra: cada lado (arriba,
+    abajo, izquierda y derecha) y «flotante», con el ratón y en la pantalla del portátil. La barra
+    cambia al momento, sin cerrar la sesión, y las ventanas maximizadas no quedan debajo de ella. A un
+    lado: lecturas en dos líneas, la línea roja de la ventana activa en el borde de dentro y la batería
+    con su porcentaje. El centro de control cuelga junto al grupo de estado en cada lado (abajo a la
+    derecha con la barra abajo o a la derecha, abajo a la izquierda con la barra a la izquierda). **Con
+    la barra abajo y wi-fi de verdad (la VM no tiene)**: la flecha a las redes abre el panel otra vez,
+    entero en la pantalla, y la lista no crece hacia abajo al buscar ni al pedir la contraseña. Que el
+    lado elegido se mantenga al reiniciar.
 
-## 6. Paneles de ajustes (menú → ajustes)
+## 6. Ajustes (menú → ajustes)
 
-1. Paneles de actualizaciones, cuentas y disco cifrado: el diálogo de polkit.
+1. Secciones de actualizaciones, cuentas y disco cifrado: el diálogo de polkit.
 2. Con el disco cifrado: cambiar la contraseña y la clave de recuperación y **reiniciar**; el splash pide
    la nueva y la clave vieja ya no entra (en la VM cifrada, con `gestionar-disco` a mano, ya funciona;
    falta el diálogo de polkit y el panel con el ratón).

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Command OS — lo que el panel de cuentas (lib/panel-cuentas.py) hace como root. Se lanza con pkexec
+# Command OS — lo que Ajustes hace como root en cuentas, idioma y hora (lib/ajustes_cuentas.py y
+# lib/ajustes_idioma.py). Se lanza con pkexec
 # (polkit pide la contraseña de un administrador; system/polkit-gestionar-cuentas.policy), nunca
 # directamente. No tiene textos traducidos: contesta con códigos y el panel los cuenta en su idioma.
 #
@@ -9,6 +10,7 @@
 #   gestionar-cuentas clave USUARIO
 #   gestionar-cuentas idioma USUARIO es_ES.UTF-8|sistema
 #   gestionar-cuentas zona Europe/Madrid
+#   gestionar-cuentas idioma-equipo es_ES.UTF-8
 #
 # Las contraseñas llegan por la entrada estándar (una línea), nunca como argumento: no quedan en la
 # lista de procesos ni en ningún registro. Éxito: sale con 0. Error: «error: CÓDIGO» por la salida de
@@ -31,7 +33,7 @@ persona() {
   [[ "${uid}" -ge 1000 && "${uid}" -lt 60000 && "${shell}" != */nologin && "${shell}" != */false ]]
 }
 # Administradoras: las que están en wheel como miembro y las que lo tienen de grupo primario (lo mismo
-# que cuenta el panel, lib/panel-cuentas.py).
+# que cuenta el panel, lib/ajustes_cuentas.py y lib/ajustes_idioma.py).
 administradores() {
   local gid
   gid=$(getent group wheel | cut -d: -f3)
@@ -174,6 +176,14 @@ zona() {
   command-os-zona-horaria "${z}" >/dev/null 2>&1 || fallo fallo
 }
 
+# idioma-equipo — el idioma de todo el equipo (command-os-idioma lo genera si falta, escribe
+# /etc/locale.conf y rehace el arranque). Código: idioma_no_disponible.
+idioma_equipo() {
+  local loc=${1:-}
+  command-os-idioma lista | awk '{ print $1 }' | grep -qxF -- "${loc}" || fallo idioma_no_disponible
+  command-os-idioma "${loc}" >/dev/null 2>&1 || fallo fallo
+}
+
 orden=${1:-}
 shift || true
 case "${orden}" in
@@ -186,6 +196,7 @@ case "${orden}" in
     persona "${1}" || fallo no_existe
     idioma_de "$1" "${2:-}" ;;
   zona) zona "$@" ;;
+  idioma-equipo) idioma_equipo "$@" ;;
   *) fallo fallo ;;
 esac
 exit 0

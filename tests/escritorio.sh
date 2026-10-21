@@ -88,10 +88,16 @@ fi
 for p in blueman-manager blueman-applet bluetoothctl rfkill; do
   command -v "${p}" >/dev/null || mal "bluetooth: falta ${p}"
 done
-# Grupo de estado de la barra (command-os-estado, command-os-wifi): la red va por nmcli, sin nm-applet.
-for p in nmcli pamixer nm-connection-editor notify-send; do
+# Grupo de estado de la barra y centro de control (command-os-centro): la red va por nmcli, sin nm-applet.
+for p in nmcli pamixer pactl brightnessctl nm-connection-editor notify-send; do
   command -v "${p}" >/dev/null || mal "barra: falta ${p}"
 done
+if PYTHONPATH=/usr/lib/command-os PYTHONDONTWRITEBYTECODE=1 python3 -c 'import centro' 2>"${SALIDA}/centro.txt"; then
+  ok "centro de control: carga con GTK 4"
+else
+  mal "centro de control: no carga (${SALIDA}/centro.txt)"
+fi
+grep -q 'identifier="dev.commandlab.Centro"' /etc/xdg/labwc/rc.xml || mal "centro de control: falta su regla de labwc"
 grep -q 'nm-applet' /etc/xdg/labwc/autostart 2>/dev/null && mal "barra: nm-applet sigue en el autostart"
 for f in /etc/xdg/labwc/rc.xml /usr/share/command-os/config/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
@@ -180,6 +186,19 @@ if [[ ":$(cat "${run}/datos" 2>/dev/null):" == *":/var/lib/flatpak/exports/share
 else
   mal "sesión: XDG_DATA_DIRS sin Flatpak ($(cat "${run}/datos" 2>/dev/null))"
 fi
+# Las herramientas técnicas (las que estén instaladas) salen del lanzador con copias NoDisplay=true
+# que van las primeras en XDG_DATA_DIRS.
+primero=$(cut -d: -f1 "${run}/datos" 2>/dev/null)
+ocultas=0; fallo=""
+for d in lstopo nm-connection-editor wdisplays network.cycles.wdisplays btop blueman-manager pavucontrol; do
+  [[ -r "/usr/share/applications/${d}.desktop" ]] || continue
+  if grep -qx 'NoDisplay=true' "${primero}/applications/${d}.desktop" 2>/dev/null; then ocultas=$((ocultas + 1)); else fallo+=" ${d}"; fi
+done
+if [[ "${primero}" == "${run}/command-os/xdg" && -z "${fallo}" ]]; then
+  ok "sesión: ${ocultas} herramientas técnicas fuera del lanzador"
+else
+  mal "sesión: herramientas técnicas aún en el lanzador (${primero}${fallo:+, faltan:${fallo}})"
+fi
 rm -rf "${run}/bin" "${run}/datos"
 
 echo "==> Sesión de labwc sin pantalla"
@@ -192,10 +211,11 @@ sleep 12
 for p in labwc waybar swaync hypridle swaybg; do
   if pgrep -u "${uid}" -x "${p}" >/dev/null; then ok "en marcha: ${p}"; else mal "no arrancó: ${p}"; fi
 done
-# Aplicaciones fijadas (command-os-fijadas): la barra arranca con su hoja de estilo y su configuración.
+# Aplicaciones fijadas y lado de la barra (command-os-fijadas waybar): la barra arranca con la hoja de
+# estilo y la configuración generadas.
 if [[ -s "${run}/command-os/barra/fijadas.jsonc" ]] && ! grep -aq 'Unable to find resource file' "${SALIDA}/labwc.log" \
-    && pgrep -u "${uid}" -a waybar | grep -qF -- "--style ${run}/command-os/barra/estilo.css"; then
-  ok "barra: aplicaciones fijadas"
+    && pgrep -u "${uid}" -a waybar | grep -qF -- "--config ${run}/command-os/barra/barra.jsonc --style ${run}/command-os/barra/estilo.css"; then
+  ok "barra: aplicaciones fijadas y configuración generada"
 else
   mal "barra: sin las aplicaciones fijadas (ver labwc.log)"
 fi

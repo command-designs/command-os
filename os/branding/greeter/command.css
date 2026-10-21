@@ -105,7 +105,8 @@ button.flat:hover {
 
 /* Botones de los paneles en mono mayúsculas (BRAND § 5; el texto lo pone en mayúsculas comun.boton). */
 .panel button.text-button,
-.panel-ventana button.text-button {
+.panel-ventana button.text-button,
+.seccion button.text-button {
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
     font-size: 12px;
     font-weight: 500;
@@ -173,7 +174,7 @@ button.suggested-action {
     min-height: 28px;
 }
 
-/* Paneles del escritorio (comun.ventana): actualizaciones, cuentas y disco. */
+/* Paneles sueltos del escritorio (comun.ventana: abrir descarga) y diálogos (comun.Dialogo). */
 .panel-ventana {
     background-color: #151515;
     padding: 22px 26px;
@@ -185,4 +186,283 @@ button.suggested-action {
     font-size: 17px;
     color: #edebe6;
     padding: 6px 0;
+}
+
+/* Ajustes (lib/ajustes.py): las secciones en una lista sobre Void a la izquierda, con un filo Steel
+   que la separa, y la elegida en Graphite. La fila elegida es la del tema (Slate con la barra Red
+   Hot a la izquierda); al pasar el ratón, Slate sin la barra. */
+.lateral {
+    background-color: #0e0e0e;
+    border-right: 1px solid #2a2a2a;
+    padding: 22px 10px 10px;
+    min-width: 210px;
+}
+
+.lateral > .titulo {
+    padding: 0 12px 6px;
+}
+
+.secciones {
+    background-color: transparent;
+}
+
+.secciones row {
+    padding: 9px 12px;
+    color: #a3a09a;
+}
+
+.secciones row:hover {
+    background-color: #1f1f1f;
+    color: #edebe6;
+}
+
+.secciones row:selected {
+    color: #edebe6;
+}
+
+.contenido {
+    background-color: #151515;
+}
+
+.seccion {
+    padding: 26px 34px 30px;
+}
+
+/* «avanzado»: las herramientas completas, como enlaces de una línea (no botones con chaflán). */
+.avanzado button.flat {
+    padding: 4px 0;
+    color: #a3a09a;
+    background-color: transparent;
+    font-family: "Geist", sans-serif;
+    font-weight: normal;
+    letter-spacing: 0;
+}
+
+.avanzado button.flat:hover {
+    color: #f5482c;
+    background-color: transparent;
+}
+
+/* Cada sección entra como los paneles: fundido y 8 px de desliz en 280 ms (--ease-out). Ajustes
+   alterna las dos clases para que la animación vuelva a lanzarse al cambiar de sección; nada se
+   mueve en reposo. */
+@keyframes seccion-entra-a {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes seccion-entra-b {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.entra-a {
+    animation: seccion-entra-a 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.entra-b {
+    animation: seccion-entra-b 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Listas de Ajustes y del centro de control (redes wi-fi): filas planas que se iluminan en Slate al
+   pasar, sin la barra roja de la selección (aquí nada queda elegido: se pulsa y se conecta). */
+.redes {
+    background-color: transparent;
+}
+
+.redes row {
+    padding: 8px 10px;
+}
+
+.redes row:hover {
+    background-color: #1f1f1f;
+}
+
+/* Volumen y brillo: el icono, la barra (pista Steel, relleno Bone y tirador Bone, como el medidor de
+   lenguaje.html) y la cifra en mono. */
+.deslizador scale trough {
+    background-color: #2a2a2a;
+    min-height: 4px;
+}
+
+.deslizador scale highlight {
+    background-color: #edebe6;
+}
+
+.deslizador scale slider {
+    background-color: #edebe6;
+    min-width: 14px;
+    min-height: 14px;
+    margin: -6px;
+}
+
+.deslizador .dato {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 12px;
+}
+
+/* Fondos: la miniatura con filo Steel; la elegida, con filo Red Hot (la selección). */
+button.fondo-muestra {
+    padding: 8px;
+    border: 1px solid #2a2a2a;
+    background-color: #0e0e0e;
+}
+
+button.fondo-muestra:hover {
+    border-color: #85827c;
+}
+
+button.fondo-muestra.elegido {
+    border-color: #f5482c;
+}
+
+/* Centro de control (lib/centro.py): la ventana, sin decorar y transparente (ni marco ni sombra de
+   window.csd), y el panel con chaflán de .panel, más apretado. Entra desde la barra: fundido y 8 px de
+   desliz (hacia abajo con la barra arriba) en 280 ms (--ease-out); se cierra sin animación. */
+window.centro,
+window.centro.csd {
+    background-color: transparent;
+    outline: none;
+    box-shadow: none;
+}
+
+@keyframes centro-entra {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* 8 px de aire bajo la barra y hasta el borde: la ventana los lleva transparentes. */
+.centro-panel {
+    margin: 8px 8px 0 0;
+    padding: 18px 20px 16px;
+    animation: centro-entra 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Con la barra en otro lado (Ajustes → Barra), el panel cuelga de abajo (lib/centro.py): el aire y el
+   desliz de entrada, desde la barra. */
+@keyframes centro-entra-arriba {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes centro-entra-derecha {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes centro-entra-izquierda {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+window.lado-abajo .centro-panel {
+    margin: 0 8px 8px 0;
+    animation-name: centro-entra-arriba;
+}
+
+window.lado-derecha .centro-panel {
+    margin: 0 8px 8px 0;
+    animation-name: centro-entra-izquierda;
+}
+
+window.lado-izquierda .centro-panel {
+    margin: 0 0 8px 8px;
+    animation-name: centro-entra-derecha;
+}
+
+/* Wi-Fi y Bluetooth: una fila con filo Steel sobre Void; encendido (se queda pulsado, como .chip.is-on),
+   en Slate con el nombre en Bone y el icono en Red Hot. La flecha, una celda aparte con el mismo filo. */
+.mosaico > button {
+    padding: 8px 12px;
+    border: 1px solid #2a2a2a;
+    border-radius: 0;
+    background-color: #0e0e0e;
+    background-image: none;
+    border-image: none;
+    box-shadow: none;
+    color: #a3a09a;
+}
+
+.mosaico > button:hover {
+    background-color: #1f1f1f;
+    color: #edebe6;
+}
+
+.mosaico > button:checked {
+    background-color: #1f1f1f;
+    color: #edebe6;
+}
+
+.mosaico > button:checked image {
+    color: #f5482c;
+}
+
+.mosaico > button.flecha {
+    padding: 8px 10px;
+}
+
+.niveles {
+    padding: 6px 2px 2px;
+}
+
+/* El icono del volumen es un botón (silenciar) y el del brillo una imagen: con el mismo tamaño, las dos
+   barras empiezan a la par. */
+.niveles .deslizador > button,
+.niveles .deslizador > image {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    margin: 0;
+}
+
+/* La batería: una línea que lleva a sus ajustes. */
+button.linea {
+    padding: 6px 2px;
+    color: #a3a09a;
+}
+
+.pie {
+    padding-top: 4px;
 }

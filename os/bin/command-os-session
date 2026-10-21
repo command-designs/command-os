@@ -25,6 +25,21 @@ if [[ -r /etc/profile.d/flatpak.sh ]]; then
   set -u
 fi
 
+# Herramientas técnicas fuera del lanzador: su sitio es Ajustes. Se copian sus .desktop con
+# NoDisplay=true a una carpeta de ejecución que va la primera en XDG_DATA_DIRS (los originales son
+# del sistema, los pisaría pacman). Lo que no esté instalado se salta.
+apps="${XDG_RUNTIME_DIR:-}/command-os/xdg/applications"
+if [[ -d "${XDG_RUNTIME_DIR:-}" && -O "${XDG_RUNTIME_DIR:-}" ]] && mkdir -p "${apps}"; then
+  rm -f "${apps}"/*.desktop
+  for d in lstopo nm-connection-editor network.cycles.wdisplays wdisplays btop blueman-manager \
+           blueman-adapters pavucontrol avahi-discover bssh bvnc; do
+    [[ -r "/usr/share/applications/${d}.desktop" ]] || continue
+    awk '/^NoDisplay=/ { next } { print } /^\[Desktop Entry\]/ && !hecho { print "NoDisplay=true"; hecho = 1 }' \
+      "/usr/share/applications/${d}.desktop" > "${apps}/${d}.desktop"
+  done
+  export XDG_DATA_DIRS="${apps%/applications}:${XDG_DATA_DIRS}"
+fi
+
 # --merge-config: la configuración de serie (/etc/xdg/labwc) más lo que el usuario añada en
 # ~/.config/labwc. El registro va a un archivo, no a la pantalla.
 exec labwc --merge-config > "${XDG_RUNTIME_DIR:-/tmp}/labwc.log" 2>&1

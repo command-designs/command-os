@@ -195,6 +195,12 @@ grep -q 'user = "ana"' "${TOML}" && mal "greetd sigue usando a ana" || ok "greet
 gc "$(id -u viejo)" "" zona Europe/Madrid;                      espero ok "cambiar la zona horaria"
 [[ "$(command-os-zona-horaria actual)" == Europe/Madrid ]] && ok "la zona queda aplicada" || mal "no se aplicó la zona"
 gc "$(id -u viejo)" "" zona Mars/Olympus;                       espero zona_no_disponible "zona que no existe"
+# El idioma de todo el equipo (Ajustes → idioma y hora): solo los de command-os-idioma lista.
+idioma_antes=$(sed -n 's/^LANG=//p' /etc/locale.conf 2>/dev/null)
+gc "$(id -u viejo)" "" idioma-equipo en_US.UTF-8;               espero ok "cambiar el idioma del equipo"
+grep -qx 'LANG=en_US.UTF-8' /etc/locale.conf && ok "el idioma del equipo queda en locale.conf" || mal "locale.conf: $(cat /etc/locale.conf)"
+gc "$(id -u viejo)" "" idioma-equipo '../../etc/passwd';        espero idioma_no_disponible "idioma que no es de la lista"
+gc "$(id -u viejo)" "" idioma-equipo "${idioma_antes:-es_ES.UTF-8}"; espero ok "y vuelve al de antes"
 gc "$(id -u viejo)" "" nada;                                    espero fallo "orden desconocida"
 
 echo "==> Disco cifrado: el asistente propone entrar sin contraseña (lib/comun.py disco_cifrado)"

@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
-# Command OS — panel de cuentas (ventana GTK 4 del escritorio; ajustes → cuentas). Para quien usa el
-# equipo: cambiar su contraseña, su idioma (propio de la cuenta) y la zona horaria del equipo. Para un
+# Command OS — Ajustes → cuentas (lib/ajustes.py). Para quien usa el equipo: cambiar su contraseña (el
+# idioma de la cuenta y la zona horaria están en «idioma y hora», lib/ajustes_idioma.py). Para un
 # administrador además: ver las cuentas, añadir, borrar, dar o quitar el permiso de administrar y
 # poner otra contraseña a una cuenta.
 #
@@ -13,21 +12,17 @@ import os
 import pty
 import pwd
 import select
-import subprocess
-import sys
 import time
 
-import zonas
+from ajustes_idioma import idiomas
 from comun import (
-    CONF, Dialogo, PanelBase, boton, cargar_tema, fila, leer, problema_clave, texto_clave_corta, texto_usuario_invalido,
-    traductor, usuario_desde, usuario_valido,
+    CONF, Dialogo, Seccion, boton, leer, problema_clave, texto_clave_corta, texto_usuario_invalido, usuario_desde,
+    usuario_valido,
 )
 from comun import administrar as administrar_con
-from gi.repository import GLib, Gtk
-from selector_zona import SelectorZona
+from gi.repository import Gtk
 
 HELPER = "/usr/lib/command-os/gestionar-cuentas"
-ANCHO = 620
 UID_MIN, UID_MAX = 1000, 60000
 ESPERA_PASSWD = 30  # segundos
 
@@ -51,35 +46,6 @@ def administradores():
 
 def nombre_de(p):
     return p.pw_gecos.split(",")[0].strip()
-
-
-def idiomas():
-    """[(locale, nombre en su idioma)] de command-os-idioma."""
-    try:
-        r = subprocess.run(["command-os-idioma", "lista"], capture_output=True, text=True, check=True)
-        return [tuple(linea.split(" ", 1)) for linea in r.stdout.splitlines() if " " in linea]
-    except (OSError, subprocess.CalledProcessError):
-        return []
-
-
-def locale_generado(loc):
-    try:
-        r = subprocess.run(["locale", "-a"], capture_output=True, text=True, check=True)
-    except (OSError, subprocess.CalledProcessError):
-        return False
-    return loc.split(".")[0].lower() + ".utf8" in {linea.strip().lower() for linea in r.stdout.splitlines()}
-
-
-def archivo_idioma():
-    return os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"), "locale.conf")
-
-
-def idioma_propio():
-    """El LANG del idioma propio de la cuenta (~/.config/locale.conf) o '' si usa el del sistema."""
-    for linea in leer(archivo_idioma()).splitlines():
-        if linea.startswith("LANG="):
-            return linea[5:].strip("\"'")
-    return ""
 
 
 def administrar(args, entrada=""):
@@ -126,16 +92,15 @@ def cambiar_clave_propia(actual, nueva):
     return "actual_incorrecta" if "uthentication" in salida else "fallo"
 
 
-class Panel(PanelBase):
-    def __init__(self, app):
-        _ = traductor()
-        super().__init__(app, _, _("cmd-os · cuentas"), ANCHO, 680)
-        self.app = app
+class Pagina(Seccion):
+    def __init__(self, ventana, traducir):
+        super().__init__(ventana, traducir)
         self.yo = pwd.getpwuid(os.getuid())
         self.idiomas = idiomas()
-        self.catalogo = None
-        self.fila_zona = None  # el selector de zona se crea una vez y se reutiliza al repintar
         self.pintar()
+
+    def al_mostrar(self):
+        self.pintar()  # las cuentas pueden haber cambiado fuera (otra sesión, la terminal)
 
     # ---- Textos ------------------------------------------------------------------------------
 
@@ -152,7 +117,6 @@ class Panel(PanelBase):
             "ultimo_admin": _("tiene que quedar al menos una cuenta administradora."),
             "no_existe": _("esa cuenta ya no existe."),
             "idioma_no_disponible": _("ese idioma no está disponible."),
-            "zona_no_disponible": _("esa zona horaria no está disponible."),
             "autenticacion": _("no se pudo comprobar la contraseña de administrador."),
             "actual_incorrecta": _("la contraseña actual no es correcta."),
         }.get(codigo, _("no se pudo completar la operación."))
@@ -162,26 +126,16 @@ class Panel(PanelBase):
     def pintar(self, aviso=""):
         _ = self._
         self.limpiar()
-        titulo = Gtk.Label(label=_("› cuentas"), xalign=0)
-        titulo.add_css_class("titulo")
-        self.caja.append(titulo)
+        self.titulo(_("› cuentas"))
         admins = administradores()
         soy_admin = self.yo.pw_name in admins
 
         # Mi cuenta.
-        etiqueta = Gtk.Label(label=_("mi cuenta").upper(), xalign=0)
-        etiqueta.add_css_class("etiqueta")
-        self.caja.append(etiqueta)
+        self.etiqueta(_("mi cuenta"))
         quien = nombre_de(self.yo) or self.yo.pw_name
         rol = _("administrador") if soy_admin else _("cuenta normal")
-        yo = Gtk.Label(label=f"{quien} · {self.yo.pw_name} · {rol}", xalign=0)
-        yo.add_css_class("dato")
-        self.caja.append(yo)
-        ajustes = Gtk.Box(spacing=12, homogeneous=True)
-        ajustes.append(fila(_("contraseña"), self.boton_clave()))
-        ajustes.append(fila(_("idioma de mi cuenta"), self.combo_idioma()))
-        self.caja.append(ajustes)
-        self.caja.append(self.selector_zona())
+        self.nota(f"{quien} · {self.yo.pw_name} · {rol}", "dato")
+        self.caja.append(self.boton_clave())
 
         # Las cuentas del equipo.
         cabecera = Gtk.Box(spacing=12)
@@ -195,51 +149,13 @@ class Panel(PanelBase):
         self.caja.append(cabecera)
         self.caja.append(self.lista(admins, soy_admin))
 
-        self.estado = Gtk.Label(label=aviso, xalign=0, wrap=True, max_width_chars=60)
-        self.estado.add_css_class("error")
-        self.caja.append(self.estado)
-        cerrar = boton(_("cerrar"), halign=Gtk.Align.END)
-        cerrar.add_css_class("flat")
-        cerrar.connect("clicked", lambda _b: self.ventana.close())
-        self.caja.append(cerrar)
+        self.estado = self.nota(aviso, "error")
 
     def boton_clave(self):
         _ = self._
         b = boton(_("cambiar mi contraseña"), halign=Gtk.Align.START)
         b.connect("clicked", self.al_cambiar_clave)
         return b
-
-    def combo_idioma(self):
-        _ = self._
-        nombres = [_("el del equipo")] + [n for _loc, n in self.idiomas]
-        self.codigos = [""] + [loc for loc, _n in self.idiomas]
-        combo = Gtk.DropDown.new_from_strings(nombres)
-        actual = idioma_propio()
-        combo.set_selected(self.codigos.index(actual) if actual in self.codigos else 0)
-        combo.connect("notify::selected", self.al_idioma)
-        self.combo = combo
-        self.idioma_pintado = combo.get_selected()
-        return combo
-
-    def selector_zona(self):
-        """La fila de la zona horaria: se construye la primera vez (el catálogo de zonas es lo más caro de
-        pintar) y después se vuelve a poner la misma al repintar el panel."""
-        if self.fila_zona is not None:
-            return self.fila_zona
-        _ = self._
-        idioma = os.environ.get("LANG", "es_ES.UTF-8")
-        self.catalogo = self.catalogo or zonas.catalogo(idioma, self._)
-        validas = {z for z, _c in zonas.zonas()}
-        actual = zonas.actual()
-        if actual not in validas:
-            actual = "UTC"
-        pared = actual if zonas.reloj_local() and not zonas.sincronizada() else None
-        self.zona_pintada = actual
-        self.selector = SelectorZona(self.catalogo, self._, actual, self.al_zona, pared)
-        # La hora del botón al día.
-        GLib.timeout_add_seconds(20, lambda: self.selector.poner_hora())
-        self.fila_zona = fila(_("zona horaria (de todo el equipo)"), self.selector)
-        return self.fila_zona
 
     def lista(self, admins, soy_admin):
         _ = self._
@@ -304,60 +220,6 @@ class Panel(PanelBase):
                 self.estado.add_css_class("dato")
         self.en_hilo(lambda: cambiar_clave_propia(v["actual"], v["nueva"]), hecho)
         return None
-
-    # ---- Mi idioma y la zona -----------------------------------------------------------------------
-
-    def al_idioma(self, combo, _param):
-        elegido = combo.get_selected()
-        if elegido == self.idioma_pintado:
-            return
-        self.idioma_pintado = elegido
-        loc = self.codigos[elegido]
-        _ = self._
-
-        def hecho(codigo):
-            if codigo:
-                # Cancelar el diálogo de polkit no es un error: se vuelve al idioma de antes sin avisos.
-                self.pintar("" if codigo == "cancelado" else self.motivo(codigo))
-            else:
-                self.estado.remove_css_class("error")
-                self.estado.add_css_class("dato")
-                self.estado.set_text(_("se aplica al volver a entrar."))
-
-        def trabajo():
-            if not loc:  # el del equipo: se quita el propio
-                try:
-                    os.remove(archivo_idioma())
-                except FileNotFoundError:
-                    pass
-                except OSError:
-                    return "fallo"
-                return None
-            if locale_generado(loc):
-                try:
-                    os.makedirs(os.path.dirname(archivo_idioma()), exist_ok=True)
-                    with open(archivo_idioma(), "w", encoding="utf-8") as f:
-                        f.write(f"LANG={loc}\n")
-                except OSError:
-                    return "fallo"
-                return None
-            return administrar(["idioma", self.yo.pw_name, loc])  # hay que generar el locale (root)
-        self.en_hilo(trabajo, hecho)
-
-    def al_zona(self, zona):
-        _ = self._
-        anterior = self.zona_pintada
-
-        def hecho(codigo):
-            if codigo:
-                self.selector.poner_zona(anterior)
-                if codigo != "cancelado":
-                    self.estado.set_text(self.motivo(codigo))
-            else:
-                self.zona_pintada = zona
-                self.estado.set_text("")
-        self.estado.set_text("")
-        self.en_hilo(lambda: administrar(["zona", zona]), hecho)
 
     # ---- Administrar cuentas ------------------------------------------------------------------------
 
@@ -452,18 +314,3 @@ class Panel(PanelBase):
         d = Dialogo(self.ventana, _("añadir cuenta"), "", campos, _("crear cuenta"), aceptar, _)
         d.present()
 
-
-class App(Gtk.Application):
-    def __init__(self):
-        super().__init__(application_id="dev.commandlab.Cuentas")
-        self.panel = None
-
-    def do_activate(self):
-        cargar_tema()
-        if self.panel is None:
-            self.panel = Panel(self)
-        self.panel.ventana.present()
-
-
-if __name__ == "__main__":
-    sys.exit(App().run([]))

@@ -81,8 +81,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   urgente (swaync lo deja hasta cerrarlo, con su sonido), una vez por descarga; al enchufar, un aviso
   breve los sustituye. Mira `/sys/class/power_supply` cada minuto: fuera las baterías de periféricos
   (`scope` = Device); varias baterías cuentan juntas si todas dan energía (o todas carga).
-- **Límite de carga al 80 %** (panel: clic derecho en la batería o menú → ajustes → batería;
-  `os/lib/panel-bateria.py`): solo aparece si el controlador expone `charge_control_end_threshold`.
+- **Límite de carga al 80 %** (Ajustes → batería, también con clic derecho en la batería;
+  `os/lib/ajustes_bateria.py`): solo aparece si el controlador expone `charge_control_end_threshold`.
   Lo pone `lib/gestionar-bateria` con pkexec (sesión activa sin contraseña); guarda
   `/etc/command-os/limite-carga` y lo vuelven a poner udev al aparecer la batería (también al
   arrancar) y `/usr/lib/systemd/system-sleep/command-os-bateria` al despertar. Inicio a 75 si hay
@@ -99,7 +99,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 
 - **Barra**: el módulo `bluetooth` de Waybar, en texto como el resto (`bt off`, `bt on` o `bt N` con N
   dispositivos conectados; sus nombres, al pasar el ratón). Sin adaptador no sale (`format-no-controller`
-  vacío). Apagado, en Smoke como `vol mute`. Clic: el panel de estado (§ «Barra»), y en él
+  vacío). Apagado, en Smoke como `vol mute`. Clic: el centro de control (§ «Ajustes y centro de control»), y en él
   «bluetooth» abre `command-os-bluetooth panel` (blueman-manager de
   520×400 sin barra de título bajo la barra, regla en `labwc/rc.xml`; otro clic lo cierra); clic
   derecho: `command-os-bluetooth cambiar` (`bluetoothctl power on|off`; al encender quita antes el
@@ -123,8 +123,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   órdenes). `os/lib/fijadas.py` escribe en `$XDG_RUNTIME_DIR/command-os/barra/` `fijadas.jsonc`
   (`group/fijadas` con un `custom/fijada#fN` por aplicación; lo incluye `config.jsonc` con `include`) y
   `estilo.css` (importa la hoja de la barra y pone cada icono de fondo en `#custom-fijada.fN`). El
-  autostart lanza Waybar con `command-os-fijadas generar <hoja>`; si falla, devuelve la hoja de
-  siempre y la barra arranca sin fijadas. Al cambiar la lista, se regenera y se recarga Waybar (SIGUSR2).
+  autostart lanza Waybar con `command-os-fijadas waybar` (§ «Barra»); si falla, arranca con la hoja y
+  la configuración de siempre, sin fijadas. Al cambiar la lista, se regenera y se recarga Waybar (SIGUSR2).
 - **Lista**: `~/.config/command-os/fijadas`, un `.desktop` por línea; sin el archivo, las de serie
   (Firefox, Thunar, kitty). Las desinstaladas desaparecen solas. Iconos de Papirus-Dark (SVG primero),
   sus padres o `/usr/share/pixmaps`, sin GTK.
@@ -236,38 +236,88 @@ Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app H
 (cómo se ve: `docs/DISENO.md` § «Escritorio»). Por qué así y qué se descartó: `docs/decisiones.md`.
 
 - **Archivos**: `os/dotfiles/waybar/{config.jsonc,style.css}`; 36 px. Las reglas de labwc que cuelgan
-  paneles bajo la barra (`MoveToEdge` arriba) respetan su zona reservada: no dependen del alto.
+  paneles junto a la barra (`MoveToEdge`) respetan su zona reservada: no dependen del alto ni del lado.
 - **Grupo de estado** (`group/estado`: red, Bluetooth, volumen, batería). Waybar no da clic a un grupo:
-  cada módulo lleva el mismo `on-click` (`command-os-estado`) y el hover del grupo (`#estado:hover`) llega
-  a todos. Clic derecho: red → `command-os-wifi`, Bluetooth → encender o apagar, volumen → mezclador,
-  batería → su panel.
+  cada módulo lleva el mismo `on-click` (`command-os-centro`) y el hover del grupo (`#estado:hover`) llega
+  a todos. Clic derecho: red → `command-os-centro redes`, Bluetooth → encender o apagar, volumen →
+  mezclador, batería → su sección de Ajustes.
 - **Telemetría** (`group/telemetria`: CPU, TMP, MEM, cada 10 s). Oculta de serie: es lo único de la
   barra que se despierta solo. El ajuste va en `~/.config/command-os/barra` (`telemetria=si|no`) y lo
   aplica `command-os-fijadas` al escribir la parte generada de la barra (`fijadas.jsonc`, con el grupo
   vacío si está oculta, y en `estilo.css` la celda sin filo); `command-os-fijadas telemetria
-  si|no|cambiar` lo cambia y recarga Waybar. Lo enseña u oculta el panel de estado.
-- **Panel de estado** (`os/bin/command-os-estado`): wofi con `power.css`, arriba a la derecha
-  (`--location top_right --xoffset -24 --yoffset 8`: con un margen menor wofi corta el chaflán derecho).
-  Bluetooth solo si hay adaptador en `/sys/class/bluetooth`: sin adaptador, `bluetoothctl show` se queda
-  esperando.
-- **Wi-Fi** (`os/bin/command-os-wifi`, sustituye a nm-applet): redes de `nmcli` (la conectada primero,
-  luego por señal, una vez cada nombre, sin las ocultas); la conectada, desconectar con confirmación;
-  una guardada (perfil con el nombre de la red), `connection up`; una nueva abierta, directa; con
-  contraseña, el diálogo de los paneles (`os/lib/clave-wifi.py`, `comun.Dialogo`) y la contraseña va a
-  `nmcli --ask` por la entrada, nunca en la línea de órdenes. Lo raro (ocultas, empresa, VPN), en
-  «ajustes de red avanzados» (`nm-connection-editor`). La contraseña no va en wofi: con el campo
-  enfocado GTK 3 no enseña el texto de ayuda, y una línea en la lista hace que Intro devuelva esa línea
-  en vez de lo escrito.
+  si|no|cambiar` lo cambia y recarga Waybar. Se enseña u oculta en Ajustes → Barra.
+- **Panel de estado y wi-fi**: ya no hay paneles wofi ni `clave-wifi.py`. `command-os-estado` y
+  `command-os-wifi` quedan como envoltorios de `command-os-centro` y `command-os-centro redes`
+  (atajos y configuraciones viejas siguen valiendo); todo está en § «Ajustes y centro de control».
+- **Lado y flotante** (punto 6 de la tanda 2, 2026-10-21): en Ajustes → Barra, o con `command-os-fijadas
+  lado arriba|abajo|izquierda|derecha` y `flotante si|no|cambiar` (en `~/.config/command-os/barra`;
+  recarga Waybar con SIGUSR2, que la recoloca sin cerrar la sesión). El autostart ya no lanza Waybar a
+  mano: `command-os-fijadas waybar` genera y hace `exec waybar` con `barra.jsonc`, que incluye la
+  configuración de serie (o la del usuario) y `fijadas.jsonc` y fija encima `position`, el grosor
+  (`height` 36, o `width` 36 y `height` 0 a un lado) y, flotante, 8 px de `margin-*` y `"name":
+  "flotante"`. **En un `include` de Waybar gana el archivo que incluye** (y entre los incluidos, el
+  primero): por eso la configuración generada incluye a la de serie y no al revés. Si no puede generar,
+  arranca con las de serie (arriba, fija). A un lado, `VERTICAL` (`lib/fijadas.py`) cambia los formatos
+  por lecturas de dos líneas (etiqueta encima del valor, tres caracteres como mucho, `justify` center),
+  la hora en dos líneas y el aviso de actualizaciones por su campo `alt` (`command-os-updates status`);
+  los grupos van con `"orientation": "inherit"`. El CSS va por la clase que Waybar pone a la ventana
+  con el lado (`window#waybar.left`…) y por `.flotante`: filo hacia la pantalla, filos entre celdas
+  encima de cada una, la línea Red Hot de lo activo por el borde de dentro (a un lado crece de arriba
+  abajo) y el LED de la red encima de la lectura.
+- **Centro de control según el lado**: `lib/centro.py` cambia de id según el lado (`dev.commandlab.Centro`
+  arriba, `…CentroAbajo` abajo o a la derecha, `…CentroIzquierda` a la izquierda), y `rc.xml` tiene una
+  regla para cada uno, junto al grupo de estado (al final de la barra). La clase `lado-*` de la ventana
+  cambia el aire y el desliz de entrada (`command.css`). Colgado de abajo, si creciera se saldría por
+  abajo (labwc lo coloca una vez, al abrirse, por su esquina de arriba): la lista de redes tiene alto
+  fijo (`ListaRedes(fija=True)`) y cambiar de página abre otro panel (`App.reabrir`). El mezclador y
+  blueman siguen arriba a la derecha (`docs/decisiones.md`).
+- **Probado** (lado y flotante): `tests/barra.sh` y en la VM los cuatro lados y flotante (por orden y
+  desde Ajustes con el teclado), la ventana activa a un lado, el centro en cada lado y el paso a redes
+  con la barra abajo. Waybar, 68 MB de RSS en cualquier lado; nada residente nuevo. **No probado** (la VM
+  no tiene wi-fi): la lista de redes de alto fijo con la barra abajo (`docs/prueba-en-pc-real.md` § 5.12).
 - **Sin nm-applet**: fuera del autostart y de `packages.txt` (en los equipos ya instalados queda como
   dependencia huérfana, sin arrancar). La bandeja queda para apps de terceros.
-- **Probado**: `tests/barra.sh` (telemetría, selector de wi-fi y panel de estado con `nmcli`, `wofi` y
-  `bluetoothctl` de mentira) y en la VM: barra a 36 px (logo, iconos apagados, activa con filo Steel y
-  línea Red Hot, un solo grupo, sin bandeja ni celda vacía), hover del grupo entero (Slate medido),
-  panel de estado bajo la barra, telemetría enseñada desde él, aviso sin tarjeta wi-fi y el diálogo de
-  la contraseña (devuelve lo escrito). Memoria en reposo tras arrancar: 661 MB antes y 669 MB después
-  (ruido entre arranques; nm-applet ocupaba 56 MB de RSS, casi todo bibliotecas GTK compartidas).
-  **No probado** (la VM no tiene wi-fi ni Bluetooth): conectar a una red de verdad, con y sin
-  contraseña, y una contraseña cambiada (`docs/prueba-en-pc-real.md` § 5).
+- **Probado**: `tests/barra.sh` (telemetría) y en la VM: barra a 36 px (logo, iconos apagados, activa
+  con filo Steel y línea Red Hot, un solo grupo, sin bandeja ni celda vacía) y hover del grupo entero
+  (Slate medido). Memoria en reposo tras arrancar: 661 MB antes y 669 MB después (ruido entre
+  arranques; nm-applet ocupaba 56 MB de RSS, casi todo bibliotecas GTK compartidas). **No probado**
+  (la VM no tiene wi-fi ni Bluetooth): `docs/prueba-en-pc-real.md` §§ 5.9 y 5.11.
+
+## Ajustes y centro de control (2026-10-21)
+
+Punto 5 de la tanda 2 (`ROADMAP.md`). Cómo se ve: `docs/DISENO.md` § «Escritorio»; por qué así y qué se
+descartó: `docs/decisiones.md`.
+
+- **Ajustes** (`os/lib/ajustes.py`, `command-os-ajustes [sección]`): una ventana con una barra lateral y
+  secciones hijas de `comun.Seccion` (`lib/ajustes_*.py`: red, bluetooth, barra, pantalla, sonido,
+  fondo, batería, cuentas, disco, actualizaciones, idioma y hora, sistema). Los paneles viejos son
+  secciones; `command-os-ajustes wifi` (alias) abre la de red. Cada sección se importa al abrirla y
+  lo avanzado va en su apartado «avanzado». Lo que lee el sistema vive en módulos sin interfaz que
+  comparten con el centro: `lib/red.py` (nmcli), `lib/redes.py` (`ListaRedes`: la lista de redes y la
+  contraseña en dos pasos; `al_dia()` vuelve a mirar el wi-fi), `lib/bt.py` (bluetoothctl; emparejar
+  se hace en blueman) y `lib/sonido.py` (`pactl` en texto, no JSON).
+- **Centro de control** (`os/lib/centro.py`, `command-os-centro [redes]`): ventana GTK 4 sin decorar y
+  transparente que pinta el panel con su chaflán. La coloca una regla de labwc
+  (`dev.commandlab.Centro` en `rc.xml`: `MoveToEdge` arriba y a la derecha, `AlwaysOnTop`), no
+  `gtk4-layer-shell`. Wi-Fi y Bluetooth (encender o apagar, y la flecha a las redes o a Ajustes),
+  volumen, brillo, batería y el botón a Ajustes. Los datos llegan en un hilo después de enseñarse:
+  abrir no espera a `nmcli` ni a `bluetoothctl`.
+- **Se cierra** al perder el foco, con Escape o con otro clic en la barra (Waybar no quita el foco al
+  clicar: probado). Para que el clic en el escritorio también le quite el foco, `rc.xml` lleva en el
+  contexto `Root` un clic izquierdo con `Unfocus`. Una orden que llega justo tras el cierre (0,5 s) no
+  lo reabre: era el clic de cerrarlo.
+- **Lanzador**: `command-os-session` copia al entrar los `.desktop` técnicos (`lstopo`,
+  `nm-connection-editor`, `wdisplays`, `btop`, los de blueman y pavucontrol, `avahi-discover`,
+  `bssh`, `bvnc`; los que no estén instalados se saltan) con `NoDisplay=true` a
+  `$XDG_RUNTIME_DIR/command-os/xdg/applications/`, que va la primera de `XDG_DATA_DIRS` (delante de la
+  de Flatpak). Los originales no se tocan: son del sistema. El menú de labwc deja `ajustes` y
+  `recargar escritorio`; lo demás está en Ajustes.
+- **Medido en la VM** (software, `GSK_RENDERER=cairo`): ventana en 0,6–0,75 s, datos +0,1–0,2 s; 98 MB
+  de RSS y 54 MB de PSS con cairo. Nada se queda residente al cerrar.
+- **Probado**: `tests/ajustes.sh` (secciones, redes y bluetooth con `nmcli` y `bluetoothctl` de
+  mentira), `tests/escritorio.sh` (copias del lanzador) y en la VM el centro con clics de ratón de
+  verdad (se cierra con otro clic en la barra, con Escape y al pulsar el fondo). **No probado** (la VM
+  no tiene wi-fi, Bluetooth, brillo ni batería): `docs/prueba-en-pc-real.md` § 5.11.
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 

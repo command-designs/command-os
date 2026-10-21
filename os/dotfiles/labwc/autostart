@@ -8,9 +8,9 @@
 command-os-pantallas aplicar
 COMMAND_OS_FONDO=1 command-os-pantallas vigilar &
 command-os-wallpaper
-# La hoja de estilo de la barra lleva además los iconos de las aplicaciones fijadas (command-os-fijadas).
-waybar --config "$(command-os-config waybar/config.jsonc)" \
-  --style "$(command-os-fijadas generar "$(command-os-config waybar/style.css)")" &
+# La barra, con la configuración y la hoja que genera command-os-fijadas: el lado de la pantalla, si va
+# flotante y los iconos de las aplicaciones fijadas.
+command-os-fijadas waybar &
 swaync --config "$(command-os-config swaync/config.json)" --style "$(command-os-config swaync/style.css)" &
 hypridle --config "$(command-os-config hypr/hypridle.conf)" &
 swayosd-server &

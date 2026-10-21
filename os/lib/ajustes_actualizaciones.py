@@ -1,19 +1,14 @@
-#!/usr/bin/env python3
-# Command OS — panel de actualizaciones (ventana GTK 4 del escritorio; clic en el aviso de la barra).
+# Command OS — Ajustes → actualizaciones (lib/ajustes.py; también clic en el aviso de la barra).
 # Solo enseña lo que ya dejó la comprobación del sistema (`command-os-updates datos`) y lanza lo de
 # siempre: «actualizar» abre `command-os-update` en una terminal (sudo y pacman piden confirmación)
 # y «comprobar ahora» arranca la comprobación manual. No instala nada por sí mismo: docs/actualizaciones.md
 # § 7 y docs/decisiones.md (por qué no se instala desde el panel).
-#
-# Una sola ventana por sesión: la aplicación es única (D-Bus), una segunda llamada trae la abierta.
 import os
 import subprocess
-import sys
 
-from comun import PanelBase, boton, cargar_tema, traductor
+from comun import Seccion, boton, lanzar
 from gi.repository import Gtk
 
-ANCHO = 520
 SIGNAL = 8  # el mismo que "signal" del módulo custom/updates de Waybar
 # Filas de paquetes visibles sin desplazar la lista.
 FILAS = 8
@@ -53,19 +48,33 @@ def comprobar():
     return r.returncode == 0
 
 
-class Panel(PanelBase):
-    def __init__(self, app):
-        _ = traductor()
-        super().__init__(app, _, _("cmd-os · actualizaciones"), ANCHO)
+class Pagina(Seccion):
+    def __init__(self, ventana, traducir):
+        super().__init__(ventana, traducir)
+        self.leyendo = False
+        self.pintar()
+
+    def al_mostrar(self):
         self.pintar()
 
     def pintar(self, aviso=""):
+        """Lee el estado en un hilo (command-os-updates datos puede tardar) y lo pinta al llegar."""
+        if self.leyendo:
+            return
+        self.leyendo = True
+        if self.caja.get_first_child() is None:
+            self.titulo(self._("› actualizaciones"))
+            self.nota(self._("leyendo…"))
+
+        def hecho(datos):
+            self.leyendo = False
+            self.pintar_datos(datos, aviso)
+        self.en_hilo(leer_datos, hecho)
+
+    def pintar_datos(self, datos, aviso):
         _ = self._
         self.limpiar()
-        datos = leer_datos()
-        titulo = Gtk.Label(label=_("› actualizaciones"), xalign=0)
-        titulo.add_css_class("titulo")
-        self.caja.append(titulo)
+        self.titulo(_("› actualizaciones"))
 
         hay = bool(datos and (datos["command-os"] or datos["paquetes"] or datos["apps"]))
         if datos is None or (datos["nada"] and not datos["hace"]):
@@ -112,11 +121,7 @@ class Panel(PanelBase):
         self.estado.add_css_class("error")
         self.caja.append(self.estado)
 
-        botones = Gtk.Box(spacing=10, halign=Gtk.Align.END)
-        cerrar = boton(_("cerrar"))
-        cerrar.add_css_class("flat")
-        cerrar.connect("clicked", lambda _b: self.ventana.close())
-        botones.append(cerrar)
+        botones = Gtk.Box(spacing=10, halign=Gtk.Align.START)
         self.boton_comprobar = boton(_("comprobar ahora"))
         self.boton_comprobar.connect("clicked", self.al_comprobar)
         botones.append(self.boton_comprobar)
@@ -125,7 +130,6 @@ class Panel(PanelBase):
             actualizar.add_css_class("suggested-action")
             actualizar.connect("clicked", self.al_actualizar)
             botones.append(actualizar)
-            self.ventana.set_default_widget(actualizar)
         self.caja.append(botones)
 
     def lista(self, paquetes):
@@ -146,10 +150,8 @@ class Panel(PanelBase):
         return desliza
 
     def al_actualizar(self, _boton):
-        # La terminal de command-os-update sigue su camino sola; el panel ya no hace falta.
-        subprocess.Popen(["command-os-updates", "update"], start_new_session=True,
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self.ventana.close()
+        # La terminal de command-os-update sigue su camino sola.
+        lanzar(["command-os-updates", "update"])
 
     def al_comprobar(self, boton):
         _ = self._
@@ -161,18 +163,3 @@ class Panel(PanelBase):
         _ = self._
         self.pintar("" if bien else _("no se pudo comprobar (¿sin red?)"))
 
-
-class App(Gtk.Application):
-    def __init__(self):
-        super().__init__(application_id="dev.commandlab.Actualizaciones")
-        self.panel = None
-
-    def do_activate(self):
-        cargar_tema()
-        if self.panel is None:
-            self.panel = Panel(self)
-        self.panel.ventana.present()
-
-
-if __name__ == "__main__":
-    sys.exit(App().run([]))

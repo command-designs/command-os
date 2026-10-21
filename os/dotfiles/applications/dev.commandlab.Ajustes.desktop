@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Ajustes
+Name[en]=Settings
+Comment=Wi-Fi, Bluetooth, pantalla, sonido, cuentas y el resto de ajustes del equipo
+Comment[en]=Wi-Fi, Bluetooth, display, sound, accounts and the rest of the computer's settings
+Exec=command-os-ajustes
+Icon=preferences-system
+Terminal=false
+Categories=Settings;System;
+Keywords=wifi;red;bluetooth;sonido;pantalla;brillo;fondo;cuentas;idioma;hora;network;sound;display;brightness;wallpaper;accounts;language;
+StartupNotify=false

@@ -142,16 +142,18 @@ ver abajo).
   `BT` (`OFF`, `ON` o los conectados; oculto sin adaptador), `VOL`, `BAT` con el tiempo que queda), la
   bandeja (solo apps de terceros; sin iconos no se ve) y el botón de energía. El grupo de estado es una
   sola pieza, como la lectura «sincronizado» de la referencia: se ilumina entero en Slate al pasar el
-  ratón y el clic en cualquier lectura abre el panel de estado; el clic derecho va a lo de cada una.
+  ratón y el clic en cualquier lectura abre el centro de control; el clic derecho va a lo de cada una.
   Warn al pasar el umbral de aviso, Red Hot al crítico, siempre con la cifra. **LED de estado** con su
   halo (`.led`), solo cuando dicen algo y con su texto: verde con red, Red Hot sin red (`SIN RED`) y Warn
   con una versión nueva de command-os (`UPD N`). Son un degradado radial de fondo (Waybar no tiene otro
   elemento donde ponerlos); los textos traducidos van en mayúsculas con `text_transform` de Pango.
-- **Panel de estado y wi-fi** (`command-os-estado`, `command-os-wifi`): paneles wofi como el menú de
-  energía, colgados bajo la barra a la derecha. El de estado, con la red, el Bluetooth, el sonido, la
-  batería, enseñar u ocultar la telemetría y los ajustes de red avanzados (lo sustituirá el centro de
-  control). El de wi-fi, con las redes por señal (la conectada primero, candado si piden contraseña);
-  la contraseña, en el diálogo de los paneles (`lib/clave-wifi.py`).
+- **Centro de control** (`command-os-centro`): un panel con chaflán que cuelga bajo la barra, a la
+  derecha, sobre Void. Mosaicos para Wi-Fi y Bluetooth con filo Steel; encendido, el mosaico va en Slate
+  con el icono en Red Hot. Debajo, volumen y brillo, la batería y el botón a Ajustes. La flecha de un
+  mosaico abre la lista de redes o de dispositivos dentro del mismo panel. Se cierra al hacer clic
+  fuera, con Escape o con otro clic en la barra.
+- **Ajustes** (`command-os-ajustes`): ventana con la lista de secciones a la izquierda y la sección a la
+  derecha, con la forma de las demás apps GTK de la marca; lo avanzado, aparte, en cada sección.
 - **Escritorios:** uno de serie, y la barra no enseña nada. Super+Ctrl+D (o clic derecho →
   `escritorios`) crea otro, hasta 4, y salta a él; entonces aparecen sus números (`01 02…`) a la
   derecha de la barra, el activo en Red Hot sobre Slate con la línea Red Hot debajo. Super+Ctrl+F4 quita
@@ -228,6 +230,8 @@ la tanda 3 (`ROADMAP.md`).
   Red Hot de lo activo (ventana y escritorio) es el subrayado de § 9.2.3: un fondo de 2 px que crece
   desde la izquierda en 280 ms y se va por la derecha (solo se anima el ancho; la posición salta). El
   aviso de una versión nueva aparece una vez con un fundido de 280 ms.
+- **Centro de control:** entra con un fundido y 8 px de desliz hacia abajo en 280 ms, como el panel del
+  inicio de sesión; se cierra sin animación (la ventana desaparece al perder el foco).
 - **Lanzador y menú de energía** (wofi): entran con un fundido y un desliz corto de 200–220 ms; la fila
   elegida cambia en 160 ms.
 - **Notificaciones:** entran con el desliz y el fundido de swaync (`transition-time` 280 ms); el hover
