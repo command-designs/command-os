@@ -13,6 +13,18 @@ el cyberdeck, así que se trabaja y se prueba en x86_64 (PC y VM). Command OS si
 dos arquitecturas (paquete `any`, scripts sin nada propio de x86 si no hace falta), pero **no se hace
 nada específico de hardware ARM** (Raspberry Pi 5, `cmdline.txt`, imagen ARM) hasta tener la placa.
 
+**Ligereza: requisito de primer orden** (decisión del usuario, 2026-10-21). Command OS tiene que ser lo
+más ligero posible, mucho más que Windows y macOS, en memoria en reposo, CPU en reposo, disco y tiempo
+de arranque. Se aplica a cada cambio, también al diseño y al movimiento:
+- Nada residente que no haga falta: mejor un temporizador, un socket o lanzarlo al usarlo que un demonio.
+  Los paneles (`lib/panel-*.py`) se abren y se cierran; no se quedan en memoria.
+- Nada que gaste CPU en reposo: animaciones solo al entrar, salir o pasar el ratón, nunca en bucle;
+  módulos de la barra con intervalos largos o por señal, no por sondeo frecuente.
+- Ante dos opciones, la más ligera, salvo que la otra sea necesaria; el coste extra se mide y se anota
+  en `docs/decisiones.md`. Nada de Electron ni de apps web empaquetadas de serie.
+- Un paquete, servicio o compositor nuevo (Hyprland incluido) entra solo si su coste en memoria y
+  arranque se mide y es asumible frente a lo que aporta.
+
 Ecosistema Command: sigue `ESTANDAR.md` de `command-web`
 (https://github.com/command-designs/command-web/blob/main/ESTANDAR.md) en lo que aplique a un proyecto
 que no es web (§ 12 para dispositivos).

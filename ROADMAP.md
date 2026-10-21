@@ -22,7 +22,8 @@ Lo que pidió el usuario el 2026-10-20 tras instalarlo en su portátil: que sea 
 marca 2.1 (`lenguaje.html`), con movimiento fluido y gratificante (BRAND § 9; inspiración RSI de Star
 Citizen, sin salirse de lo que § 9.3 prohíbe) y más fácil de usar en lo cotidiano. Tres tandas, un PR
 por tanda. Llega como actualización normal (sin reinstalar); lo que el usuario tenga en `~/.config`
-se migra con marca, como `layout-2`, sin pisar sus cambios.
+se migra con marca, como `layout-2`, sin pisar sus cambios. Todo con el requisito de ligereza
+(`AGENTS.md` § «Ligereza»): ningún punto se cierra si sube la memoria o la CPU en reposo sin motivo.
 
 ### Tanda 1 — Diseño 2.1 y movimiento (sobre labwc; nada depende del compositor)
 
@@ -59,7 +60,8 @@ borra las suyas al cerrarse).
    igual (flotantes, barras de título, menú del escritorio, Alt+Tab, atajos, escritorios). Riesgo:
    las apps sin cabecera propia (Thunar, kitty) necesitan `hyprbars`, que no está en Arch y se
    compila para cada versión. No se prueba en la VM (sin 3D): la prueba el usuario en su portátil.
-   Si no llega a la paridad, se queda labwc y se anota en `docs/decisiones.md`. Condiciones para
+   Si no llega a la paridad o pesa bastante más que labwc (memoria y CPU en reposo, medidas en el
+   portátil), se queda labwc y se anota en `docs/decisiones.md`. Condiciones para
    adoptarla (que una actualización no lo rompa): `hyprbars` compilado por nosotros en el repositorio
    firmado y atado a la versión exacta de Hyprland, Hyprland solo cambia con la fecha validada de
    Arch, la CI comprueba plugin y configuración antes de publicar, y labwc queda como sesión de

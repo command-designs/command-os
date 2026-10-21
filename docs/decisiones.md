@@ -3,6 +3,13 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-21 — Ligereza como requisito (`AGENTS.md` § «Ligereza»)
+
+- **Command OS tiene que ser lo más ligero posible, mucho más que Windows y macOS** (decisión del
+  usuario, «de vital importancia»). Pesa igual que la fidelidad a la marca: el diseño y el movimiento se
+  hacen con lo que menos gasta (curvas del compositor y de CSS, sin bucles ni procesos de más). Cada
+  pieza nueva se mide (memoria en reposo, CPU en reposo, disco, arranque) y, si cuesta, se justifica aquí.
+
 ## 2026-10-20 — command-os como `lenguaje.html` (punto 8 del roadmap)
 
 - **El objetivo es que se vea y se use como el concepto**, no solo que cumpla las reglas: las líneas
