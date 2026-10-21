@@ -87,6 +87,15 @@ punto al probarlo y avisa de los fallos; lo que salga bien se quita de esta guí
     a las teclas; la batería con su porcentaje y el estado de carga. Ajustes (menú → ajustes), cada
     sección: que lo cambiado se mantenga al reiniciar. Y que `lstopo`, `btop` y
     `Advanced Network Configuration` ya no salgan en el lanzador.
+12. Barra configurable (`docs/notas/escritorio.md` § «Barra»), en Ajustes → Barra: cada lado (arriba,
+    abajo, izquierda y derecha) y «flotante», con el ratón y en la pantalla del portátil. La barra
+    cambia al momento, sin cerrar la sesión, y las ventanas maximizadas no quedan debajo de ella. A un
+    lado: lecturas en dos líneas, la línea roja de la ventana activa en el borde de dentro y la batería
+    con su porcentaje. El centro de control cuelga junto al grupo de estado en cada lado (abajo a la
+    derecha con la barra abajo o a la derecha, abajo a la izquierda con la barra a la izquierda). **Con
+    la barra abajo y wi-fi de verdad (la VM no tiene)**: la flecha a las redes abre el panel otra vez,
+    entero en la pantalla, y la lista no crece hacia abajo al buscar ni al pedir la contraseña. Que el
+    lado elegido se mantenga al reiniciar.
 
 ## 6. Ajustes (menú → ajustes)
 

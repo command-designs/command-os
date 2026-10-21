@@ -3,6 +3,25 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-21 — Barra configurable (`docs/notas/escritorio.md` § «Barra»)
+
+- **La configuración generada incluye a la de serie** (`barra.jsonc` con `include`), no al revés: en un
+  `include` de Waybar gana el archivo que incluye, así que desde `fijadas.jsonc` (incluido por la de
+  serie) no se puede cambiar `position` ni `height`. Descartado: quitar `position` y `height` de la de
+  serie (sin la generada la barra saldría con un alto cualquiera) y una configuración entera por lado
+  (cuatro copias que mantener).
+- **Formatos de dos líneas a un lado**, no iconos: la barra sigue siendo de lecturas (BRAND), y en 36 px
+  de ancho caben tres caracteres. Lo que no cabe (el tiempo de batería, «sin red», la fecha) queda en
+  el tooltip o en el centro de control.
+- **El centro de control cambia de id según el lado** (una regla de labwc por sitio), no
+  `gtk4-layer-shell` ni colocarse él mismo: Wayland no deja a una ventana normal elegir su sitio y las
+  reglas solo miran el id. Colgado de abajo, labwc lo coloca una vez por su esquina de arriba: si
+  creciera se saldría por abajo, así que la lista de redes tiene alto fijo y cambiar de página abre otro
+  panel. Descartado: un panel de alto fijo con aire transparente encima (taparía clics en las ventanas
+  de debajo).
+- **El mezclador y blueman se quedan arriba a la derecha** con cualquier lado: son ventanas normales,
+  labwc las deja fuera de la zona de la barra y no tapan nada; duplicar sus reglas por lado no aporta.
+
 ## 2026-10-21 — Ajustes y centro de control (`docs/notas/escritorio.md` § «Ajustes y centro de control»)
 
 - **GTK 4 con `GSK_RENDERER=cairo`** en Ajustes y en el centro: 98 MB de RSS y 54 MB de PSS medidos en

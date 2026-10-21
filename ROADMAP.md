@@ -25,14 +25,8 @@ por tanda. Llega como actualización normal (sin reinstalar); lo que el usuario 
 se migra con marca, como `layout-2`, sin pisar sus cambios. Todo con el requisito de ligereza
 (`AGENTS.md` § «Ligereza»): ningún punto se cierra si sube la memoria o la CPU en reposo sin motivo.
 
-La tanda 1 (diseño 2.1 y movimiento sobre labwc) está hecha: `docs/DISENO.md` y
-`docs/notas/escritorio.md`.
-
-### Tanda 2 — Ajustes y uso diario
-
-6. **Barra configurable** (Opus, alto: lógica de sesión). En Ajustes: lado de la pantalla
-   (arriba, abajo, izquierda, derecha) y flotante. Ocultar sola al quitar el ratón, en la tanda 3:
-   Waybar no sabe hacerlo y labwc no dice dónde está el puntero.
+Las tandas 1 (diseño 2.1 y movimiento sobre labwc) y 2 (Ajustes, centro de control y barra
+configurable) están hechas: `docs/DISENO.md` y `docs/notas/escritorio.md`.
 
 ### Tanda 3 — Animaciones de ventanas (Hyprland, a prueba)
 

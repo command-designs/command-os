@@ -85,9 +85,10 @@ usuario); ARM, aparcado hasta tener la placa.
   (`botones/`); cambiar el alto en `themerc`, el generador y los dos `gtk.css` a la vez. Firefox
   descarta entera una política que no cuadra con su esquema: `tests/escritorio.sh` lo comprueba.
 - labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.
-- Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` y se pasa con
-  `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch. La hoja va además
-  por `command-os-fijadas generar` (los iconos de las aplicaciones fijadas). `wlr/taskbar` no ejecuta
+- Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` (`command-os-config`);
+  `/etc/xdg/waybar/` ya existe por Arch. La lanza `command-os-fijadas waybar` con lo generado: la hoja con
+  los iconos de las fijadas y `barra.jsonc` con el lado y si va flotante. En un `include` gana el archivo
+  que incluye: lo generado incluye a la de serie, nunca al revés. `wlr/taskbar` no ejecuta
   órdenes al hacer clic: lo que tenga que lanzar algo va en un módulo `custom`. Un grupo no tiene clic
   propio: el mismo `on-click` en cada módulo. Sin adaptador, `bluetoothctl show` se queda esperando:
   mirar antes `/sys/class/bluetooth`. Los tests que importan

@@ -123,8 +123,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   órdenes). `os/lib/fijadas.py` escribe en `$XDG_RUNTIME_DIR/command-os/barra/` `fijadas.jsonc`
   (`group/fijadas` con un `custom/fijada#fN` por aplicación; lo incluye `config.jsonc` con `include`) y
   `estilo.css` (importa la hoja de la barra y pone cada icono de fondo en `#custom-fijada.fN`). El
-  autostart lanza Waybar con `command-os-fijadas generar <hoja>`; si falla, devuelve la hoja de
-  siempre y la barra arranca sin fijadas. Al cambiar la lista, se regenera y se recarga Waybar (SIGUSR2).
+  autostart lanza Waybar con `command-os-fijadas waybar` (§ «Barra»); si falla, arranca con la hoja y
+  la configuración de siempre, sin fijadas. Al cambiar la lista, se regenera y se recarga Waybar (SIGUSR2).
 - **Lista**: `~/.config/command-os/fijadas`, un `.desktop` por línea; sin el archivo, las de serie
   (Firefox, Thunar, kitty). Las desinstaladas desaparecen solas. Iconos de Papirus-Dark (SVG primero),
   sus padres o `/usr/share/pixmaps`, sin GTK.
@@ -236,7 +236,7 @@ Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app H
 (cómo se ve: `docs/DISENO.md` § «Escritorio»). Por qué así y qué se descartó: `docs/decisiones.md`.
 
 - **Archivos**: `os/dotfiles/waybar/{config.jsonc,style.css}`; 36 px. Las reglas de labwc que cuelgan
-  paneles bajo la barra (`MoveToEdge` arriba) respetan su zona reservada: no dependen del alto.
+  paneles junto a la barra (`MoveToEdge`) respetan su zona reservada: no dependen del alto ni del lado.
 - **Grupo de estado** (`group/estado`: red, Bluetooth, volumen, batería). Waybar no da clic a un grupo:
   cada módulo lleva el mismo `on-click` (`command-os-centro`) y el hover del grupo (`#estado:hover`) llega
   a todos. Clic derecho: red → `command-os-centro redes`, Bluetooth → encender o apagar, volumen →
@@ -249,6 +249,32 @@ Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app H
 - **Panel de estado y wi-fi**: ya no hay paneles wofi ni `clave-wifi.py`. `command-os-estado` y
   `command-os-wifi` quedan como envoltorios de `command-os-centro` y `command-os-centro redes`
   (atajos y configuraciones viejas siguen valiendo); todo está en § «Ajustes y centro de control».
+- **Lado y flotante** (punto 6 de la tanda 2, 2026-10-21): en Ajustes → Barra, o con `command-os-fijadas
+  lado arriba|abajo|izquierda|derecha` y `flotante si|no|cambiar` (en `~/.config/command-os/barra`;
+  recarga Waybar con SIGUSR2, que la recoloca sin cerrar la sesión). El autostart ya no lanza Waybar a
+  mano: `command-os-fijadas waybar` genera y hace `exec waybar` con `barra.jsonc`, que incluye la
+  configuración de serie (o la del usuario) y `fijadas.jsonc` y fija encima `position`, el grosor
+  (`height` 36, o `width` 36 y `height` 0 a un lado) y, flotante, 8 px de `margin-*` y `"name":
+  "flotante"`. **En un `include` de Waybar gana el archivo que incluye** (y entre los incluidos, el
+  primero): por eso la configuración generada incluye a la de serie y no al revés. Si no puede generar,
+  arranca con las de serie (arriba, fija). A un lado, `VERTICAL` (`lib/fijadas.py`) cambia los formatos
+  por lecturas de dos líneas (etiqueta encima del valor, tres caracteres como mucho, `justify` center),
+  la hora en dos líneas y el aviso de actualizaciones por su campo `alt` (`command-os-updates status`);
+  los grupos van con `"orientation": "inherit"`. El CSS va por la clase que Waybar pone a la ventana
+  con el lado (`window#waybar.left`…) y por `.flotante`: filo hacia la pantalla, filos entre celdas
+  encima de cada una, la línea Red Hot de lo activo por el borde de dentro (a un lado crece de arriba
+  abajo) y el LED de la red encima de la lectura.
+- **Centro de control según el lado**: `lib/centro.py` cambia de id según el lado (`dev.commandlab.Centro`
+  arriba, `…CentroAbajo` abajo o a la derecha, `…CentroIzquierda` a la izquierda), y `rc.xml` tiene una
+  regla para cada uno, junto al grupo de estado (al final de la barra). La clase `lado-*` de la ventana
+  cambia el aire y el desliz de entrada (`command.css`). Colgado de abajo, si creciera se saldría por
+  abajo (labwc lo coloca una vez, al abrirse, por su esquina de arriba): la lista de redes tiene alto
+  fijo (`ListaRedes(fija=True)`) y cambiar de página abre otro panel (`App.reabrir`). El mezclador y
+  blueman siguen arriba a la derecha (`docs/decisiones.md`).
+- **Probado** (lado y flotante): `tests/barra.sh` y en la VM los cuatro lados y flotante (por orden y
+  desde Ajustes con el teclado), la ventana activa a un lado, el centro en cada lado y el paso a redes
+  con la barra abajo. Waybar, 68 MB de RSS en cualquier lado; nada residente nuevo. **No probado** (la VM
+  no tiene wi-fi): la lista de redes de alto fijo con la barra abajo (`docs/prueba-en-pc-real.md` § 5.12).
 - **Sin nm-applet**: fuera del autostart y de `packages.txt` (en los equipos ya instalados queda como
   dependencia huérfana, sin arrancar). La bandeja queda para apps de terceros.
 - **Probado**: `tests/barra.sh` (telemetría) y en la VM: barra a 36 px (logo, iconos apagados, activa
