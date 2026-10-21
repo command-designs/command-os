@@ -557,6 +557,19 @@ msgstr "{app} pinned to the bar"
 msgid "ya estaba en la barra"
 msgstr "it was already in the bar"
 
+msgid "escribe la contraseña."
+msgstr "type the password."
+
+msgid "wi-fi"
+msgstr "wi-fi"
+
+#, python-brace-format
+msgid "contraseña de la red {red}"
+msgstr "password for the {red} network"
+
+msgid "conectar"
+msgstr "connect"
+
 msgid "cmd-os · abrir descarga"
 msgstr "cmd-os · open download"
 
@@ -946,6 +959,42 @@ msgid "ya hay %d escritorios"
 msgstr "there are already %d desktops"
 
 #, python-format
+msgid "wi-fi · %s"
+msgstr "wi-fi · %s"
+
+msgid "red · por cable"
+msgstr "network · wired"
+
+msgid "wi-fi · sin red"
+msgstr "wi-fi · no network"
+
+msgid "bluetooth · encendido"
+msgstr "bluetooth · on"
+
+msgid "bluetooth · apagado"
+msgstr "bluetooth · off"
+
+msgid "sonido · silenciado"
+msgstr "sound · muted"
+
+#, python-format
+msgid "sonido · %s %%"
+msgstr "sound · %s %%"
+
+#, python-format
+msgid "batería · %s %%"
+msgstr "battery · %s %%"
+
+msgid "ocultar cpu, temperatura y memoria"
+msgstr "hide cpu, temperature and memory"
+
+msgid "mostrar cpu, temperatura y memoria"
+msgstr "show cpu, temperature and memory"
+
+msgid "ajustes de red avanzados"
+msgstr "advanced network settings"
+
+#, python-format
 msgid "no se pudo generar %s (locale-gen)"
 msgstr "could not generate %s (locale-gen)"
 
@@ -1292,6 +1341,38 @@ msgstr "dot grid"
 
 msgid "plano"
 msgstr "blueprint"
+
+msgid "este equipo no tiene wi-fi"
+msgstr "this computer has no wi-fi"
+
+msgid "encender el wi-fi"
+msgstr "turn on wi-fi"
+
+msgid "buscando redes…"
+msgstr "looking for networks…"
+
+#, python-format
+msgid "%s · conectada"
+msgstr "%s · connected"
+
+msgid "no se ve ninguna red wi-fi"
+msgstr "no wi-fi networks in range"
+
+#, python-format
+msgid "desconectar de %s"
+msgstr "disconnect from %s"
+
+#, python-format
+msgid "conectando a %s…"
+msgstr "connecting to %s…"
+
+#, python-format
+msgid "conectada a %s"
+msgstr "connected to %s"
+
+#, python-format
+msgid "no se pudo conectar a %s"
+msgstr "could not connect to %s"
 
 #, python-format
 msgid "zona horaria: %s (son las %s)"
@@ -1694,17 +1775,17 @@ msgstr ""
 msgid "aplicaciones · clic derecho: fijar una aplicación en la barra"
 msgstr "apps · right click: pin an app to the bar"
 
-msgid "clic: conexiones"
-msgstr "click: connections"
+msgid "clic: estado · clic derecho: elegir red wi-fi"
+msgstr "click: status · right click: choose a wi-fi network"
 
-msgid "clic: dispositivos · clic derecho: encender o apagar"
-msgstr "click: devices · right click: turn on or off"
+msgid "clic: estado · clic derecho: encender o apagar el bluetooth"
+msgstr "click: status · right click: turn bluetooth on or off"
 
-msgid "clic: mezclador"
-msgstr "click: mixer"
+msgid "clic: estado · clic derecho: mezclador"
+msgstr "click: status · right click: mixer"
 
-msgid "clic derecho: ajustes de la batería"
-msgstr "right click: battery settings"
+msgid "clic: estado · clic derecho: ajustes de la batería"
+msgstr "click: status · right click: battery settings"
 
 msgid "sesión bloqueada"
 msgstr "session locked"
@@ -1753,6 +1834,16 @@ msgstr "on all desktops"
 
 msgid "mover a escritorio"
 msgstr "move to desktop"
+
+#, python-format
+#~ msgid "contraseña de %s"
+#~ msgstr "password for %s"
+
+#~ msgid "clic: conexiones"
+#~ msgstr "click: connections"
+
+#~ msgid "clic: mezclador"
+#~ msgstr "click: mixer"
 
 #~ msgid "saltar · cualquier tecla"
 #~ msgstr "skip · any key"

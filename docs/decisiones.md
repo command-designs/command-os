@@ -3,6 +3,21 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-21 — Barra 2.1: grupo de estado y red sin nm-applet (`docs/notas/escritorio.md` § «Barra»)
+
+- **36 px**, no 40: en 1280×720 o en la pantalla pequeña del cyberdeck, 40 ya es un 5,5 % del alto.
+- **Telemetría oculta de serie**: la barra queda limpia y deja de despertarse cada 5 s (ahora 10 s
+  cuando se enseña). Descartado: siempre a la vista (ocho lecturas que compiten, auditoría 2.1 B3).
+- **El clic en el grupo abre un panel wofi provisional** (`command-os-estado`) hasta el centro de
+  control del punto 5: se abre al usarlo y no se queda en memoria. Descartado: dejar el clic propio de
+  cada lectura (el grupo no sería una sola pieza).
+- **Fuera nm-applet ya, con un selector de wi-fi en dos pasos** (`command-os-wifi`) en vez de esperar al
+  punto 5: su icono no se puede quitar de la bandeja ni recolorear, y era un proceso residente para un
+  menú. La contraseña, en el diálogo GTK de los paneles: en wofi no se puede decir para qué red es
+  (GTK 3 oculta el texto de ayuda del campo enfocado y, con una línea en la lista, Intro devuelve la
+  línea). Llega a `nmcli --ask` por la entrada estándar. Memoria en reposo: sin cambio medible en la VM
+  (las bibliotecas GTK de nm-applet las comparte Waybar).
+
 ## 2026-10-21 — Una sola barra de título y Firefox con la marca (`docs/notas/escritorio.md` § «Ventanas iguales»)
 
 - **32 px para todas las ventanas**, subiendo labwc (antes 28) en vez de bajar las cabeceras GTK: por

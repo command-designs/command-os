@@ -88,6 +88,11 @@ fi
 for p in blueman-manager blueman-applet bluetoothctl rfkill; do
   command -v "${p}" >/dev/null || mal "bluetooth: falta ${p}"
 done
+# Grupo de estado de la barra (command-os-estado, command-os-wifi): la red va por nmcli, sin nm-applet.
+for p in nmcli pamixer nm-connection-editor notify-send; do
+  command -v "${p}" >/dev/null || mal "barra: falta ${p}"
+done
+grep -q 'nm-applet' /etc/xdg/labwc/autostart 2>/dev/null && mal "barra: nm-applet sigue en el autostart"
 for f in /etc/xdg/labwc/rc.xml /usr/share/command-os/config/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi
 done
@@ -200,12 +205,12 @@ else
   ok "labwc: configuración sin errores"
 fi
 if grep -aqiE '\[error\]|critical' "${SALIDA}/labwc.log"; then
-  # nm-applet suelta avisos internos de GTK sin consecuencias (y, al arrancar, la bandeja de Waybar
-  # avisa de su icono aún vacío: «No icon name or pixmap»); la temperatura y la batería no
+  # La bandeja de Waybar avisa al arrancar de un icono aún vacío («No icon name or pixmap») y las apps
+  # de la bandeja sueltan avisos internos de GTK sin consecuencias; la temperatura y la batería no
   # existen en una máquina sin hardware; tampoco rfkill ni el bus del sistema (hypridle lo busca
   # para logind, y el módulo de Bluetooth de Waybar para bluez, y en el contenedor de CI no hay systemd).
   grep -aiE '\[error\]|critical' "${SALIDA}/labwc.log" \
-    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|nm-applet|No icon name or pixmap|RFKILL|Couldn.t create the dbus connection|g_dbus_object_manager_client_new_for_bus_sync' \
+    | grep -viE 'thermal|temperature|batter|tray|StatusNotifier|No icon name or pixmap|RFKILL|Couldn.t create the dbus connection|g_dbus_object_manager_client_new_for_bus_sync' \
     | head -5 > "${SALIDA}/errores-programas.txt"
   if [[ -s "${SALIDA}/errores-programas.txt" ]]; then mal "errores de programas (ver errores-programas.txt)"; fi
 fi

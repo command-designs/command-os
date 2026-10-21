@@ -104,7 +104,6 @@ slurp
 wl-clipboard
 brightnessctl
 pamixer
-network-manager-applet
 nm-connection-editor
 networkmanager
 # Bluetooth: bluez (servicio), bluetoothctl (encender y apagar desde la barra) y blueman (el panel de

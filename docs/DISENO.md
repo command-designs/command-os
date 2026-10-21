@@ -131,17 +131,27 @@ ver abajo).
   chaflanes van copiados junto a las hojas (`~/.config/gtk-*/chaflanes/`) para que también los vean
   las apps Flatpak. Qt sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). `dconf` pone el modo oscuro para
   todo el sistema (Firefox y portales incluidos).
-- **Barra (Waybar):** como la barra superior de la app de `lenguaje.html` (§ 03): Graphite con filo
-  Steel y lecturas mono en mayúsculas (peso 500, 0,14 em). A la izquierda, el logo en su celda (filo
-  Steel a la derecha; clic: aplicaciones) y la barra de tareas con un icono por ventana (la enfocada en
-  Slate con la línea Red Hot debajo, las minimizadas atenuadas); en el centro, fecha apagada y hora en
-  Oxanium; a la derecha, los escritorios, la telemetría (`CPU`, `TMP`, `MEM`, `NET` con la señal wifi,
+- **Barra (Waybar):** como la barra superior de la app de `lenguaje.html` (§ 03): 36 px, Graphite con
+  filo Steel y lecturas mono en mayúsculas (peso 500, 0,14 em). A la izquierda, el logo en su celda
+  cuadrada (filo Steel a la derecha; clic: aplicaciones), las fijadas y una celda con un icono por
+  ventana. Los iconos, como el carril (`.a-rail`): apagados en reposo (opacidad 0,55: GTK 3 no tiene
+  filtro de gris) y a color al pasar el ratón y en la ventana activa, que va en Slate con filo Steel y la
+  línea Red Hot debajo; las minimizadas, más apagadas. En el centro, fecha apagada y hora en Oxanium. A
+  la derecha, celdas separadas por un filo Steel y sin cajas dentro: el aviso `UPD N`, los escritorios,
+  la telemetría (`CPU`, `TMP`, `MEM`; oculta de serie), **el grupo de estado** (`NET` con la señal wifi,
   `BT` (`OFF`, `ON` o los conectados; oculto sin adaptador), `VOL`, `BAT` con el tiempo que queda), la
-  bandeja (red de nm-applet) y el botón de energía. Warn al pasar el umbral de aviso, Red Hot al
-  crítico, siempre con la cifra. **LED de estado** con su halo (`.led`), solo cuando dicen algo y con
-  su texto: verde con red y con Bluetooth conectado, Red Hot sin red (`SIN RED`) y Warn con una versión
-  nueva de command-os (`UPD N`). Son un degradado radial de fondo (Waybar no tiene otro elemento donde
-  ponerlos); los textos traducidos van en mayúsculas con `text_transform` de Pango.
+  bandeja (solo apps de terceros; sin iconos no se ve) y el botón de energía. El grupo de estado es una
+  sola pieza, como la lectura «sincronizado» de la referencia: se ilumina entero en Slate al pasar el
+  ratón y el clic en cualquier lectura abre el panel de estado; el clic derecho va a lo de cada una.
+  Warn al pasar el umbral de aviso, Red Hot al crítico, siempre con la cifra. **LED de estado** con su
+  halo (`.led`), solo cuando dicen algo y con su texto: verde con red, Red Hot sin red (`SIN RED`) y Warn
+  con una versión nueva de command-os (`UPD N`). Son un degradado radial de fondo (Waybar no tiene otro
+  elemento donde ponerlos); los textos traducidos van en mayúsculas con `text_transform` de Pango.
+- **Panel de estado y wi-fi** (`command-os-estado`, `command-os-wifi`): paneles wofi como el menú de
+  energía, colgados bajo la barra a la derecha. El de estado, con la red, el Bluetooth, el sonido, la
+  batería, enseñar u ocultar la telemetría y los ajustes de red avanzados (lo sustituirá el centro de
+  control). El de wi-fi, con las redes por señal (la conectada primero, candado si piden contraseña);
+  la contraseña, en el diálogo de los paneles (`lib/clave-wifi.py`).
 - **Escritorios:** uno de serie, y la barra no enseña nada. Super+Ctrl+D (o clic derecho →
   `escritorios`) crea otro, hasta 4, y salta a él; entonces aparecen sus números (`01 02…`) a la
   derecha de la barra, el activo en Red Hot sobre Slate con la línea Red Hot debajo. Super+Ctrl+F4 quita
@@ -163,7 +173,7 @@ ver abajo).
   la barra Red Hot; se abre con Super+Escape o con el botón 󰐥 al final de la barra. La ayuda de atajos
   (`command-os-keys`, Super+F1) usa el mismo panel en dos columnas; «acerca de cmd-os»
   (`command-os-about`, Super+F2 o el menú del escritorio) también: nombre, paquete, Arch validado,
-  hardware y si se puede volver atrás. El mezclador de volumen (clic en `vol`) es pavucontrol de
+  hardware y si se puede volver atrás. El mezclador de volumen (clic derecho en `vol`) es pavucontrol de
   460×340 sin barra de título, fijado bajo la barra arriba a la derecha; otro clic lo cierra.
 - **Inicio de sesión, asistente y paneles** (`greeter/command.css`): panel Graphite con chaflán y filo
   Steel dentro de las escuadras de la zona principal, titular en Oxanium, etiquetas mono en Smoke y

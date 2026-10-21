@@ -30,9 +30,6 @@ se migra con marca, como `layout-2`, sin pisar sus cambios. Todo con el requisit
 Las diferencias con `lenguaje.html`, medidas en la VM: `docs/notas/auditoria-2.1.md` (cada punto
 borra las suyas al cerrarse).
 
-3. **Barra superior 2.1** (Opus, alto: diseño y varios módulos). Como la barra de la app HUD de
-   `lenguaje.html` § 03: logo, ventanas, hora y un grupo de estado a la derecha más limpio; clic en
-   él: centro de control (punto 5). CPU/TMP/MEM, opcionales en Ajustes.
 4. **Movimiento** (Opus, medio: tokens y curvas de la marca en cada pieza). Entradas, salidas y hover
    con `--ease-out`/`--ease-in-out` y las duraciones de § 9 en paneles, lanzador, notificaciones,
    barra y apps GTK (barrido del botón, subrayado que entra por la izquierda, filo de foco).
@@ -43,7 +40,8 @@ borra las suyas al cerrarse).
    secciones (Wi-Fi, Bluetooth, Barra, Pantalla, Sonido, Fondo, Batería, Cuentas, Disco,
    Actualizaciones, Idioma), lo de ahora como «avanzado» en cada una. Wi-Fi en dos pasos: elegir red y
    contraseña. El centro de control sale del grupo de estado de la barra (Wi-Fi, Bluetooth, volumen,
-   brillo, batería y botón a Ajustes).
+   brillo, batería y botón a Ajustes) y sustituye a los paneles wofi provisionales (`command-os-estado`,
+   `command-os-wifi`); la telemetría pasa a Ajustes → Barra (`command-os-fijadas telemetria`).
 6. **Barra configurable** (Opus, alto: lógica de sesión). En Ajustes: lado de la pantalla
    (arriba, abajo, izquierda, derecha) y flotante. Ocultar sola al quitar el ratón, en la tanda 3:
    Waybar no sabe hacerlo y labwc no dice dónde está el puntero.

@@ -56,7 +56,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso y panel de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
-| escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` y `docs/DISENO.md` |
+| escritorio labwc, Waybar (grupo de estado, telemetría, `command-os-estado`), wi-fi (`command-os-wifi`, `lib/clave-wifi.py`), fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` (§ «Barra») y `docs/DISENO.md` |
 | colores, letra, forma (chaflanes, escuadras) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` §§ «Color», «Letra» y «Forma», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma»; lo que aún no es fiel a la 2.1, `docs/notas/auditoria-2.1.md` |
 | barra de título y botones de ventana (labwc y cabeceras GTK), Firefox (políticas, `os/dotfiles/firefox/`) | `docs/notas/escritorio.md` § «Ventanas iguales» |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
@@ -88,7 +88,9 @@ usuario); ARM, aparcado hasta tener la placa.
 - Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` y se pasa con
   `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch. La hoja va además
   por `command-os-fijadas generar` (los iconos de las aplicaciones fijadas). `wlr/taskbar` no ejecuta
-  órdenes al hacer clic: lo que tenga que lanzar algo va en un módulo `custom`. Los tests que importan
+  órdenes al hacer clic: lo que tenga que lanzar algo va en un módulo `custom`. Un grupo no tiene clic
+  propio: el mismo `on-click` en cada módulo. Sin adaptador, `bluetoothctl show` se queda esperando:
+  mirar antes `/sys/class/bluetooth`. Los tests que importan
   `os/lib/*.py` van con `PYTHONDONTWRITEBYTECODE=1` (un `__pycache__` entraría en el paquete).
 - hyprlock con errores de configuración no sale: pantalla en negro y sin campo. `command-os-lock` revisa antes.
 - VirtualBox: **apagar la VM antes de que el PC entre en reposo** (se congela; recuperación en `docs/notas/vm-virtualbox-wsl.md`).

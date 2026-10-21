@@ -1,18 +1,19 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 30,
+    "height": 36,
     "modules-left": ["custom/logo", "group/fijadas", "wlr/taskbar"],
     "modules-center": ["clock"],
-    // Aplicaciones fijadas (group/fijadas y sus custom/fijada#fN): las escribe command-os-fijadas al
-    // abrir la sesión y al cambiar la lista (lib/fijadas.py). Sin el archivo, la barra sale sin ellas.
+    // Aplicaciones fijadas (group/fijadas y sus custom/fijada#fN) y la telemetría (group/telemetria, vacío
+    // si no se quiere a la vista): las escribe command-os-fijadas al abrir la sesión y al cambiar la
+    // lista o el ajuste (lib/fijadas.py). Sin el archivo, la barra sale sin ellas.
     "include": ["$XDG_RUNTIME_DIR/command-os/barra/fijadas.jsonc"],
-    "modules-right": ["custom/updates", "ext/workspaces", "cpu", "temperature", "memory", "network", "bluetooth", "pulseaudio", "battery", "tray", "custom/power"],
+    "modules-right": ["custom/updates", "ext/workspaces", "group/telemetria", "group/estado", "tray", "custom/power"],
 
     // Los textos entre dobles llaves se traducen al abrir la sesión (command-os-config, docs/idioma.md).
     // Etiqueta en Smoke + valor en Ash, en mayúsculas como las lecturas de lenguaje.html (lo que
     // se traduce, con text_transform de Pango: las traducciones siguen en minúsculas). Colores de
-    // la marca v2 (docs/DISENO.md). Los LED de estado (red, Bluetooth, versión nueva), en style.css.
+    // la marca v2 (docs/DISENO.md). Los LED de estado (red, versión nueva), en style.css.
     // Logo como fondo CSS (#custom-logo en style.css): el módulo `image` de Waybar 0.15 se
     // bloquea al arrancar y deja la barra invisible. Clic: lanzador de aplicaciones; clic derecho:
     // elegir una aplicación para fijarla en la barra.
@@ -45,7 +46,7 @@
     // Ventanas abiertas: clic para traerla o minimizarla, clic central para cerrarla.
     "wlr/taskbar": {
         "format": "{icon}",
-        "icon-size": 16,
+        "icon-size": 18,
         "icon-theme": "Papirus-Dark",
         "tooltip-format": "{title}",
         "on-click": "minimize-raise",
@@ -57,62 +58,74 @@
         "format": "<span color='#85827c'>{0:%d.%m}</span>  {0:%H:%M}",
         "tooltip-format": "{0:%A %d %B %Y}"
     },
-    // Telemetría: Warn al pasar del umbral de aviso, Red Hot al crítico (style.css).
+    // Telemetría, oculta de serie (command-os-estado la enseña): Warn al pasar del umbral de aviso, Red
+    // Hot al crítico (style.css). Cada 10 s: es lo que más despierta a la barra.
     "cpu": {
         "format": "<span color='#85827c'>CPU</span> {usage}%",
-        "interval": 5,
+        "interval": 10,
         "states": { "warning": 70, "critical": 90 }
     },
     "temperature": {
         "format": "<span color='#85827c'>TMP</span> {temperatureC}°",
         "critical-threshold": 80,
-        "interval": 5
+        "interval": 10
     },
     "memory": {
         "format": "<span color='#85827c'>MEM</span> {percentage}%",
-        "interval": 5,
+        "interval": 10,
         "states": { "warning": 75, "critical": 90 },
         "tooltip-format": "{used:0.1f} / {total:0.1f} GiB"
     },
+    // Grupo de estado: red, Bluetooth, volumen y batería en una sola celda, sin cajas, como la lectura
+    // «sincronizado» de lenguaje.html. El clic en cualquiera abre el mismo panel (command-os-estado; el
+    // centro de control cuando llegue); el clic derecho va directo a lo de cada uno.
+    "group/estado": {
+        "orientation": "horizontal",
+        "modules": ["network", "bluetooth", "pulseaudio", "battery"]
+    },
     "network": {
-        "format-wifi": "<span color='#85827c'>NET</span> {essid} {signalStrength}%",
+        "format-wifi": "<span color='#85827c'>NET</span> {signalStrength}%",
         "format-ethernet": "<span color='#85827c'>NET</span> ETH",
         "format-disconnected": "<span color='#85827c'>NET</span> <span text_transform='uppercase'>{{sin red}}</span>",
-        "tooltip-format": "{ifname} · {ipaddr} · {{clic: conexiones}}",
-        "on-click": "nm-connection-editor"
+        "tooltip-format-wifi": "{essid} · {ipaddr}\n{{clic: estado · clic derecho: elegir red wi-fi}}",
+        "tooltip-format-ethernet": "{ifname} · {ipaddr}\n{{clic: estado · clic derecho: elegir red wi-fi}}",
+        "tooltip-format-disconnected": "{{clic: estado · clic derecho: elegir red wi-fi}}",
+        "on-click": "command-os-estado",
+        "on-click-right": "command-os-wifi"
     },
     // Bluetooth: oculto si el equipo no tiene adaptador; apagado de serie (lib/apply-system). Con
-    // dispositivos conectados, cuántos. Clic: los dispositivos (blueman); clic derecho: encender o apagar.
+    // dispositivos conectados, cuántos.
     "bluetooth": {
         "format": "<span color='#85827c'>BT</span> ON",
         "format-off": "<span color='#85827c'>BT</span> OFF",
         "format-disabled": "<span color='#85827c'>BT</span> OFF",
         "format-connected": "<span color='#85827c'>BT</span> {num_connections}",
         "format-no-controller": "",
-        "tooltip-format": "{{clic: dispositivos · clic derecho: encender o apagar}}",
-        "tooltip-format-connected": "{device_enumerate}\n{{clic: dispositivos · clic derecho: encender o apagar}}",
+        "tooltip-format": "{{clic: estado · clic derecho: encender o apagar el bluetooth}}",
+        "tooltip-format-connected": "{device_enumerate}\n{{clic: estado · clic derecho: encender o apagar el bluetooth}}",
         "tooltip-format-enumerate-connected": "{device_alias}",
-        "on-click": "command-os-bluetooth panel",
+        "on-click": "command-os-estado",
         "on-click-right": "command-os-bluetooth cambiar"
     },
     "pulseaudio": {
         "format": "<span color='#85827c'>VOL</span> {volume}%",
         "format-muted": "<span color='#85827c'>VOL</span> MUTE",
-        "on-click": "command-os-volume",
-        "tooltip-format": "{desc} · {{clic: mezclador}}"
+        "tooltip-format": "{desc}\n{{clic: estado · clic derecho: mezclador}}",
+        "on-click": "command-os-estado",
+        "on-click-right": "command-os-volume"
     },
-    // Con la batería descargándose, el tiempo que queda; cargando, un +. Clic derecho: el panel de la
-    // batería (límite de carga al 80 % si el portátil lo permite; command-os-bateria).
+    // Con la batería descargándose, el tiempo que queda; cargando, un +.
     "battery": {
         "format": "<span color='#85827c'>BAT</span> {capacity}%",
         "format-discharging": "<span color='#85827c'>BAT</span> {capacity}% <span color='#85827c'>{time}</span>",
         "format-charging": "<span color='#85827c'>BAT</span> {capacity}% +",
         "format-time": "{H}h{M:02}",
         "states": { "warning": 30, "critical": 15 },
-        "tooltip-format": "{{clic derecho: ajustes de la batería}}",
+        "tooltip-format": "{{clic: estado · clic derecho: ajustes de la batería}}",
+        "on-click": "command-os-estado",
         "on-click-right": "command-os-bateria panel"
     },
-    "tray": { "spacing": 8 },
+    "tray": { "icon-size": 16, "spacing": 8 },
     // Menú de energía (bloquear · reiniciar · apagar), igual que Super+Escape.
     "custom/power": {
         "format": "󰐥",

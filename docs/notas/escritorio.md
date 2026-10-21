@@ -34,7 +34,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   `LOGO=` de `os-release`).
 - **Piezas**: swaybg (fondo), Waybar con `ext/workspaces` (labwc implementa ext-workspace) y
   `wlr/taskbar`, hyprlock/hypridle (bloqueo e inactividad por protocolos estándar; pantalla con
-  `wlopm`), polkit-gnome, nm-applet en la bandeja, wdisplays, xorg-xwayland (arranca bajo demanda).
+  `wlopm`), polkit-gnome, wdisplays, xorg-xwayland (arranca bajo demanda). La red, sin nm-applet
+  (§ «Barra»).
 - **Ajustes por máquina** (los genera `install.sh`, no van en los dotfiles): `environment.d/local.env`
   (teclado de `/etc/command-os/kb_layout`) y `themerc-override` (sin sombras en VM). En VirtualBox,
   `video=1280x720` en la línea del kernel: todo el arranque y el escritorio a esa resolución.
@@ -98,7 +99,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 
 - **Barra**: el módulo `bluetooth` de Waybar, en texto como el resto (`bt off`, `bt on` o `bt N` con N
   dispositivos conectados; sus nombres, al pasar el ratón). Sin adaptador no sale (`format-no-controller`
-  vacío). Apagado, en Smoke como `vol mute`. Clic: `command-os-bluetooth panel` (blueman-manager de
+  vacío). Apagado, en Smoke como `vol mute`. Clic: el panel de estado (§ «Barra»), y en él
+  «bluetooth» abre `command-os-bluetooth panel` (blueman-manager de
   520×400 sin barra de título bajo la barra, regla en `labwc/rc.xml`; otro clic lo cierra); clic
   derecho: `command-os-bluetooth cambiar` (`bluetoothctl power on|off`; al encender quita antes el
   bloqueo de `rfkill`, que la sesión activa puede tocar sin root).
@@ -227,6 +229,45 @@ GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones.
   nueva limpia, ajustes) y el inicio de sesión (selector y contraseña, los dos de 36 px). **No
   probado**: una app GTK 4 con botones de texto en la cabecera y una app Flatpak GTK con los botones
   nuevos (el permiso de `botones/` llega al reinstalar).
+
+## Barra (2026-10-21)
+
+Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app HUD de `lenguaje.html`
+(cómo se ve: `docs/DISENO.md` § «Escritorio»). Por qué así y qué se descartó: `docs/decisiones.md`.
+
+- **Archivos**: `os/dotfiles/waybar/{config.jsonc,style.css}`; 36 px. Las reglas de labwc que cuelgan
+  paneles bajo la barra (`MoveToEdge` arriba) respetan su zona reservada: no dependen del alto.
+- **Grupo de estado** (`group/estado`: red, Bluetooth, volumen, batería). Waybar no da clic a un grupo:
+  cada módulo lleva el mismo `on-click` (`command-os-estado`) y el hover del grupo (`#estado:hover`) llega
+  a todos. Clic derecho: red → `command-os-wifi`, Bluetooth → encender o apagar, volumen → mezclador,
+  batería → su panel.
+- **Telemetría** (`group/telemetria`: CPU, TMP, MEM, cada 10 s). Oculta de serie: es lo único de la
+  barra que se despierta solo. El ajuste va en `~/.config/command-os/barra` (`telemetria=si|no`) y lo
+  aplica `command-os-fijadas` al escribir la parte generada de la barra (`fijadas.jsonc`, con el grupo
+  vacío si está oculta, y en `estilo.css` la celda sin filo); `command-os-fijadas telemetria
+  si|no|cambiar` lo cambia y recarga Waybar. Lo enseña u oculta el panel de estado.
+- **Panel de estado** (`os/bin/command-os-estado`): wofi con `power.css`, arriba a la derecha
+  (`--location top_right --xoffset -24 --yoffset 8`: con un margen menor wofi corta el chaflán derecho).
+  Bluetooth solo si hay adaptador en `/sys/class/bluetooth`: sin adaptador, `bluetoothctl show` se queda
+  esperando.
+- **Wi-Fi** (`os/bin/command-os-wifi`, sustituye a nm-applet): redes de `nmcli` (la conectada primero,
+  luego por señal, una vez cada nombre, sin las ocultas); la conectada, desconectar con confirmación;
+  una guardada (perfil con el nombre de la red), `connection up`; una nueva abierta, directa; con
+  contraseña, el diálogo de los paneles (`os/lib/clave-wifi.py`, `comun.Dialogo`) y la contraseña va a
+  `nmcli --ask` por la entrada, nunca en la línea de órdenes. Lo raro (ocultas, empresa, VPN), en
+  «ajustes de red avanzados» (`nm-connection-editor`). La contraseña no va en wofi: con el campo
+  enfocado GTK 3 no enseña el texto de ayuda, y una línea en la lista hace que Intro devuelva esa línea
+  en vez de lo escrito.
+- **Sin nm-applet**: fuera del autostart y de `packages.txt` (en los equipos ya instalados queda como
+  dependencia huérfana, sin arrancar). La bandeja queda para apps de terceros.
+- **Probado**: `tests/barra.sh` (telemetría, selector de wi-fi y panel de estado con `nmcli`, `wofi` y
+  `bluetoothctl` de mentira) y en la VM: barra a 36 px (logo, iconos apagados, activa con filo Steel y
+  línea Red Hot, un solo grupo, sin bandeja ni celda vacía), hover del grupo entero (Slate medido),
+  panel de estado bajo la barra, telemetría enseñada desde él, aviso sin tarjeta wi-fi y el diálogo de
+  la contraseña (devuelve lo escrito). Memoria en reposo tras arrancar: 661 MB antes y 669 MB después
+  (ruido entre arranques; nm-applet ocupaba 56 MB de RSS, casi todo bibliotecas GTK compartidas).
+  **No probado** (la VM no tiene wi-fi ni Bluetooth): conectar a una red de verdad, con y sin
+  contraseña, y una contraseña cambiada (`docs/prueba-en-pc-real.md` § 5).
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 

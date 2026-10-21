@@ -34,6 +34,9 @@
       <item label="sonido" icon="multimedia-volume-control">
         <action name="Execute" command="pavucontrol" />
       </item>
+      <item label="wi-fi" icon="network-wireless">
+        <action name="Execute" command="command-os-wifi" />
+      </item>
       <item label="red" icon="preferences-system-network">
         <action name="Execute" command="nm-connection-editor" />
       </item>

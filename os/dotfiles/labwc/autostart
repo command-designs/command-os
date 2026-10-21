@@ -15,7 +15,6 @@ swaync --config "$(command-os-config swaync/config.json)" --style "$(command-os-
 hypridle --config "$(command-os-config hypr/hypridle.conf)" &
 swayosd-server &
 wl-paste --watch cliphist store &
-nm-applet --indicator &
 # Agente de Bluetooth (emparejar con PIN, avisos de conexión); sin icono en la bandeja (dconf de serie).
 blueman-applet &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
