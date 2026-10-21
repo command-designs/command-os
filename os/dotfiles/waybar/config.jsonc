@@ -51,14 +51,14 @@
         "tooltip-format": "{title}",
         "on-click": "minimize-raise",
         "on-click-middle": "close",
-        "ignore-list": ["org.pulseaudio.pavucontrol", "blueman-manager"]
+        "ignore-list": ["org.pulseaudio.pavucontrol", "blueman-manager", "dev.commandlab.Centro"]
     },
     // Fecha (apagada) y hora: lo que se mira de un vistazo.
     "clock": {
         "format": "<span color='#85827c'>{0:%d.%m}</span>  {0:%H:%M}",
         "tooltip-format": "{0:%A %d %B %Y}"
     },
-    // Telemetría, oculta de serie (command-os-estado la enseña): Warn al pasar del umbral de aviso, Red
+    // Telemetría, oculta de serie (se enseña en Ajustes → barra): Warn al pasar del umbral de aviso, Red
     // Hot al crítico (style.css). Cada 10 s: es lo que más despierta a la barra.
     "cpu": {
         "format": "<span color='#85827c'>CPU</span> {usage}%",
@@ -77,8 +77,8 @@
         "tooltip-format": "{used:0.1f} / {total:0.1f} GiB"
     },
     // Grupo de estado: red, Bluetooth, volumen y batería en una sola celda, sin cajas, como la lectura
-    // «sincronizado» de lenguaje.html. El clic en cualquiera abre el mismo panel (command-os-estado; el
-    // centro de control cuando llegue); el clic derecho va directo a lo de cada uno.
+    // «sincronizado» de lenguaje.html. El clic en cualquiera abre el centro de control (command-os-centro;
+    // otro clic lo cierra); el clic derecho va directo a lo de cada uno.
     "group/estado": {
         "orientation": "horizontal",
         "modules": ["network", "bluetooth", "pulseaudio", "battery"]
@@ -87,11 +87,11 @@
         "format-wifi": "<span color='#85827c'>NET</span> {signalStrength}%",
         "format-ethernet": "<span color='#85827c'>NET</span> ETH",
         "format-disconnected": "<span color='#85827c'>NET</span> <span text_transform='uppercase'>{{sin red}}</span>",
-        "tooltip-format-wifi": "{essid} · {ipaddr}\n{{clic: estado · clic derecho: elegir red wi-fi}}",
-        "tooltip-format-ethernet": "{ifname} · {ipaddr}\n{{clic: estado · clic derecho: elegir red wi-fi}}",
-        "tooltip-format-disconnected": "{{clic: estado · clic derecho: elegir red wi-fi}}",
-        "on-click": "command-os-estado",
-        "on-click-right": "command-os-wifi"
+        "tooltip-format-wifi": "{essid} · {ipaddr}\n{{clic: centro de control · clic derecho: redes wi-fi}}",
+        "tooltip-format-ethernet": "{ifname} · {ipaddr}\n{{clic: centro de control · clic derecho: redes wi-fi}}",
+        "tooltip-format-disconnected": "{{clic: centro de control · clic derecho: redes wi-fi}}",
+        "on-click": "command-os-centro",
+        "on-click-right": "command-os-centro redes"
     },
     // Bluetooth: oculto si el equipo no tiene adaptador; apagado de serie (lib/apply-system). Con
     // dispositivos conectados, cuántos.
@@ -101,17 +101,17 @@
         "format-disabled": "<span color='#85827c'>BT</span> OFF",
         "format-connected": "<span color='#85827c'>BT</span> {num_connections}",
         "format-no-controller": "",
-        "tooltip-format": "{{clic: estado · clic derecho: encender o apagar el bluetooth}}",
-        "tooltip-format-connected": "{device_enumerate}\n{{clic: estado · clic derecho: encender o apagar el bluetooth}}",
+        "tooltip-format": "{{clic: centro de control · clic derecho: encender o apagar el bluetooth}}",
+        "tooltip-format-connected": "{device_enumerate}\n{{clic: centro de control · clic derecho: encender o apagar el bluetooth}}",
         "tooltip-format-enumerate-connected": "{device_alias}",
-        "on-click": "command-os-estado",
+        "on-click": "command-os-centro",
         "on-click-right": "command-os-bluetooth cambiar"
     },
     "pulseaudio": {
         "format": "<span color='#85827c'>VOL</span> {volume}%",
         "format-muted": "<span color='#85827c'>VOL</span> MUTE",
-        "tooltip-format": "{desc}\n{{clic: estado · clic derecho: mezclador}}",
-        "on-click": "command-os-estado",
+        "tooltip-format": "{desc}\n{{clic: centro de control · clic derecho: mezclador}}",
+        "on-click": "command-os-centro",
         "on-click-right": "command-os-volume"
     },
     // Con la batería descargándose, el tiempo que queda; cargando, un +.
@@ -121,8 +121,8 @@
         "format-charging": "<span color='#85827c'>BAT</span> {capacity}% +",
         "format-time": "{H}h{M:02}",
         "states": { "warning": 30, "critical": 15 },
-        "tooltip-format": "{{clic: estado · clic derecho: ajustes de la batería}}",
-        "on-click": "command-os-estado",
+        "tooltip-format": "{{clic: centro de control · clic derecho: ajustes de la batería}}",
+        "on-click": "command-os-centro",
         "on-click-right": "command-os-bateria panel"
     },
     "tray": { "icon-size": 16, "spacing": 8 },

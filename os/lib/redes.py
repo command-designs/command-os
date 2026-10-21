@@ -21,6 +21,7 @@ class ListaRedes(Gtk.Box):
         self.completa = completa
         self.al_cambiar = al_cambiar or (lambda: None)
         self.ocupado = False
+        self.sincronizando = False
         self.red_clave = None
         self.dispositivo = red.dispositivo_wifi()
 
@@ -225,7 +226,22 @@ class ListaRedes(Gtk.Box):
 
     # ---- Encender y apagar ---------------------------------------------------------------------------
 
+    def al_dia(self):
+        """Al volver a la lista: el wi-fi se ha podido encender o apagar fuera (el centro de control, la
+        barra), así que se vuelve a mirar antes de buscar redes."""
+        if self.dispositivo is None:
+            return
+        encendido = red.wifi_encendido()
+        if encendido != self.switch.get_active():
+            self.sincronizando = True
+            self.switch.set_active(encendido)
+            self.sincronizando = False
+        self.refrescar()
+
     def al_interruptor(self, switch, activo):
+        if self.sincronizando:
+            return False  # lo pone al_dia(): solo se pinta
+
         def hecho(bien):
             switch.set_state(activo if bien else not activo)
             if activo and bien:

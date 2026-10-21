@@ -329,3 +329,87 @@ button.fondo-muestra:hover {
 button.fondo-muestra.elegido {
     border-color: #f5482c;
 }
+
+/* Centro de control (lib/centro.py): la ventana, sin decorar y transparente (ni marco ni sombra de
+   window.csd), y el panel con chaflán de .panel, más apretado. Entra desde debajo de la barra: fundido y
+   8 px de desliz hacia abajo en 280 ms (--ease-out); se cierra sin animación. */
+window.centro,
+window.centro.csd {
+    background-color: transparent;
+    outline: none;
+    box-shadow: none;
+}
+
+@keyframes centro-entra {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* 8 px de aire bajo la barra y hasta el borde: la ventana los lleva transparentes. */
+.centro-panel {
+    margin: 8px 8px 0 0;
+    padding: 18px 20px 16px;
+    animation: centro-entra 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Wi-Fi y Bluetooth: una fila con filo Steel sobre Void; encendido (se queda pulsado, como .chip.is-on),
+   en Slate con el nombre en Bone y el icono en Red Hot. La flecha, una celda aparte con el mismo filo. */
+.mosaico > button {
+    padding: 8px 12px;
+    border: 1px solid #2a2a2a;
+    border-radius: 0;
+    background-color: #0e0e0e;
+    background-image: none;
+    border-image: none;
+    box-shadow: none;
+    color: #a3a09a;
+}
+
+.mosaico > button:hover {
+    background-color: #1f1f1f;
+    color: #edebe6;
+}
+
+.mosaico > button:checked {
+    background-color: #1f1f1f;
+    color: #edebe6;
+}
+
+.mosaico > button:checked image {
+    color: #f5482c;
+}
+
+.mosaico > button.flecha {
+    padding: 8px 10px;
+}
+
+.niveles {
+    padding: 6px 2px 2px;
+}
+
+/* El icono del volumen es un botón (silenciar) y el del brillo una imagen: con el mismo tamaño, las dos
+   barras empiezan a la par. */
+.niveles .deslizador > button,
+.niveles .deslizador > image {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    margin: 0;
+}
+
+/* La batería: una línea que lleva a sus ajustes. */
+button.linea {
+    padding: 6px 2px;
+    color: #a3a09a;
+}
+
+.pie {
+    padding-top: 4px;
+}

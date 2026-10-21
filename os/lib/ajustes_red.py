@@ -19,7 +19,7 @@ class Pagina(Seccion):
         self.avanzado([(_("redes ocultas, vpn, ip fija y el resto de la red"), ["nm-connection-editor"])])
 
     def al_mostrar(self):
-        self.redes.refrescar()
+        self.redes.al_dia()
         self.pintar_cable()
 
     def pintar_cable(self):

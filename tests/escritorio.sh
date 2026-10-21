@@ -88,10 +88,16 @@ fi
 for p in blueman-manager blueman-applet bluetoothctl rfkill; do
   command -v "${p}" >/dev/null || mal "bluetooth: falta ${p}"
 done
-# Grupo de estado de la barra (command-os-estado, command-os-wifi): la red va por nmcli, sin nm-applet.
-for p in nmcli pamixer nm-connection-editor notify-send; do
+# Grupo de estado de la barra y centro de control (command-os-centro): la red va por nmcli, sin nm-applet.
+for p in nmcli pamixer pactl brightnessctl nm-connection-editor notify-send; do
   command -v "${p}" >/dev/null || mal "barra: falta ${p}"
 done
+if PYTHONPATH=/usr/lib/command-os PYTHONDONTWRITEBYTECODE=1 python3 -c 'import centro' 2>"${SALIDA}/centro.txt"; then
+  ok "centro de control: carga con GTK 4"
+else
+  mal "centro de control: no carga (${SALIDA}/centro.txt)"
+fi
+grep -q 'identifier="dev.commandlab.Centro"' /etc/xdg/labwc/rc.xml || mal "centro de control: falta su regla de labwc"
 grep -q 'nm-applet' /etc/xdg/labwc/autostart 2>/dev/null && mal "barra: nm-applet sigue en el autostart"
 for f in /etc/xdg/labwc/rc.xml /usr/share/command-os/config/labwc/menu.xml; do
   if xmllint --noout "${f}" 2>"${SALIDA}/xmllint-$(basename "${f}").txt"; then ok "XML: ${f}"; else mal "XML: ${f}"; fi

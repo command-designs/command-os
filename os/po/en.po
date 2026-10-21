@@ -642,7 +642,8 @@ msgstr "pin another"
 msgid ""
 "ninguna: fija una con «fijar otra» o con el clic derecho en el logo de la "
 "barra."
-msgstr "none: pin one with “pin another” or by right-clicking the logo on the bar."
+msgstr ""
+"none: pin one with “pin another” or by right-clicking the logo on the bar."
 
 msgid "más a la izquierda"
 msgstr "move left"
@@ -668,7 +669,9 @@ msgstr "size of text and windows"
 msgid ""
 "automático: más grande en pantallas de mucha densidad, como las de los "
 "portátiles pequeños de alta resolución."
-msgstr "automatic: larger on high-density displays, like those of small high-resolution laptops."
+msgstr ""
+"automatic: larger on high-density displays, like those of small high-"
+"resolution laptops."
 
 msgid "resolución, posición y varias pantallas"
 msgstr "resolution, position and multiple displays"
@@ -870,12 +873,45 @@ msgstr "{app} pinned to the bar"
 msgid "ya estaba en la barra"
 msgstr "it was already in the bar"
 
-msgid "escribe la contraseña."
-msgstr "type the password."
+msgid "centro de control"
+msgstr "control center"
+
+msgid "ver las redes wi-fi"
+msgstr "see the wi-fi networks"
+
+msgid "dispositivos y más ajustes del bluetooth"
+msgstr "devices and more bluetooth settings"
+
+msgid "ajustes de la batería"
+msgstr "battery settings"
+
+msgid "ajustes"
+msgstr "settings"
+
+msgid "volver"
+msgstr "rollback"
+
+msgid "redes wi-fi"
+msgstr "wi-fi networks"
+
+msgid "todos los ajustes de red"
+msgstr "all network settings"
+
+msgid "apagado"
+msgstr "off"
+
+msgid "sin red"
+msgstr "no network"
+
+msgid "red"
+msgstr "network"
 
 #, python-brace-format
-msgid "contraseña de la red {red}"
-msgstr "password for the {red} network"
+msgid "{n} dispositivos conectados"
+msgstr "{n} devices connected"
+
+msgid "encendido"
+msgstr "on"
 
 msgid "cmd-os · abrir descarga"
 msgstr "cmd-os · open download"
@@ -1021,9 +1057,6 @@ msgstr "devices"
 
 msgid "servicios básicos"
 msgstr "core services"
-
-msgid "red"
-msgstr "network"
 
 msgid "inicio de sesión"
 msgstr "sign-in"
@@ -1233,9 +1266,6 @@ msgstr "host"
 msgid "memoria"
 msgstr "memory"
 
-msgid "volver"
-msgstr "rollback"
-
 msgid "más detalle: fastfetch"
 msgstr "more detail: fastfetch"
 
@@ -1264,42 +1294,6 @@ msgstr "desktops"
 #, python-format
 msgid "ya hay %d escritorios"
 msgstr "there are already %d desktops"
-
-#, python-format
-msgid "wi-fi · %s"
-msgstr "wi-fi · %s"
-
-msgid "red · por cable"
-msgstr "network · wired"
-
-msgid "wi-fi · sin red"
-msgstr "wi-fi · no network"
-
-msgid "bluetooth · encendido"
-msgstr "bluetooth · on"
-
-msgid "bluetooth · apagado"
-msgstr "bluetooth · off"
-
-msgid "sonido · silenciado"
-msgstr "sound · muted"
-
-#, python-format
-msgid "sonido · %s %%"
-msgstr "sound · %s %%"
-
-#, python-format
-msgid "batería · %s %%"
-msgstr "battery · %s %%"
-
-msgid "ocultar cpu, temperatura y memoria"
-msgstr "hide cpu, temperature and memory"
-
-msgid "mostrar cpu, temperatura y memoria"
-msgstr "show cpu, temperature and memory"
-
-msgid "ajustes de red avanzados"
-msgstr "advanced network settings"
 
 #, python-format
 msgid "no se pudo generar %s (locale-gen)"
@@ -1550,9 +1544,6 @@ msgstr "Done. Restart to enter the recovered system."
 msgid "Cuando todo funcione, puedes borrar la copia anterior con:"
 msgstr "When everything works, you can delete the previous copy with:"
 
-msgid "sin red"
-msgstr "no network"
-
 msgid "command-os: actualizando las aplicaciones de la tienda…"
 msgstr "command-os: updating the store apps…"
 
@@ -1636,35 +1627,6 @@ msgstr "update available"
 #, python-format
 msgid "command-os %s · clic para actualizar"
 msgstr "command-os %s · click to update"
-
-msgid "este equipo no tiene wi-fi"
-msgstr "this computer has no wi-fi"
-
-msgid "encender el wi-fi"
-msgstr "turn on wi-fi"
-
-#, python-format
-msgid "%s · conectada"
-msgstr "%s · connected"
-
-msgid "no se ve ninguna red wi-fi"
-msgstr "no wi-fi networks in range"
-
-#, python-format
-msgid "desconectar de %s"
-msgstr "disconnect from %s"
-
-#, python-format
-msgid "conectando a %s…"
-msgstr "connecting to %s…"
-
-#, python-format
-msgid "conectada a %s"
-msgstr "connected to %s"
-
-#, python-format
-msgid "no se pudo conectar a %s"
-msgstr "could not connect to %s"
 
 #, python-format
 msgid "zona horaria: %s (son las %s)"
@@ -2067,17 +2029,17 @@ msgstr ""
 msgid "aplicaciones · clic derecho: fijar una aplicación en la barra"
 msgstr "apps · right click: pin an app to the bar"
 
-msgid "clic: estado · clic derecho: elegir red wi-fi"
-msgstr "click: status · right click: choose a wi-fi network"
+msgid "clic: centro de control · clic derecho: redes wi-fi"
+msgstr "click: control center · right click: wi-fi networks"
 
-msgid "clic: estado · clic derecho: encender o apagar el bluetooth"
-msgstr "click: status · right click: turn bluetooth on or off"
+msgid "clic: centro de control · clic derecho: encender o apagar el bluetooth"
+msgstr "click: control center · right click: turn bluetooth on or off"
 
-msgid "clic: estado · clic derecho: mezclador"
-msgstr "click: status · right click: mixer"
+msgid "clic: centro de control · clic derecho: mezclador"
+msgstr "click: control center · right click: mixer"
 
-msgid "clic: estado · clic derecho: ajustes de la batería"
-msgstr "click: status · right click: battery settings"
+msgid "clic: centro de control · clic derecho: ajustes de la batería"
+msgstr "click: control center · right click: battery settings"
 
 msgid "sesión bloqueada"
 msgstr "session locked"
@@ -2090,9 +2052,6 @@ msgstr "cmd-os"
 
 msgid "tienda de aplicaciones"
 msgstr "app store"
-
-msgid "ajustes"
-msgstr "settings"
 
 msgid "fondo de pantalla"
 msgstr "wallpaper"
@@ -2117,7 +2076,3 @@ msgstr "on all desktops"
 
 msgid "mover a escritorio"
 msgstr "move to desktop"
-
-#, python-format
-#~ msgid "contraseña de %s"
-#~ msgstr "password for %s"

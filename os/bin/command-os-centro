@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Command OS — centro de control (lib/centro.py): command-os-centro [redes]. Lo abre el clic en el grupo de
+# estado de la barra (con `redes`, el clic derecho en la red, directo a las redes wi-fi). Si ya está
+# abierto, otro clic lo cierra. Renderizador cairo, como Ajustes (docs/decisiones.md).
+export GTK_THEME=${GTK_THEME:-adw-gtk3:dark} GSK_RENDERER=${GSK_RENDERER:-cairo}
+PYTHONPATH=/usr/lib/command-os exec python3 /usr/lib/command-os/centro.py "$@"
