@@ -325,7 +325,7 @@ antes de cada cambio y que se le notifique (PushNotification) cuando haga falta 
   `~/.config/command-os/bashrc` (alias, prompt de marca, `EDITOR=nano`) enganchado desde `~/.bashrc`
   con marcadores, y `~/.config/nano/nanorc`.
 - **Animaciones**: con labwc no hay animaciones de ventana; el movimiento está en los paneles
-  (entrada de Wofi con `@keyframes`) y en las transiciones CSS de Waybar (ver `docs/DISENO.md`).
+  y en las transiciones CSS de la barra, las apps GTK y las notificaciones (`docs/DISENO.md` § «Movimiento»).
 - **Sonidos**: `build/make-sounds.py` los genera en `os/branding/sounds/`; `os/bin/command-os-sound`
   los reproduce (arranque, notificación, urgente, bloqueo, desbloqueo, tecla de volumen).
 - **VirtualBox**: 4 vCPU solo con CPU hotplug (sin hotplug, 2 vCPU = cuelgue en `DXE_AP`), 6 GB de

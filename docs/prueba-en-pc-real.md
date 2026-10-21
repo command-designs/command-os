@@ -70,6 +70,12 @@ punto al probarlo y avisa de los fallos; lo que salga bien se quita de esta guí
    `NET` → la lista de redes; conectar a una abierta, a una con contraseña (sale el diálogo y conecta),
    a una ya guardada (sin preguntar), escribir mal una contraseña (avisa de que no pudo) y desconectar
    la conectada. Enseñar y ocultar CPU/TMP/MEM desde el panel y que se mantenga al reiniciar.
+10. Movimiento (`docs/DISENO.md` § «Movimiento»; la VM renderiza por software y no sirve para juzgar la
+    fluidez): al cambiar de ventana, la línea roja de la barra entra por la izquierda y la anterior se va
+    por la derecha; al pasar el ratón por botones, filas y campos de Thunar, Firefox y la tienda, el
+    color cambia suave (no de golpe) y sin tirones; una notificación (`notify-send hola`) entra con un
+    desliz corto; el panel del inicio de sesión entra con un fundido. Nada debe moverse con el
+    escritorio en reposo (`top`: Waybar y labwc cerca del 0 % de CPU).
 
 ## 6. Paneles de ajustes (menú → ajustes)
 

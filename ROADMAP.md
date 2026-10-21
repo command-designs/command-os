@@ -25,14 +25,8 @@ por tanda. Llega como actualización normal (sin reinstalar); lo que el usuario 
 se migra con marca, como `layout-2`, sin pisar sus cambios. Todo con el requisito de ligereza
 (`AGENTS.md` § «Ligereza»): ningún punto se cierra si sube la memoria o la CPU en reposo sin motivo.
 
-### Tanda 1 — Diseño 2.1 y movimiento (sobre labwc; nada depende del compositor)
-
-Las diferencias con `lenguaje.html`, medidas en la VM: `docs/notas/auditoria-2.1.md` (cada punto
-borra las suyas al cerrarse).
-
-4. **Movimiento** (Opus, medio: tokens y curvas de la marca en cada pieza). Entradas, salidas y hover
-   con `--ease-out`/`--ease-in-out` y las duraciones de § 9 en paneles, lanzador, notificaciones,
-   barra y apps GTK (barrido del botón, subrayado que entra por la izquierda, filo de foco).
+La tanda 1 (diseño 2.1 y movimiento sobre labwc) está hecha: `docs/DISENO.md` y
+`docs/notas/escritorio.md`.
 
 ### Tanda 2 — Ajustes y uso diario
 
@@ -41,7 +35,9 @@ borra las suyas al cerrarse).
    Actualizaciones, Idioma), lo de ahora como «avanzado» en cada una. Wi-Fi en dos pasos: elegir red y
    contraseña. El centro de control sale del grupo de estado de la barra (Wi-Fi, Bluetooth, volumen,
    brillo, batería y botón a Ajustes) y sustituye a los paneles wofi provisionales (`command-os-estado`,
-   `command-os-wifi`); la telemetría pasa a Ajustes → Barra (`command-os-fijadas telemetria`).
+   `command-os-wifi`); la telemetría pasa a Ajustes → Barra (`command-os-fijadas telemetria`). El
+   lanzador deja de enseñar herramientas técnicas al nivel de las apps (`Hardware Locality lstopo`,
+   `Advanced Network Configuration`, `Displays`, `btop++`): pasan a «avanzado» en Ajustes.
 6. **Barra configurable** (Opus, alto: lógica de sesión). En Ajustes: lado de la pantalla
    (arriba, abajo, izquierda, derecha) y flotante. Ocultar sola al quitar el ratón, en la tanda 3:
    Waybar no sabe hacerlo y labwc no dice dónde está el puntero.

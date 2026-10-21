@@ -3,6 +3,19 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-21 — Movimiento 2.1 (`docs/DISENO.md` § «Movimiento»)
+
+- **El botón principal de GTK funde el relleno; no hace el barrido** de BRAND § 9.2.4. GTK no anima
+  el `border-image`, y la banda de 11 px del chaflán lleva el color dentro del SVG. Descartado: dos
+  capas de fondo con el ancho animado (medido en la VM: el barrido solo cruzaba la franja central,
+  entre bandas que cambiaban de golpe).
+- **El subrayado de lo activo en la barra es un fondo de 2 px**, no el `border-bottom`: GTK 3 no tiene
+  `transform`, pero sí anima `background-size`. La posición salta sin transición (izquierda al
+  activarse, derecha al dejar de estarlo) para que entre por la izquierda y salga por la derecha.
+- **Notificaciones con la animación de swaync** (`transition-time` 280 ms). Descartado: una
+  `@keyframes` propia encima (dos fundidos a la vez), y no hay forma de animar la salida de la última
+  notificación (swaync cierra la ventana).
+
 ## 2026-10-21 — Barra 2.1: grupo de estado y red sin nm-applet (`docs/notas/escritorio.md` § «Barra»)
 
 - **36 px**, no 40: en 1280×720 o en la pantalla pequeña del cyberdeck, 40 ya es un 5,5 % del alto.

@@ -21,7 +21,7 @@
   "notification-inline-replies": false,
   "notification-2fa-action": false,
   "image-visibility": "when-available",
-  "transition-time": 200,
+  "transition-time": 280,
   "hide-on-clear": true,
   "hide-on-action": true,
   "script-fail-notify": false,

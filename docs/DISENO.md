@@ -214,13 +214,37 @@ grano (de 30 a 110 KB).
 
 ## Movimiento
 
-BRAND § 9. Curva `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`), sin rebotes. Entradas secas
-(200–300 ms). **labwc no anima ventanas** (abrir, cerrar y mover son inmediatos): es parte de su
-ligereza. El movimiento del escritorio vive en los paneles: el lanzador y el menú de energía entran
-con un fundido y un desliz corto de 200–220 ms, y la barra hace transiciones de color en los
-espacios, la barra de tareas y el logo. El bloqueo entra con un fundido de 0,4 s y su campo de
-contraseña cambia de color con la misma curva (filo Red Hot; Ash comprobando, Warn si falla o si las
-mayúsculas están activadas, con el número de intentos).
+BRAND § 9. Solo las curvas de la marca: `cubic-bezier(0.16, 1, 0.3, 1)` (`--ease-out`, casi todo),
+`(0.65, 0, 0.35, 1)` (`--ease-in-out`) y `(0.2, 0.9, 0.1, 1.25)` (`--ease-snap`); sin rebotes ni
+curvas de otros sistemas. Duraciones de la marca: 160 ms (`--dur-fast`) para hover, foco y cambio de
+estado, y 280 ms (`--dur-base`) para lo que entra. Solo al entrar, al salir o al pasar el ratón:
+**nada se mueve en reposo** (ligereza). `tests/marca.sh` falla con otra curva o con una animación en
+bucle (`infinite`). **labwc no anima ventanas** (abrir, cerrar y mover son inmediatos): eso queda para
+la tanda 3 (`ROADMAP.md`).
+
+- **Apps GTK 3 y 4** (`gtk.css`): botones, campos, filas, casillas, interruptores, pestañas y menús
+  cambian el color y el relleno en 160 ms. El foco de los campos funde su filo Red Hot.
+- **Barra:** el color de los iconos, los espacios y el grupo de estado cambia en 160 ms. La línea
+  Red Hot de lo activo (ventana y escritorio) es el subrayado de § 9.2.3: un fondo de 2 px que crece
+  desde la izquierda en 280 ms y se va por la derecha (solo se anima el ancho; la posición salta). El
+  aviso de una versión nueva aparece una vez con un fundido de 280 ms.
+- **Lanzador y menú de energía** (wofi): entran con un fundido y un desliz corto de 200–220 ms; la fila
+  elegida cambia en 160 ms.
+- **Notificaciones:** entran con el desliz y el fundido de swaync (`transition-time` 280 ms); el hover
+  del panel y de sus botones, en 160 ms.
+- **Inicio de sesión y asistente:** el panel entra con sus escuadras una sola vez (fundido y 8 px de
+  desliz, 280 ms); sus campos y botones, como las apps GTK 4.
+- **Bloqueo:** entra con un fundido de 0,4 s y su campo de contraseña cambia de color con la misma
+  curva (filo Red Hot; Ash comprobando, Warn si falla o si las mayúsculas están activadas, con el
+  número de intentos).
+
+Límites medidos en la VM (2026-10-21), que no se arreglan con CSS:
+
+- **GTK no anima el `border-image`.** El filo de los chaflanes y su banda de 11 px cambian de golpe:
+  el botón principal funde su relleno (de Signal Red a #B81A02) en vez del barrido de § 9.2.4. Con
+  dos capas de fondo, el barrido solo se veía en la franja central, entre las bandas del chaflán.
+- **swaync** usa su propia curva (fija en su código, no se configura) y, al irse la última
+  notificación, cierra la ventana sin animación de salida.
 
 - **Firma de arranque** (BRAND § 9.1, versión corta; `os/branding/plymouth/`): sobre Void liso, el
   contorno del símbolo C se traza en Bone (1 px, la forma real del logo) y se rellena de izquierda a

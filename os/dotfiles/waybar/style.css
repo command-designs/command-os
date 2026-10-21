@@ -40,7 +40,7 @@ tooltip label {
 
 /* El logo, en su celda cuadrada (el alto de la barra) con el filo Steel a la derecha. */
 #custom-logo {
-    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
     background-image: url("/usr/share/command-os/logo/command-mark-32.png");
     background-size: 16px 17px;
     background-repeat: no-repeat;
@@ -72,12 +72,30 @@ tooltip label {
     border-bottom: 2px solid transparent;
 }
 
+/* La línea Red Hot de lo activo (ventana y escritorio) es el subrayado de BRAND § 9.2.3: un fondo de
+   2 px abajo que crece desde la izquierda al activarse y se va por la derecha al dejar de estarlo
+   (280 ms, --ease-out). La posición salta sin transición; solo se anima el ancho. */
+#taskbar button,
+#workspaces button {
+    background-image: linear-gradient(@red-hot, @red-hot);
+    background-repeat: no-repeat;
+    background-position: right bottom;
+    background-size: 0 2px;
+}
+
+#taskbar button.active,
+#workspaces button.active {
+    background-position: left bottom;
+    background-size: 100% 2px;
+}
+
 #taskbar button {
-    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1), border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+        background-size 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #taskbar button image {
-    transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 160ms cubic-bezier(0.16, 1, 0.3, 1);
     opacity: 0.55;
 }
 
@@ -95,7 +113,7 @@ tooltip label {
 #taskbar button.active {
     background-color: @slate;
     border-color: @steel;
-    border-bottom-color: @red-hot;
+    border-bottom-color: transparent;
 }
 
 #taskbar button.minimized image {
@@ -105,7 +123,7 @@ tooltip label {
 /* Aplicaciones fijadas (command-os-fijadas): el icono va de fondo (lo pone la hoja que genera
    lib/fijadas.py, que importa esta), así que se atenúa el botón entero. */
 #custom-fijada {
-    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms cubic-bezier(0.16, 1, 0.3, 1);
     background-size: 18px 18px;
     background-repeat: no-repeat;
     background-position: center;
@@ -130,8 +148,8 @@ tooltip label {
 /* Escritorios, a la derecha. Con uno solo no se enseña nada: el botón se queda sin ancho ni texto.
    Con dos o más, el primero abre con el filo Steel de las celdas. */
 #workspaces button {
-    transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
-        border-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1), background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 160ms cubic-bezier(0.16, 1, 0.3, 1), background-size 280ms cubic-bezier(0.16, 1, 0.3, 1);
     padding: 0 9px;
     color: @smoke;
     border-bottom: 2px solid transparent;
@@ -143,15 +161,14 @@ tooltip label {
 }
 
 #workspaces button:hover {
-    background: @slate;
+    background-color: @slate;
     color: @bone;
     box-shadow: none;
 }
 
 #workspaces button.active {
     color: @red-hot;
-    background: @slate;
-    border-bottom: 2px solid @red-hot;
+    background-color: @slate;
 }
 
 #workspaces button.urgent {
@@ -185,7 +202,7 @@ tooltip label {
 }
 
 #estado {
-    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #estado:hover,
@@ -194,7 +211,7 @@ tooltip label {
 }
 
 #cpu, #temperature, #memory, #network, #bluetooth, #pulseaudio, #battery, #custom-updates {
-    transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1);
     color: @ash;
     letter-spacing: 0.14em;
 }
@@ -236,9 +253,21 @@ tooltip label {
         rgba(255, 176, 32, 0.4) 3.5px, rgba(255, 176, 32, 0) 8px);
 }
 
-/* Actualizaciones: apagado con paquetes sueltos, Warn (aviso) con una versión nueva de command-os. */
+/* Actualizaciones: apagado con paquetes sueltos, Warn (aviso) con una versión nueva de command-os. El
+   aviso aparece una sola vez con un fundido (280 ms, --ease-out); nunca parpadea. */
+@keyframes aviso-entra {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 #custom-updates.nueva {
     color: @warn;
+    animation: aviso-entra 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Umbrales: Warn de aviso, Red Hot crítico (el texto de la etiqueta y el valor siguen ahí). */
@@ -273,7 +302,7 @@ tooltip label {
 
 /* Botón de energía: al final de la barra, apagado hasta que se pasa por encima. */
 #custom-power {
-    transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1), background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: color 160ms cubic-bezier(0.16, 1, 0.3, 1), background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
     padding: 0 14px 0 13px;
     color: @smoke;
     font-size: 14px;
