@@ -186,6 +186,19 @@ if [[ ":$(cat "${run}/datos" 2>/dev/null):" == *":/var/lib/flatpak/exports/share
 else
   mal "sesión: XDG_DATA_DIRS sin Flatpak ($(cat "${run}/datos" 2>/dev/null))"
 fi
+# Las herramientas técnicas (las que estén instaladas) salen del lanzador con copias NoDisplay=true
+# que van las primeras en XDG_DATA_DIRS.
+primero=$(cut -d: -f1 "${run}/datos" 2>/dev/null)
+ocultas=0; fallo=""
+for d in lstopo nm-connection-editor wdisplays network.cycles.wdisplays btop blueman-manager pavucontrol; do
+  [[ -r "/usr/share/applications/${d}.desktop" ]] || continue
+  if grep -qx 'NoDisplay=true' "${primero}/applications/${d}.desktop" 2>/dev/null; then ocultas=$((ocultas + 1)); else fallo+=" ${d}"; fi
+done
+if [[ "${primero}" == "${run}/command-os/xdg" && -z "${fallo}" ]]; then
+  ok "sesión: ${ocultas} herramientas técnicas fuera del lanzador"
+else
+  mal "sesión: herramientas técnicas aún en el lanzador (${primero}${fallo:+, faltan:${fallo}})"
+fi
 rm -rf "${run}/bin" "${run}/datos"
 
 echo "==> Sesión de labwc sin pantalla"

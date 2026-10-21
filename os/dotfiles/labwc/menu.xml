@@ -24,43 +24,12 @@
       <action name="Execute" command="command-os-tienda" />
     </item>
     <separator />
-    <menu id="ajustes" label="ajustes" icon="preferences-system">
-      <item label="fondo de pantalla" icon="preferences-desktop-wallpaper">
-        <action name="Execute" command="command-os-wallpaper elegir" />
-      </item>
-      <item label="pantallas" icon="preferences-desktop-display">
-        <action name="Execute" command="wdisplays" />
-      </item>
-      <item label="sonido" icon="multimedia-volume-control">
-        <action name="Execute" command="pavucontrol" />
-      </item>
-      <item label="wi-fi" icon="network-wireless">
-        <action name="Execute" command="command-os-wifi" />
-      </item>
-      <item label="red" icon="preferences-system-network">
-        <action name="Execute" command="nm-connection-editor" />
-      </item>
-      <item label="monitor del sistema" icon="utilities-system-monitor">
-        <action name="Execute" command="kitty --class btop -e btop" />
-      </item>
-      <separator />
-      <item label="actualizaciones" icon="software-update-available">
-        <action name="Execute" command="command-os-updates panel" />
-      </item>
-      <item label="cuentas" icon="system-users">
-        <action name="Execute" command="command-os-cuentas" />
-      </item>
-      <item label="disco cifrado" icon="drive-harddisk">
-        <action name="Execute" command="command-os-disco" />
-      </item>
-      <item label="batería" icon="battery">
-        <action name="Execute" command="command-os-bateria panel" />
-      </item>
-      <separator />
-      <item label="recargar escritorio" icon="view-refresh">
-        <action name="Reconfigure" />
-      </item>
-    </menu>
+    <item label="ajustes" icon="preferences-system">
+      <action name="Execute" command="command-os-ajustes" />
+    </item>
+    <item label="recargar escritorio" icon="view-refresh">
+      <action name="Reconfigure" />
+    </item>
     <menu id="escritorios" label="escritorios" icon="preferences-desktop-display">
       <item label="nuevo escritorio" icon="list-add">
         <action name="Execute" command="command-os-desktops nuevo" />

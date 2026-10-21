@@ -2053,12 +2053,6 @@ msgstr "cmd-os"
 msgid "tienda de aplicaciones"
 msgstr "app store"
 
-msgid "fondo de pantalla"
-msgstr "wallpaper"
-
-msgid "pantallas"
-msgstr "displays"
-
 msgid "recargar escritorio"
 msgstr "reload desktop"
 
