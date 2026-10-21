@@ -58,6 +58,16 @@ jobs:
       - name: Escritorio sin pantalla
         run: SALIDA="$PWD/resultados" bash tests/escritorio.sh
 
+      # El plugin de las barras de título contra el Hyprland de esta fecha: si no compila o es para otra
+      # versión, no se valida la fecha (os/hyprbars/PKGBUILD). Con -d se compila aunque la versión no cuadre
+      # y tests/hyprbars.sh dice qué hay que poner al día.
+      - name: Barras de título de Hyprland (os/hyprbars, tests/hyprbars.sh)
+        run: |
+          cp -r os/hyprbars /home/constructor/hyprbars
+          chown -R constructor: /home/constructor/hyprbars
+          runuser -u constructor -- bash -c 'cd ~/hyprbars && makepkg -d --noconfirm'
+          bash tests/hyprbars.sh /home/constructor/hyprbars/src/hyprland-plugins-*/hyprbars/hyprbars.so
+
       - name: Entrada al equipo (cuentas, greetd, migración)
         run: bash tests/cuentas.sh
 

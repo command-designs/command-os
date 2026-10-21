@@ -44,13 +44,12 @@ configurable) están hechas: `docs/DISENO.md` y `docs/notas/escritorio.md`.
    reserva. Si se adopta: Hyprland de serie y, si no arranca o se cierra al empezar,
    `command-os-session` arranca labwc solo y avisa (también en equipos sin aceleración 3D, como la
    VM); el selector de sesión queda discreto (inicio de sesión y Ajustes) para fallos que no la cierran.
-   Estudio de paridad y 7.1 (sesión, selector y `hyprland.lua`) hechos: `docs/notas/escritorio.md`
-   § «Sesión Hyprland de prueba»; se prueba con `docs/prueba-en-pc-real.md` § 9. Queda:
-   - 7.2 **hyprbars propio** (Opus, alto: empaquetado, parche en C++ y CI). PKGBUILD atado a la
-     versión de Hyprland, parche de botones cuadrados con hover, repositorio firmado y comprobación
-     en la CI (con los minutos estimados antes).
+   Estudio de paridad, 7.1 (sesión, selector y `hyprland.lua`) y 7.2 (barras de título, paquete
+   `command-os-hyprbars`) hechos: `docs/notas/escritorio.md` § «Sesión Hyprland de prueba»; se prueba
+   con `docs/prueba-en-pc-real.md` § 9. Queda:
    - 7.3 **Menús, Alt+Tab y encajar** (Opus, medio: piezas sueltas sobre la 7.1). Menú del escritorio
-     y de ventana con wofi, Alt+Tab con rofi y encajar al soltar en el borde; guía de prueba en
+     y de ventana con wofi (el de ventana, con `on_right_click` de `hyprbars`, que ya lanza el clic
+     derecho en la barra de título), Alt+Tab con rofi y encajar al soltar en el borde; guía de prueba en
      `docs/prueba-en-pc-real.md`.
 8. **Barra que se oculta sola** (Opus, medio: depende del 7). Con Hyprland, Ironbar (en Arch, con
    ocultado nativo) o Waybar con un ayudante que mire el puntero (`hyprctl cursorpos`).

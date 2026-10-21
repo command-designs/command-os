@@ -8,6 +8,21 @@
 
 local CONFIG = os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or "") .. "/.config")
 
+-- Lo que llaman desde fuera con `hyprctl eval`: command-os-desktops y los botones de la barra de título.
+command_os = {}
+
+-- Barras de título: hyprbars con el parche de Command OS (os/hyprbars, paquete command-os-hyprbars). Hyprland
+-- lo carga al acabar de leer esto y vuelve a leerlo: la segunda vez ya existe hl.plugin.hyprbars (BARRAS).
+-- Sin el paquete, las apps sin cabecera propia van sin barra, pero todo lo demás funciona.
+local HYPRBARS = "/usr/lib/command-os/hyprbars.so"
+do
+    local f = io.open(HYPRBARS, "r")
+    if f then
+        f:close()
+        hl.plugin.load(HYPRBARS)
+    end
+end
+
 -- Lee un archivo de «clave=valor» (los ajustes de Command OS) en una tabla.
 local function ajustes(ruta)
     local valores = {}
@@ -207,6 +222,59 @@ hl.window_rule({ name = "btop", match = { class = "^btop$" }, size = { 960, 600 
 -- Vídeo flotante de Firefox: encima de todo.
 hl.window_rule({ name = "pip", match = { title = "^(Picture-in-Picture|Imagen en imagen)$" }, pin = true })
 
+----------------------------
+---- BARRAS DE TÍTULO ----
+----------------------------
+
+-- Como las de labwc (themerc y rc.xml): 32 px, Graphite con la ventana activa y Void sin ella, el título a la
+-- izquierda en mono (negrita activa, Bone; normal inactiva, Smoke) y los botones de 36×32 de
+-- build/make-labwc-buttons.py, los mismos SVG que labwc y las cabeceras GTK. Solo las llevan las apps que
+-- piden decoración al compositor (el parche lo mira), como en labwc: las de cabecera propia no.
+-- Doble clic en el título: maximizar.
+if hl.plugin.hyprbars then
+    local BOTONES = "/usr/share/command-os/botones/"
+    local function accion(nombre)
+        return string.format([[hyprctl eval "command_os.boton('%s')"]], nombre)
+    end
+
+    hl.config({
+        plugin = {
+            hyprbars = {
+                bar_height = 32,
+                bar_color = "rgba(151515ff)",
+                inactive_bar_color = "rgba(0e0e0eff)",
+                col = { text = "rgba(edebe6ff)", inactive_text = "rgba(85827cff)" },
+                bar_text_font = "JetBrainsMono Nerd Font",
+                bar_text_size = 10,
+                bar_text_weight = "bold",
+                bar_text_weight_inactive = "normal",
+                bar_text_align = "left",
+                -- window.titlebar.padding.width y window.button.spacing de themerc.
+                bar_padding = 4,
+                bar_button_padding = 0,
+                -- El filo rodea también la barra, como en labwc.
+                bar_precedence_over_border = true,
+                on_double_click = accion("maximizar"),
+            },
+        },
+    })
+
+    -- De derecha a izquierda (<layout> de rc.xml al revés): cerrar, maximizar y minimizar.
+    hl.plugin.hyprbars.add_button({ svg = BOTONES .. "close", width = 36, action = accion("cerrar") })
+    hl.plugin.hyprbars.add_button({
+        svg = BOTONES .. "max", svg_toggled = BOTONES .. "max_toggled", width = 36, action = accion("maximizar"),
+    })
+    hl.plugin.hyprbars.add_button({ svg = BOTONES .. "iconify", width = 36, action = accion("minimizar") })
+
+    -- Sin barra, como en labwc: el centro de control (SetDecorations none) y los desplegables del mezclador
+    -- y de blueman (solo el filo).
+    hl.window_rule({
+        name = "sin-barra",
+        match = { class = "^(dev\\.commandlab\\.Centro.*|org\\.pulseaudio\\.pavucontrol|blueman-manager)$" },
+        ["hyprbars:no_bar"] = true,
+    })
+end
+
 ------------------------------------
 ---- VENTANAS: MINIMIZAR, ENCAJAR ----
 ------------------------------------
@@ -214,7 +282,8 @@ hl.window_rule({ name = "pip", match = { title = "^(Picture-in-Picture|Imagen en
 -- Hyprland no minimiza: las minimizadas van a un escritorio especial que no se enseña. Cuando una de ellas
 -- se activa (la barra de tareas, Alt+Tab), vuelve al escritorio de la pantalla. La 0.56 no avisa a Lua de
 -- que una app pide minimizarse (el evento window.minimize llega después): el botón de minimizar de las
--- cabeceras GTK y el clic en la ventana activa de la barra de tareas no hacen nada todavía.
+-- cabeceras GTK y el clic en la ventana activa de la barra de tareas no hacen nada todavía; el de la barra
+-- de título de hyprbars, sí (command_os.boton).
 local MINIMIZADAS = "special:minimizadas"
 
 local function minimizar(w)
@@ -288,6 +357,20 @@ hl.on("window.destroy", function(w)
     if w then antes[w.address] = nil end
 end)
 
+-- Los botones de la barra de título (hyprbars): cerrar, maximizar o devolver, y minimizar. El plugin da el
+-- foco a la ventana del botón antes de lanzar la orden.
+function command_os.boton(nombre)
+    local w = hl.get_active_window()
+    if not w then return end
+    if nombre == "cerrar" then
+        hl.dispatch(hl.dsp.window.close({ window = w }))
+    elseif nombre == "maximizar" then
+        hl.dispatch(hl.dsp.window.fullscreen({ window = w, mode = "maximized", action = "toggle" }))
+    elseif nombre == "minimizar" then
+        minimizar(w)
+    end
+end
+
 -- Super+D: minimiza las ventanas del escritorio y, la segunda vez, las devuelve.
 local escondidas = nil
 local function ver_escritorio()
@@ -357,7 +440,6 @@ for i = 1, escritorios.n do escritorios.reglas[i] = regla_escritorio(i) end
 
 -- Lo llama command-os-desktops (hyprctl eval) con el número nuevo: crea los que faltan y va al último, o
 -- quita los que sobran y pasa sus ventanas al 01.
-command_os = {}
 function command_os.escritorios(n)
     n = math.max(1, math.min(MAX, math.floor(tonumber(n) or 1)))
     local crece = n > escritorios.n

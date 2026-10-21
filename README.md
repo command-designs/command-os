@@ -36,7 +36,8 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
   `packages.txt` y lleva scripts (`bin/`, `lib/`), ganchos de pacman (`hooks/`) y del initramfs
   (`initcpio/`: la contraseña del disco cifrado en el splash), traducciones (`po/`, castellano de
   serie e inglés: [`docs/idioma.md`](docs/idioma.md)), marca (`branding/`), configuración de serie (`dotfiles/`, `system/`) y la fecha validada de Arch y la
-  clave de firma (`pacman/`). `install.sh` prepara la máquina, construye el paquete y lo instala;
+  clave de firma (`pacman/`). Aparte, `hyprbars/`: el paquete `command-os-hyprbars`, las barras de título
+  de la sesión Hyprland de prueba (el único compilado). `install.sh` prepara la máquina, construye el paquete y lo instala;
   las actualizaciones llegan después por pacman. Cómo funciona todo: [`docs/actualizaciones.md`](docs/actualizaciones.md).
 - `tests/` y `.github/workflows/` — pruebas automáticas (sesión real sin pantalla, colores de la marca, escala de las
   pantallas, batería y aplicaciones fijadas de la barra, descargas y tipos de archivo, discos y cifrado

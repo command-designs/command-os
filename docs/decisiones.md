@@ -3,6 +3,32 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-22 — Barras de título de Hyprland, 7.2 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
+
+- **Los botones son los mismos SVG** que labwc y las cabeceras GTK, pintados enteros (con su fondo de
+  hover), no glifos de texto sobre los círculos de `hyprbars`: un solo dibujo para todo. Descartado
+  dibujarlos en C++ con Cairo (otra copia del dibujo que mantener) y los iconos de texto (no son los de la
+  marca y dependen de la fuente).
+- **Barra solo para quien la pide**, como labwc: el parche mira qué pidió cada cliente en xdg-decoration
+  y en el protocolo de KDE (Hyprland contesta «servidor» a todos). Lo de dentro de esos protocolos es
+  privado en Hyprland: `ssd.cpp` lo lee con `#define private public`, como el propio `hyprbars` hace con
+  `InputManager`. Descartado: una lista de apps con cabecera propia en reglas (no acaba nunca).
+- **Atado a una versión exacta de Hyprland** (`depends=('hyprland=0.56.2')`) y compilado contra la fecha
+  validada: un plugin para otra versión no carga. Si una fecha trae otro Hyprland, `tests/hyprbars.sh`
+  falla y la fecha no se valida hasta poner el plugin al día. Así una actualización nunca deja el
+  plugin sin cargar ni pacman parado por una dependencia rota. Se recompila al cambiar la fecha, porque la
+  comprobación del plugin incluye las versiones de las bibliotecas de Hyprland. Descartado `hyprpm`
+  (compila en cada equipo: compilador y cabeceras en todos, y tiempo al actualizar).
+- **Las órdenes de los botones con `hyprctl eval`** de funciones de `hyprland.lua` (`command_os.boton`):
+  minimizar reutiliza lo de Super+Abajo y la lógica queda en Lua. Cuesta un proceso corto por clic; nada
+  residente. Descartado llamar a los despachadores desde el plugin (otra copia de la lógica, en C++).
+- **La CI comprueba la configuración del plugin sin cargarlo**: `--verify-config` no tiene sistema de
+  plugins. `tests/hyprbars.lua` ejecuta `hyprland.lua` con un `hl` de mentira y compara lo que pide con lo
+  que registra el `.so` (sus cadenas), y `tests/hyprbars.sh` mira los símbolos frente al Hyprland
+  instalado. Descartado arrancar Hyprland sin pantalla en la CI: necesita una GPU (`/dev/dri`).
+- **Clic derecho y arrastre, solo con el izquierdo**: `hyprbars` lanzaba los botones con cualquiera.
+  El derecho queda para el menú de ventana (7.3, `on_right_click`).
+
 ## 2026-10-21 — Sesión Hyprland de prueba, 7.1 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
 
 - **Hyprland no va de serie** (`optdepends`, 64 MB): es una prueba y labwc sigue siendo el escritorio. El

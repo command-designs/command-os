@@ -349,9 +349,9 @@ validada de Arch (2026/10/18):
 | Filo Red Hot, sin redondeo, sombra | `general.col`, `decoration` | configuración |
 | Recargar (menú, SIGHUP) | `hyprctl reload` | rama en los scripts que recargan labwc |
 
-- **Plugin**: se carga al empezar (`hyprctl plugin load` y `hyprctl reload`); la configuración de
-  `hyprbars` va dentro de `if hl.plugin.hyprbars` para que, sin él, Hyprland arranque igual (sin barras
-  de título, no roto).
+- **Plugin**: se carga con `hl.plugin.load` (Hyprland lo carga al acabar de leer la configuración y la
+  vuelve a leer); la configuración de `hyprbars` va dentro de `if hl.plugin.hyprbars` para que, sin él,
+  Hyprland arranque igual (sin barras de título, no roto). Hecho en la 7.2, abajo.
 - **Animaciones**: las curvas de la marca como `hl.curve` (bezier; `ease-snap` sube a 1,25, Hyprland lo
   admite) y las duraciones en décimas de segundo (`speed` 1,6 = 160 ms y 2,8 = 280 ms).
 - **Sin probar**: nada de esto se ve en la VM (sin 3D). Lo prueba el usuario en su portátil, con la
@@ -386,7 +386,7 @@ validada de Arch (2026/10/18):
   Sin animación de Hyprland en la barra, el lanzador y las notificaciones (`layers`: ya traen la suya) ni
   en el escritorio de las minimizadas; los giros de degradados, apagados (redibujarían sin parar).
   `tests/marca.sh` mira también sus colores (`rgba(rrggbbaa)`), curvas y que no haya `glow`.
-- **Minimizar**: a `special:minimizadas`, que no se enseña. Super+Abajo (o el botón de `hyprbars`, 7.2);
+- **Minimizar**: a `special:minimizadas`, que no se enseña. Super+Abajo (o el botón de la barra de título);
   Super+D minimiza todo el escritorio y lo devuelve. Al activarse una minimizada (barra de tareas,
   Alt+Tab) vuelve al escritorio de la pantalla (`window.active`). **Límite de la 0.56.2**: no hay evento
   de Lua para lo que piden las apps, así que el botón de minimizar de las cabeceras GTK y el clic en la
@@ -395,8 +395,8 @@ validada de Arch (2026/10/18):
 - **Escritorios**: `command-os-desktops` guarda cuántos hay en `~/.config/command-os/escritorios` y llama
   a `command_os.escritorios(n)` (`hyprctl eval`), que los crea fijos («01», «02»…, reglas de escritorio
   `persistent`) o quita los de sobra pasando sus ventanas al 01. Super+1…4 solo va a los que existen.
-- **Pendiente en 7.2 y 7.3**: barras de título (`hyprbars`; hasta entonces las apps sin cabecera propia
-  van sin ella), menús del escritorio y de ventana, Alt+Tab con lista (de momento pasa a la siguiente
+- **Pendiente en 7.3**: menús del escritorio y de ventana (el clic derecho en la barra de título ya lanza
+  `on_right_click` de `hyprbars`, sin orden todavía), Alt+Tab con lista (de momento pasa a la siguiente
   sin lista) y encajar al soltar en el borde. «Siempre encima» (Super+T) fija la ventana: en Hyprland
   sale además en todos los escritorios.
 - **Probado**: `Hyprland --verify-config` de la configuración (`tests/escritorio.sh`, con Hyprland
@@ -404,6 +404,40 @@ validada de Arch (2026/10/18):
   sesión, recordarla y la vuelta a labwc (`tests/escritorio.sh`, y en WSL con el Hyprland real, que sin
   GPU falla al empezar). **No probado**: Hyprland en marcha (WSL no tiene `/dev/dri` y la VM no tiene
   3D): `docs/prueba-en-pc-real.md` § 9.
+
+**Hecho (7.2, barras de título).** Por qué así y qué se descartó: `docs/decisiones.md`.
+
+- **Paquete `command-os-hyprbars`** (`os/hyprbars/`): `hyprbars` de `hyprland-plugins` en el commit de su
+  `hyprpm.toml` para la 0.56.2 (`7644cecd`, tarball con su suma) y `command-os.patch`; deja el plugin en
+  `/usr/lib/command-os/hyprbars.so`. Depende de `hyprland=0.56.2` exacto y de `command-os` (los botones).
+  No va de serie: `sudo pacman -S hyprland command-os-hyprbars` (`optdepends`). Se publica en el
+  repositorio firmado compilado contra el Arch de la fecha validada, al cambiar su paquete o la fecha
+  (`publicar.yml`, trabajo `hyprbars`, después del de `command-os`). Para otra versión de Hyprland: poner
+  en el PKGBUILD la versión y el commit de `hyprpm.toml`, rehacer el parche (instrucciones en su
+  cabecera) y pasar `tests/hyprbars.sh`.
+- **El parche**: los botones son los SVG de `build/make-labwc-buttons.py` que instala `command-os`
+  (`/usr/share/command-os/botones`), de 36×32 y con su fondo de hover (Steel; Signal Red en cerrar),
+  inactiva (Smoke) y restaurar al estar maximizada; se rasterizan a la escala de la pantalla la primera vez
+  que hacen falta (`add_button` con `svg`, `svg_toggled` y `width`). Barra Graphite activa y Void inactiva,
+  título en mono a la izquierda (negrita Bone; normal Smoke), filo alrededor de la barra, 4 px de margen y
+  botones juntos, como `themerc`. El hover solo redibuja al entrar o salir de un botón. Botones y arrastre
+  con el botón izquierdo; doble clic maximiza; el derecho lanza `on_right_click` (para la 7.3).
+- **Qué ventanas llevan barra**: como en labwc, solo las que piden decoración al compositor
+  (xdg-decoration o el protocolo de KDE: kitty, Thunar, Firefox) y las X11. Hyprland contesta «servidor» a
+  todas, así que el parche mira lo que pidió el cliente (`ssd.cpp`): las de cabecera propia (libadwaita,
+  GTK 4 con `headerbar`) se quedan sin otra encima. Además, sin barra por regla (`hyprbars:no_bar`) el
+  centro de control, el mezclador y blueman, como `SetDecorations` en `rc.xml`.
+- **Botones**: `hyprctl eval "command_os.boton('cerrar'|'maximizar'|'minimizar')"`; minimizar usa lo
+  mismo que Super+Abajo (`special:minimizadas`). Un proceso corto por clic, nada residente.
+- **Límites**: sin el icono de la app a la izquierda del título (labwc lo pone: `icon:` en `<layout>`).
+  Sin probar si la raya de la cabecera de libadwaita y el filo de 1 px quedan igual que en labwc.
+- **Probado** (Arch de WSL con la 0.56.2): el paquete se construye con `makepkg`; `tests/hyprbars.sh`
+  pasa (versión de Hyprland, commit de sus cabeceras, cada símbolo que usa existe en Hyprland y sus
+  bibliotecas, opciones, efectos y botones de `hyprland.lua` que existen en el plugin, los tres dibujos de
+  cada botón, `command_os.boton` y sus despachadores) y falla con una opción, un efecto o una orden que no
+  existen; `--verify-config` de `hyprland.lua` con y sin el plugin en su sitio. `--verify-config` no carga
+  plugins: el bloque de `hyprbars` lo ejecuta `tests/hyprbars.lua` con un `hl` de mentira. **No probado**:
+  el plugin cargado en un Hyprland en marcha (`docs/prueba-en-pc-real.md` § 9).
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 

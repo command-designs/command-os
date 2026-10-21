@@ -25,7 +25,8 @@ _os=$(cd "${startdir}/.." && pwd)
 mapfile -t depends < <(grep -vE '^\s*(#|$)' "${_os}/packages.txt")
 # La sesión de prueba (ROADMAP.md, punto 7): no se instala de serie (64 MB); el selector de la pantalla de
 # inicio de sesión solo sale si está.
-optdepends=('hyprland: sesión de Hyprland de prueba')
+optdepends=('hyprland: sesión de Hyprland de prueba'
+            'command-os-hyprbars: barras de título en la sesión de Hyprland')
 
 package() {
   local s="${_os}" d="${pkgdir}" f
