@@ -7,8 +7,9 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 - **Por qué**: producto para clientes que tiene que gustar a la mayoría y ser muy ligero. labwc es
   flotante (barra de título, botones, barra de tareas, Alt+Tab, clic derecho, Super abre el
   lanzador), sin animaciones de ventana, y es el compositor por defecto de Raspberry Pi OS en el Pi 5.
-  Decisión del usuario frente a un tiling compositor y a un escritorio tipo GNOME/XFCE. El usuario
-  no quiere nada de Hyprland en el repo salvo hyprlock/hypridle (le gustan).
+  Decisión del usuario frente a un tiling compositor y a un escritorio tipo GNOME/XFCE. Hasta el
+  2026-10-20 no quería nada de Hyprland salvo hyprlock/hypridle; desde entonces, una sesión Hyprland
+  a prueba solo por las animaciones de ventana (§ «Sesión Hyprland de prueba»).
 - **Archivos**: `os/dotfiles/labwc/` (`rc.xml` atajos/reglas, `menu.xml` menús (en castellano; se instala en `/usr/share/command-os/config/labwc/` y `lib/menus-labwc` lo traduce al iniciar sesión, `docs/idioma.md`),
   `autostart`, `environment`), tema de ventanas `os/branding/labwc/Command/labwc/` (`themerc` +
   botones SVG de `build/make-labwc-buttons.py`) instalado en `/usr/share/themes/Command`. Portales en
@@ -318,6 +319,43 @@ descartó: `docs/decisiones.md`.
   mentira), `tests/escritorio.sh` (copias del lanzador) y en la VM el centro con clics de ratón de
   verdad (se cierra con otro clic en la barra, con Escape y al pulsar el fondo). **No probado** (la VM
   no tiene wi-fi, Bluetooth, brillo ni batería): `docs/prueba-en-pc-real.md` § 5.11.
+
+## Sesión Hyprland de prueba (2026-10-21, en curso)
+
+Punto 7 de la tanda 3 (`ROADMAP.md`). Condición del usuario: **solo cambian las animaciones**; lo demás
+se ve y se usa como en labwc. labwc sigue de serie. Estudio de paridad con lo que hay en la fecha
+validada de Arch (2026/10/18):
+
+- **Versiones**: Hyprland 0.56.2 (64 MB instalado, frente a labwc 0.9.7), Waybar 0.15.0, rofi 2.0.0
+  (Wayland). **Hyprland 0.56 se configura en Lua** (`hyprland.lua`; la wiki de `wiki.hypr.land` es la de
+  git y puede ir por delante: lo que se use se valida con `Hyprland --verify-config`, que no necesita
+  pantalla). `hyprbars` tiene versión fijada para la 0.56.2 en `hyprland-plugins` (`hyprpm.toml`,
+  commit `7644cecd`) y el paquete de Arch trae las cabeceras (`/usr/include/hyprland`, `hyprland.pc`):
+  se compila sin el código de Hyprland.
+
+| labwc | Hyprland 0.56 | Trabajo |
+| --- | --- | --- |
+| Ventanas flotantes, cascada | regla para todas: `float`; colocación centrada | configuración |
+| Barra de título y botones SVG (32 px, 36×32, hover) | `hyprbars`: botones **redondos** con un glifo en «sans», sin color al pasar el ratón | compilarlo nosotros con un parche: botones cuadrados de 36×32, colores de la marca y hover |
+| Menú de ventana (clic derecho en la barra de título) | no existe | el `client-menu` de `menu.xml` con wofi junto al puntero |
+| Menú del escritorio (clic derecho en el fondo) | no existe | atajo de ratón que no se come el clic (`non_consuming`): si no hay ventana debajo, el `root-menu` con wofi |
+| Alt+Tab con lista de icono y título | `cycle_next` sin lista | rofi en modo ventana (soltar Alt elige: `!Alt-Alt_L`); 1 MB, nada residente |
+| Minimizar (botón, Super+Abajo, barra de tareas) | no minimiza | escritorio especial `special:minimizadas` y el evento `window.minimize` de Lua (lo que pide la barra de tareas) |
+| Arrastrar al borde: maximiza o media pantalla, con aviso | `general.snap` solo pega al borde | al soltar el botón (atajo `non_consuming`), Lua mira si el puntero está en el borde y encaja; sin el aviso previo |
+| Escritorios dinámicos (`command-os-desktops`, `<names>` + SIGHUP + wtype) | escritorios numerados por `hyprctl` | rama Hyprland en `command-os-desktops` |
+| Waybar: `ext/workspaces`, `wlr/taskbar` | Hyprland implementa `ext-workspace` y `wlr-foreign-toplevel` | igual |
+| Reglas del centro, mezclador, blueman, btop, PiP | `hl.window_rule` con `move`/`size`/`pin` | configuración |
+| Atajos de `rc.xml`, teclas multimedia con la sesión bloqueada | `hl.bind` (`locked = true`) | configuración |
+| Filo Red Hot, sin redondeo, sombra | `general.col`, `decoration` | configuración |
+| Recargar (menú, SIGHUP) | `hyprctl reload` | rama en los scripts que recargan labwc |
+
+- **Plugin**: se carga al empezar (`hyprctl plugin load` y `hyprctl reload`); la configuración de
+  `hyprbars` va dentro de `if hl.plugin.hyprbars` para que, sin él, Hyprland arranque igual (sin barras
+  de título, no roto).
+- **Animaciones**: las curvas de la marca como `hl.curve` (bezier; `ease-snap` sube a 1,25, Hyprland lo
+  admite) y las duraciones en décimas de segundo (`speed` 1,6 = 160 ms y 2,8 = 280 ms).
+- **Sin probar**: nada de esto se ve en la VM (sin 3D). Lo prueba el usuario en su portátil, con la
+  memoria y la CPU en reposo frente a labwc.
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 
