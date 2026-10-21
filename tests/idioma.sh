@@ -121,7 +121,7 @@ chmod 700 "${XDG_RUNTIME_DIR}"
 json_ok() { python3 -c 'import json, re, sys; json.loads(re.sub(r"(?m)^\s*//.*$", "", open(sys.argv[1]).read()))' "$1"; }
 # Waybar: la configuración de serie sale traducida y sigue siendo JSON.
 cfg=$(LANG=en_US.UTF-8 command-os-config waybar/config.jsonc)
-[[ "${cfg}" == "${XDG_RUNTIME_DIR}"/* ]] && grep -q 'no network' "${cfg}" && grep -q 'click: connections' "${cfg}" \
+[[ "${cfg}" == "${XDG_RUNTIME_DIR}"/* ]] && grep -q 'no network' "${cfg}" && grep -q 'click: control center' "${cfg}" \
   && ! grep -q '{{' "${cfg}" && ok "waybar en inglés" || mal "la configuración de Waybar no sale en inglés"
 json_ok "${cfg}" && ok "waybar traducida sigue siendo JSON" || mal "waybar traducida no es JSON válido"
 cfg=$(LANG=es_ES.UTF-8 command-os-config waybar/config.jsonc)
