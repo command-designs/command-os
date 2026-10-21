@@ -29,7 +29,9 @@ else
 fi
 
 # 2. Compilado con las cabeceras de este Hyprland (el commit va en la comprobación de versión del plugin).
-commit=$(Hyprland --version 2>/dev/null | grep -oE 'at commit [0-9a-f]{40}' | awk '{print $3}')
+# El commit, de version.h (del mismo paquete que el binario): `Hyprland --version` no lo da en el
+# contenedor de la CI.
+commit=$(grep -oE 'GIT_COMMIT_HASH +"[0-9a-f]{40}"' /usr/include/hyprland/src/version.h 2>/dev/null | grep -oE '[0-9a-f]{40}')
 if [[ -n "${commit}" ]] && grep -aqF "${commit}" "${SO}"; then
   ok "compilado para el commit ${commit:0:8} de Hyprland"
 else
