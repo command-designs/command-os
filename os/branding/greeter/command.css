@@ -112,6 +112,25 @@ entry:focus-within {
     border-color: #f5482c;
 }
 
+/* Desplegables (la cuenta al entrar, idioma y zona en el asistente): un campo como el de la
+   contraseña, no un botón relleno. */
+dropdown > button {
+    border-radius: 2px;
+    background-color: #0e0e0e;
+    background-image: none;
+    border: 1px solid #2a2a2a;
+    box-shadow: none;
+    outline: none;
+    min-height: 34px;
+    padding: 0 10px;
+    font-weight: normal;
+}
+
+dropdown > button:focus-visible,
+dropdown > button:checked {
+    border-color: #f5482c;
+}
+
 /* Asistente: lista de zonas horarias (desplegable con buscador). */
 .zonas row {
     padding: 6px 10px;

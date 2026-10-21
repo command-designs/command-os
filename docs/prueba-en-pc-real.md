@@ -58,6 +58,12 @@ punto al probarlo y avisa de los fallos; lo que salga bien se quita de esta guí
    barra y otro clic los cierra. Emparejar unos auriculares y un teclado (si pide PIN, que salga el
    diálogo), ver `bt 1` y su nombre al pasar el ratón, oír el sonido por los auriculares y, tras
    reiniciar, que vuelva a salir `bt off`.
+8. Ventanas iguales (`docs/notas/escritorio.md` § «Ventanas iguales»), tras actualizar sin reinstalar:
+   Thunar, la tienda y Firefox con la misma barra de título (alto, botones, Graphite activa y Void
+   inactiva); pasar el ratón por los botones de la tienda (Bone sobre Steel, cerrar en Signal Red) y
+   maximizarla (el botón cambia a dos marcos); Firefox con sus pestañas cuadradas, la línea roja en la
+   activa, página nueva sin patrocinados ni el tiempo y sin el botón de VPN; y una app Flatpak GTK 4 con
+   los mismos botones.
 
 ## 6. Paneles de ajustes (menú → ajustes)
 

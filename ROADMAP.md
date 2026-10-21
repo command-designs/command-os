@@ -30,10 +30,6 @@ se migra con marca, como `layout-2`, sin pisar sus cambios. Todo con el requisit
 Las diferencias con `lenguaje.html`, medidas en la VM: `docs/notas/auditoria-2.1.md` (cada punto
 borra las suyas al cerrarse).
 
-2. **Ventanas iguales** (Opus, alto: GTK 3, GTK 4/libadwaita, Firefox y labwc a la vez). Misma barra
-   de título en todas (alto, letra, botones dibujados, filo y sombra): cabeceras GTK y libadwaita como
-   la de labwc, y Firefox con la barra de labwc y las pestañas en la paleta (políticas y `userChrome`
-   de serie). Estética de ventana 2.1 (puntos 1 y 5 del usuario).
 3. **Barra superior 2.1** (Opus, alto: diseño y varios módulos). Como la barra de la app HUD de
    `lenguaje.html` § 03: logo, ventanas, hora y un grupo de estado a la derecha más limpio; clic en
    él: centro de control (punto 5). CPU/TMP/MEM, opcionales en Ajustes.

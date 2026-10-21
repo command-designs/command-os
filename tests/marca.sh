@@ -161,16 +161,24 @@ python3 build/make-chaflanes.py --comprobar || forma=1
 for nombre in $(grep -rhoE 'chaflanes/[a-z-]+\.svg' os/dotfiles os/branding/greeter | sort -u); do
   if [[ ! -f "os/branding/${nombre}" ]]; then echo "  MAL  una hoja cita ${nombre}, que no existe"; forma=1; fi
 done
+# Los botones de la barra de título son los de su generador, y los que citan las hojas GTK (en
+# botones/, una copia de los de labwc) existen: una sola barra de título para todas las ventanas.
+python3 build/make-labwc-buttons.py --comprobar || forma=1
+for nombre in $(grep -rhoE 'botones/[a-z_-]+\.svg' os/dotfiles | sort -u); do
+  if [[ ! -f "os/branding/labwc/Command/labwc/${nombre#botones/}" ]]; then
+    echo "  MAL  una hoja cita ${nombre}, que no existe"; forma=1
+  fi
+done
 # Radios: 0 (esquinas vivas), 2 px en los campos de texto y redondos los radios y deslizadores.
 radios=$(grep -rnE 'border-radius:\s*[^;]+' os/dotfiles os/branding/greeter --include='*.css' \
-  | grep -vE 'border-radius:\s*(0|0px|2px|9999px)\s*;')
+  | grep -vE 'border-radius:\s*(0|0px|2px|9999px)\s*(!important)?\s*;')
 if [[ -n "${radios}" ]]; then echo "  MAL  radios fuera de la marca:"; echo "${radios}" | sed 's/^/         /'; forma=1; fi
 # wofi 1.5 con hide_search deja ver solo la primera opción: los paneles ocultan el buscador en su hoja.
 if grep -rn 'hide_search' os/bin os/lib >/dev/null; then
   echo "  MAL  hide_search en un panel de wofi (enseña una sola opción):"
   grep -rn 'hide_search' os/bin os/lib | sed 's/^/         /'; forma=1
 fi
-(( forma == 0 )) && echo "  ok   chaflanes al día y citados bien, radios de la marca, paneles de wofi sin hide_search"
+(( forma == 0 )) && echo "  ok   chaflanes y botones al día y citados bien, radios de la marca, paneles de wofi sin hide_search"
 
 echo "==> Splash (firma corta y comprobaciones de arranque; BRAND § 9)"
 splash=0

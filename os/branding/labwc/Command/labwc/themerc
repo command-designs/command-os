@@ -19,18 +19,20 @@ window.inactive.shadow.size: 12
 window.inactive.shadow.color: #00000070
 
 # --- Barra de título ---
+# La misma en todas las ventanas (32 px, Graphite la activa y Void la inactiva, título en mono): las
+# cabeceras GTK 3/4 la copian en gtk.css con estos mismos botones.
 window.titlebar.padding.width: 4
 window.titlebar.padding.height: 0
 window.active.title.bg: Solid
-window.active.title.bg.color: #1f1f1f
+window.active.title.bg.color: #151515
 window.inactive.title.bg: Solid
 window.inactive.title.bg.color: #0e0e0e
 window.active.label.text.color: #edebe6
 window.inactive.label.text.color: #85827c
 window.label.text.justify: Left
 
-window.button.width: 30
-window.button.height: 26
+window.button.width: 36
+window.button.height: 32
 window.button.spacing: 0
 window.button.hover.bg.color: #2a2a2a
 window.button.hover.bg.corner-radius: 0

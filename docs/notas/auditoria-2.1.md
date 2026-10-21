@@ -1,6 +1,7 @@
 # Auditoría de fidelidad a la marca 2.1 (2026-10-20)
 
-Punto 1 de la tanda «Diseño 2.1 y movimiento» (`ROADMAP.md`). Guía los puntos 2–4: cada diferencia
+Punto 1 de la tanda «Diseño 2.1 y movimiento» (`ROADMAP.md`). Guía los puntos 3–4 (las ventanas, punto
+2, ya están: `docs/notas/escritorio.md` § «Ventanas iguales», con sus límites): cada diferencia
 lleva el punto que la resuelve. Cuando un punto se cierra, sus filas se borran de aquí; cuando no
 quede ninguna, se borra el archivo (lo que valga para siempre pasa a `docs/DISENO.md`).
 
@@ -15,16 +16,6 @@ frente a `lenguaje.html` § 03 (app en modo HUD, medidas en su CSS: `.a-top`, `.
 - Lanzador: es la paleta de la referencia (lupa Red Hot, línea Steel, activo en Slate con barra Red Hot).
 - Notificaciones: panel con chaflán, título en Bone y cuerpo en Ash.
 - Fondo, prompt de kitty, colores de la paleta en todas partes (`tests/marca.sh`).
-
-## Ventanas (punto 2)
-
-| # | Diferencia | Objetivo |
-| --- | --- | --- |
-| V1 | **Tres barras de título distintas.** labwc (Thunar, kitty): 28 px, mono negrita, botones de línea. Bazaar (libadwaita, cabecera propia): unos 46 px, botones cuadrados rellenos de Slate con los iconos de Adwaita. Firefox: pestañas en la barra de título, botones redondos. | Una sola barra para todas: mismo alto, Graphite la activa y Void la inactiva, título en mono, y los botones de `build/make-labwc-buttons.py` también en GTK 3/4 (`windowcontrols`, mismos SVG; hover Bone sobre Steel, cerrar blanco sobre Signal Red). |
-| V2 | **Firefox no lleva nada de la marca**: morado del tema de Firefox, pestañas y campos redondeados, página nueva con patrocinados, tiempo y botón de VPN. | Barra de título de labwc (`browser.tabs.inTitlebar = 0`), tema estático con la paleta (pestaña activa con la línea Red Hot, campo en Void con foco Red Hot) y políticas de serie (página nueva limpia, sin patrocinados, Pocket ni VPN). Los redondeos solo se quitan con `userChrome`: decidir en el punto 2 si compensa (Firefox cambia sus selectores entre versiones). |
-| V3 | Bazaar: el filo de la ventana activa solo se ve en un lado. | El filo Red Hot de 1 px en los cuatro lados, como las ventanas de labwc. |
-| V4 | Rótulos de las apps GTK («Places», «Devices» en Thunar) en Geist negrita. | Rótulos como las etiquetas de la referencia (`.col h5`, `.lab`): mono 500, Smoke, 0,16 em. GTK no pasa a mayúsculas: se quedan como los escribe la app. |
-| V5 | Inicio de sesión: el selector de cuenta va relleno de Iron. | Un campo como el de la contraseña: Void con filo Steel. |
 
 ## Barra (punto 3)
 

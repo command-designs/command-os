@@ -58,6 +58,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
 | escritorio labwc, Waybar, fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` y `docs/DISENO.md` |
 | colores, letra, forma (chaflanes, escuadras) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` §§ «Color», «Letra» y «Forma», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma»; lo que aún no es fiel a la 2.1, `docs/notas/auditoria-2.1.md` |
+| barra de título y botones de ventana (labwc y cabeceras GTK), Firefox (políticas, `os/dotfiles/firefox/`) | `docs/notas/escritorio.md` § «Ventanas iguales» |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
 | guía para quien instala (todas las formas) | `INSTALAR.md` (raíz): mantenerla al día con cualquier cambio del instalador |
 | instalar en un PC (dual boot o disco entero), `build/x86/instalar.sh`, borrado de discos, instalador publicado y firmado | `docs/instalacion.md` (§ 2: instalador firmado; § 3: lo que protege del borrado) |
@@ -80,6 +81,9 @@ usuario); ARM, aparcado hasta tener la placa.
 - Chaflanes en GTK: `border-image` con los SVG de `build/make-chaflanes.py` (regenerar al cambiarlos)
   **en archivo** (GTK 3 no carga `data:`) y el centro con un degradado (GTK no lo pinta). wofi: nunca
   `hide_search` (enseña una sola opción); el alto de un panel, con `--lines`.
+- Botones de ventana: un solo dibujo (`build/make-labwc-buttons.py`) para labwc y las cabeceras GTK
+  (`botones/`); cambiar el alto en `themerc`, el generador y los dos `gtk.css` a la vez. Firefox
+  descarta entera una política que no cuadra con su esquema: `tests/escritorio.sh` lo comprueba.
 - labwc suma las listas de escritorios al combinar configuraciones: la de serie no lleva `<names>`.
 - Waybar: la configuración de serie va en `/usr/share/command-os/config/waybar/` y se pasa con
   `--config/--style` (`command-os-config`); `/etc/xdg/waybar/` ya existe por Arch. La hoja va además

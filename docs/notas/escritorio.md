@@ -53,8 +53,9 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   ventanas de muestra GTK 3 y GTK 4 (botones sueltos, unidos, principal, inactivo, menú y popover) y a
   escala 2 (el filo se ve algo suave: el SVG se pinta a 1x y GTK lo amplía). **No verificado**: un
   popover con flecha en una app real y el tema dentro de una app Flatpak GTK 3.
-- **GTK**: las apps con cabecera propia (GTK 4, Firefox) no reciben marco de labwc; `gtk-3.0/gtk.css`
-  y `gtk-4.0/gtk.css` les dibujan el mismo filo (Red Hot si están activas) y la misma sombra oscura.
+- **GTK**: las apps con cabecera propia (GTK 4) no reciben marco de labwc; `gtk-3.0/gtk.css` y
+  `gtk-4.0/gtk.css` les dibujan el mismo filo (Red Hot si están activas), la misma sombra oscura y la
+  misma barra de título (§ «Ventanas iguales»).
 - **Verificado en VM VirtualBox** (capturas): escritorio, barra con tareas, ventanas activa/inactiva
   (borde `#D13449` medido; desde la marca v2 es Red Hot `#F5482C`), botones, menú de ventana, Alt+Tab, lanzador con Super, ayuda de atajos,
   mezclador desplegable, bloqueo y desbloqueo, bloqueo automático a los 5 min, notificaciones, crear,
@@ -186,6 +187,46 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
   táctil virtual de uinput (`ABS_X/ABS_Y` + `BTN_TOUCH`, `INPUT_PROP_DIRECT`: coordenadas exactas, sin la
   aceleración del ratón virtual; `docs/testing.md`).
 
+## Ventanas iguales (2026-10-21)
+
+Punto 2 de la tanda «Diseño 2.1» (`ROADMAP.md`): una sola barra de título para labwc, GTK 3,
+GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones.md`.
+
+- **Barra de título**: 32 px (botones de 36×32 en `themerc` y `build/make-labwc-buttons.py`, que
+  también comprueba con `--comprobar` en `tests/marca.sh`). Las cabeceras GTK la copian en `gtk.css`
+  con los mismos SVG: el paquete los pone también en `/usr/share/command-os/botones` (enlace
+  `botones/` junto a las hojas de serie) y `command-os-user-setup` los copia a `~/.config/gtk-*/botones/`
+  como los chaflanes (las apps Flatpak los leen por el permiso global de `lib/apply-system`). En GTK 4
+  los botones de ventana no llevan `.titlebutton`: su regla sube la especificidad con un `:not()` para
+  no encogerse con la de los demás botones de la cabecera.
+- **libadwaita**: el filo va con `outline` por dentro (con `box-shadow` por fuera solo asomaba en un
+  lado) y se quita su `filter: opacity(.5)` de la cabecera sin foco (`headerbar` y `toolbarview >
+  .top-bar`): la inactiva ya se distingue por Void y Smoke, como en labwc. Lo que la app mete en la
+  cabecera (pestañas, buscador, botones con chaflán) se encoge a 24–28 px para caber.
+- **Límites**: los diálogos GTK 3 con cabecera (abrir archivo) se quedan en 36 px: GTK 3 reserva sitio
+  para un subtítulo (`has-subtitle`) y eso no se cambia desde CSS. Los rótulos de la barra lateral de
+  Thunar («Lugares», «Dispositivos») siguen en Geist negrita: Thunar 4.20 los pinta como filas de un
+  `GtkTreeView` y el CSS no llega a ellas sin poner en mono la barra entera. La raya bajo la cabecera
+  de Bazaar la dibuja libadwaita (`toolbarview`), en Steel.
+- **Firefox**: barra de título de labwc (`browser.tabs.inTitlebar = 0`) y políticas de serie en
+  `/etc/firefox/policies/policies.json` (página nueva sin patrocinados, historias, tiempo ni widgets;
+  sin el botón de VPN, `IPProtectionAvailable`; sin estudios ni recomendaciones; todo sin bloquear).
+  Firefox **descarta entera una política que no cuadra con su esquema** y solo lo dice en
+  `about:policies` (en la 158, `Widgets` pasó de sí/no a objeto y volvieron los patrocinados):
+  `tests/escritorio.sh` las compara con el esquema de la versión instalada. Los colores y la forma, con
+  `command.css` (`/usr/share/command-os/firefox/`), que registra la autoconfiguración de Firefox
+  (`/usr/lib/firefox/defaults/pref/command-os.js` → `/usr/lib/firefox/command-os.cfg`) como hoja de
+  usuario: solo variables del propio tema de Firefox y radios, más la línea Red Hot de la pestaña
+  activa; también en sus páginas `about:` (fondo Void, botón principal en Signal Red, la sección
+  elegida en Slate con texto Red Hot). Con GTK oscuro Firefox no usa los colores GTK (ni con
+  `browser.theme.native-theme`): usa su propio tema oscuro, de ahí la hoja.
+- **Probado en la VM** (capturas y medidas de píxeles): kitty (labwc) y Bazaar activo e inactivo con la
+  misma barra (32 px, Graphite/Void, raya Steel, mismos botones), el filo de Bazaar en los cuatro lados,
+  las preferencias de Bazaar (rótulos de grupo en mono Smoke), un diálogo GTK 3 con el principal
+  desactivado, Firefox (barra de labwc, pestañas cuadradas, línea Red Hot, campo Void, sin VPN, página
+  nueva limpia, ajustes) y el inicio de sesión (selector y contraseña, los dos de 36 px). **No
+  probado**: una app GTK 4 con botones de texto en la cabecera y una app Flatpak GTK con los botones
+  nuevos (el permiso de `botones/` llega al reinstalar).
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 

@@ -107,13 +107,16 @@ ver abajo).
 ## Escritorio
 
 - **Ventanas (labwc, tema `Command` en `os/branding/labwc/`):** flotantes, con barra de título y
-  botones a la derecha (minimizar · maximizar · cerrar). La activa: filo Red Hot de 1 px y barra plana
-  en Slate con el título en JetBrains Mono negrita. La inactiva: filo Steel, barra Void, título y
-  botones en Smoke. Las dos, con una sombra oscura corta que las separa del fondo. Botones dibujados a
-  propósito (`build/make-labwc-buttons.py`): maximizar son escuadras; al pasar por encima, Bone sobre
-  Steel, y cerrar en blanco sobre Signal Red. Las apps que se dibujan su propia cabecera (GTK 4,
-  Firefox) llevan el mismo filo desde `gtk.css`. Arrastrar al borde encaja la ventana (arriba
-  maximiza; lados, media pantalla) con una guía Bone translúcida y filo Red Hot.
+  botones a la derecha (minimizar · maximizar · cerrar). **Una sola barra de título para todas**: 32 px;
+  la activa, filo Red Hot de 1 px y barra plana en Graphite con el título en JetBrains Mono negrita;
+  la inactiva, filo Steel, barra Void, título y botones en Smoke. Las dos, con una sombra oscura corta
+  que las separa del fondo. Botones dibujados a propósito (`build/make-labwc-buttons.py`, 36×32):
+  maximizar son escuadras; al pasar por encima, Bone sobre Steel, y cerrar en blanco sobre Signal Red.
+  Las apps GTK 3/4 que se dibujan su propia cabecera (Bazaar, diálogos) copian esa barra en `gtk.css`
+  con los mismos SVG (`botones/`) y el filo por dentro (`outline`), y sin la atenuación de libadwaita
+  al perder el foco; Firefox usa la de labwc (`docs/notas/escritorio.md` § «Ventanas iguales»). Arrastrar al
+  borde encaja la ventana (arriba maximiza; lados, media pantalla) con una guía Bone translúcida y
+  filo Red Hot.
 - **Apps (GTK 3/4 y Qt):** mismo tema que el escritorio, sin ventanas blancas. Base `adw-gtk3-dark`
   recoloreada en `~/.config/gtk-3.0/gtk.css` y `gtk-4.0/gtk.css` (colores con nombre y variables de
   libadwaita): ventana y cabeceras en Graphite (la cabecera con filo Steel debajo), listas en Void,
@@ -121,7 +124,10 @@ ver abajo).
   izquierda, texto seleccionado en Signal Red con texto blanco, botones con texto con chaflán (en
   Graphite con filo Iron, Red Hot al pasar; el principal en Signal Red, `#B81A02` al pasar), botones
   que se quedan pulsados con el texto en Red Hot, casillas marcadas en Bone, foco y enlaces en Red Hot,
-  OK y Warn para estados. Los SVG de los
+  OK y Warn para estados; el principal desactivado, como cualquier botón desactivado (sin rojo). Los
+  rótulos de sección (título de un grupo de ajustes, `.caption-heading`) en mono 500 y Smoke con
+  0,16 em, como las etiquetas de `lenguaje.html`; no todo `.heading`, que las apps usan también para
+  nombres. Los SVG de los
   chaflanes van copiados junto a las hojas (`~/.config/gtk-*/chaflanes/`) para que también los vean
   las apps Flatpak. Qt sigue a GTK (`QT_QPA_PLATFORMTHEME=gtk3`). `dconf` pone el modo oscuro para
   todo el sistema (Firefox y portales incluidos).
@@ -161,8 +167,8 @@ ver abajo).
   460×340 sin barra de título, fijado bajo la barra arriba a la derecha; otro clic lo cierra.
 - **Inicio de sesión, asistente y paneles** (`greeter/command.css`): panel Graphite con chaflán y filo
   Steel dentro de las escuadras de la zona principal, titular en Oxanium, etiquetas mono en Smoke y
-  mayúsculas, campo en Void con el foco Red Hot y botones con chaflán en mono mayúsculas (el principal
-  en Signal Red con texto blanco).
+  mayúsculas, campo en Void con el foco Red Hot (los desplegables, como la cuenta, son un campo igual)
+  y botones con chaflán en mono mayúsculas (el principal en Signal Red con texto blanco).
 - **Bloqueo** (hyprlock): hora en Oxanium y campo de contraseña dentro de las escuadras, sobre el fondo
   `void`; encima, `SESIÓN BLOQUEADA` como un eyebrow (mono 500 en mayúsculas, Red Hot). La línea de
   estado de arriba (`command-os-status --pango`) y el aviso de contraseña incorrecta van también en

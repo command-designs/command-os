@@ -3,6 +3,22 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-21 — Una sola barra de título y Firefox con la marca (`docs/notas/escritorio.md` § «Ventanas iguales»)
+
+- **32 px para todas las ventanas**, subiendo labwc (antes 28) en vez de bajar las cabeceras GTK: por
+  debajo de 32 los botones y buscadores que las apps meten en su cabecera (Bazaar) ya no caben.
+  Activa en Graphite (antes Slate), como el fondo de las apps, para que barra y ventana sean una pieza.
+- **Las cabeceras GTK usan los mismos SVG que labwc** (copiados por `command-os-user-setup`), no un
+  dibujo aparte en CSS: un solo generador y una sola forma de los botones.
+- **Firefox: hoja de sistema por su autoconfiguración** (`mozilla.cfg`, decisión del usuario). Con GTK
+  oscuro Firefox ignora los colores GTK (ni `browser.theme.native-theme` lo cambia). Descartados: solo
+  políticas (se queda morado y redondeado), `userChrome.css` por perfil (no llega hasta el siguiente
+  inicio de sesión tras abrir Firefox por primera vez y depende de selectores que cambian), un tema
+  firmado en AMO (necesita la cuenta del usuario y no quita los redondeos). La hoja solo toca variables
+  del propio tema y radios: si Firefox renombra una, esa parte vuelve a su tema oscuro, sin romperse.
+  Coste: nada residente; una hoja más al abrir Firefox. Las políticas quitan además las historias y el
+  tiempo de la página nueva (menos peticiones de red).
+
 ## 2026-10-21 — Ligereza como requisito (`AGENTS.md` § «Ligereza»)
 
 - **Command OS tiene que ser lo más ligero posible, mucho más que Windows y macOS** (decisión del
