@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
-# Command OS — panel del disco cifrado (ventana GTK 4 del escritorio; ajustes → disco cifrado). Cambia
+# Command OS — Ajustes → disco cifrado (lib/ajustes.py; solo sale con el disco cifrado). Cambia
 # la contraseña del disco y genera una clave de recuperación nueva. Solo tiene sentido con el disco
-# cifrado (`cryptdevice=` en la línea del kernel); si no, lo dice.
+# cifrado (`cryptdevice=` en la línea del kernel): Ajustes no enseña la sección sin él.
 #
 # Lo que toca el disco lo hace lib/gestionar-disco, lanzado con pkexec: polkit pide la contraseña de un
 # administrador y, además, se pide la contraseña actual del disco, que va por la entrada estándar (nunca
@@ -10,18 +9,15 @@
 # nada. docs/cifrado.md.
 import re
 import secrets
-import sys
 
 from comun import (
-    MIN_CONTRASENA, Dialogo, PanelBase, administrar, boton, cargar_tema, disco_cifrado, problema_clave, texto_clave_corta,
-    traductor,
+    MIN_CONTRASENA, Dialogo, Seccion, administrar, boton, disco_cifrado, problema_clave, texto_clave_corta,
 )
 from gi.repository import Gtk
 
 HELPER = "/usr/lib/command-os/gestionar-disco"
 CIFRAS = 48
 GRUPO = 6
-ANCHO = 560
 
 
 def clave_de_recuperacion():
@@ -33,10 +29,9 @@ def grupos(clave):
     return [clave[i:i + GRUPO] for i in range(0, len(clave), GRUPO)]
 
 
-class Panel(PanelBase):
-    def __init__(self, app):
-        _ = traductor()
-        super().__init__(app, _, _("cmd-os · disco cifrado"), ANCHO)
+class Pagina(Seccion):
+    def __init__(self, ventana, traducir):
+        super().__init__(ventana, traducir)
         self.pintar()
 
     def motivo(self, codigo):
@@ -53,37 +48,19 @@ class Panel(PanelBase):
     def pintar(self, aviso=""):
         _ = self._
         self.limpiar()
-        titulo = Gtk.Label(label=_("› disco cifrado"), xalign=0)
-        titulo.add_css_class("titulo")
-        self.caja.append(titulo)
+        self.titulo(_("› disco cifrado"))
         if not disco_cifrado():
-            texto = Gtk.Label(
-                label=_("este equipo no tiene el disco cifrado. se elige al instalar."),
-                xalign=0, wrap=True, max_width_chars=54,
-            )
-            texto.add_css_class("tenue")
-            self.caja.append(texto)
+            self.nota(_("este equipo no tiene el disco cifrado. se elige al instalar."))
         else:
-            intro = Gtk.Label(
-                label=_("la contraseña del disco se escribe al encender. la clave de recuperación se guarda "
-                        "en papel, fuera del equipo, por si se olvida."),
-                xalign=0, wrap=True, max_width_chars=54,
-            )
-            intro.add_css_class("tenue")
-            self.caja.append(intro)
+            self.nota(_("la contraseña del disco se escribe al encender. la clave de recuperación se guarda "
+                        "en papel, fuera del equipo, por si se olvida."))
             clave = boton(_("cambiar la contraseña del disco"), halign=Gtk.Align.START)
             clave.connect("clicked", self.al_contrasena)
             self.caja.append(clave)
             recup = boton(_("generar una clave de recuperación nueva"), halign=Gtk.Align.START)
             recup.connect("clicked", self.al_recuperacion)
             self.caja.append(recup)
-        self.estado = Gtk.Label(label=aviso, xalign=0, wrap=True, max_width_chars=54)
-        self.estado.add_css_class("error")
-        self.caja.append(self.estado)
-        cerrar = boton(_("cerrar"), halign=Gtk.Align.END)
-        cerrar.add_css_class("flat")
-        cerrar.connect("clicked", lambda _b: self.ventana.close())
-        self.caja.append(cerrar)
+        self.estado = self.nota(aviso, "error")
 
     def hecho(self, texto):
         """Tras un cambio bien hecho: repinta con el aviso en el color de los datos."""
@@ -155,18 +132,3 @@ class Panel(PanelBase):
         Dialogo(self.ventana, _("clave de recuperación"), intro, campos, _("cambiar"), aceptar, _,
                 destacado=mostrada).present()
 
-
-class App(Gtk.Application):
-    def __init__(self):
-        super().__init__(application_id="dev.commandlab.DiscoCifrado")
-        self.panel = None
-
-    def do_activate(self):
-        cargar_tema()
-        if self.panel is None:
-            self.panel = Panel(self)
-        self.panel.ventana.present()
-
-
-if __name__ == "__main__":
-    sys.exit(App().run([]))

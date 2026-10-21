@@ -2,8 +2,8 @@
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <!--
-  Command OS: el panel de cuentas (lib/panel-cuentas.py) pide a pkexec que lance solo
-  lib/gestionar-cuentas. Hace falta la contraseña de un administrador (grupo wheel) cada vez, sin
+  Command OS: Ajustes (cuentas, idioma y hora: lib/ajustes_cuentas.py y
+  lib/ajustes_idioma.py) pide a pkexec que lance solo lib/gestionar-cuentas. Hace falta la contraseña de un administrador (grupo wheel) cada vez, sin
   recordarla (no auth_admin_keep): el ayudante puede crear administradoras y, si se recordara, cualquier
   proceso del usuario podría usar esos minutos para llegar a root. El programa valida todo lo que recibe.
 -->
@@ -11,10 +11,10 @@
   <vendor>Command OS</vendor>
   <vendor_url>https://github.com/command-designs/command-os</vendor_url>
   <action id="dev.commandlab.command-os.gestionar-cuentas">
-    <description>Manage the accounts and time zone of this computer</description>
-    <description xml:lang="es">Gestionar las cuentas y la zona horaria de este equipo</description>
-    <message>Authentication is required to manage accounts and the time zone</message>
-    <message xml:lang="es">Hace falta autenticarse para gestionar las cuentas y la zona horaria</message>
+    <description>Manage the accounts, language and time zone of this computer</description>
+    <description xml:lang="es">Gestionar las cuentas, el idioma y la zona horaria de este equipo</description>
+    <message>Authentication is required to manage accounts, the language and the time zone</message>
+    <message xml:lang="es">Hace falta autenticarse para gestionar las cuentas, el idioma y la zona horaria</message>
     <icon_name>system-users</icon_name>
     <defaults>
       <allow_any>auth_admin</allow_any>

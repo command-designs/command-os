@@ -105,7 +105,8 @@ button.flat:hover {
 
 /* Botones de los paneles en mono mayúsculas (BRAND § 5; el texto lo pone en mayúsculas comun.boton). */
 .panel button.text-button,
-.panel-ventana button.text-button {
+.panel-ventana button.text-button,
+.seccion button.text-button {
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
     font-size: 12px;
     font-weight: 500;
@@ -173,7 +174,7 @@ button.suggested-action {
     min-height: 28px;
 }
 
-/* Paneles del escritorio (comun.ventana): actualizaciones, cuentas y disco. */
+/* Paneles sueltos del escritorio (comun.ventana: abrir descarga) y diálogos (comun.Dialogo). */
 .panel-ventana {
     background-color: #151515;
     padding: 22px 26px;
@@ -185,4 +186,91 @@ button.suggested-action {
     font-size: 17px;
     color: #edebe6;
     padding: 6px 0;
+}
+
+/* Ajustes (lib/ajustes.py): las secciones en una lista sobre Void a la izquierda, con un filo Steel
+   que la separa, y la elegida en Graphite. La fila elegida es la del tema (Slate con la barra Red
+   Hot a la izquierda); al pasar el ratón, Slate sin la barra. */
+.lateral {
+    background-color: #0e0e0e;
+    border-right: 1px solid #2a2a2a;
+    padding: 22px 10px 10px;
+    min-width: 210px;
+}
+
+.lateral > .titulo {
+    padding: 0 12px 6px;
+}
+
+.secciones {
+    background-color: transparent;
+}
+
+.secciones row {
+    padding: 9px 12px;
+    color: #a3a09a;
+}
+
+.secciones row:hover {
+    background-color: #1f1f1f;
+    color: #edebe6;
+}
+
+.secciones row:selected {
+    color: #edebe6;
+}
+
+.contenido {
+    background-color: #151515;
+}
+
+.seccion {
+    padding: 26px 34px 30px;
+}
+
+/* «avanzado»: las herramientas completas, como enlaces de una línea (no botones con chaflán). */
+.avanzado button.flat {
+    padding: 4px 0;
+    color: #a3a09a;
+    background-color: transparent;
+}
+
+.avanzado button.flat:hover {
+    color: #f5482c;
+    background-color: transparent;
+}
+
+/* Cada sección entra como los paneles: fundido y 8 px de desliz en 280 ms (--ease-out). Ajustes
+   alterna las dos clases para que la animación vuelva a lanzarse al cambiar de sección; nada se
+   mueve en reposo. */
+@keyframes seccion-entra-a {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes seccion-entra-b {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.entra-a {
+    animation: seccion-entra-a 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.entra-b {
+    animation: seccion-entra-b 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }

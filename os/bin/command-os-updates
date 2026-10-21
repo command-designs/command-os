@@ -3,7 +3,7 @@
 # sistema (lib/check-updates, cada 6 horas); no toca pacman.
 #
 #   command-os-updates status   JSON para el módulo de Waybar (custom/updates): vacío si no hay nada
-#   command-os-updates panel    abre el panel de actualizaciones (clic en la barra): qué hay y un botón
+#   command-os-updates panel    abre Ajustes → actualizaciones (clic en la barra): qué hay y un botón
 #                               para actualizar
 #   command-os-updates datos    lo mismo que enseña el panel, en líneas con tabuladores (lo lee el panel)
 #   command-os-updates update   abre una terminal con command-os-update (el botón del panel y el aviso)
@@ -114,7 +114,7 @@ estado() {
     "${total}" "$(printf '%s' "${tip}" | pango | json)" "${clase}"
 }
 
-# Lo que enseña el panel (lib/panel-actualizaciones.py), una cosa por línea y con tabuladores:
+# Lo que enseña el panel (lib/ajustes_actualizaciones.py), una cosa por línea y con tabuladores:
 #   nada                                  no hay comprobación válida o no hay nada que instalar
 #   hace<TAB>texto                        cuándo se comprobó, ya traducido
 #   command-os<TAB>actual<TAB>nuevo       solo si hay versión nueva de command-os
@@ -141,11 +141,8 @@ datos() {
   printf '%s' "${filas_apps}"
 }
 
-# El panel gráfico (una sola instancia: la aplicación GTK es única por sesión).
-panel() {
-  export GTK_THEME=${GTK_THEME:-adw-gtk3:dark}
-  PYTHONPATH=/usr/lib/command-os exec python3 /usr/lib/command-os/panel-actualizaciones.py
-}
+# El panel gráfico: Ajustes → actualizaciones (lib/ajustes_actualizaciones.py).
+panel() { exec command-os-ajustes actualizaciones; }
 
 avisar() { # avisar <texto> [urgencia]; sustituye al aviso anterior de este programa
   notify-send --app-name "command os" --icon command-os --urgency "${2:-normal}" \

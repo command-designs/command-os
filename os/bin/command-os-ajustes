@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Command OS — Ajustes (lib/ajustes.py): command-os-ajustes [SECCIÓN]. Una sola ventana por sesión: si ya
+# está abierta, va a la sección pedida. Secciones: red (wifi), bluetooth, barra, pantalla, sonido, fondo,
+# bateria, cuentas, disco, actualizaciones, idioma (hora), sistema.
+export GTK_THEME=${GTK_THEME:-adw-gtk3:dark}
+PYTHONPATH=/usr/lib/command-os exec python3 /usr/lib/command-os/ajustes.py "$@"

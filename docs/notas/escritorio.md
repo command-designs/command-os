@@ -81,8 +81,8 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   urgente (swaync lo deja hasta cerrarlo, con su sonido), una vez por descarga; al enchufar, un aviso
   breve los sustituye. Mira `/sys/class/power_supply` cada minuto: fuera las baterías de periféricos
   (`scope` = Device); varias baterías cuentan juntas si todas dan energía (o todas carga).
-- **Límite de carga al 80 %** (panel: clic derecho en la batería o menú → ajustes → batería;
-  `os/lib/panel-bateria.py`): solo aparece si el controlador expone `charge_control_end_threshold`.
+- **Límite de carga al 80 %** (Ajustes → batería, también con clic derecho en la batería;
+  `os/lib/ajustes_bateria.py`): solo aparece si el controlador expone `charge_control_end_threshold`.
   Lo pone `lib/gestionar-bateria` con pkexec (sesión activa sin contraseña); guarda
   `/etc/command-os/limite-carga` y lo vuelven a poner udev al aparecer la batería (también al
   arrancar) y `/usr/lib/systemd/system-sleep/command-os-bateria` al despertar. Inicio a 75 si hay

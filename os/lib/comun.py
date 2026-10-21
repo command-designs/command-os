@@ -1,5 +1,6 @@
-# Command OS — piezas comunes de las ventanas GTK 4 de la entrada al equipo (lib/greeter.py y
-# lib/primer-arranque.py): lectura del estado, traducciones, filas del formulario, tema y logo.
+# Command OS — piezas comunes de las ventanas GTK 4: la entrada al equipo (lib/greeter.py y
+# lib/primer-arranque.py), Ajustes y sus secciones (lib/ajustes.py) y los paneles sueltos: lectura del
+# estado, traducciones, filas del formulario, tema y logo.
 import os
 import re
 import subprocess
@@ -156,15 +157,19 @@ def escape_cierra(ventana):
     ventana.add_controller(teclas)
 
 
-class PanelBase:
-    """Lo común de los paneles del escritorio (actualizaciones, cuentas, disco, batería, abrir descarga):
-    la ventana con el tema, Escape para cerrar, limpiar la caja antes de repintar y el trabajo en un
-    hilo. traducir: el traductor del panel (el título lo traduce cada panel, para que xgettext lo vea)."""
+def lanzar(orden):
+    """Abre un programa aparte (las herramientas de «avanzado», la terminal): sigue solo al cerrar la ventana."""
+    try:
+        subprocess.Popen(orden, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except OSError:
+        pass
 
-    def __init__(self, app, traducir, titulo, ancho, alto_max=640):
-        self._ = traducir
-        self.ventana, self.caja = ventana(app, titulo, ancho, alto_max)
-        escape_cierra(self.ventana)
+
+class Contenido:
+    """Lo común de un panel suelto y de una sección de Ajustes: limpiar la caja antes de repintar y el
+    trabajo en un hilo. Los hijos ponen self._ (el traductor) y self.caja."""
+
+    caja: Gtk.Box
 
     def limpiar(self):
         while (hijo := self.caja.get_first_child()) is not None:
@@ -176,6 +181,87 @@ class PanelBase:
             resultado = trabajo()
             GLib.idle_add(lambda: (hecho(resultado), False)[1])
         threading.Thread(target=correr, daemon=True).start()
+
+    def titulo(self, texto):
+        """El titular de la ventana o la sección (`› cuentas`), en Oxanium."""
+        t = Gtk.Label(label=texto, xalign=0)
+        t.add_css_class("titulo")
+        self.caja.append(t)
+        return t
+
+    def nota(self, texto, clase="tenue"):
+        """Un párrafo que se parte en líneas (tenue: explicación; dato: un valor; error)."""
+        t = Gtk.Label(label=texto, xalign=0, wrap=True, max_width_chars=60)
+        t.add_css_class(clase)
+        self.caja.append(t)
+        return t
+
+    def etiqueta(self, texto):
+        """Rótulo de un grupo (mono, Smoke y en mayúsculas, como `fila`)."""
+        t = Gtk.Label(label=texto.upper(), xalign=0)
+        t.add_css_class("etiqueta")
+        self.caja.append(t)
+        return t
+
+
+class PanelBase(Contenido):
+    """Un panel suelto del escritorio (abrir descarga): la ventana con el tema y Escape para cerrar.
+    traducir: el traductor del panel (el título lo traduce cada panel, para que xgettext lo vea)."""
+
+    def __init__(self, app, traducir, titulo, ancho, alto_max=640):
+        self._ = traducir
+        self.ventana, self.caja = ventana(app, titulo, ancho, alto_max)
+        escape_cierra(self.ventana)
+
+
+class Seccion(Contenido):
+    """Una sección de Ajustes (lib/ajustes.py): self.caja es lo que se pinta a la derecha y self.ventana la
+    ventana de Ajustes (el padre de los diálogos). Ajustes la construye la primera vez que se abre y llama
+    a mostrar() y ocultar() al cambiar de sección: lo que se pone al día solo (cada) corre solo mientras
+    la sección está a la vista, nunca en segundo plano (AGENTS.md § «Ligereza»)."""
+
+    def __init__(self, ventana, traducir):
+        self._ = traducir
+        self.ventana = ventana
+        self.caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
+        self.caja.add_css_class("seccion")
+        self._relojes = []
+        self._activos = []
+        self._vista = False
+
+    def cada(self, segundos, funcion):
+        """funcion() cada tantos segundos mientras la sección está a la vista."""
+        self._relojes.append((segundos, funcion))
+
+    def mostrar(self):
+        if self._vista:  # la primera vez acaba de construirse: ya está al día
+            self.al_mostrar()
+        self._vista = True
+        self._activos = [GLib.timeout_add_seconds(s, lambda f=f: (f(), True)[1]) for s, f in self._relojes]
+
+    def ocultar(self):
+        for fuente in self._activos:
+            GLib.source_remove(fuente)
+        self._activos = []
+
+    def al_mostrar(self):
+        """Al volver a la sección: los hijos repintan lo que pueda haber cambiado fuera."""
+
+    def avanzado(self, herramientas):
+        """El bloque «avanzado» del final: [(texto, orden)], las herramientas completas para lo que la
+        sección no cubre. Se abren aparte y Ajustes sigue abierto."""
+        if not herramientas:
+            return
+        self.etiqueta(self._("avanzado"))
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        caja.add_css_class("avanzado")
+        for texto, orden in herramientas:
+            b = Gtk.Button(halign=Gtk.Align.START)
+            b.add_css_class("flat")
+            b.set_child(Gtk.Label(label=f"{texto}  ›", xalign=0))
+            b.connect("clicked", lambda _b, o=orden: lanzar(o))
+            caja.append(b)
+        self.caja.append(caja)
 
 
 def administrar(ayudante, args, entrada=""):

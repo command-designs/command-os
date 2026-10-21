@@ -119,6 +119,9 @@ package() {
   install -Dm 644 "${s}/dotfiles/applications/mimeapps.list" "${d}/usr/share/applications/mimeapps.list"
   install -Dm 644 "${s}/dotfiles/applications/dev.commandlab.AbrirDescarga.desktop" \
     "${d}/usr/share/applications/dev.commandlab.AbrirDescarga.desktop"
+  # Ajustes en el lanzador (y su icono en la barra de tareas: app_id dev.commandlab.Ajustes).
+  install -Dm 644 "${s}/dotfiles/applications/dev.commandlab.Ajustes.desktop" \
+    "${d}/usr/share/applications/dev.commandlab.Ajustes.desktop"
 
   # --- Ajustes de sistema: dconf (modo oscuro, tema GTK, iconos, fuentes) y splash hasta labwc ---
   install -Dm 644 "${s}/system/dconf/profile/user" "${d}/etc/dconf/profile/user"

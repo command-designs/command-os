@@ -193,11 +193,35 @@ msgstr "search for your city or country"
 msgid "sin resultados"
 msgstr "no results"
 
-msgid "cmd-os · actualizaciones"
-msgstr "cmd-os · updates"
+msgid "cuentas"
+msgstr "accounts"
+
+msgid "batería"
+msgstr "battery"
+
+msgid "disco cifrado"
+msgstr "encrypted disk"
+
+msgid "actualizaciones"
+msgstr "updates"
+
+msgid "idioma y hora"
+msgstr "language and time"
+
+msgid "cmd-os · ajustes"
+msgstr "cmd-os · settings"
+
+msgid "› ajustes"
+msgstr "› settings"
+
+msgid "esta sección no se pudo abrir."
+msgstr "this section could not be opened."
 
 msgid "› actualizaciones"
 msgstr "› updates"
+
+msgid "leyendo…"
+msgstr "reading…"
 
 msgid "no hay una comprobación reciente: pulsa «comprobar ahora»."
 msgstr "no recent check: press “check now”."
@@ -221,9 +245,6 @@ msgstr "store apps: {n}"
 msgid "comprobado {hace}"
 msgstr "checked {hace}"
 
-msgid "cerrar"
-msgstr "close"
-
 msgid "comprobar ahora"
 msgstr "check now"
 
@@ -235,9 +256,6 @@ msgstr "checking for updates…"
 
 msgid "no se pudo comprobar (¿sin red?)"
 msgstr "could not check (no network?)"
-
-msgid "cmd-os · cuentas"
-msgstr "cmd-os · accounts"
 
 msgid "ya existe una cuenta con ese usuario."
 msgstr "an account with that username already exists."
@@ -263,9 +281,6 @@ msgstr "that account no longer exists."
 msgid "ese idioma no está disponible."
 msgstr "that language is not available."
 
-msgid "esa zona horaria no está disponible."
-msgstr "that time zone is not available."
-
 msgid "no se pudo comprobar la contraseña de administrador."
 msgstr "could not verify the administrator password."
 
@@ -287,9 +302,6 @@ msgstr "administrator"
 msgid "cuenta normal"
 msgstr "standard account"
 
-msgid "idioma de mi cuenta"
-msgstr "language of my account"
-
 msgid "cuentas del equipo"
 msgstr "accounts on this computer"
 
@@ -298,12 +310,6 @@ msgstr "add account"
 
 msgid "cambiar mi contraseña"
 msgstr "change my password"
-
-msgid "el del equipo"
-msgstr "the computer's"
-
-msgid "zona horaria (de todo el equipo)"
-msgstr "time zone (for the whole computer)"
 
 msgid "tú"
 msgstr "you"
@@ -332,9 +338,6 @@ msgstr "change"
 msgid "contraseña cambiada."
 msgstr "password changed."
 
-msgid "se aplica al volver a entrar."
-msgstr "applies the next time you sign in."
-
 msgid "conservar su carpeta personal"
 msgstr "keep their home folder"
 
@@ -360,6 +363,9 @@ msgstr "new password for {usuario}."
 msgid "contraseña de otra cuenta"
 msgstr "password of another account"
 
+msgid "el del equipo"
+msgstr "the computer's"
+
 msgid "puede administrar el equipo"
 msgstr "can administer this computer"
 
@@ -369,9 +375,6 @@ msgstr "account language"
 #, python-brace-format
 msgid "cuenta {usuario} creada."
 msgstr "account {usuario} created."
-
-msgid "cmd-os · disco cifrado"
-msgstr "cmd-os · encrypted disk"
 
 msgid "este equipo no tiene el disco cifrado."
 msgstr "this computer's disk is not encrypted."
@@ -450,9 +453,6 @@ msgstr "recovery key changed: the previous one no longer works."
 msgid "clave de recuperación"
 msgstr "recovery key"
 
-msgid "cmd-os · batería"
-msgstr "cmd-os · battery"
-
 msgid "› batería"
 msgstr "› battery"
 
@@ -482,6 +482,49 @@ msgstr "the laptop did not accept the charge limit."
 
 msgid "este portátil no permite limitar la carga."
 msgstr "this laptop does not allow limiting the charge."
+
+msgid "esa zona horaria no está disponible."
+msgstr "that time zone is not available."
+
+msgid "› idioma y hora"
+msgstr "› language and time"
+
+msgid "idioma de mi cuenta"
+msgstr "language of my account"
+
+msgid "ventanas, barra y menús de tu cuenta; se aplica al volver a entrar."
+msgstr ""
+"windows, bar and menus of your account; it applies when you sign in again."
+
+msgid "idioma del equipo"
+msgstr "computer language"
+
+msgid ""
+"el de la pantalla de inicio, el arranque y las cuentas sin idioma propio. "
+"pide la contraseña de un administrador y se aplica del todo al reiniciar."
+msgstr ""
+"the one used by the sign-in screen, the boot and accounts without their own "
+"language. it asks for an administrator password and applies fully after a "
+"restart."
+
+msgid "zona horaria (de todo el equipo)"
+msgstr "time zone (for the whole computer)"
+
+msgid ""
+"la hora se pone sola por la red. cambiar la zona pide la contraseña de un "
+"administrador."
+msgstr ""
+"the time is set automatically over the network. changing the time zone asks "
+"for an administrator password."
+
+msgid "se aplica al volver a entrar."
+msgstr "applies the next time you sign in."
+
+msgid "idioma del equipo cambiado: se aplica del todo al reiniciar."
+msgstr "computer language changed: it applies fully after a restart."
+
+msgid "cambiando el idioma del equipo…"
+msgstr "changing the computer language…"
 
 #, python-brace-format
 msgid "{n} % · cargando · {t} hasta terminar de cargar"
@@ -524,9 +567,6 @@ msgstr "battery low"
 #, python-brace-format
 msgid "queda un {n} %: enchufa el cargador pronto."
 msgstr "{n} % left: plug in the charger soon."
-
-msgid "batería"
-msgstr "battery"
 
 msgid "cargando"
 msgstr "charging"
@@ -575,6 +615,9 @@ msgstr "cmd-os · open download"
 
 msgid "cancelar"
 msgstr "cancel"
+
+msgid "cerrar"
+msgstr "close"
 
 msgid "› abrir descarga"
 msgstr "› open download"
@@ -690,6 +733,9 @@ msgstr "the password must be at least {n} characters long."
 
 msgid "las contraseñas no coinciden."
 msgstr "the passwords do not match."
+
+msgid "avanzado"
+msgstr "advanced"
 
 msgid "contraseña del disco  ·  o la clave de recuperación"
 msgstr "disk password  ·  or the recovery key"
@@ -1311,9 +1357,6 @@ msgstr[1] "%d store apps"
 msgid "comprobado %s · clic: ver y actualizar · clic derecho: comprobar ahora"
 msgstr "checked %s · click: review and update · right click: check now"
 
-msgid "actualizaciones"
-msgstr "updates"
-
 msgid "ya hay una actualización en marcha"
 msgstr "an update is already running"
 
@@ -1811,12 +1854,6 @@ msgstr "displays"
 msgid "sonido"
 msgstr "sound"
 
-msgid "cuentas"
-msgstr "accounts"
-
-msgid "disco cifrado"
-msgstr "encrypted disk"
-
 msgid "recargar escritorio"
 msgstr "reload desktop"
 
@@ -1835,15 +1872,9 @@ msgstr "on all desktops"
 msgid "mover a escritorio"
 msgstr "move to desktop"
 
+#~ msgid "todo el equipo"
+#~ msgstr "the whole computer"
+
 #, python-format
 #~ msgid "contraseña de %s"
 #~ msgstr "password for %s"
-
-#~ msgid "clic: conexiones"
-#~ msgstr "click: connections"
-
-#~ msgid "clic: mezclador"
-#~ msgstr "click: mixer"
-
-#~ msgid "saltar · cualquier tecla"
-#~ msgstr "skip · any key"

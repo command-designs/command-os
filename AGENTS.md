@@ -17,7 +17,7 @@ nada específico de hardware ARM** (Raspberry Pi 5, `cmdline.txt`, imagen ARM) h
 más ligero posible, mucho más que Windows y macOS, en memoria en reposo, CPU en reposo, disco y tiempo
 de arranque. Se aplica a cada cambio, también al diseño y al movimiento:
 - Nada residente que no haga falta: mejor un temporizador, un socket o lanzarlo al usarlo que un demonio.
-  Los paneles (`lib/panel-*.py`) se abren y se cierran; no se quedan en memoria.
+  Ajustes (`lib/ajustes*.py`) y los paneles se abren y se cierran; no se quedan en memoria.
 - Nada que gaste CPU en reposo: animaciones solo al entrar, salir o pasar el ratón, nunca en bucle;
   módulos de la barra con intervalos largos o por señal, no por sondeo frecuente.
 - Ante dos opciones, la más ligera, salvo que la otra sea necesaria; el coste extra se mide y se anota
@@ -149,8 +149,10 @@ usuario); ARM, aparcado hasta tener la placa.
 - Copiar a la VM: nunca `build/x86` entero (lleva los discos de las VM, ignorados por git, y llena
   `/tmp`): `git ls-files build | tar -czf - -T -`. `command-os-update` en la VM baja el paquete al
   publicado si el de desarrollo es más nuevo: reinstalar después con `install.sh`.
-- Paneles del escritorio (`lib/panel-*.py`, `comun.PanelBase`/`ventana`/`Dialogo`; hijos de `PanelBase`:
-  Escape, `limpiar` y `en_hilo` ya vienen hechos). Las reglas de contraseña y de usuario viven en
+- Ajustes (`lib/ajustes.py`) y sus secciones (`lib/ajustes_*.py`, hijas de `comun.Seccion`: `limpiar`,
+  `en_hilo`, `titulo`, `nota`, `avanzado` y `cada`, que solo corre con la sección a la vista); un panel
+  suelto, `comun.PanelBase`; los formularios, `comun.Dialogo`. Una sección se importa al abrirla: nada
+  pesado en el arranque de `ajustes.py`. Las reglas de contraseña y de usuario viven en
   `comun.py` y `reglas.sh`: no repetirlas. Lo que necesita root va a
   `lib/gestionar-*` con `pkexec` (nunca `sudo -S` con una contraseña escrita en el panel); esos
   ayudantes contestan con códigos y reciben las contraseñas por la entrada estándar. Un texto de

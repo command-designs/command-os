@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
-# Command OS — panel de cuentas (ventana GTK 4 del escritorio; ajustes → cuentas). Una sola ventana por sesión.
-export GTK_THEME=${GTK_THEME:-adw-gtk3:dark}
-PYTHONPATH=/usr/lib/command-os exec python3 /usr/lib/command-os/panel-cuentas.py
+#!/bin/sh
+# Command OS — Ajustes → cuentas (antes un panel suelto; la orden sigue por los atajos y menús propios).
+exec command-os-ajustes cuentas

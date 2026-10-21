@@ -2,13 +2,11 @@
 # Command OS — avisos de batería baja y panel de la batería (límite de carga al 80 %).
 # docs/notas/escritorio.md § «Batería».
 #
-#   command-os-bateria panel        ajustes de la batería (clic derecho en la batería; menú → ajustes → batería)
+#   command-os-bateria panel        Ajustes → batería (clic derecho en la batería de la barra)
 #   command-os-bateria watch        avisos al 20 % y al 10 % (lo lanza el autostart de labwc)
 export PYTHONPATH=/usr/lib/command-os
 case "${1:-}" in
   watch) exec python3 /usr/lib/command-os/bateria.py watch ;;
-  panel)
-    export GTK_THEME=${GTK_THEME:-adw-gtk3:dark}
-    exec python3 /usr/lib/command-os/panel-bateria.py ;;
+  panel) exec command-os-ajustes bateria ;;
   *) echo "uso: command-os-bateria <panel|watch>" >&2; exit 2 ;;
 esac

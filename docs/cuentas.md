@@ -31,10 +31,12 @@ pantalla de inicio de sesión, `greetd` o la creación de cuentas.
 
 ## El panel de cuentas
 
-Menú del escritorio → ajustes → cuentas (`command-os-cuentas`). Una ventana por sesión.
+Ajustes → cuentas (`command-os-ajustes cuentas`; `command-os-cuentas` sigue valiendo). El idioma de la
+cuenta, el del equipo y la zona horaria están en Ajustes → idioma y hora (`lib/ajustes_idioma.py`).
 
-- **Para cualquiera:** cambiar su contraseña (pide la actual; PAM la comprueba, sin root), elegir el
-  **idioma de su cuenta** (el del equipo o uno de la lista) y la **zona horaria del equipo**.
+- **Para cualquiera:** cambiar su contraseña (pide la actual; PAM la comprueba, sin root) y, en idioma y
+  hora, elegir el **idioma de su cuenta** (el del equipo o uno de la lista), el **idioma del equipo** y la
+  **zona horaria del equipo** (estos dos, con la contraseña de un administrador).
 - **Idioma de la cuenta:** `~/.config/locale.conf` con `LANG=…`. `lib/entorno-grafico` lo lee al abrir la
   sesión y gana al de `/etc/locale.conf`, así que ventanas, barra y menús de esa cuenta salen en su idioma
   sin tocar el de las demás ni el del equipo (GRUB, splash y pantalla de inicio de sesión son del equipo,
@@ -111,11 +113,11 @@ el cifrado del disco, que el instalador propone de serie ([`cifrado.md`](cifrado
 | `lib/crear-cuenta` | Crea la cuenta (wheel), fija la contraseña por stdin, aplica la zona horaria (`command-os-zona-horaria`) y el idioma (`command-os-idioma`), bloquea root, guarda teclado y marca el equipo como configurado. Si falla, no deja nada a medias (zona incluida). |
 | `command-os-zona-horaria` + `lib/zonas.py` | La única forma de cambiar la zona (`/etc/localtime`, atómico; reloj del equipo en hora local, arriba); `actual` da el nombre de la actual a otros programas. `zonas.py`: lista (`zone.tab` y UTC), países traducidos (`iso-codes`), búsqueda y sugerencia por teclado del asistente, sin GTK. |
 | `command-os-greeter` + `lib/greeter.py` | Pantalla de inicio de sesión (GTK 4 en `cage`, usuario `greeter`). Habla con greetd por `$GREETD_SOCK`; PAM lo hace greetd. |
-| `lib/comun.py`, `lib/entorno-grafico` | Lo común de las dos ventanas (tema, logo, filas, traducciones) y de los tres lanzadores (VM, teclado, idioma). `comun.py` lleva también `PanelBase` (la base de los paneles del escritorio: Escape, `limpiar`, `en_hilo`) y las reglas de contraseña y de usuario para Python. |
+| `lib/comun.py`, `lib/entorno-grafico` | Lo común de las dos ventanas (tema, logo, filas, traducciones) y de los tres lanzadores (VM, teclado, idioma). `comun.py` lleva también `Seccion` y `PanelBase` (la base de las secciones de Ajustes y de los paneles sueltos: `limpiar`, `en_hilo`) y las reglas de contraseña y de usuario para Python. |
 | `lib/reglas.sh` | Las mismas reglas para los programas de shell (`crear-cuenta`, `gestionar-cuentas`, `gestionar-disco`): `MIN_CONTRASENA`, `usuario_valido`, `contrasena_corta`. Si se cambia una regla, se cambia en `reglas.sh` y en `comun.py` (`tests/cuentas.sh` comprueba que coinciden). |
 | `command-os-session` | La sesión: prepara la cuenta (`command-os-user-setup`) y lanza labwc. Vale para cualquier cuenta. |
 | `command-os-login` | Inicio automático (`initial_session`) o pedir contraseña. |
-| `command-os-cuentas` + `lib/panel-cuentas.py` | El panel de cuentas (arriba). Ventana GTK 4 normal sobre `comun.ventana`; lanza `gestionar-cuentas` con `pkexec`. |
+| `lib/ajustes_cuentas.py`, `lib/ajustes_idioma.py` | Las secciones de cuentas e idioma y hora de Ajustes (arriba), sobre `comun.Seccion`; lanzan `gestionar-cuentas` con `pkexec` (también `idioma-equipo`, el idioma de todo el equipo). |
 | `lib/gestionar-cuentas` + `system/polkit-gestionar-cuentas.policy` | Lo que el panel hace como root: añadir, borrar, administrador sí/no, contraseña de otra cuenta, idioma de una cuenta y zona. Valida todo lo que recibe y contesta con códigos. La acción de polkit solo deja lanzar ese programa. |
 
 Estado: `/etc/command-os/cuenta-principal`, `/etc/command-os/inicio-automatico` (usuario, si lo hay),
