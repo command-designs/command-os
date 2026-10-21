@@ -44,11 +44,8 @@ configurable) están hechas: `docs/DISENO.md` y `docs/notas/escritorio.md`.
    reserva. Si se adopta: Hyprland de serie y, si no arranca o se cierra al empezar,
    `command-os-session` arranca labwc solo y avisa (también en equipos sin aceleración 3D, como la
    VM); el selector de sesión queda discreto (inicio de sesión y Ajustes) para fallos que no la cierran.
-   Estudio de paridad hecho (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»). Por partes:
-   - 7.1 **Sesión y configuración** (Opus, alto: la base de todo lo demás). `command-os-session
-     hyprland`, selector en el inicio de sesión, `hyprland.lua` (aspecto, atajos, reglas, animaciones,
-     minimizar), `command-os-desktops` y recargas para Hyprland, y `--verify-config` en
-     `tests/escritorio.sh`.
+   Estudio de paridad y 7.1 (sesión, selector y `hyprland.lua`) hechos: `docs/notas/escritorio.md`
+   § «Sesión Hyprland de prueba»; se prueba con `docs/prueba-en-pc-real.md` § 9. Queda:
    - 7.2 **hyprbars propio** (Opus, alto: empaquetado, parche en C++ y CI). PKGBUILD atado a la
      versión de Hyprland, parche de botones cuadrados con hover, repositorio firmado y comprobación
      en la CI (con los minutos estimados antes).

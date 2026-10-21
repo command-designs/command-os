@@ -11,6 +11,7 @@ import json
 import locale
 import os
 import pwd
+import shutil
 import socket
 import struct
 import subprocess
@@ -23,6 +24,9 @@ from gi.repository import GLib, Gtk
 
 SESION = ["command-os-session"]
 _ = traductor()
+# Selector discreto de escritorio: solo con Hyprland instalado (sesión de prueba, ROADMAP.md punto 7). «El
+# de siempre» deja que command-os-session abra el de la última vez; elegir otro lo recuerda.
+ESCRITORIOS = [(_("el de siempre"), None), ("labwc", "labwc"), (_("hyprland (prueba)"), "hyprland")]
 
 
 def cuentas():
@@ -58,8 +62,9 @@ class Greetd:
         return datos
 
 
-def entrar(usuario, contrasena):
-    """Abre la sesión de Command OS. Devuelve None si todo va bien o el texto del error."""
+def entrar(usuario, contrasena, escritorio=None):
+    """Abre la sesión de Command OS (con ESCRITORIO, si se eligió uno). Devuelve None si todo va bien o el
+    texto del error."""
     g = Greetd()
     r = g.pedir({"type": "create_session", "username": usuario})
     while r.get("type") == "auth_message":
@@ -70,7 +75,8 @@ def entrar(usuario, contrasena):
         else:  # visible: no se usa en Command OS
             r = g.pedir({"type": "post_auth_message_response", "response": ""})
     if r.get("type") == "success":
-        r = g.pedir({"type": "start_session", "cmd": SESION, "env": []})
+        cmd = SESION + [escritorio] if escritorio else SESION
+        r = g.pedir({"type": "start_session", "cmd": cmd, "env": []})
         if r.get("type") == "success":
             return None
     g.pedir({"type": "cancel_session"})
@@ -116,6 +122,11 @@ class Pantalla(Gtk.ApplicationWindow):
         self.clave.connect("activate", self.on_entrar)
         caja.append(fila(_("contraseña"), self.clave))
 
+        self.escritorio = None
+        if shutil.which("Hyprland"):
+            self.escritorio = Gtk.DropDown.new_from_strings([nombre for nombre, _s in ESCRITORIOS])
+            caja.append(fila(_("escritorio"), self.escritorio))
+
         self.error = Gtk.Label(xalign=0, wrap=True, max_width_chars=44)
         self.error.add_css_class("error")
         caja.append(self.error)
@@ -154,11 +165,12 @@ class Pantalla(Gtk.ApplicationWindow):
         usuario = self.personas[self.lista.get_selected()].pw_name
         clave = self.clave.get_text()
         self.clave.set_text("")
-        threading.Thread(target=self.intento, args=(usuario, clave), daemon=True).start()
+        escritorio = ESCRITORIOS[self.escritorio.get_selected()][1] if self.escritorio else None
+        threading.Thread(target=self.intento, args=(usuario, clave, escritorio), daemon=True).start()
 
-    def intento(self, usuario, clave):
+    def intento(self, usuario, clave, escritorio):
         try:
-            fallo = entrar(usuario, clave)
+            fallo = entrar(usuario, clave, escritorio)
         except (OSError, ValueError, KeyError, struct.error) as e:
             fallo = _("no se pudo hablar con greetd ({error}).").format(error=e)
         GLib.idle_add(self.resultado, fallo)

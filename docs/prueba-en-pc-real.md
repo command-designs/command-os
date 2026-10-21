@@ -122,3 +122,39 @@ En la VM se instaló y abrió Discord.
    comprobación con Flatpak de verdad, no la barra en pantalla).
 2. Tras volver atrás con `command-os-rollback`, las apps instaladas después de la instantánea siguen ahí
    (§ 5; en disco loop lo cubre `tests/rollback.sh`).
+
+## 9. Sesión Hyprland de prueba (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
+
+La VM no tiene 3D y WSL no tiene GPU: Hyprland no se ha visto nunca en marcha. Antes de empezar,
+`sudo pacman -S hyprland`; después, cerrar la sesión (Super+Mayús+M).
+
+1. En la pantalla de inicio de sesión sale «escritorio» (solo con Hyprland instalado). Elegir
+   «hyprland (prueba)» y entrar: arrancan la barra, el fondo y las notificaciones, sin avisos rojos de
+   configuración arriba. Si no arranca, tiene que abrirse labwc solo y avisar en unos segundos (y el
+   registro, en `$XDG_RUNTIME_DIR/hyprland-sesion.log`, para el informe).
+2. Cerrar la sesión y entrar con «el de siempre»: vuelve a Hyprland. Con el inicio automático
+   activado, al reiniciar también. Elegir labwc lo deja de nuevo como el de siempre.
+3. Aspecto igual que en labwc: todas las ventanas flotan; filo rojo de 1 px en la activa y gris en las
+   demás, esquinas rectas, sombra corta, sin huecos. Sin barra de título en kitty y Thunar todavía
+   (punto 7.2); las apps GTK con cabecera propia, con la suya.
+4. Animaciones: abrir una ventana entra con un fundido y crece un poco (280 ms); cerrar, más rápido;
+   Super+Arriba maximiza con un pequeño exceso al llegar; cambiar de escritorio desliza un poco y
+   funde. La barra, el lanzador y las notificaciones entran como en labwc (sin una animación doble).
+   Con el escritorio quieto, `top`: Hyprland cerca del 0 % de CPU.
+5. Atajos, uno a uno como en Super+F1: lanzador (Super suelto y Super+Espacio), terminal, archivos,
+   navegador, portapapeles, Ctrl+Mayús+Esc (btop centrado), Super+Q y Alt+F4, Super+F, Super+Arriba y
+   Super+A, Super+Izquierda/Derecha (media pantalla, sin tapar la barra) y Super+Abajo (la devuelve a
+   su tamaño; otra vez, la minimiza), Super+D (minimiza todo; otra vez, lo devuelve), Super+T, Alt+Tab,
+   capturas, Super+L, Super+Esc, Super+N y las teclas de volumen y brillo, también con la sesión
+   bloqueada. Super+arrastrar mueve y Super+clic derecho redimensiona; los bordes también.
+6. Minimizar: una ventana minimizada con Super+Abajo vuelve al pulsarla en la barra de tareas o con
+   Alt+Tab. **Límite conocido**: el botón de minimizar de las apps GTK y el clic en la ventana activa de
+   la barra de tareas no hacen nada en la 0.56.2.
+7. Escritorios: Super+Ctrl+D crea el 02 (salen sus números en la barra) y va a él; Super+1…4,
+   Super+Mayús+1…4, Super+Tab y Super+Ctrl+flechas; Super+Ctrl+F4 quita el último y sus ventanas pasan
+   al 01. Que el número se mantenga al volver a entrar.
+8. Centro de control, mezclador y Bluetooth: cuelgan donde en labwc (también con la barra en cada lado y
+   flotante, cambiándola en Ajustes con la sesión abierta); el centro se cierra con un clic en el fondo,
+   en otra ventana, en la barra o con Escape.
+9. Memoria y arranque frente a labwc: `free -m` en reposo tras entrar con cada uno, y cuánto tarda en
+   salir la barra. Apuntarlo en el informe (decide si se adopta: `ROADMAP.md`, punto 7).

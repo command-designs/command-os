@@ -41,7 +41,8 @@ jobs:
           sed -i '/^NoExtract/d' /etc/pacman.conf
           # archive.archlinux.org a veces corta con «Operation too slow»: reintentos.
           for i in 1 2 3 4; do
-            pacman -Syu --noconfirm base-devel git libxml2 grim grub && pacman -S --noconfirm glibc && break
+            # hyprland: la sesión de prueba es opcional (optdepends), pero su configuración se comprueba.
+            pacman -Syu --noconfirm base-devel git libxml2 grim grub hyprland && pacman -S --noconfirm glibc && break
             [ "$i" = 4 ] && exit 1
             echo "pacman falló (intento $i), reintento"; sleep 20
           done

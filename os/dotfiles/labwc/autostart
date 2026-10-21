@@ -1,4 +1,5 @@
-# Command OS — arranque de la sesión (labwc-config(5)): labwc lo ejecuta con sh al iniciar.
+# Command OS — arranque de la sesión (labwc-config(5)): labwc lo ejecuta con sh al iniciar, y la sesión
+# de Hyprland de prueba también (hyprland.lua): lo de aquí tiene que valer para las dos.
 # La salida de cada programa va al log de labwc ($XDG_RUNTIME_DIR/labwc.log, ver command-os-session).
 # Waybar, swaync e hypridle no toman la nuestra de /etc/xdg: command-os-config les da la del usuario
 # (si existe) o la de serie del paquete.

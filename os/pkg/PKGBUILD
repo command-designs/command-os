@@ -23,6 +23,9 @@ makedepends=('gettext')
 _os=$(cd "${startdir}/.." && pwd)
 # Todo el escritorio: lo que antes instalaba install.sh a mano.
 mapfile -t depends < <(grep -vE '^\s*(#|$)' "${_os}/packages.txt")
+# La sesión de prueba (ROADMAP.md, punto 7): no se instala de serie (64 MB); el selector de la pantalla de
+# inicio de sesión solo sale si está.
+optdepends=('hyprland: sesión de Hyprland de prueba')
 
 package() {
   local s="${_os}" d="${pkgdir}" f
@@ -81,9 +84,9 @@ package() {
   install -m 644 "${s}"/dotfiles/labwc/{rc.xml,environment} "${d}/etc/xdg/labwc/"
   install -m 755 "${s}/dotfiles/labwc/autostart" "${d}/etc/xdg/labwc/"
   install -m 644 "${s}/dotfiles/kitty/kitty.conf" "${d}/etc/xdg/kitty/"
-  install -m 644 "${s}/dotfiles/hypr/hyprlock.conf" "${d}/etc/xdg/hypr/"
+  install -m 644 "${s}"/dotfiles/hypr/{hyprlock.conf,hyprland.lua} "${d}/etc/xdg/hypr/"
   install -m 644 "${s}/branding/fastfetch/config.jsonc" "${d}/etc/xdg/fastfetch/"
-  install -m 644 "${s}/dotfiles/xdg-desktop-portal/labwc-portals.conf" "${d}/etc/xdg/xdg-desktop-portal/"
+  install -m 644 "${s}"/dotfiles/xdg-desktop-portal/{labwc,hyprland}-portals.conf "${d}/etc/xdg/xdg-desktop-portal/"
   # Firefox: políticas (barra de título de labwc, página nueva sin patrocinados ni VPN) y la hoja con
   # la marca, que pone su autoconfiguración en todas las cuentas (docs/notas/escritorio.md
   # § «Ventanas iguales»).

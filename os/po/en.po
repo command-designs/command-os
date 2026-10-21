@@ -13,6 +13,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "el de siempre"
+msgstr "the usual one"
+
+msgid "hyprland (prueba)"
+msgstr "hyprland (trial)"
+
 msgid ""
 "contraseña incorrecta. tras varios intentos fallidos la cuenta se bloquea "
 "unos minutos: espera y vuelve a probar."
@@ -32,6 +38,9 @@ msgstr "account"
 
 msgid "contraseña"
 msgstr "password"
+
+msgid "escritorio"
+msgstr "desktop"
 
 msgid "entrar"
 msgstr "sign in"
@@ -1564,6 +1573,10 @@ msgstr "Done. Restart to enter the recovered system."
 
 msgid "Cuando todo funcione, puedes borrar la copia anterior con:"
 msgstr "When everything works, you can delete the previous copy with:"
+
+#, python-format
+msgid "hyprland no ha podido arrancar (registro en %s): se ha abierto labwc."
+msgstr "hyprland could not start (log in %s): labwc was opened instead."
 
 msgid "command-os: actualizando las aplicaciones de la tienda…"
 msgstr "command-os: updating the store apps…"

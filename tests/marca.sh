@@ -6,9 +6,10 @@
 # forma: los chaflanes generados al día y citados bien, y solo los radios de la marca. El splash:
 # sus imágenes completas y la lista de comprobaciones igual en el servicio, el gancho y el tema.
 # El movimiento: solo las curvas de la marca y ninguna animación en bucle (BRAND § 9).
-# Mira colores hex (#rrggbb y #rrggbbaa), rgb()/rgba(), tuplas RGB de Python, secuencias de color
-# de terminal (38;2;r;g;b) y los colores de Plymouth (0.93, 0.92, 0.90). Corre en cualquier Linux con
-# python3 (GitHub Actions, ver .github/workflows/pruebas.yml). Sale con 1 si algo falla.
+# Mira colores hex (#rrggbb y #rrggbbaa, y rgba(rrggbbaa) de Hyprland), rgb()/rgba(), tuplas RGB de
+# Python, secuencias de color de terminal (38;2;r;g;b) y los colores de Plymouth (0.93, 0.92, 0.90).
+# Corre en cualquier Linux con python3 (GitHub Actions, ver .github/workflows/pruebas.yml). Sale con 1
+# si algo falla.
 set -uo pipefail
 
 RAIZ=$(cd "$(dirname "$0")/.." && pwd)
@@ -60,6 +61,7 @@ archivos = [f for f in subprocess.run(["git", "ls-files", "os", "build"], captur
 
 HEX = re.compile(r"#([0-9a-fA-F]{6})([0-9a-fA-F]{2})?(?![0-9a-zA-Z_-])")
 RGB = re.compile(r"rgba?\(\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})")
+HYPR = re.compile(r"rgba?\(\s*([0-9a-fA-F]{6})([0-9a-fA-F]{2})?\s*\)")  # Hyprland: rgba(f5482cff)
 TUPLA = re.compile(r"\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*\d{1,3}\s*)?\)")
 ANSI = re.compile(r"[34]8;2;(\d{1,3});(\d{1,3});(\d{1,3})m")
 FLOTANTES = re.compile(r"(?<![\d.])([01]\.\d+)\s*,\s*([01]\.\d+)\s*,\s*([01]\.\d+)")
@@ -69,6 +71,8 @@ def colores(ruta, texto):
     """(línea, hex) de cada color que aparece en el texto."""
     for n, linea in enumerate(texto.splitlines(), 1):
         for m in HEX.finditer(linea):
+            yield n, m.group(1).lower()
+        for m in HYPR.finditer(linea):
             yield n, m.group(1).lower()
         triples = list(RGB.finditer(linea)) + list(ANSI.finditer(linea))
         if ruta.endswith(".py"):
@@ -241,6 +245,16 @@ palabras=$(grep -rnE '(transition|animation)(-timing-function)?:[^;]*\b(ease|eas
   "${hojas[@]}" --include='*.css')
 if [[ -n "${curvas}${palabras}" ]]; then
   echo "  MAL  curvas fuera de la marca:"; printf '%s\n%s\n' "${curvas}" "${palabras}" | sed '/^$/d; s/^/         /'
+  movimiento=1
+fi
+# Hyprland (hyprland.lua): sus curvas, también las de la marca, y sin halos (glow) en las ventanas.
+curvas=$(grep -rnoE 'points = \{ \{ [0-9.]+, [0-9.]+ \}, \{ [0-9.]+, [0-9.]+ \} \}' os/dotfiles --include='*.lua' \
+  | grep -vE 'points = \{ \{ (0\.16, 1 \}, \{ 0\.3, 1|0\.65, 0 \}, \{ 0\.35, 1|0\.2, 0\.9 \}, \{ 0\.1, 1\.25) \} \}$')
+otras=$(grep -rnE 'hl\.curve\(' os/dotfiles --include='*.lua' | grep -v 'type = "bezier", points = ')
+halos=$(grep -rnE 'glow = \{[^}]*enabled = true' os/dotfiles --include='*.lua')
+if [[ -n "${curvas}${otras}${halos}" ]]; then
+  echo "  MAL  hyprland: curvas fuera de la marca o halos:"
+  printf '%s\n%s\n%s\n' "${curvas}" "${otras}" "${halos}" | sed '/^$/d; s/^/         /'
   movimiento=1
 fi
 # Nada se mueve en reposo (AGENTS.md § «Ligereza»): ninguna animación en bucle.

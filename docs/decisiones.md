@@ -3,6 +3,29 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-21 — Sesión Hyprland de prueba, 7.1 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
+
+- **Hyprland no va de serie** (`optdepends`, 64 MB): es una prueba y labwc sigue siendo el escritorio. El
+  selector de la pantalla de inicio de sesión solo sale si está instalado. Descartado: meterlo en
+  `packages.txt` antes de saber si se adopta (ligereza).
+- **Sin `start-hyprland`** (el vigilante que lo relanza en modo seguro): sería otro proceso residente. En su
+  lugar, `command-os-session` espera a Hyprland y, si sale con error en menos de 15 s, abre labwc, lo deja
+  elegido (el inicio automático no se queda en bucle) y avisa. Ese `bash` que espera (unos MB) solo
+  existe en la sesión de prueba.
+- **Una sola lista de arranque** (`/etc/xdg/labwc/autostart`) para las dos sesiones, en vez de copiarla
+  en `hyprland.lua`: lo que se añada llega a las dos.
+- **Minimizar sin escuchar el socket de eventos**: la 0.56.2 no tiene el evento `window.minimize` en Lua, y
+  la petición de minimizar de las apps solo llega por el socket de eventos, que necesitaría un proceso
+  residente leyéndolo. Se minimiza con atajos (y el botón de `hyprbars`) a un escritorio especial; el
+  botón de las cabeceras GTK espera a la versión con el evento.
+- **Los paneles se colocan con reglas estáticas** que leen el lado de la barra al cargar (y `hyprctl
+  reload config-only` al cambiarlo), no moviéndolos en `window.open`: moverlos después de abrirse se vería
+  como una animación desde el centro. Media pantalla (Super+Izquierda/Derecha) sí usa lo que la barra
+  reserva de verdad (`monitor.reserved`).
+- **Los escritorios fijos con reglas `persistent`** (el número en `~/.config/command-os/escritorios`), no
+  dejando que Hyprland los cree al visitarlos: así la barra los enseña aunque estén vacíos y Super+1…4 no
+  crea uno que no existe, como en labwc.
+
 ## 2026-10-21 — Barra configurable (`docs/notas/escritorio.md` § «Barra»)
 
 - **La configuración generada incluye a la de serie** (`barra.jsonc` con `include`), no al revés: en un

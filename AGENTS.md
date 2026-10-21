@@ -56,7 +56,7 @@ usuario); ARM, aparcado hasta tener la placa.
 | paquete, ganchos de pacman, bloqueo, repositorio firmado, instantáneas, aviso y panel de actualizaciones | `docs/actualizaciones.md` y `docs/notas/estabilidad.md` |
 | cuentas, contraseñas, primer arranque, inicio de sesión, greetd, zona horaria, reloj, NTP, panel de cuentas, `gestionar-cuentas` (pkexec) | `docs/cuentas.md` |
 | idioma del sistema, `command-os-idioma`, textos traducibles, `os/po/`, `build/po.sh` | `docs/idioma.md` |
-| escritorio labwc, Waybar (grupo de estado, telemetría), centro de control (`lib/centro.py`, `command-os-centro`), wi-fi (`lib/red.py`, `lib/redes.py`), fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` (§§ «Barra» y «Ajustes y centro de control») y `docs/DISENO.md` |
+| escritorio labwc, sesión Hyprland de prueba (`hypr/hyprland.lua`, `command-os-session [labwc\|hyprland]`), Waybar (grupo de estado, telemetría), centro de control (`lib/centro.py`, `command-os-centro`), wi-fi (`lib/red.py`, `lib/redes.py`), fondos, sonidos, menús, escritorios virtuales, batería y límite de carga (`gestionar-bateria`), aplicaciones fijadas, Bluetooth | `docs/notas/escritorio.md` (§§ «Barra», «Ajustes y centro de control» y «Sesión Hyprland de prueba») y `docs/DISENO.md` |
 | colores, letra, forma (chaflanes, escuadras), movimiento (transiciones y curvas) o cualquier archivo de tema (marca v2 de command-web), notificaciones (swaync) | `docs/DISENO.md` §§ «Color», «Letra», «Forma» y «Movimiento», `tests/marca.sh` y `docs/notas/escritorio.md` § «Marca v2, forma» |
 | barra de título y botones de ventana (labwc y cabeceras GTK), Firefox (políticas, `os/dotfiles/firefox/`) | `docs/notas/escritorio.md` § «Ventanas iguales» |
 | tienda (Bazaar, Flatpak), comprimidos (xarchiver), tipos de archivo (`mimeapps.list`), `command-os-abrir-descarga`, tema de las apps Flatpak | `docs/notas/escritorio.md` § «Instalar aplicaciones» |
@@ -94,6 +94,8 @@ usuario); ARM, aparcado hasta tener la placa.
   mirar antes `/sys/class/bluetooth`. Los tests que importan
   `os/lib/*.py` van con `PYTHONDONTWRITEBYTECODE=1` (un `__pycache__` entraría en el paquete).
 - hyprlock con errores de configuración no sale: pantalla en negro y sin campo. `command-os-lock` revisa antes.
+- Hyprland 0.56 (Lua): la API es la de `/usr/share/hypr/stubs/hl.meta.lua` instalada, no la de la wiki (va por
+  delante: `window.minimize` no existe). `--verify-config` no mira dentro de las funciones: validar sus despachadores aparte.
 - VirtualBox: **apagar la VM antes de que el PC entre en reposo** (se congela; recuperación en `docs/notas/vm-virtualbox-wsl.md`).
 - Nunca matar QEMU con `Stop-Process -Force` / `kill -9` (corrompe archivos): `shutdown -h now` por SSH antes.
 - Scripts `.sh` siempre con LF. `runuser` conserva el entorno de root (`as_user` fija HOME). En un chroot

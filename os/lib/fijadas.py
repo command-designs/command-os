@@ -178,6 +178,11 @@ def poner(clave, valor):
     os.makedirs(os.path.dirname(AJUSTES), exist_ok=True)
     escribir(AJUSTES, "".join(f"{c}={v}\n" for c, v in valores.items()))
     recargar()
+    if clave in ("lado", "flotante") and os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+        # En la sesión de Hyprland de prueba, las reglas que cuelgan los paneles junto a la barra leen su
+        # lado al cargar (hyprland.lua). config-only: sin volver a configurar las pantallas.
+        subprocess.run(["hyprctl", "reload", "config-only"], check=False, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL)
     return valores[clave]
 
 

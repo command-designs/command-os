@@ -340,7 +340,7 @@ validada de Arch (2026/10/18):
 | Menú de ventana (clic derecho en la barra de título) | no existe | el `client-menu` de `menu.xml` con wofi junto al puntero |
 | Menú del escritorio (clic derecho en el fondo) | no existe | atajo de ratón que no se come el clic (`non_consuming`): si no hay ventana debajo, el `root-menu` con wofi |
 | Alt+Tab con lista de icono y título | `cycle_next` sin lista | rofi en modo ventana (soltar Alt elige: `!Alt-Alt_L`); 1 MB, nada residente |
-| Minimizar (botón, Super+Abajo, barra de tareas) | no minimiza | escritorio especial `special:minimizadas` y el evento `window.minimize` de Lua (lo que pide la barra de tareas) |
+| Minimizar (botón, Super+Abajo, barra de tareas) | no minimiza | escritorio especial `special:minimizadas`; lo que piden las apps (botón de las cabeceras GTK, barra de tareas) necesita el evento `window.minimize`, que **no está en la 0.56.2** |
 | Arrastrar al borde: maximiza o media pantalla, con aviso | `general.snap` solo pega al borde | al soltar el botón (atajo `non_consuming`), Lua mira si el puntero está en el borde y encaja; sin el aviso previo |
 | Escritorios dinámicos (`command-os-desktops`, `<names>` + SIGHUP + wtype) | escritorios numerados por `hyprctl` | rama Hyprland en `command-os-desktops` |
 | Waybar: `ext/workspaces`, `wlr/taskbar` | Hyprland implementa `ext-workspace` y `wlr-foreign-toplevel` | igual |
@@ -356,6 +356,54 @@ validada de Arch (2026/10/18):
   admite) y las duraciones en décimas de segundo (`speed` 1,6 = 160 ms y 2,8 = 280 ms).
 - **Sin probar**: nada de esto se ve en la VM (sin 3D). Lo prueba el usuario en su portátil, con la
   memoria y la CPU en reposo frente a labwc.
+
+**Hecho (7.1, sesión y configuración).** Por qué así y qué se descartó: `docs/decisiones.md`.
+
+- **Instalarla**: `sudo pacman -S hyprland` (no va de serie: `optdepends` del paquete). Con Hyprland
+  instalado, la pantalla de inicio de sesión enseña «escritorio»: «el de siempre» (el de la última vez),
+  labwc o «hyprland (prueba)» (`lib/greeter.py`). `command-os-session [labwc|hyprland]` recuerda la
+  elección en `~/.config/command-os/sesion` para el inicio automático. Si Hyprland sale con error en
+  menos de 15 s (sin aceleración 3D, por ejemplo), abre labwc, lo deja elegido y avisa; el registro va a
+  `$XDG_RUNTIME_DIR/hyprland-sesion.log`.
+- **Configuración**: `os/dotfiles/hypr/hyprland.lua` → `/etc/xdg/hypr/hyprland.lua`, siempre con
+  `--config` (sin él, Hyprland escribiría su ejemplo en `~/.config/hypr`); al final carga lo que el
+  usuario añada en `~/.config/hypr/hyprland.lua` (con un error, avisa y sigue con lo de serie). Arranca
+  lo mismo que labwc (`/etc/xdg/labwc/autostart`, que vale para las dos) y usa los mismos portales
+  (`hyprland-portals.conf`). La API es la de `/usr/share/hypr/stubs/hl.meta.lua` de la versión
+  instalada: la wiki va por delante. `--verify-config` es estricto (claves, hojas de animación, teclas,
+  campos de las reglas y argumentos de los despachadores), pero lo que va dentro de una función solo se
+  comprueba al ejecutarse: al tocarlas, construir sus despachadores fuera y validarlo.
+- **Paridad**: todas flotan; filo Red Hot de 1 px (Steel inactiva), sin redondeo, sombra corta, sin
+  huecos, desenfoque ni halos; los atajos de `rc.xml` uno a uno y los de serie de labwc que se usan
+  (Alt+Tab, Alt+F4, Super+A, Super+Izquierda/Derecha a media pantalla, Super+arrastrar). Reglas del
+  centro (sin filo, sombra ni animación propia de Hyprland, fijado), mezclador y blueman (arriba a la
+  derecha), btop (centrado) y PiP (fijado). Las reglas leen el lado de la barra al cargar
+  (`~/.config/command-os/barra`): cambiarlo en Ajustes hace `hyprctl reload config-only`. Un clic fuera
+  del centro y fuera de la barra lo cierra (Hyprland no quita el foco al pulsar el fondo).
+- **Animaciones**: las tres curvas de la marca (`hl.curve`); abrir y el fundido de entrada en 280 ms con
+  `--ease-out` y `popin 96%`, cerrar en 160 ms con `--ease-in-out`, maximizar, encajar y centrar con
+  `--ease-snap`, el filo y el cambio de ventana activa en 160 ms, y los escritorios con `slidefade 8%`.
+  Sin animación de Hyprland en la barra, el lanzador y las notificaciones (`layers`: ya traen la suya) ni
+  en el escritorio de las minimizadas; los giros de degradados, apagados (redibujarían sin parar).
+  `tests/marca.sh` mira también sus colores (`rgba(rrggbbaa)`), curvas y que no haya `glow`.
+- **Minimizar**: a `special:minimizadas`, que no se enseña. Super+Abajo (o el botón de `hyprbars`, 7.2);
+  Super+D minimiza todo el escritorio y lo devuelve. Al activarse una minimizada (barra de tareas,
+  Alt+Tab) vuelve al escritorio de la pantalla (`window.active`). **Límite de la 0.56.2**: no hay evento
+  de Lua para lo que piden las apps, así que el botón de minimizar de las cabeceras GTK y el clic en la
+  ventana activa de la barra de tareas no hacen nada (llega con `window.minimize`, ya en la wiki).
+  Descartado escuchar el socket de eventos de Hyprland: sería otro proceso residente.
+- **Escritorios**: `command-os-desktops` guarda cuántos hay en `~/.config/command-os/escritorios` y llama
+  a `command_os.escritorios(n)` (`hyprctl eval`), que los crea fijos («01», «02»…, reglas de escritorio
+  `persistent`) o quita los de sobra pasando sus ventanas al 01. Super+1…4 solo va a los que existen.
+- **Pendiente en 7.2 y 7.3**: barras de título (`hyprbars`; hasta entonces las apps sin cabecera propia
+  van sin ella), menús del escritorio y de ventana, Alt+Tab con lista (de momento pasa a la siguiente
+  sin lista) y encajar al soltar en el borde. «Siempre encima» (Super+T) fija la ventana: en Hyprland
+  sale además en todos los escritorios.
+- **Probado**: `Hyprland --verify-config` de la configuración (`tests/escritorio.sh`, con Hyprland
+  instalado en la CI) y de cada despachador de las funciones, en el Arch de WSL con la 0.56.2; elegir
+  sesión, recordarla y la vuelta a labwc (`tests/escritorio.sh`, y en WSL con el Hyprland real, que sin
+  GPU falla al empezar). **No probado**: Hyprland en marcha (WSL no tiene `/dev/dri` y la VM no tiene
+  3D): `docs/prueba-en-pc-real.md` § 9.
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 
