@@ -3,32 +3,6 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
-## 2026-10-22 — Barra que se oculta sola: Ironbar no, Waybar con un módulo propio (punto 8.1, `ROADMAP.md`)
-
-Prueba en la VM (labwc, VirtualBox sin 3D) con Ironbar 0.19.1 de `extra` y una barra mínima (texto,
-ventana activa y hora) frente a nuestra Waybar 0.15 entera.
-- **Por qué no hay otra salida limpia**: Hyprland 0.56.2 no avisa a Lua de los movimientos del ratón
-  (sus eventos son de ventanas, escritorios, pantallas y capas), y Waybar no se oculta sola fuera de Sway
-  (`mode hide` necesita su IPC; `on-sigusr1` enseña u oculta, pero nada le dice que el ratón se fue).
-  Un ayudante que pregunte por el puntero (`hyprctl cursorpos`, `hl.timer`) es sondeo: descartado.
-- **Ironbar sí lo hace por eventos** (lo hemos visto funcionar): una franja de 5 px en el borde (capa
-  `top`, sin zona reservada) la enseña al mover el ratón por ella y la barra se oculta pasado `autohide`
-  tras salir de ella; con un menú suyo abierto no se oculta. En reposo, 3 tics de CPU por minuto (la hora).
-- **Descartado Ironbar**: (1) su módulo de escritorios solo va con Sway, Hyprland y niri, **no con
-  labwc**: no podría sustituir a Waybar en la sesión de serie y habría dos barras que mantener (config,
-  CSS, lado y flotante de `lib/fijadas.py`, traducciones, pruebas); (2) GTK 4 pesa más: con su render
-  de serie, 209 MB de RSS al arrancar y 297 MB tras usarla (render por software en la VM); con
-  `GSK_RENDERER=cairo`, 72 MB de RSS y 44 MB de PSS con tres módulos, frente a 61 y 31 MB de Waybar con
-  todos los nuestros. (3) Si se sube el ratón recto y se para en el borde, a veces no salta: solo la
-  enseña el movimiento dentro de la franja (le pasará igual a cualquier franja).
-- **Camino elegido para el 8.2**: copiar la idea de Ironbar dentro de Waybar con un módulo `cffi` propio
-  (una biblioteca en C que Waybar carga en su proceso, como `hyprbars` en Hyprland): la franja con
-  gtk-layer-shell y el temporizador al salir el ratón de la barra. Una sola barra en las dos sesiones,
-  nada residente nuevo y por eventos. Riesgo: va atado a la ABI de los módulos `cffi` de Waybar y la
-  recarga con SIGUSR2 rehace la ventana (el módulo debe volver a engancharse). Si el módulo no puede,
-  la alternativa es un parche a Waybar en un paquete propio (`command-os-waybar`), con más
-  mantenimiento.
-
 ## 2026-10-22 — Menús, Alt+Tab y encajar en Hyprland, 7.3 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
 
 - **Los menús salen de `menu.xml`**, no de una copia para Hyprland: un ayudante (`lib/menu-hyprland.py`,

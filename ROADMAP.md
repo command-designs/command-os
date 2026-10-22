@@ -48,8 +48,3 @@ configurable) están hechas: `docs/DISENO.md` y `docs/notas/escritorio.md`.
    `command-os-hyprbars`) y 7.3 (menús, Alt+Tab con rofi y encajar al soltar) hechos:
    `docs/notas/escritorio.md` § «Sesión Hyprland de prueba». Queda que el usuario lo pruebe
    (`docs/prueba-en-pc-real.md` § 9) y decidir si se adopta con sus medidas.
-8. **Barra que se oculta sola** (Opus, alto: módulo en C dentro de Waybar). Prueba hecha (8.1,
-   `docs/decisiones.md` 2026-10-22): Ironbar descartado (sin escritorios en labwc, más pesado). Queda el
-   8.2: un módulo `cffi` de Waybar con una franja en el borde que la enseña y un temporizador al salir el
-   ratón, para las dos sesiones; «Ocultar sola» en Ajustes → Barra, apagado de serie; sin zona reservada
-   mientras esté activo; probado en la VM con labwc.
