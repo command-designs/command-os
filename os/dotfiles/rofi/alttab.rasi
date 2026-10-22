@@ -1,0 +1,60 @@
+/* Command OS — la lista de Alt+Tab de la sesión de Hyprland (hyprland.lua, rofi -dmenu). Igual que la de
+   labwc (themerc, osd.window-switcher.style-classic): 560 px en Graphite con filo Steel, icono de 20 px y
+   título en mono; la elegida, con fondo #1a1311 y filo Red Hot. Sin buscador ni animación. */
+* {
+    graphite: #151515;
+    steel: #2a2a2a;
+    bone: #edebe6;
+    red-hot: #f5482c;
+    elegida: #1a1311;
+
+    font: "JetBrainsMono Nerd Font 10";
+    background-color: transparent;
+    text-color: @bone;
+    border-radius: 0;
+}
+
+window {
+    location: center;
+    anchor: center;
+    width: 560px;
+    padding: 6px;
+    border: 1px;
+    border-color: @steel;
+    background-color: @graphite;
+}
+
+mainbox {
+    children: [ listview ];
+}
+
+listview {
+    lines: 10;
+    dynamic: true;
+    fixed-height: false;
+    scrollbar: false;
+    spacing: 0;
+}
+
+element {
+    padding: 5px 10px;
+    spacing: 10px;
+    border: 1px;
+    border-color: transparent;
+}
+
+element selected.normal,
+element selected.active,
+element selected.urgent {
+    background-color: @elegida;
+    border-color: @red-hot;
+}
+
+element-icon {
+    size: 20px;
+}
+
+element-text {
+    vertical-align: 0.5;
+    text-color: inherit;
+}

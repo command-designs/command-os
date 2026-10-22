@@ -63,7 +63,8 @@ else
   mal "configuración de hyprbars en os/dotfiles/hypr/hyprland.lua"
 fi
 
-# 5. Los despachadores de command_os.boton (dentro de una función, --verify-config no los mira).
+# 5. Los despachadores de las funciones de hyprland.lua (botones, menús, Alt+Tab y encajar): dentro de una
+# función, --verify-config no los mira. La tecla de is_key_down sí se comprueba al llamarla.
 if command -v Hyprland >/dev/null; then
   id "${USUARIO}" >/dev/null 2>&1 || useradd -m -s /bin/bash "${USUARIO}"
   dir=$(mktemp -d)
@@ -71,14 +72,28 @@ if command -v Hyprland >/dev/null; then
 hl.bind("SUPER + F10", hl.dsp.window.close())
 hl.bind("SUPER + F11", hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }))
 hl.bind("SUPER + F12", hl.dsp.window.move({ workspace = "special:minimizadas", follow = false }))
+hl.bind("SUPER + F9", hl.dsp.window.fullscreen({ window = "class:kitty", mode = "fullscreen", action = "toggle" }))
+hl.bind("SUPER + F8", hl.dsp.window.fullscreen({ window = "class:kitty", mode = "maximized", action = "set" }))
+hl.bind("SUPER + F7", hl.dsp.window.pin({ window = "class:kitty" }))
+hl.bind("SUPER + F6", hl.dsp.window.move({ workspace = 2, follow = false }))
+hl.bind("SUPER + F5", hl.dsp.window.move({ window = "class:kitty", workspace = 1, follow = false }))
+hl.bind("SUPER + F4", hl.dsp.focus({ window = "class:kitty" }))
+hl.bind("SUPER + F3", hl.dsp.window.bring_to_top())
+hl.bind("SUPER + F2", hl.dsp.submap("alttab"))
+hl.bind("SUPER + F1", hl.dsp.submap("reset"))
+hl.bind("mouse:272", function() end, { non_consuming = true, ignore_mods = true, release = true })
+hl.define_submap("alttab", function()
+    hl.bind("Escape", function() end, { non_consuming = true })
+end)
+if hl.is_key_down("Alt_L") or hl.is_key_down("Alt_R") then error("Alt pulsado sin teclado") end
 EOF
   chmod 755 "${dir}"; chmod 644 "${dir}/botones.lua"
   install -d -m 700 -o "${USUARIO}" "/tmp/hyprbars-runtime"
   if runuser -u "${USUARIO}" -- env HOME="$(getent passwd "${USUARIO}" | cut -d: -f6)" XDG_RUNTIME_DIR=/tmp/hyprbars-runtime \
       Hyprland --verify-config --config "${dir}/botones.lua" 2>&1 | grep -qx 'config ok'; then
-    ok "despachadores de los botones"
+    ok "despachadores de los botones, los menús, Alt+Tab y encajar"
   else
-    mal "despachadores de command_os.boton (Hyprland --verify-config --config ${dir}/botones.lua)"
+    mal "despachadores de las funciones de hyprland.lua (Hyprland --verify-config --config ${dir}/botones.lua)"
   fi
   rm -rf "${dir}" /tmp/hyprbars-runtime
 fi

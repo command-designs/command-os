@@ -3,6 +3,24 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-22 — Menús, Alt+Tab y encajar en Hyprland, 7.3 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
+
+- **Los menús salen de `menu.xml`**, no de una copia para Hyprland: un ayudante (`lib/menu-hyprland.py`,
+  un proceso corto por menú) lo lee traducido y pasa cada acción de labwc a una orden de Hyprland. Lo que
+  se añada al menú llega a las dos sesiones, y `--seco` falla si una acción no tiene equivalente.
+  Descartado: los menús en Lua dentro de `hyprland.lua` (otra lista que mantener y sin traducciones).
+- **Alt+Tab cambia al momento y enseña la lista solo si Alt sigue pulsado**: rofi tarda en abrirse y, si
+  se suelta Alt antes, no se entera y se quedaría abierto. Con `hl.is_key_down` a los 150 ms se sabe; un
+  toque rápido no abre nada. La lista la hace Lua con el historial de foco (de la más reciente, como
+  labwc) y rofi solo la enseña (`-dmenu`). Descartado `rofi -show window` (no va por orden de uso ni
+  sabe de las minimizadas) y escuchar el socket de eventos (proceso residente).
+- **rofi aparte (`optdepends`)**: solo hace falta en la sesión de prueba, y wofi no sirve (no elige al
+  soltar una tecla). Si se adopta Hyprland, entra con él.
+- **Encajar al soltar con dos atajos de ratón** (pulsar y soltar, `non_consuming`), no con un evento: la
+  0.56.2 no avisa a Lua del final de un arrastre. Solo encaja si la ventana se movió sin cambiar de
+  tamaño, para no confundirlo con redimensionar por el filo. Sin aviso previo: haría falta seguir el
+  puntero durante el arrastre (trabajo en cada movimiento del ratón).
+
 ## 2026-10-22 — Barras de título de Hyprland, 7.2 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
 
 - **Los botones son los mismos SVG** que labwc y las cabeceras GTK, pintados enteros (con su fondo de

@@ -50,6 +50,21 @@ if command -v Hyprland >/dev/null; then
 else
   echo "  --   hyprland: no está instalado, sin comprobar su configuración"
 fi
+# Los menús de labwc en la sesión de Hyprland (lib/menu-hyprland.py): cada opción de menu.xml tiene su orden
+# (con HYPRLAND_INSTANCE_SIGNATURE, «mover a escritorio» sale de la rama de Hyprland de command-os-desktops).
+for m in escritorio ventana; do
+  if como env HYPRLAND_INSTANCE_SIGNATURE=prueba /usr/lib/command-os/menu-hyprland.py --seco "${m}" \
+      > "${SALIDA}/menu-hyprland-${m}.txt" 2>&1 && [[ -s "${SALIDA}/menu-hyprland-${m}.txt" ]]; then
+    ok "hyprland: menú ${m} ($(grep -c . "${SALIDA}/menu-hyprland-${m}.txt") opciones)"
+  else
+    mal "hyprland: menú ${m} (ver menu-hyprland-${m}.txt)"
+  fi
+done
+if grep -q "command_os.enviar(1)" "${SALIDA}/menu-hyprland-ventana.txt"; then
+  ok "hyprland: «mover a escritorio» en el menú de ventana"
+else
+  mal "hyprland: el menú de ventana no lleva «mover a escritorio» (ver menu-hyprland-ventana.txt)"
+fi
 # Arranque (lib/apply-boot, al instalarse el paquete): menú oculto y sin las entradas «EFI BootNext».
 if [[ -f /etc/default/grub ]]; then
   for k in GRUB_DISABLE_BOOTNEXT=true GRUB_TIMEOUT_STYLE=hidden 'GRUB_DISTRIBUTOR="Command OS"'; do

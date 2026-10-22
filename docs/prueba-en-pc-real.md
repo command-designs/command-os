@@ -126,8 +126,8 @@ En la VM se instaló y abrió Discord.
 ## 9. Sesión Hyprland de prueba (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
 
 La VM no tiene 3D y WSL no tiene GPU: Hyprland no se ha visto nunca en marcha. Antes de empezar,
-`sudo pacman -S hyprland command-os-hyprbars` (el segundo, las barras de título); después, cerrar la sesión
-(Super+Mayús+M).
+`sudo pacman -S hyprland command-os-hyprbars rofi` (el segundo, las barras de título; el tercero, la lista de
+Alt+Tab); después, cerrar la sesión (Super+Mayús+M).
 
 1. En la pantalla de inicio de sesión sale «escritorio» (solo con Hyprland instalado). Elegir
    «hyprland (prueba)» y entrar: arrancan la barra, el fondo y las notificaciones, sin avisos rojos de
@@ -152,7 +152,7 @@ La VM no tiene 3D y WSL no tiene GPU: Hyprland no se ha visto nunca en marcha. A
 6. Atajos, uno a uno como en Super+F1: lanzador (Super suelto y Super+Espacio), terminal, archivos,
    navegador, portapapeles, Ctrl+Mayús+Esc (btop centrado), Super+Q y Alt+F4, Super+F, Super+Arriba y
    Super+A, Super+Izquierda/Derecha (media pantalla, sin tapar la barra) y Super+Abajo (la devuelve a
-   su tamaño; otra vez, la minimiza), Super+D (minimiza todo; otra vez, lo devuelve), Super+T, Alt+Tab,
+   su tamaño; otra vez, la minimiza), Super+D (minimiza todo; otra vez, lo devuelve), Super+T,
    capturas, Super+L, Super+Esc, Super+N y las teclas de volumen y brillo, también con la sesión
    bloqueada. Super+arrastrar mueve y Super+clic derecho redimensiona; los bordes también.
 7. Minimizar: una ventana minimizada con Super+Abajo vuelve al pulsarla en la barra de tareas o con
@@ -165,5 +165,19 @@ La VM no tiene 3D y WSL no tiene GPU: Hyprland no se ha visto nunca en marcha. A
 9. Centro de control, mezclador y Bluetooth: cuelgan donde en labwc (también con la barra en cada lado y
    flotante, cambiándola en Ajustes con la sesión abierta); el centro se cierra con un clic en el fondo,
    en otra ventana, en la barra o con Escape.
-10. Memoria y arranque frente a labwc: `free -m` en reposo tras entrar con cada uno, y cuánto tarda en
+10. Menús: clic derecho en el fondo abre el menú del escritorio junto al puntero (y cerca de un borde,
+   sin salirse), en el idioma del sistema; «escritorios» abre su submenú en el mismo sitio y cada opción
+   hace lo de labwc. Clic derecho en la barra, en una ventana o en una notificación **no** lo abre. Clic
+   derecho en la barra de título: el menú de ventana (minimizar, maximizar, pantalla completa, siempre
+   encima, mover a escritorio con dos o más, cerrar). Otro clic derecho fuera de un menú abierto lo cierra, y
+   Escape también (apuntar si un clic izquierdo fuera no lo cierra).
+11. Alt+Tab: un toque rápido pasa a la ventana anterior sin enseñar nada, y otro vuelve. Manteniendo Alt
+   sale la lista (como la de labwc: icono, título y la elegida con filo rojo), Tab avanza, Mayús+Tab
+   retrocede, soltar Alt elige y Escape vuelve a la de antes; las minimizadas salen y vuelven al elegirlas.
+   Que la lista no se quede abierta al soltar Alt justo cuando aparece (si pasa, apuntarlo).
+12. Encajar: arrastrar una ventana por su barra de título (y con Super+arrastrar) y soltarla con el
+   puntero en el borde izquierdo o derecho: ocupa esa mitad sin tapar la barra; en el de arriba, se
+   maximiza. Super+Abajo la devuelve a su tamaño. Soltarla lejos del borde o redimensionar por el filo
+   hasta el borde no encaja nada.
+13. Memoria y arranque frente a labwc: `free -m` en reposo tras entrar con cada uno, y cuánto tarda en
    salir la barra. Apuntarlo en el informe (decide si se adopta: `ROADMAP.md`, punto 7).

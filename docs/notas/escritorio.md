@@ -395,10 +395,7 @@ validada de Arch (2026/10/18):
 - **Escritorios**: `command-os-desktops` guarda cuántos hay en `~/.config/command-os/escritorios` y llama
   a `command_os.escritorios(n)` (`hyprctl eval`), que los crea fijos («01», «02»…, reglas de escritorio
   `persistent`) o quita los de sobra pasando sus ventanas al 01. Super+1…4 solo va a los que existen.
-- **Pendiente en 7.3**: menús del escritorio y de ventana (el clic derecho en la barra de título ya lanza
-  `on_right_click` de `hyprbars`, sin orden todavía), Alt+Tab con lista (de momento pasa a la siguiente
-  sin lista) y encajar al soltar en el borde. «Siempre encima» (Super+T) fija la ventana: en Hyprland
-  sale además en todos los escritorios.
+- «Siempre encima» (Super+T) fija la ventana: en Hyprland sale además en todos los escritorios.
 - **Probado**: `Hyprland --verify-config` de la configuración (`tests/escritorio.sh`, con Hyprland
   instalado en la CI) y de cada despachador de las funciones, en el Arch de WSL con la 0.56.2; elegir
   sesión, recordarla y la vuelta a labwc (`tests/escritorio.sh`, y en WSL con el Hyprland real, que sin
@@ -438,6 +435,39 @@ validada de Arch (2026/10/18):
   existen; `--verify-config` de `hyprland.lua` con y sin el plugin en su sitio. `--verify-config` no carga
   plugins: el bloque de `hyprbars` lo ejecuta `tests/hyprbars.lua` con un `hl` de mentira. **No probado**:
   el plugin cargado en un Hyprland en marcha (`docs/prueba-en-pc-real.md` § 9).
+
+**Hecho (7.3, menús, Alt+Tab y encajar).** Por qué así y qué se descartó: `docs/decisiones.md`.
+
+- **Menús** (`lib/menu-hyprland.py`): los mismos de `menu.xml`, traducidos como en `lib/menus-labwc`, en
+  un panel de wofi con el aspecto de los pequeños (`wofi/power.css`) donde está el puntero, sin salirse de
+  la pantalla; un submenú abre otro panel en el mismo sitio, y «mover a escritorio» usa la rama de
+  Hyprland de `command-os-desktops menu`. El del escritorio sale con el clic derecho (atajo
+  `non_consuming`) si debajo no hay ventana (con su barra de título y el margen del filo) ni capa de
+  arriba (barra, lanzador, notificaciones); el de ventana, con el clic derecho en la barra de título
+  (`on_right_click` de `hyprbars`, que antes le da el foco). Las acciones de labwc pasan a órdenes de
+  Hyprland: `Execute` tal cual, `Reconfigure` a `hyprctl reload`, las de ventana a `command_os.boton` y
+  `SendToDesktop` a `command_os.enviar`. «Siempre encima» y «en todos los escritorios» son la misma en
+  Hyprland (fijar): sale solo la primera. wofi no reserva sitio, así que la posición se cuenta desde lo
+  que deja libre la barra. Otro clic derecho con el menú abierto lo cierra.
+- **Alt+Tab** (`hyprland.lua`): pasa al momento a la ventana anterior (historial de foco de Hyprland) y,
+  si Alt sigue pulsado 150 ms después (`hl.is_key_down`), enseña la lista con rofi (`rofi/alttab.rasi`,
+  como la de labwc: icono, título y la elegida con filo Red Hot). Tab y Mayús+Tab recorren, soltar Alt
+  elige y Escape vuelve a la de antes. Salen las del escritorio, las fijadas y las minimizadas (vuelven
+  al escritorio al elegirlas), sin el centro ni los desplegables. Con la lista abierta, el submapa
+  `alttab` deja que Alt+Tab llegue a rofi. rofi no va de serie (`optdepends`, como Hyprland); sin él,
+  Alt+Tab cambia de ventana sin lista. Nada residente: rofi se abre y se cierra con cada Alt+Tab largo.
+- **Encajar al soltar**: al pulsar el botón izquierdo (atajo `non_consuming` con `ignore_mods`, también con
+  Super) se apunta dónde está cada ventana; al soltarlo, si la activa se ha movido sin cambiar de tamaño y
+  el puntero toca el borde (2 px), ocupa la mitad izquierda o derecha (como Super+Izquierda/Derecha;
+  Super+Abajo la devuelve a donde estaba antes de arrastrarla) o se maximiza (borde de arriba). Va 20 ms
+  después de soltar: Hyprland pasa el clic a los atajos antes que a `hyprbars`, que acaba el arrastre
+  después. **Límite**: sin el aviso que labwc enseña antes de soltar.
+- **Probado** (Arch de WSL con la 0.56.2): `--verify-config` de `hyprland.lua` y de los despachadores de
+  las funciones nuevas (`tests/hyprbars.sh`); `tests/hyprbars.lua` (órdenes de `on_right_click`,
+  `command_os.menu` con la posición contada desde la barra, `enviar` y `alttab_fin`);
+  `menu-hyprland.py --seco` (cada opción de los dos menús con su orden, `tests/escritorio.sh`); y la lista
+  de rofi 2.0.0 con su tema y sus teclas (en X11, sin errores). **No probado**: nada de esto en un
+  Hyprland en marcha (`docs/prueba-en-pc-real.md` § 9).
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 

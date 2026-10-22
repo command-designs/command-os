@@ -26,7 +26,8 @@ mapfile -t depends < <(grep -vE '^\s*(#|$)' "${_os}/packages.txt")
 # La sesión de prueba (ROADMAP.md, punto 7): no se instala de serie (64 MB); el selector de la pantalla de
 # inicio de sesión solo sale si está.
 optdepends=('hyprland: sesión de Hyprland de prueba'
-            'command-os-hyprbars: barras de título en la sesión de Hyprland')
+            'command-os-hyprbars: barras de título en la sesión de Hyprland'
+            'rofi: lista de Alt+Tab en la sesión de Hyprland')
 
 package() {
   local s="${_os}" d="${pkgdir}" f
@@ -99,7 +100,7 @@ package() {
   # --- Configuración de serie de los programas que no miran /etc/xdg ---
   # command-os-config elige la copia del usuario si existe; si no, esta.
   local c="${d}/usr/share/command-os/config"
-  install -d "${c}/"{waybar,swaync,hypr,wofi,gtk-3.0,gtk-4.0,nano,bash,labwc}
+  install -d "${c}/"{waybar,swaync,hypr,wofi,rofi,gtk-3.0,gtk-4.0,nano,bash,labwc}
   # El menú de labwc va aquí y no en /etc/xdg/labwc: command-os-session lo da traducido (lib/menus-labwc).
   install -m 644 "${s}/dotfiles/labwc/menu.xml" "${c}/labwc/"
   # Waybar trae su propia configuración de ejemplo en /etc/xdg/waybar: la nuestra va aquí.
@@ -108,6 +109,7 @@ package() {
   install -m 644 "${s}/dotfiles/hypr/hypridle.conf" "${c}/hypr/"
   install -m 644 "${s}/dotfiles/hypr/hyprlock-emergencia.conf" "${c}/hypr/"
   install -m 644 "${s}"/dotfiles/wofi/{config,style.css,power.css} "${c}/wofi/"
+  install -m 644 "${s}/dotfiles/rofi/alttab.rasi" "${c}/rofi/"
   install -m 644 "${s}"/dotfiles/gtk-3.0/{gtk.css,settings.ini} "${c}/gtk-3.0/"
   install -m 644 "${s}"/dotfiles/gtk-4.0/{gtk.css,settings.ini} "${c}/gtk-4.0/"
   ln -s ../../chaflanes "${c}/gtk-3.0/chaflanes"

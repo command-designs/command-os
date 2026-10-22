@@ -41,6 +41,13 @@ rawset(hl, "window_rule", function(t)
     end
     return nada()
 end)
+-- Un puntero y una pantalla de 1920×1080 con la barra arriba, y las órdenes que se lanzan.
+local lanzadas = {}
+rawset(hl, "get_cursor_pos", function() return { x = 100, y = 100 } end)
+rawset(hl, "get_monitor_at_cursor", function()
+    return { x = 0, y = 0, width = 1920, height = 1080, scale = 1, reserved = { top = 36, bottom = 0, left = 0, right = 0 } }
+end)
+rawset(hl, "exec_cmd", function(orden) lanzadas[#lanzadas + 1] = orden end)
 rawset(hl, "plugin", {
     load = function() end,
     hyprbars = { add_button = function(t) botones[#botones + 1] = t end },
@@ -63,13 +70,20 @@ for nombre in pairs(efectos) do
 end
 if n == 0 then mal("la configuración no da ninguna opción a hyprbars") else ok("hyprbars: %d opciones", n) end
 
--- Las órdenes de los botones y del doble clic: command_os.boton con un botón que sabe hacer.
+-- Las órdenes de los botones, del doble clic y del clic derecho: command_os.boton con un botón que sabe
+-- hacer, o command_os.menu con un menú que existe.
 local SABE = { cerrar = true, maximizar = true, minimizar = true }
+local MENUS = { ventana = true }
 local function orden(texto, donde)
-    local boton = type(texto) == "string" and texto:match([[^hyprctl eval "command_os%.boton%('(%w+)'%)"$]])
-    if not (boton and SABE[boton]) then mal("%s: orden desconocida %q", donde, tostring(texto)) end
+    local que, cual = (type(texto) == "string" and texto or ""):match([[^hyprctl eval "command_os%.(%w+)%('(%w+)'%)"$]])
+    if not ((que == "boton" and SABE[cual]) or (que == "menu" and MENUS[cual])) then
+        mal("%s: orden desconocida %q", donde, tostring(texto))
+    end
 end
-if valores["plugin.hyprbars.on_double_click"] then orden(valores["plugin.hyprbars.on_double_click"], "on_double_click") end
+for _, clave in ipairs({ "on_double_click", "on_right_click" }) do
+    if valores["plugin.hyprbars." .. clave] then orden(valores["plugin.hyprbars." .. clave], clave)
+    else mal("hyprbars: falta %s", clave) end
+end
 
 -- Los botones SVG del parche: solo sus campos, y que estén los tres dibujos de cada estado.
 local CAMPOS = { svg = "string", svg_toggled = "string", width = "number", action = "string" }
@@ -101,11 +115,23 @@ if type(command_os) ~= "table" or type(command_os.boton) ~= "function" then
     mal("no existe command_os.boton")
 else
     local antes = fallos
-    for boton in pairs(SABE) do
+    -- También los del menú de ventana (lib/menu-hyprland.py).
+    for _, boton in ipairs({ "cerrar", "maximizar", "minimizar", "pantalla_completa", "fijar" }) do
         local hecho, e = pcall(command_os.boton, boton)
         if not hecho then mal("command_os.boton('%s'): %s", boton, tostring(e)) end
     end
-    if fallos == antes then ok("command_os.boton: cerrar, maximizar y minimizar") end
+    if fallos == antes then ok("command_os.boton: cerrar, maximizar, minimizar, pantalla completa y fijar") end
 end
+
+-- Lo demás que llaman desde fuera: los menús, «mover a escritorio» y el final de Alt+Tab. El menú se abre
+-- en el puntero, contado desde lo que deja libre la barra.
+for _, llamada in ipairs({ { "menu", "ventana" }, { "menu", "escritorio" }, { "enviar", 1 }, { "alttab_fin", -1 } }) do
+    local f = type(command_os) == "table" and command_os[llamada[1]]
+    local hecho, e = type(f) == "function" and pcall(f, llamada[2])
+    if hecho then ok("command_os.%s(%s)", llamada[1], tostring(llamada[2]))
+    else mal("command_os.%s(%s): %s", llamada[1], tostring(llamada[2]), tostring(e or "no existe")) end
+end
+local MENU = "/usr/lib/command-os/menu-hyprland.py ventana 100 64 1920 1044"
+if lanzadas[1] == MENU then ok("menú de ventana: %s", MENU) else mal("menú de ventana: %s", tostring(lanzadas[1])) end
 
 os.exit(fallos == 0 and 0 or 1)

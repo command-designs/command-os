@@ -8,20 +8,21 @@
 
 local CONFIG = os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or "") .. "/.config")
 
--- Lo que llaman desde fuera con `hyprctl eval`: command-os-desktops y los botones de la barra de título.
+-- Lo que llaman desde fuera con `hyprctl eval`: command-os-desktops, los botones de la barra de título, los
+-- menús (lib/menu-hyprland.py) y la lista de Alt+Tab.
 command_os = {}
+
+local function existe(ruta)
+    local f = io.open(ruta, "r")
+    if f then f:close() end
+    return f ~= nil
+end
 
 -- Barras de título: hyprbars con el parche de Command OS (os/hyprbars, paquete command-os-hyprbars). Hyprland
 -- lo carga al acabar de leer esto y vuelve a leerlo: la segunda vez ya existe hl.plugin.hyprbars (BARRAS).
 -- Sin el paquete, las apps sin cabecera propia van sin barra, pero todo lo demás funciona.
 local HYPRBARS = "/usr/lib/command-os/hyprbars.so"
-do
-    local f = io.open(HYPRBARS, "r")
-    if f then
-        f:close()
-        hl.plugin.load(HYPRBARS)
-    end
-end
+if existe(HYPRBARS) then hl.plugin.load(HYPRBARS) end
 
 -- Lee un archivo de «clave=valor» (los ajustes de Command OS) en una tabla.
 local function ajustes(ruta)
@@ -255,6 +256,8 @@ if hl.plugin.hyprbars then
                 -- El filo rodea también la barra, como en labwc.
                 bar_precedence_over_border = true,
                 on_double_click = accion("maximizar"),
+                -- Clic derecho en la barra: el menú de ventana (el plugin le da antes el foco).
+                on_right_click = [[hyprctl eval "command_os.menu('ventana')"]],
             },
         },
     })
@@ -318,15 +321,16 @@ local function area(m)
 end
 
 -- Media pantalla (Super+Izquierda/Derecha, como SnapToEdge de labwc); Super+Abajo la devuelve a su sitio.
+-- Al soltarla en el borde, `previo` es dónde estaba antes de arrastrarla.
 local antes = {}
-local function encajar(lado)
+local function encajar(lado, previo)
     local w = hl.get_active_window()
     local m = w and (w.monitor or hl.get_active_monitor())
     if not m then return end
     if not antes[w.address] then
         local x, y = par(w.at)
         local an, al = par(w.size)
-        antes[w.address] = { x = x, y = y, an = an, al = al }
+        antes[w.address] = previo or { x = x, y = y, an = an, al = al }
     end
     local x, y, an, al = area(m)
     if lado == "derecha" then x = x + an / 2 end
@@ -357,8 +361,9 @@ hl.on("window.destroy", function(w)
     if w then antes[w.address] = nil end
 end)
 
--- Los botones de la barra de título (hyprbars): cerrar, maximizar o devolver, y minimizar. El plugin da el
--- foco a la ventana del botón antes de lanzar la orden.
+-- Los botones de la barra de título (hyprbars) y el menú de ventana: cerrar, maximizar o devolver,
+-- minimizar, pantalla completa y fijar (siempre encima y en todos los escritorios: Hyprland lo junta). El
+-- plugin da el foco a la ventana del botón antes de lanzar la orden.
 function command_os.boton(nombre)
     local w = hl.get_active_window()
     if not w then return end
@@ -368,6 +373,10 @@ function command_os.boton(nombre)
         hl.dispatch(hl.dsp.window.fullscreen({ window = w, mode = "maximized", action = "toggle" }))
     elseif nombre == "minimizar" then
         minimizar(w)
+    elseif nombre == "pantalla_completa" then
+        hl.dispatch(hl.dsp.window.fullscreen({ window = w, mode = "fullscreen", action = "toggle" }))
+    elseif nombre == "fijar" then
+        hl.dispatch(hl.dsp.window.pin({ window = w }))
     end
 end
 
@@ -415,6 +424,52 @@ local function clic_fuera_del_centro()
     if not dentro and not en_barra(c, m) then
         hl.dispatch(hl.dsp.window.close({ window = w }))
     end
+end
+
+-- Encajar al soltar en el borde (labwc: <snapping>): la ventana que se arrastra (por la barra de título o con
+-- Super) y se suelta con el puntero en el borde izquierdo o derecho de la pantalla ocupa esa mitad; en el de
+-- arriba, se maximiza. Al pulsar se apunta dónde está cada ventana; al soltar, si la activa se ha movido sin
+-- cambiar de tamaño (no es redimensionar por el filo) y el puntero toca el borde, encaja. Sin el aviso de
+-- labwc antes de soltar. Va un momento después: el arrastre acaba tras los atajos y la dejaría donde se soltó.
+local BORDE = 2
+local pulsado, encaje = nil, nil
+
+local function al_pulsar()
+    clic_fuera_del_centro()
+    pulsado = {}
+    for _, w in ipairs(hl.get_windows()) do
+        local x, y = par(w.at)
+        local an, al = par(w.size)
+        pulsado[w.address] = { x = x, y = y, an = an, al = al }
+    end
+end
+
+local function al_soltar()
+    local w, c, m = hl.get_active_window(), hl.get_cursor_pos(), hl.get_monitor_at_cursor()
+    local previo = w and pulsado and pulsado[w.address]
+    pulsado = nil
+    if not (previo and c and m and w.floating and w.fullscreen == 0) then return end
+    local x, y = par(w.at)
+    local an, al = par(w.size)
+    if (x == previo.x and y == previo.y) or an ~= previo.an or al ~= previo.al then return end
+    local escala = (m.scale and m.scale > 0) and m.scale or 1
+    local lado
+    if c.x <= m.x + BORDE then
+        lado = "izquierda"
+    elseif c.x >= m.x + m.width / escala - 1 - BORDE then
+        lado = "derecha"
+    elseif c.y <= m.y + BORDE then
+        lado = "arriba"
+    end
+    if not lado then return end
+    encaje = hl.timer(function()
+        encaje = nil
+        if lado == "arriba" then
+            hl.dispatch(hl.dsp.window.fullscreen({ window = w, mode = "maximized", action = "set" }))
+        else
+            encajar(lado, previo)
+        end
+    end, { timeout = 20, type = "oneshot" })
 end
 
 ---------------------
@@ -475,6 +530,169 @@ local function vecino(paso)
     ir_a((id - 1 + paso) % escritorios.n + 1)
 end
 
+-- «mover a escritorio» del menú de ventana: la lleva sin ir con ella (labwc: SendToDesktop follow="no").
+function command_os.enviar(i)
+    i = math.floor(tonumber(i) or 0)
+    if i >= 1 and i <= escritorios.n then hl.dispatch(hl.dsp.window.move({ workspace = i, follow = false })) end
+end
+
+---------------
+---- MENÚS ----
+---------------
+
+-- Los de labwc (menu.xml), que Hyprland no tiene: lib/menu-hyprland.py los enseña traducidos con wofi junto
+-- al puntero. El del escritorio sale con el clic derecho donde no hay ventana ni panel (barra, lanzador,
+-- notificaciones); el de ventana, con el clic derecho en su barra de título (hyprbars, on_right_click).
+local MENU = "/usr/lib/command-os/menu-hyprland.py"
+-- Lo que ocupa la barra de título encima de la ventana y el margen para agarrar el filo.
+local ENCIMA, FILO = hl.plugin.hyprbars and 32 or 0, 1 + 10
+
+function command_os.menu(cual)
+    if cual ~= "escritorio" and cual ~= "ventana" then return end
+    local c, m = hl.get_cursor_pos(), hl.get_monitor_at_cursor()
+    if not (c and m) then return end
+    -- wofi no reserva sitio: se coloca dentro de lo que deja libre la barra.
+    local x, y, an, al = area(m)
+    hl.exec_cmd(string.format("%s %s %d %d %d %d", MENU, cual,
+        math.floor(c.x - x), math.floor(c.y - y), math.floor(an), math.floor(al)))
+end
+
+local function dentro(c, x, y, an, al)
+    return c.x >= x and c.x < x + an and c.y >= y and c.y < y + al
+end
+
+local function hay_algo_debajo(c)
+    for _, l in ipairs(hl.get_layers()) do
+        -- Capas 0 y 1: el fondo de pantalla; 2 y 3: la barra, los paneles y las notificaciones.
+        if l.mapped and l.layer >= 2 and dentro(c, l.x, l.y, l.w, l.h) then return true end
+    end
+    for _, w in ipairs(hl.get_windows()) do
+        if w.workspace and w.workspace.visible and not w.hidden then
+            local x, y = par(w.at)
+            local an, al = par(w.size)
+            if dentro(c, x - FILO, y - FILO - ENCIMA, an + 2 * FILO, al + 2 * FILO + ENCIMA) then return true end
+        end
+    end
+    return false
+end
+
+local function clic_derecho()
+    local c = hl.get_cursor_pos()
+    if c and not hay_algo_debajo(c) then command_os.menu("escritorio") end
+end
+
+-----------------
+---- ALT+TAB ----
+-----------------
+
+-- Como el de labwc: pasa al momento a la ventana anterior y, si Alt sigue pulsado, enseña la lista (icono y
+-- título) con rofi, de la más reciente a la más antigua: Tab avanza, Mayús+Tab retrocede, soltar Alt elige y
+-- Escape vuelve a la de antes. Salen las del escritorio, las fijadas y las minimizadas; el centro y los
+-- desplegables, no (labwc: skipWindowSwitcher). Sin rofi (aparte, como Hyprland) solo cambia de ventana.
+-- Con la lista abierta, el submapa «alttab» deja que Alt+Tab llegue a rofi en vez de a este atajo.
+local ROFI = existe("/usr/bin/rofi")
+local ESPERA = 150 -- ms con Alt pulsado antes de enseñar la lista: un toque rápido solo cambia de ventana
+local TECLAS_ROFI = "-kb-accept-entry '!Alt-Alt_L,!Alt-Alt_R,Return,KP_Enter' -kb-row-down 'Alt+Tab,Down'"
+    .. " -kb-row-up 'Alt+ISO_Left_Tab,Alt+Shift+ISO_Left_Tab,Up' -kb-cancel 'Escape'"
+local alttab_en_curso = nil -- { lista = direcciones, i = la elegida, temporizador }
+
+local function fuera_de_la_lista(clase)
+    return clase:match("^dev%.commandlab%.Centro") or clase == "org.pulseaudio.pavucontrol"
+        or clase == "blueman-manager"
+end
+
+local function recientes()
+    local ws = hl.get_active_workspace()
+    local lista = {}
+    for _, w in ipairs(hl.get_windows()) do
+        local donde = w.workspace
+        if donde and not fuera_de_la_lista(w.class or "")
+            and (w.pinned or donde.name == MINIMIZADAS or (ws and donde.id == ws.id)) then
+            table.insert(lista, w)
+        end
+    end
+    local function orden(w) return w.focus_history_id >= 0 and w.focus_history_id or math.huge end
+    table.sort(lista, function(a, b) return orden(a) < orden(b) end)
+    return lista
+end
+
+-- La trae al frente; si estaba minimizada, antes al escritorio de la pantalla.
+local function activar(direccion)
+    local w = direccion and hl.get_window("address:" .. direccion)
+    if not w then return end
+    if w.workspace and w.workspace.name == MINIMIZADAS then
+        local ws = hl.get_active_workspace()
+        if ws then hl.dispatch(hl.dsp.window.move({ window = w, workspace = ws.id, follow = false })) end
+    end
+    hl.dispatch(hl.dsp.focus({ window = w }))
+    hl.dispatch(hl.dsp.window.bring_to_top())
+end
+
+local function abrir_lista(estado)
+    local run = os.getenv("XDG_RUNTIME_DIR")
+    local ruta = run and (run .. "/command-os-alttab")
+    local f = ruta and io.open(ruta, "w")
+    if not f then return false end
+    -- rofi -dmenu: «título\0icon\x1fclase» por línea.
+    for _, direccion in ipairs(estado.lista) do
+        local w = hl.get_window("address:" .. direccion)
+        local titulo = w and (w.title ~= "" and w.title or w.class) or "?"
+        f:write((titulo:gsub("[\r\n]", " ")), "\0icon\31", (w and w.class or ""):lower(), "\n")
+    end
+    f:close()
+    hl.dispatch(hl.dsp.submap("alttab"))
+    hl.exec_cmd(string.format(
+        [[i=$(rofi -dmenu -no-custom -format i -show-icons -p '' -selected-row %d -input '%s' ]]
+        .. [[-theme "$(command-os-config rofi/alttab.rasi)" %s); hyprctl eval "command_os.alttab_fin(${i:--1})"]],
+        estado.i - 1, ruta, TECLAS_ROFI))
+    return true
+end
+
+-- Mientras Alt siga pulsado, Alt+Tab sigue por la misma lista; al soltarlo antes de ESPERA, se acaba ahí.
+local function esperar_alt(estado)
+    estado.temporizador = hl.timer(function()
+        if alttab_en_curso ~= estado then return end
+        if not (hl.is_key_down("Alt_L") or hl.is_key_down("Alt_R")) then
+            alttab_en_curso = nil
+        elseif not (ROFI and abrir_lista(estado)) then
+            esperar_alt(estado)
+        end
+    end, { timeout = ESPERA, type = "oneshot" })
+end
+
+local function alttab(paso)
+    local estado = alttab_en_curso
+    if estado then
+        estado.i = (estado.i - 1 + paso) % #estado.lista + 1
+        activar(estado.lista[estado.i])
+        return
+    end
+    local lista = recientes()
+    if #lista == 0 then return end
+    estado = { lista = {}, i = #lista == 1 and 1 or (paso > 0 and 2 or #lista) }
+    for k, w in ipairs(lista) do estado.lista[k] = w.address end
+    activar(estado.lista[estado.i])
+    if #lista > 1 then
+        alttab_en_curso = estado
+        esperar_alt(estado)
+    end
+end
+
+-- Lo llama la orden de abrir_lista al cerrarse rofi: el número de la elegida (desde 0) o -1 (Escape).
+function command_os.alttab_fin(i)
+    hl.dispatch(hl.dsp.submap("reset"))
+    local estado = alttab_en_curso
+    alttab_en_curso = nil
+    if not estado then return end
+    i = math.floor(tonumber(i) or -1)
+    activar(estado.lista[i >= 0 and i + 1 or 1])
+end
+
+hl.define_submap("alttab", function()
+    -- Escape llega también a rofi, que se cierra y llama a alttab_fin; esto, por si rofi no llegara a salir.
+    hl.bind("Escape", function() command_os.alttab_fin(-1) end, { non_consuming = true })
+end)
+
 ----------------
 ---- ATAJOS ----
 ----------------
@@ -505,15 +723,8 @@ hl.bind("SUPER + right", function() encajar("derecha") end)
 hl.bind("SUPER + D", ver_escritorio)
 -- Siempre encima: Hyprland solo lo tiene fijando la ventana (que además sale en todos los escritorios).
 hl.bind("SUPER + T", hl.dsp.window.pin())
--- Alt+Tab sin lista, de momento: pasa a la siguiente ventana y la trae al frente.
-hl.bind("ALT + Tab", function()
-    hl.dispatch(hl.dsp.window.cycle_next())
-    hl.dispatch(hl.dsp.window.bring_to_top())
-end)
-hl.bind("ALT + SHIFT + Tab", function()
-    hl.dispatch(hl.dsp.window.cycle_next({ next = false }))
-    hl.dispatch(hl.dsp.window.bring_to_top())
-end)
+hl.bind("ALT + Tab", function() alttab(1) end)
+hl.bind("ALT + SHIFT + Tab", function() alttab(-1) end)
 
 -- Escritorios: Super+Ctrl+D crea uno y Super+Ctrl+F4 quita el último (como en Windows); Super+1…4 cambia,
 -- Super+Mayús+1…4 lleva la ventana.
@@ -550,11 +761,14 @@ hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = tru
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true })
 
--- Ratón: Super+arrastrar mueve y Super+clic derecho redimensiona (los de serie de labwc). El clic izquierdo
--- en cualquier sitio sigue llegando a las ventanas (non_consuming): solo mira si cierra el centro.
+-- Ratón: Super+arrastrar mueve y Super+clic derecho redimensiona (los de serie de labwc). Los clics en
+-- cualquier sitio siguen llegando a las ventanas (non_consuming): el izquierdo solo mira si cierra el centro
+-- o encaja la ventana al soltarla (también con Super pulsado: ignore_mods), y el derecho, si es en el fondo.
 hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
-hl.bind("mouse:272", clic_fuera_del_centro, { non_consuming = true })
+hl.bind("mouse:272", al_pulsar, { non_consuming = true, ignore_mods = true })
+hl.bind("mouse:272", al_soltar, { non_consuming = true, ignore_mods = true, release = true })
+hl.bind("mouse:273", clic_derecho, { non_consuming = true })
 
 -------------------------
 ---- LO DEL USUARIO ----
