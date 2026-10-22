@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+# Command OS — medida de ligereza repetible: memoria y CPU en reposo y tiempo de arranque, siempre con el
+# mismo método para poder comparar un cambio con el anterior (docs/testing.md § «Medir la ligereza»).
+#
+#   sudo command-os-medir [--espera S] [--ventana S] [--tsv]
+#
+# Espera a que el escritorio esté listo (compositor y Waybar en marcha) y a que pasen S segundos más
+# (120 por defecto, contados desde ese momento: si ya pasaron, no espera). Después mide la memoria usada
+# (MemTotal − MemAvailable), PSS y RSS de cada programa y los tics de CPU durante la ventana (60 s). Sin
+# root solo ve la memoria de los procesos propios (lo avisa). No cuenta su propia sesión ni la de SSH.
+# Con --tsv saca líneas «R campo valor» (resumen) y «P nombre procesos pss_kb rss_kb tics» (por
+# programa, de más a menos PSS), que lee build/x86/medir-vm.sh.
+set -uo pipefail
+
+PROC=${COMMAND_OS_PROC:-/proc}
+HZ=${COMMAND_OS_HZ:-$(getconf CLK_TCK)}
+ANALYZE=${COMMAND_OS_ANALYZE:-systemd-analyze}
+ESPERA=120
+VENTANA=60
+TSV=0
+LIMITE=${COMMAND_OS_LIMITE:-900} # segundos desde el encendido sin escritorio: se rinde
+DORMIR=${COMMAND_OS_DORMIR:-sleep} # las pruebas (tests/ligereza.sh) cambian el /proc falso mientras «duerme»
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --espera) ESPERA=$2; shift ;;
+    --ventana) VENTANA=$2; shift ;;
+    --tsv) TSV=1 ;;
+    *) echo "uso: command-os-medir [--espera S] [--ventana S] [--tsv]" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+uptime_s() { awk '{print $1}' "${PROC}/uptime"; }
+
+# Una línea por proceso: «pid<TAB>comm<TAB>campos de stat desde el 3.º (estado)». Con getline: un archivo
+# que no se puede leer (proceso que acaba de salir, hilo del núcleo) no para awk, que sí se para si va en ARGV.
+stat_todos() {
+  awk 'BEGIN { for (i = 1; i < ARGC; i++) { f = ARGV[i]
+      if ((getline l < f) > 0) {
+        p = f; sub(/\/stat$/, "", p); sub(/^.*\//, "", p)
+        s = l; sub(/^.*\) /, "", s); a = index(l, "(")
+        print p "\t" substr(l, a + 1, length(l) - length(s) - a - 2) "\t" s }
+      close(f) } }' "$@"
+}
+
+# Segundos desde el encendido en que arrancó el último de los procesos del escritorio que estén en marcha
+# (compositor y Waybar); vacío si falta alguno.
+escritorio_listo() {
+  stat_todos "${PROC}"/[0-9]*/stat | awk -F'\t' -v hz="${HZ}" '
+    { split($3, f, " "); c = $2
+      t = f[20] / hz   # campo 22 de stat: inicio en tics desde el encendido
+      if (c == "labwc" || c == "Hyprland") { comp = (comp == "" || t < comp) ? t : comp; nc = c }
+      if (c == "waybar") { bar = (bar == "" || t < bar) ? t : bar } }
+    END { if (comp != "" && bar != "") printf "%.1f %s\n", (comp > bar ? comp : bar), nc }'
+}
+
+# pid tics (utime+stime) de cada proceso
+tics_procesos() { stat_todos "${PROC}"/[0-9]*/stat | awk -F'\t' '{ split($3, f, " "); print $1, f[12] + f[13] }'; }
+
+# tics de CPU ocupados del sistema entero (todo menos idle e iowait)
+tics_sistema() { awk '$1 == "cpu" { print $2 + $3 + $4 + $7 + $8 + $9; exit }' "${PROC}/stat"; }
+
+# pid nombre: el de /proc/<pid>/comm o, en intérpretes, el del script (python3 pantallas.py → pantallas.py);
+# los hilos del núcleo (sin cmdline) van juntos como [núcleo]
+nombres() {
+  local d p c arg
+  for d in "${PROC}"/[0-9]*; do
+    p=${d##*/}
+    c=$(cat "${d}/comm" 2>/dev/null) || continue
+    # los archivos de /proc dicen tamaño 0: hay que leerlos
+    if [ -z "$(tr -d '\0' < "${d}/cmdline" 2>/dev/null | head -c 1)" ]; then
+      c="[núcleo]"
+    else
+      case "${c}" in
+        python*|bash|sh|perl|lua*)
+          arg=$(tr '\0' '\n' < "${d}/cmdline" 2>/dev/null | sed 1d | grep -v '^-' | head -n 1)
+          [ -n "${arg}" ] && c=${arg##*/} ;;
+      esac
+    fi
+    printf '%s\t%s\n' "${p}" "${c}"
+  done
+}
+
+# pid pss_kb rss_kb
+memoria_procesos() {
+  awk 'BEGIN { for (i = 1; i < ARGC; i++) { f = ARGV[i]; pss = 0; rss = ""
+      while ((getline l < f) > 0) { split(l, x, " "); if (x[1] == "Pss:") pss = x[2]; if (x[1] == "Rss:") rss = x[2] }
+      close(f)
+      if (rss != "") { p = f; sub(/\/smaps_rollup$/, "", p); sub(/^.*\//, "", p); print p, pss, rss } } }' \
+    "${PROC}"/[0-9]*/smaps_rollup
+}
+
+# pids que no cuentan: los de la sesión de este proceso y, hacia arriba, los que lo lanzaron mientras sean
+# sudo, un intérprete de órdenes o el SSH (sudo puede abrir otra sesión y borra SSH_CONNECTION). Se para en el
+# primero que no lo es (kitty, labwc): el escritorio siempre cuenta.
+excluidos() {
+  stat_todos "${PROC}"/[0-9]*/stat | awk -F'\t' -v yo="${COMMAND_OS_YO:-$$}" '
+    { split($3, f, " "); padre[$1] = f[2]; sid[$1] = f[4]; nom[$1] = $2 }
+    END {
+      for (p in sid) if (sid[p] == sid[yo]) print p
+      for (p = padre[yo]; p > 1 && (sid[p] == sid[yo] || nom[p] ~ /^(sudo|su|doas|run0|bash|sh|zsh|fish|sshd-session)$/); p = padre[p]) print p
+    }'
+}
+
+# Tiempos de systemd-analyze en segundos: «kernel initrd userspace» (los que falten, vacíos)
+tiempos_systemd() {
+  command -v "${ANALYZE}" >/dev/null 2>&1 || return 0
+  "${ANALYZE}" 2>/dev/null | awk '
+    function seg(t,   n, v, i, m) { v = 0; n = split(t, m, " ")
+      for (i = 1; i <= n; i++) {
+        if (m[i] ~ /min$/) v += substr(m[i], 1, length(m[i]) - 3) * 60
+        else if (m[i] ~ /ms$/) v += substr(m[i], 1, length(m[i]) - 2) / 1000
+        else if (m[i] ~ /s$/) v += substr(m[i], 1, length(m[i]) - 1) }
+      return v }
+    /^Startup finished in/ { l = $0; sub(/^Startup finished in /, "", l); sub(/ = .*$/, "", l)
+      n = split(l, parte, / \+ /)
+      for (i = 1; i <= n; i++) { nom = parte[i]; sub(/^.*\(/, "", nom); sub(/\).*$/, "", nom)
+        t = parte[i]; sub(/ \(.*$/, "", t); v[nom] = sprintf("%.1f", seg(t)) }
+      print v["kernel"], v["initrd"], v["userspace"]; exit }'
+}
+
+listo=""
+while :; do
+  listo=$(escritorio_listo)
+  [ -n "${listo}" ] && break
+  if awk -v u="$(uptime_s)" -v l="${LIMITE}" 'BEGIN { exit !(u > l) }'; then
+    echo "command-os-medir: no hay escritorio (compositor y Waybar) tras ${LIMITE} s" >&2
+    exit 1
+  fi
+  "${DORMIR}" 5
+done
+read -r t_escritorio sesion <<< "${listo}"
+
+falta=$(awk -v u="$(uptime_s)" -v t="${t_escritorio}" -v e="${ESPERA}" 'BEGIN { f = t + e - u; print (f > 0 ? int(f + 0.999) : 0) }')
+[ "${TSV}" = 1 ] || echo "Escritorio (${sesion}) listo a los ${t_escritorio} s; espero ${falta} s más y mido ${VENTANA} s…" >&2
+[ "${falta}" -gt 0 ] && "${DORMIR}" "${falta}"
+[ "$(id -u)" = 0 ] || echo "command-os-medir: sin root solo se ve la memoria de tus procesos (sudo command-os-medir)" >&2
+
+T=$(mktemp -d)
+trap 'rm -rf "${T}"' EXIT
+excluidos > "${T}/fuera"
+sis0=$(tics_sistema)
+tics_procesos > "${T}/tics0"
+"${DORMIR}" "${VENTANA}"
+tics_procesos > "${T}/tics1"
+sis1=$(tics_sistema)
+mem=$(awk '/^MemTotal:/ { t = $2 } /^MemAvailable:/ { a = $2 } END { print t - a }' "${PROC}/meminfo")
+memoria_procesos > "${T}/mem"
+nombres > "${T}/nombres"
+ncpu=$(grep -c '^cpu[0-9]' "${PROC}/stat")
+read -r k_s i_s u_s <<< "$(tiempos_systemd)"
+
+# Une todo por programa: procesos, PSS, RSS y tics durante la ventana (solo de los vivos al principio y al final)
+awk -F'\t' -v OFS='\t' '
+  FILENAME ~ /fuera$/   { fuera[$1] = 1; next }
+  FILENAME ~ /nombres$/ { nom[$1] = $2; next }
+  FILENAME ~ /tics0$/   { split($0, x, " "); t0[x[1]] = x[2]; next }
+  FILENAME ~ /tics1$/   { split($0, x, " "); t1[x[1]] = x[2]; next }
+  FILENAME ~ /mem$/     { split($0, x, " "); pss[x[1]] = x[2]; rss[x[1]] = x[3]; next }
+  END {
+    for (p in nom) {
+      if (p in fuera) continue
+      n = nom[p]; procs[n]++; P[n] += pss[p]; R[n] += rss[p]
+      if ((p in t0) && (p in t1)) C[n] += t1[p] - t0[p]
+    }
+    for (n in procs) print "P", n, procs[n], P[n] + 0, R[n] + 0, C[n] + 0
+  }' "${T}/fuera" "${T}/nombres" "${T}/tics0" "${T}/tics1" "${T}/mem" | sort -t$'\t' -k4,4nr > "${T}/progs"
+
+pss_total=$(awk -F'\t' '{ s += $4 } END { print s + 0 }' "${T}/progs")
+procs_tics_min=$(awk -F'\t' -v v="${VENTANA}" '{ s += $6 } END { printf "%.0f", s * 60 / v }' "${T}/progs")
+tics_min=$(awk -v a="${sis0}" -v b="${sis1}" -v v="${VENTANA}" 'BEGIN { printf "%.0f", (b - a) * 60 / v }')
+cpu_pct=$(awk -v a="${sis0}" -v b="${sis1}" -v v="${VENTANA}" -v hz="${HZ}" -v n="${ncpu}" \
+  'BEGIN { printf "%.2f", (b - a) * 100 / (v * hz * n) }')
+
+if [ "${TSV}" = 1 ]; then
+  printf 'R\t%s\t%s\n' sesion "${sesion}" escritorio_s "${t_escritorio}" kernel_s "${k_s:-}" initrd_s "${i_s:-}" \
+    userspace_s "${u_s:-}" mem_usada_mb "$((mem / 1024))" pss_total_mb "$((pss_total / 1024))" \
+    cpu_tics_min "${tics_min}" procesos_tics_min "${procs_tics_min}" cpu_pct "${cpu_pct}" ncpu "${ncpu}" hz "${HZ}" espera_s "${ESPERA}" ventana_s "${VENTANA}"
+  cat "${T}/progs"
+else
+  echo "Sesión ${sesion} · escritorio listo a los ${t_escritorio} s del encendido (kernel ${k_s:-?} s, initrd ${i_s:-?} s, userspace ${u_s:-?} s)"
+  echo "Memoria usada $((mem / 1024)) MB · PSS total $((pss_total / 1024)) MB · CPU ${tics_min} tics/min (${cpu_pct} % de ${ncpu} CPU; ${procs_tics_min} de procesos, el resto interrupciones)"
+  echo
+  printf '%-24s %5s %9s %9s %9s\n' programa procs "PSS MB" "RSS MB" tics/min
+  head -n 15 "${T}/progs" | awk -F'\t' -v v="${VENTANA}" \
+    '{ printf "%-24s %5d %9.1f %9.1f %9.0f\n", $2, $3, $4 / 1024, $5 / 1024, $6 * 60 / v }'
+fi

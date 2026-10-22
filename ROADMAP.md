@@ -37,7 +37,7 @@ configurable) están hechas: `docs/DISENO.md` y `docs/notas/escritorio.md`.
    las apps sin cabecera propia (Thunar, kitty) necesitan `hyprbars`, que no está en Arch y se
    compila para cada versión. No se prueba en la VM (sin 3D): la prueba el usuario en su portátil.
    Si no llega a la paridad o pesa bastante más que labwc (memoria y CPU en reposo, medidas en el
-   portátil), se queda labwc y se anota en `docs/decisiones.md`. Condiciones para
+   portátil), se queda labwc y se anota en `docs/decisiones/README.md`. Condiciones para
    adoptarla (que una actualización no lo rompa): `hyprbars` compilado por nosotros en el repositorio
    firmado y atado a la versión exacta de Hyprland, Hyprland solo cambia con la fecha validada de
    Arch, la CI comprueba plugin y configuración antes de publicar, y labwc queda como sesión de

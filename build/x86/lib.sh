@@ -400,7 +400,7 @@ partition_whole_disk() {
   done
 }
 
-# --- Cifrado del disco (LUKS2; docs/instalacion.md § 4 y docs/decisiones.md) ---
+# --- Cifrado del disco (LUKS2; docs/instalacion.md § 4 y docs/decisiones/README.md) ---
 # Se pregunta todo (cifrar, contraseña y clave de recuperación) antes de la confirmación del borrado:
 # después ya no se pregunta nada. Las claves solo viven en variables de este proceso y se pasan a
 # cryptsetup por la entrada estándar: nunca en argumentos, en el entorno ni en archivos.

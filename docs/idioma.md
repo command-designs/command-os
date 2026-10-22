@@ -120,7 +120,7 @@ confirmaciones que se teclean (`BORRAR WINDOWS`, `SI`) son las del idioma elegid
   splash en inglés y el asistente ya en inglés con teclado «English (US)».
 - Sin probar: verlo en un PC real (lo mismo que la VM salvo la pantalla).
 
-**Decisiones** (con lo descartado, en `docs/decisiones.md`): gettext y no un diccionario propio;
+**Decisiones** (con lo descartado, en `docs/decisiones/README.md`): gettext y no un diccionario propio;
 castellano como texto original; idioma del equipo, con un idioma propio opcional por cuenta
 (`~/.config/locale.conf`, que escribe el panel de cuentas, [`cuentas.md`](cuentas.md) § «El panel de
 cuentas»; lo lee `lib/entorno-grafico` al abrir la sesión). GRUB, el splash y la pantalla de inicio de

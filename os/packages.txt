@@ -74,7 +74,7 @@ btop
 
 # Instalar aplicaciones (docs/notas/escritorio.md § «Instalar aplicaciones»): Flatpak con Flathub (el
 # paquete flatpak ya trae el remoto) y la tienda Bazaar. Las apps van aparte del sistema: nunca tocan
-# pacman ni la fecha validada de Arch (docs/decisiones.md).
+# pacman ni la fecha validada de Arch (docs/decisiones/README.md).
 flatpak
 bazaar
 # Las capturas de Flathub vienen en AVIF: sin libheif, glycin no las abre y la tienda sale sin imágenes.

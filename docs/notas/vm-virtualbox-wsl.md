@@ -6,7 +6,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Comandos exactos: `docs/
 
 - **Marca:** la v2 de command-web (`BRAND.md`, casi monocromo, el rojo como señal), aplicada el
   2026-10-19; paleta, reglas y estado de cada ancla en `docs/DISENO.md`. Del 2026-10-04 al 2026-10-19
-  hubo otro estilo, descartado (historia en `docs/decisiones.md`). Las apps GTK/Qt (Thunar, Firefox,
+  hubo otro estilo, descartado (historia en `docs/decisiones/README.md`). Las apps GTK/Qt (Thunar, Firefox,
   pavucontrol) siguen el mismo tema: `adw-gtk3-dark` recoloreado en `os/dotfiles/gtk-{3,4}.0/gtk.css`,
   Papirus-Dark y modo oscuro por dconf. Assets en `os/branding/`
   (logo, fuentes OFL, wallpaper, tema Plymouth); se regeneran con `build/make-wallpaper.py` y
@@ -18,7 +18,10 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Comandos exactos: `docs/
   **vCPU**: sin hotplug, con 2 el firmware EFI se cuelga en `DXE_AP`; con `--cpu-hotplug on` arranca
   con 4 (2026-10-04). VirtualBox corre sobre Hyper-V (NEM) porque WSL2 lo mantiene activo. También
   chipset ICH9 y HPET on. Render por software, 1280x720 fijo (~13 FPS); `vmsvga`+3D descartado.
-  Detalle en `docs/testing.md`. El arranque tarda >1 min. labwc renderiza (render por software).
+  Detalle en `docs/testing.md`. El arranque tarda >1 min: 90 s son la espera de systemd a una partición
+  de intercambio que el `/etc/fstab` de la imagen (Packer) pide y no existe (visto al medir el 2026-10-22;
+  comentarla en la VM lo quita, pero cambia la cifra de arranque del registro de `docs/medidas/`). labwc
+  renderiza (render por software).
 - El módulo `image` de Waybar 0.15 se bloquea (futex) incluso con un PNG pequeño: el logo va como
   `custom/logo` con `background-image` en CSS.
 - La imagen usa initramfs con hook `systemd`: `plymouth` va después de `systemd`, no de `udev`.

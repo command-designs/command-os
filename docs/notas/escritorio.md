@@ -1,4 +1,4 @@
-# Notas: escritorio labwc, rediseño, energía y sonido
+# Notas: escritorio labwc, Hyprland, barra, ajustes y energía
 
 Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/DISENO.md`.
 
@@ -44,7 +44,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   escritorio, barra, ventanas activa e inactiva, Thunar (GTK 3), pavucontrol (GTK 4), kitty con fastfetch,
   lanzador, menú de energía, notificación, bloqueo y splash. El menú de GRUB no se vio (el arranque lo
   oculta): solo las piezas generadas. Menús de labwc y Alt+Tab, sin captura.
-- **Marca v2, forma** (2026-10-19; por qué así, `docs/decisiones.md`): chaflanes con `border-image`
+- **Marca v2, forma** (2026-10-19; por qué así, `docs/decisiones/README.md`): chaflanes con `border-image`
   (`build/make-chaflanes.py`; regenerar y pasar `tests/marca.sh` al cambiar un color o un tamaño).
   Las hojas GTK de serie los buscan en `chaflanes/` junto a ellas (enlace a `../../chaflanes` en
   `/usr/share/command-os/config/gtk-*`; copias en `~/.config/gtk-*/chaflanes/`); wofi, swaync y el
@@ -90,7 +90,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   `charge_control_start_threshold`; en los Dell, modo `Custom` (el de antes se apunta en
   `limite-carga.modos` y vuelve al quitarlo). Si el firmware rechaza un orden de escritura (inicio por
   encima del fin) prueba el otro; si rechaza el valor, todo queda como estaba. Apagado de serie. Por
-  qué así: `docs/decisiones.md`.
+  qué así: `docs/decisiones/README.md`.
 - **Probado**: `tests/barra.sh` (batería simulada con `COMMAND_OS_POWER_SUPPLY`, avisos, límite sobre
   un sysfs de mentira) y en la VM con una batería simulada (panel, avisos de mako, polkit sin
   contraseña en la sesión activa). **No probado**: un portátil real (la VM no tiene batería): el límite
@@ -139,7 +139,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 ## Instalar aplicaciones (2026-10-19)
 
 Petición del usuario: que instalar algo nunca sea un problema (en su portátil, un Discord descargado
-en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: `docs/decisiones.md`.
+en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Tienda**: Bazaar (paquete `bazaar`), solo Flatpak, con Flathub (el paquete `flatpak` trae el remoto
   en `/usr/share/flatpak/remotes.d`). Las apps van en `/var/lib/flatpak` (instalación del sistema), aparte
@@ -193,7 +193,7 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
 ## Ventanas iguales (2026-10-21)
 
 Punto 2 de la tanda «Diseño 2.1» (`ROADMAP.md`): una sola barra de título para labwc, GTK 3,
-GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones.md`.
+GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Barra de título**: 32 px (botones de 36×32 en `themerc` y `build/make-labwc-buttons.py`, que
   también comprueba con `--comprobar` en `tests/marca.sh`). Las cabeceras GTK la copian en `gtk.css`
@@ -234,7 +234,7 @@ GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones.
 ## Barra (2026-10-21)
 
 Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app HUD de `lenguaje.html`
-(cómo se ve: `docs/DISENO.md` § «Escritorio»). Por qué así y qué se descartó: `docs/decisiones.md`.
+(cómo se ve: `docs/DISENO.md` § «Escritorio»). Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Archivos**: `os/dotfiles/waybar/{config.jsonc,style.css}`; 36 px. Las reglas de labwc que cuelgan
   paneles junto a la barra (`MoveToEdge`) respetan su zona reservada: no dependen del alto ni del lado.
@@ -271,7 +271,7 @@ Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app H
   cambia el aire y el desliz de entrada (`command.css`). Colgado de abajo, si creciera se saldría por
   abajo (labwc lo coloca una vez, al abrirse, por su esquina de arriba): la lista de redes tiene alto
   fijo (`ListaRedes(fija=True)`) y cambiar de página abre otro panel (`App.reabrir`). El mezclador y
-  blueman siguen arriba a la derecha (`docs/decisiones.md`).
+  blueman siguen arriba a la derecha (`docs/decisiones/README.md`).
 - **Probado** (lado y flotante): `tests/barra.sh` y en la VM los cuatro lados y flotante (por orden y
   desde Ajustes con el teclado), la ventana activa a un lado, el centro en cada lado y el paso a redes
   con la barra abajo. Waybar, 68 MB de RSS en cualquier lado; nada residente nuevo. **No probado** (la VM
@@ -287,7 +287,7 @@ Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app H
 ## Ajustes y centro de control (2026-10-21)
 
 Punto 5 de la tanda 2 (`ROADMAP.md`). Cómo se ve: `docs/DISENO.md` § «Escritorio»; por qué así y qué se
-descartó: `docs/decisiones.md`.
+descartó: `docs/decisiones/README.md`.
 
 - **Ajustes** (`os/lib/ajustes.py`, `command-os-ajustes [sección]`): una ventana con una barra lateral y
   secciones hijas de `comun.Seccion` (`lib/ajustes_*.py`: red, bluetooth, barra, pantalla, sonido,
@@ -357,7 +357,7 @@ validada de Arch (2026/10/18):
 - **Sin probar**: nada de esto se ve en la VM (sin 3D). Lo prueba el usuario en su portátil, con la
   memoria y la CPU en reposo frente a labwc.
 
-**Hecho (7.1, sesión y configuración).** Por qué así y qué se descartó: `docs/decisiones.md`.
+**Hecho (7.1, sesión y configuración).** Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Instalarla**: `sudo pacman -S hyprland` (no va de serie: `optdepends` del paquete). Con Hyprland
   instalado, la pantalla de inicio de sesión enseña «escritorio»: «el de siempre» (el de la última vez),
@@ -402,7 +402,7 @@ validada de Arch (2026/10/18):
   GPU falla al empezar). **No probado**: Hyprland en marcha (WSL no tiene `/dev/dri` y la VM no tiene
   3D): `docs/prueba-en-pc-real.md` § 9.
 
-**Hecho (7.2, barras de título).** Por qué así y qué se descartó: `docs/decisiones.md`.
+**Hecho (7.2, barras de título).** Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Paquete `command-os-hyprbars`** (`os/hyprbars/`): `hyprbars` de `hyprland-plugins` en el commit de su
   `hyprpm.toml` para la 0.56.2 (`7644cecd`, tarball con su suma) y `command-os.patch`; deja el plugin en
@@ -436,7 +436,7 @@ validada de Arch (2026/10/18):
   plugins: el bloque de `hyprbars` lo ejecuta `tests/hyprbars.lua` con un `hl` de mentira. **No probado**:
   el plugin cargado en un Hyprland en marcha (`docs/prueba-en-pc-real.md` § 9).
 
-**Hecho (7.3, menús, Alt+Tab y encajar).** Por qué así y qué se descartó: `docs/decisiones.md`.
+**Hecho (7.3, menús, Alt+Tab y encajar).** Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Menús** (`lib/menu-hyprland.py`): los mismos de `menu.xml`, traducidos como en `lib/menus-labwc`, en
   un panel de wofi con el aspecto de los pequeños (`wofi/power.css`) donde está el puntero, sin salirse de
@@ -469,70 +469,46 @@ validada de Arch (2026/10/18):
   de rofi 2.0.0 con su tema y sus teclas (en X11, sin errores). **No probado**: nada de esto en un
   Hyprland en marcha (`docs/prueba-en-pc-real.md` § 9).
 
-## Rediseño del escritorio (2026-10-05, rama `rediseno`)
+## Rediseño del escritorio (2026-10-05, resumen)
 
-Historia: entonces el escritorio llevaba el estilo anterior a la marca v2 (`docs/decisiones.md`).
-Criterio del usuario: se queda lo que **sirve** y lo que **crea ambiente y queda bien**; fuera lo que
-ni sirve ni aporta ambiente. Detalle visual en `docs/DISENO.md`. El usuario pidió que se le pregunte
-antes de cada cambio y que se le notifique (PushNotification) cuando haga falta su decisión.
+Historia: el escritorio llevaba el estilo anterior a la marca v2 (`docs/decisiones/README.md`, 2026-10-19).
+Criterio del usuario, que sigue valiendo: se queda lo que **sirve** y lo que **crea ambiente y queda
+bien**; fuera lo que ni sirve ni aporta ambiente. Se le pregunta antes de cada cambio visual y se le
+notifica (PushNotification) cuando haga falta su decisión. Detalle visual en `docs/DISENO.md`.
 - **Fondos** (`build/make-wallpaper.py`, numpy y Pillow): con la marca v2, **no paisajes** (el usuario
-  rechazó skyline y mapa). `reticula` (de serie) y `plano`, y `void` para el bloqueo, GRUB y el
-  asistente, todos en PNG (sin grano pesan poco). Las llamadas de `plano`, con la JetBrains Mono Medium del
-  sistema (`ttf-jetbrains-mono-nerd`, o la de Windows; solo para generar); sus medidas del símbolo se
-  comprueban contra el PNG del logo al generar. Selector `os/bin/command-os-wallpaper` (elección en `~/.config/command-os/wallpaper`;
-  un nombre que ya no está en la lista, como los de antes de la v2, vuelve al de serie), lo llama
-  `autostart` y el menú ajustes → fondo de pantalla. `.gitattributes`: `*.png binary` en
-  `os/branding/` (si no, la regla de texto los corrompería). Para generarlos en Windows, numpy y
-  Pillow en un entorno virtual fuera del repo (el `python3` de Windows es el de la Store).
-- **Barra**: reloj con fecha (Waybar pasa **un** argumento de fecha: con dos `{:...}` el módulo no
-  arranca; usar `{0:%d.%m}  {0:%H:%M}`), temperatura (en la VM no hay `thermal_zone0` y el módulo
-  se desactiva solo, es normal), batería con tiempo restante (avisos y límite de carga: § «Batería»),
-  señal wifi, umbrales Warn/Red Hot.
-- **Ventanas**: barra de título plana, títulos y Alt+Tab en JetBrains Mono, sombra oscura de 12 px (sin halo rojo desde la marca v2).
-- **Bloqueo**: `immediate_render` (sin él, hyprlock espera hasta 2 s a sus recursos antes de
-  bloquear) y el sonido de bloqueo en segundo plano en `hypridle.conf` (antes bloqueaba al terminar
-  el sonido). Medido: Super+L → sesión bloqueada en ~350 ms. Línea de estado real
-  (`os/bin/command-os-status`), intentos fallidos y aviso de mayúsculas en Warn.
-- **Sonidos** (`build/make-sounds.py`, numpy): de aparato real (clics, pitidos, barridos, golpe de
-  encendido), sala seca. `login.wav` eliminado (no se usaba). **No se han escuchado**: verificado
-  solo que no saturan; que el usuario los oiga. Sustituidos el 2026-10-19 por los de la marca v2
-  (`docs/DISENO.md` § «Sonido»).
-- **Paquetes**: fuera las herramientas personales de desarrollo (alacritty, vim, tmux, htop, ripgrep,
-  fd, fzf, bat, eza, zoxide, jq, tree, rsync, wget, nodejs, npm…) y sus alias del `bashrc`. python
-  ya no está en la lista pero sigue instalado porque kitty depende de él. Se quedan base-devel + git
-  (AUR). En máquinas ya instaladas `install.sh` no desinstala nada: en la VM se quitó a mano.
+  rechazó skyline y mapa). `reticula` (de serie), `plano` y `void` (bloqueo, GRUB y asistente), en PNG.
+  Las llamadas de `plano` usan la JetBrains Mono Medium del sistema (`ttf-jetbrains-mono-nerd`, o la de
+  Windows; solo para generar). Selector `os/bin/command-os-wallpaper` (elección en
+  `~/.config/command-os/wallpaper`; un nombre que ya no está en la lista vuelve al de serie).
+  `.gitattributes`: `*.png binary` en `os/branding/` (si no, la regla de texto los corrompe). En Windows,
+  numpy y Pillow en un entorno virtual fuera del repo (el `python3` de Windows es el de la Store).
+- **Barra**: Waybar pasa **un** argumento de fecha: con dos `{:...}` el módulo no arranca; usar
+  `{0:%d.%m}  {0:%H:%M}`. Sin `thermal_zone0` (la VM) el módulo de temperatura se desactiva solo.
+- **Bloqueo**: `immediate_render` (sin él, hyprlock espera hasta 2 s a sus recursos antes de bloquear)
+  y el sonido de bloqueo en segundo plano en `hypridle.conf`. Medido: Super+L → bloqueado en ~350 ms.
+- **Paquetes**: sin herramientas personales de desarrollo (alacritty, vim, tmux, ripgrep, fzf, nodejs…);
+  se quedan base-devel + git (AUR). `install.sh` no desinstala nada en máquinas ya instaladas.
+  python sigue instalado porque kitty depende de él.
 - **SSH**: apagado en el producto; `install.sh` lo enciende solo con la variante `vbox` o
-  `COMMAND_OS_SSH=1` (lo pasan `build-image.sh` si hay `DEV_SSH_PUBKEY` y el script de Packer).
-- Al probar: reiniciar hypridle por SSH lo deja escuchando la sesión SSH, no la de tty1 (Super+L deja
-  de bloquear). Para aplicar cambios de la sesión, `sudo systemctl restart greetd` (tty1 es de greetd desde el 2026-10-07) y comprobar
-  que no queden dos hypridle.
-
+  `COMMAND_OS_SSH=1`.
+- Al probar: reiniciar hypridle por SSH lo deja escuchando la sesión SSH, no la de tty1 (Super+L deja de
+  bloquear). Para sesión nueva, `sudo systemctl restart greetd`, y comprobar que no queden dos hypridle.
 
 ## Menú de energía y mezclador (2026-10-04)
 
 - `os/bin/command-os-power`: Super+Escape o botón 󰐥 de la barra → bloquear / reiniciar / apagar (con
-  confirmación), por logind sin contraseña. Verificado en VM: apagado limpio en ~6 s.
+  confirmación), por logind sin contraseña.
 - `os/bin/command-os-volume`: clic en `vol` → pavucontrol 460×340 sin barra de título bajo la barra
   (regla en `labwc/rc.xml`); otro clic lo cierra.
-- VirtualBox: la X de la ventana pregunta; "Enviar la señal de apagado" es limpio, "Apagar la
-  máquina" es desenchufar.
+- VirtualBox: la X de la ventana pregunta; «Enviar la señal de apagado» es limpio, «Apagar la
+  máquina» es desenchufar.
 
+## Animaciones y sonido (2026-10-01, resumen)
 
-## Consola de desarrollo, animaciones y sonido (2026-10-01)
-
-- **Paquetes de desarrollo** en `os/packages.txt` (nano, base-devel, man, ripgrep, fd, fzf, bat, eza,
-  zoxide, tmux, jq, python, nodejs/npm…) y pila de audio PipeWire completa. `install.sh` instala
-  `~/.config/command-os/bashrc` (alias, prompt de marca, `EDITOR=nano`) enganchado desde `~/.bashrc`
-  con marcadores, y `~/.config/nano/nanorc`.
-- **Animaciones**: con labwc no hay animaciones de ventana; el movimiento está en los paneles
-  y en las transiciones CSS de la barra, las apps GTK y las notificaciones (`docs/DISENO.md` § «Movimiento»).
-- **Sonidos**: `build/make-sounds.py` los genera en `os/branding/sounds/`; `os/bin/command-os-sound`
-  los reproduce (arranque, notificación, urgente, bloqueo, desbloqueo, tecla de volumen).
-- **VirtualBox**: 4 vCPU solo con CPU hotplug (sin hotplug, 2 vCPU = cuelgue en `DXE_AP`), 6 GB de
-  RAM, paravirt KVM, y **audio AC97** (con HDA `pw-play` se cuelga). El escritorio renderiza por software
-  en la VM, así que la fluidez real de las animaciones solo se juzga en bare metal / Pi. Detalle en
-  `docs/testing.md`.
-- Al iterar con labwc, re-ejecutar `install.sh` con la sesión abierta funciona; para ver los cambios,
-  `kill -HUP $(pidof labwc)` (o `sudo systemctl restart greetd` para una sesión nueva).
-- Pendiente: oír los sonidos en la VM (solo se verificó que `pw-play` termina a tiempo, no el
-  resultado acústico), validar los paquetes en aarch64 y probar el audio en el Pi.
+- Con labwc no hay animaciones de ventana: el movimiento está en los paneles y en las transiciones CSS
+  (`docs/DISENO.md` § «Movimiento»). Los sonidos son los de la marca v2 (`build/make-sounds.py`,
+  `os/bin/command-os-sound`; `docs/DISENO.md` § «Sonido»).
+- `command-os-user-setup` instala `~/.config/command-os/bashrc` (alias, prompt de marca, `EDITOR=nano`) enganchado
+  desde `~/.bashrc` con marcadores, y `~/.config/nano/nanorc`.
+- La VM renderiza por software: la fluidez real de las animaciones solo se juzga en bare metal.
+  Ajustes de la VM (CPU hotplug, audio AC97): `docs/testing.md` y `docs/notas/vm-virtualbox-wsl.md`.

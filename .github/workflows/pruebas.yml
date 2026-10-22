@@ -8,6 +8,7 @@
 #     órdenes de mentira (tests/ajustes.sh).
 #   - aplicaciones: qué se hace con cada descarga, las asociaciones de tipos, la orden de la tienda y el
 #     tema GTK que leen las apps Flatpak (tests/aplicaciones.sh).
+#   - ligereza: el medidor de memoria, CPU y arranque sobre un /proc de mentira (tests/ligereza.sh).
 #   - instalador publicado: lo que lleva y que solo se ejecuta con una firma buena (tests/instalador.sh).
 #   - discos: el instalador en disco entero rechaza lo que no debe borrar (tests/discos.sh).
 #   - rollback: command-os-rollback sobre un btrfs en un disco loop, con y sin /boot aparte y con un
@@ -54,6 +55,8 @@ jobs:
         run: bash tests/ajustes.sh
       - name: Instalar aplicaciones (descargas, tipos de archivo, tienda, tema de las apps Flatpak)
         run: bash tests/aplicaciones.sh
+      - name: Medidor de ligereza (memoria, CPU y arranque)
+        run: bash tests/ligereza.sh
       - name: Instalador publicado (contenido y firma)
         run: |
           # msgfmt compila el catálogo del instalador en inglés (cargar_idioma); Ubuntu solo trae gettext-base.

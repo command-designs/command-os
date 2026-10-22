@@ -5,7 +5,7 @@ de la **marca v2 de Command** con su **lenguaje HUD** (`BRAND.md` 2.1 §§ 3–9
 según § 12.3) y lo une a Command el cumplimiento de las anclas de § 12.1 (tabla al final). Fuente de
 la marca: <https://github.com/command-designs/command-web> (`BRAND.md`, `tokens.css`). **Referencia
 visual: `lenguaje.html`** (<https://commandlab.dev/lenguaje>); si `BRAND.md`, el kit o este documento
-dicen otra cosa, manda ella. Por qué esta marca y qué se descartó: `docs/decisiones.md` (2026-10-19).
+dicen otra cosa, manda ella. Por qué esta marca y qué se descartó: `docs/decisiones/README.md` (2026-10-19).
 
 ## Idea
 

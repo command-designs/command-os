@@ -125,7 +125,7 @@ Estado: `/etc/command-os/cuenta-principal`, `/etc/command-os/inicio-automatico` 
 `os/variants/<v>/inicio-automatico-de-serie` hace que el asistente proponga el inicio automático (para
 el cyberdeck).
 
-**Decisiones** (2026-10-07; con lo descartado, en `docs/decisiones.md`):
+**Decisiones** (2026-10-07; con lo descartado, en `docs/decisiones/README.md`):
 - Asistente de primer arranque en vez de preguntar al instalar: la misma imagen vale para cualquier
   equipo y la cuenta la elige quien lo recibe.
 - Pedir contraseña de serie, inicio automático opcional: Command OS también se instala en PCs

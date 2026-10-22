@@ -1,0 +1,2 @@
+fecha	commit	rama	entorno	version	sesion	arranques	escritorio_s	kernel_s	initrd_s	userspace_s	mem_usada_mb	pss_total_mb	procesos_tics_min	cpu_tics_min	espera_s	ventana_s	nota
+2026-10-22 10:54	d2c3b79	docs/ordenar-documentacion-y-ligereza	vbox	2026.10.22.0838-1	labwc	3	109.3	11.0	1.9	92.7	665	413	51	1105	120	60	referencia: labwc, final de la tanda 4; userspace +90 s por el swap inexistente del fstab de la VM

@@ -2,7 +2,7 @@
 
 Qué hace cada pieza para que todo se vea igual de bien en 16:9 (1366x768, 1920x1080, 2560x1440) y
 16:10 (1280x800, 1920x1200, 2560x1600), con o sin alta densidad. El porqué de cada decisión, en
-`docs/decisiones.md`.
+`docs/decisiones/README.md`.
 
 ## Escala de alta densidad (`os/lib/pantallas.py`, `command-os-pantallas`)
 

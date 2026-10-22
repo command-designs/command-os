@@ -85,7 +85,7 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
 - Las apps de la tienda tampoco (`@flatpak`): van aparte de pacman y no hace falta fotografiarlas
   (cientos de MB de runtimes que engordarían cada instantánea). Las instalaciones en btrfs anteriores al
   2026-10-20 las llevan dentro de `@` y vuelven atrás con el sistema; no se migran en marcha
-  (`docs/decisiones.md`).
+  (`docs/decisiones/README.md`).
 - `/boot/grub` tampoco: `command-os-rollback` pone en el sistema recuperado el del anterior. El de la
   instantánea tiene la lista del menú desfasada, módulos que pueden no casar con el GRUB de la
   partición EFI (que no retrocede) y, en las instantáneas de la imagen, ni existe.
@@ -146,7 +146,7 @@ siendo `command-os-update`, con la contraseña y el «¿continuar?» de pacman.
   `lib/ajustes_actualizaciones.py`): el clic en el aviso de la barra abre la sección con la versión nueva de
   command-os, la lista de paquetes de Arch y la de aplicaciones de la tienda (con desplazamiento),
   cuándo se comprobó y dos botones: «comprobar ahora» (la comprobación manual, polkit) y «actualizar», que abre lo de siempre, abajo. **No
-  instala nada por sí mismo** (`docs/decisiones.md`). Lee `command-os-updates datos` (líneas con
+  instala nada por sí mismo** (`docs/decisiones/README.md`). Lee `command-os-updates datos` (líneas con
   tabuladores, con la misma regla que la barra: una comprobación anterior a un cambio de pacman no vale).
   Una sola ventana por sesión. El clic sobre la notificación sigue yendo directo a actualizar.
 - **«Actualizar»** abre kitty con `command-os-update` (`sudo` pide la contraseña, pacman pregunta antes de
@@ -184,7 +184,7 @@ el fondo arrancan; las configuraciones de hyprlock son válidas; captura de pant
 artefactos). Se ejecuta contra el Arch de la fecha validada (lo que tienen los equipos) y contra el
 Arch del día (lo que llegará): si la del día falla, no se valida una fecha nueva hasta arreglarlo.
 También que la tienda (Bazaar) y xarchiver enlazan con las bibliotecas de esa fecha: en la del
-2026/10/05 Bazaar no arrancaba (`docs/decisiones.md`). Y que `command-os-hyprbars` compila contra el
+2026/10/05 Bazaar no arrancaba (`docs/decisiones/README.md`). Y que `command-os-hyprbars` compila contra el
 Hyprland de esa fecha y es para su versión (`tests/hyprbars.sh`): si la fecha trae otro Hyprland, no se
 valida hasta poner el plugin al día (si no, pacman pararía la actualización de quien lo tenga).
 Además: `tests/cuentas.sh` (entrada al equipo) y `tests/actualizaciones.sh` (lo que enseña la barra, la

@@ -41,7 +41,7 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
   las actualizaciones llegan después por pacman. Cómo funciona todo: [`docs/actualizaciones.md`](docs/actualizaciones.md).
 - `tests/` y `.github/workflows/` — pruebas automáticas (sesión real sin pantalla, colores de la marca, escala de las
   pantallas, batería y aplicaciones fijadas de la barra, descargas y tipos de archivo, discos y cifrado
-  del instalador, idioma y traducciones) en
+  del instalador, idioma y traducciones, el medidor de ligereza) en
   cada cambio y cada día, publicación firmada del paquete y validación de fechas de Arch.
 - `build/packer/` — pipeline de build desatendido para la VM de desarrollo
   (QEMU, x86_64). Particiona disco, instala Arch base y corre
@@ -51,7 +51,8 @@ empaquetarlo y llevarlo al Pi real: ver "Siguientes pasos" más abajo.
   (`install-dualboot.sh`) o como sistema principal en el disco entero (`install-disco.sh`); guía en
   [`docs/instalacion.md`](docs/instalacion.md). También la imagen para probar desde un USB
   (`build-image.sh`). Raíz en btrfs con instantáneas (`lib.sh`), disco cifrado con LUKS2 si se quiere
-  ([`docs/cifrado.md`](docs/cifrado.md)) y el Arch de la fecha validada.
+  ([`docs/cifrado.md`](docs/cifrado.md)) y el Arch de la fecha validada. `medir-vm.sh` mide la memoria, la
+  CPU y el arranque en la VM y lo apunta en [`docs/medidas/`](docs/medidas/README.md).
 - `build/iso/` — ISOs descargadas (no versionadas, ver `.gitignore`).
 
 ## Flujo de desarrollo (VM x86_64 en QEMU)

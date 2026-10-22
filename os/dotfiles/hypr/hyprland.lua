@@ -206,7 +206,7 @@ panel("dev.commandlab.CentroAbajo", derecha, abajo)
 panel("dev.commandlab.CentroIzquierda", tostring(reserva.izquierda), abajo)
 
 -- Mezclador (vol en la barra) y dispositivos Bluetooth (bt): desplegables fijos arriba a la derecha,
--- solo con el filo, como en labwc (docs/decisiones.md: siguen ahí con la barra en otro lado).
+-- solo con el filo, como en labwc (docs/decisiones/README.md: siguen ahí con la barra en otro lado).
 for clase, tam in pairs({ ["org.pulseaudio.pavucontrol"] = { 460, 340 }, ["blueman-manager"] = { 520, 400 } }) do
     hl.window_rule({
         name = clase,

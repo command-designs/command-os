@@ -1,6 +1,6 @@
 #!/bin/bash
 # Lanza en el Arch de WSL las mismas pruebas que la CI (.github/workflows/pruebas.yml):
-# scripts, marca, pantallas, barra, ajustes, aplicaciones, instalador, discos y rollback.
+# scripts, marca, pantallas, barra, ajustes, aplicaciones, ligereza, instalador, discos y rollback.
 # Correr como root (usa discos loop y btrfs):
 #   wsl -d archlinux -u root -- bash /mnt/c/<ruta al repo>/build/wsl/pruebas.sh [prueba...]
 # Sin argumentos lanza todas; con nombres (p. ej. «marca rollback») solo esas.
@@ -14,7 +14,7 @@ cd "$(dirname "$0")/../.." || exit 1
 # El repo vive en /mnt/c (dueño distinto): git lo rechazaría sin esto. Solo para este proceso.
 export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0='*'
 
-PRUEBAS="scripts marca pantallas barra ajustes aplicaciones instalador discos rollback"
+PRUEBAS="scripts marca pantallas barra ajustes aplicaciones ligereza instalador discos rollback"
 SELECCION=${*:-$PRUEBAS}
 
 declare -A DEPENDE=(
@@ -44,6 +44,7 @@ pantallas() { bash tests/pantallas.sh; }
 barra() { bash tests/barra.sh; }
 ajustes() { bash tests/ajustes.sh; }
 aplicaciones() { bash tests/aplicaciones.sh; }
+ligereza() { bash tests/ligereza.sh; }
 instalador() { bash tests/instalador.sh; }
 discos() { bash tests/discos.sh; }
 rollback() { modprobe btrfs 2>/dev/null || true; bash tests/rollback.sh; }
