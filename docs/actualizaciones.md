@@ -116,7 +116,10 @@ y snap-pac hace una **antes y otra después de cada operación de pacman**.
   publicar un paquete que traiga la nueva pública firmado con la antigua.
 - Publicación: `.github/workflows/publicar.yml`, en cada cambio de `os/` o `build/x86/` en `main`. El
   paquete solo se publica si cambia `os/` (un cambio del instalador no avisa a los equipos de una
-  actualización vacía); el instalador, siempre, con la versión del paquete publicado. Secretos:
+  actualización vacía); el instalador, siempre, con la versión del paquete publicado.
+- En el mismo repositorio, `command-os-hyprbars` (las barras de título de la sesión Hyprland, `os/hyprbars`):
+  el único paquete compilado (x86_64), atado a una versión exacta de Hyprland y compilado contra el Arch de
+  la fecha validada. Se publica al cambiar su paquete o la fecha, después de `command-os`. Secretos:
   `COMMAND_OS_GPG_KEY` y `COMMAND_OS_VERSIONS_TOKEN` (token con escritura en el repositorio público).
 
 ## 7. Aviso de actualizaciones en el escritorio
@@ -181,7 +184,9 @@ el fondo arrancan; las configuraciones de hyprlock son válidas; captura de pant
 artefactos). Se ejecuta contra el Arch de la fecha validada (lo que tienen los equipos) y contra el
 Arch del día (lo que llegará): si la del día falla, no se valida una fecha nueva hasta arreglarlo.
 También que la tienda (Bazaar) y xarchiver enlazan con las bibliotecas de esa fecha: en la del
-2026/10/05 Bazaar no arrancaba (`docs/decisiones.md`).
+2026/10/05 Bazaar no arrancaba (`docs/decisiones.md`). Y que `command-os-hyprbars` compila contra el
+Hyprland de esa fecha y es para su versión (`tests/hyprbars.sh`): si la fecha trae otro Hyprland, no se
+valida hasta poner el plugin al día (si no, pacman pararía la actualización de quien lo tenga).
 Además: `tests/cuentas.sh` (entrada al equipo) y `tests/actualizaciones.sh` (lo que enseña la barra, la
 comprobación con un `checkupdates` de mentira, las unidades de systemd), sin red ni pantalla, y
 `tests/rollback.sh` (`command-os-rollback` sobre un btrfs en un disco loop, ver § 5).

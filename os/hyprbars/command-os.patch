@@ -1,0 +1,602 @@
+Command OS — parche de hyprbars (hyprland-plugins 7644cecd, el de Hyprland 0.56.2): las barras de título
+de la sesión Hyprland de prueba, iguales a las de labwc (docs/notas/escritorio.md § «Sesión Hyprland de
+prueba»). Lo aplica os/hyprbars/PKGBUILD; patch ignora este texto.
+
+- Botones SVG (add_button con svg, svg_toggled y width): los de build/make-labwc-buttons.py, de 36×32,
+  con su fondo de hover, inactiva y restaurar (maximizada).
+- Barra solo para quien pide decoración del servidor (xdg-decoration o la de KDE), como labwc: las apps
+  con cabecera propia (libadwaita) no llevan otra encima (ssd.cpp).
+- Barra y título según el foco: inactive_bar_color, col.inactive_text, bar_text_weight_inactive.
+- El hover redibuja al entrar o salir de un botón, no en cada movimiento del ratón.
+- Botones y arrastre solo con el botón izquierdo; el derecho lanza on_right_click.
+
+Para rehacerlo: aplicar sobre el commit, cambiar y `git diff --src-prefix=a/hyprbars/ --dst-prefix=b/hyprbars/`.
+
+diff --git a/hyprbars/Makefile b/hyprbars/Makefile
+index 59c7a93..23aa93e 100644
+--- a/hyprbars/Makefile
++++ b/hyprbars/Makefile
+@@ -8,9 +8,9 @@ endif
+ CXXFLAGS ?= -O2
+ CXXFLAGS += -shared -fPIC -std=c++2b -Wno-c++11-narrowing
+ INCLUDES = `pkg-config --cflags pixman-1 libdrm hyprland libinput libudev wayland-server xkbcommon`
+-LIBS =
++LIBS = `pkg-config --libs hyprgraphics`
+ 
+-SRC = main.cpp barDeco.cpp BarPassElement.cpp
++SRC = main.cpp barDeco.cpp BarPassElement.cpp ssd.cpp
+ TARGET = hyprbars.so
+ 
+ all: $(TARGET)
+diff --git a/hyprbars/barDeco.cpp b/hyprbars/barDeco.cpp
+index c27653d..b9d0628 100644
+--- a/hyprbars/barDeco.cpp
++++ b/hyprbars/barDeco.cpp
+@@ -22,6 +22,10 @@
+ #include <hyprland/src/layout/LayoutManager.hpp>
+ #include <hyprland/src/render/OpenGL.hpp>
+ #include <hyprland/src/state/MonitorState.hpp>
++#include <hyprland/src/managers/fullscreen/FullscreenController.hpp>
++
++#include <hyprgraphics/image/Image.hpp>
++#include <linux/input-event-codes.h>
+ 
+ #include "globals.hpp"
+ #include "BarPassElement.hpp"
+@@ -34,6 +38,20 @@ static CHyprColor configColor(Config::INTEGER color) {
+     return CHyprColor{static_cast<uint64_t>(color)};
+ }
+ 
++static float buttonWidth(const SHyprButton& b) {
++    return b.svg.empty() ? b.size : b.width;
++}
++
++static SP<Render::ITexture> loadSvg(const std::string& path, const Vector2D& size) {
++    Hyprgraphics::CImage image(path, size);
++    if (!image.success()) {
++        Log::logger->log(Log::ERR, "[hyprbars] can't load {}: {}", path, image.getError());
++        return nullptr;
++    }
++
++    return g_pHyprRenderer->createTexture(image.cairoSurface()->cairo());
++}
++
+ CHyprBar::CHyprBar(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
+     m_pWindow = pWindow;
+ 
+@@ -52,6 +70,9 @@ CHyprBar::CHyprBar(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
+     Animation::mgr()->createAnimation(configColor(g_pGlobalState->config.barColor->value()), m_cRealBarColor, Config::animationTree()->getAnimationPropertyConfig("border"),
+                                       pWindow, AVARDAMAGE_NONE);
+     m_cRealBarColor->setUpdateCallback([&](auto) { damageEntire(); });
++
++    m_bClientDecorated = clientDrawsOwnDecorations(pWindow);
++    m_hidden           = m_bClientDecorated;
+ }
+ 
+ CHyprBar::~CHyprBar() {
+@@ -126,6 +147,23 @@ void CHyprBar::onMouseButton(Event::SCallbackInfo& info, IPointer::SButtonEvent
+     if (!inputIsValid())
+         return;
+ 
++    // only the left button presses buttons and drags; the right one runs on_right_click on the bar
++    if (e.button != BTN_LEFT) {
++        const auto ON_RIGHT_CLICK = g_pGlobalState->config.onRightClick->value();
++        const auto HEIGHT         = g_pGlobalState->config.barHeight->value();
++
++        if (e.button == BTN_RIGHT && e.state == WL_POINTER_BUTTON_STATE_PRESSED && !ON_RIGHT_CLICK.empty() &&
++            VECINRECT(cursorRelativeToBar(), 0, 0, assignedBoxGlobal().w, HEIGHT - 1)) {
++            const auto PWINDOW = m_pWindow.lock();
++            if (Desktop::focusState()->window() != PWINDOW)
++                Desktop::focusState()->fullWindowFocus(PWINDOW, Desktop::FOCUS_REASON_CLICK);
++
++            info.cancelled = true;
++            Config::Supplementary::executor()->spawn(ON_RIGHT_CLICK);
++        }
++        return;
++    }
++
+     if (e.state != WL_POINTER_BUTTON_STATE_PRESSED) {
+         handleUpEvent(info);
+         return;
+@@ -150,9 +188,8 @@ void CHyprBar::onTouchUp(Event::SCallbackInfo& info, ITouch::SUpEvent e) {
+ }
+ 
+ void CHyprBar::onMouseMove(Vector2D coords) {
+-    // ensure proper redraws of button icons on hover when using hardware cursors
+-    if (g_pGlobalState->config.iconOnHover->value())
+-        damageOnButtonHover();
++    // ensure proper redraws of button icons (and SVG buttons) on hover when using hardware cursors
++    damageOnButtonHover();
+ 
+     if (!m_bDragPending || m_bTouchEv || !validMapped(m_pWindow) || m_touchId != 0)
+         return;
+@@ -278,27 +315,43 @@ void CHyprBar::handleMovement() {
+ 
+ bool CHyprBar::doButtonPress(Config::INTEGER barPadding, Config::INTEGER barButtonPadding, Config::INTEGER barHeight, Vector2D COORDS, const bool BUTTONSRIGHT) {
+     //check if on a button
+-    float offset = barPadding;
++    const int IDX = buttonAt(COORDS);
++    if (IDX < 0)
++        return false;
+ 
+-    for (auto& b : g_pGlobalState->buttons) {
+-        const auto BARBUF     = Vector2D{(int)assignedBoxGlobal().w, barHeight};
+-        Vector2D   currentPos = Vector2D{(BUTTONSRIGHT ? BARBUF.x - barButtonPadding - b.size - offset : offset), (BARBUF.y - b.size) / 2.0}.floor();
++    g_pKeybindManager->m_dispatchers["exec"](g_pGlobalState->buttons[IDX].cmd);
++    return true;
++}
+ 
+-        if (VECINRECT(COORDS, currentPos.x, currentPos.y, currentPos.x + b.size + barButtonPadding, currentPos.y + b.size)) {
+-            // hit on close
+-            g_pKeybindManager->m_dispatchers["exec"](b.cmd);
+-            return true;
+-        }
++// the button at coords (relative to the bar), or -1. SVG buttons are as tall as the bar.
++int CHyprBar::buttonAt(Vector2D coords) {
++    const auto HEIGHT           = g_pGlobalState->config.barHeight->value();
++    const auto BARBUTTONPADDING = g_pGlobalState->config.barButtonPadding->value();
++    const auto BARPADDING       = g_pGlobalState->config.barPadding->value();
++    const bool BUTTONSRIGHT     = g_pGlobalState->config.barButtonsAlignment->value() != "left";
++    const auto BARWIDTH         = (int)assignedBoxGlobal().w;
+ 
+-        offset += barButtonPadding + b.size;
++    float      offset = BARPADDING;
++    for (size_t i = 0; i < g_pGlobalState->buttons.size(); ++i) {
++        const auto& b          = g_pGlobalState->buttons[i];
++        const float w          = buttonWidth(b);
++        const float h          = b.svg.empty() ? b.size : HEIGHT;
++        Vector2D    currentPos = Vector2D{(BUTTONSRIGHT ? BARWIDTH - BARBUTTONPADDING - w - offset : offset), (HEIGHT - h) / 2.0}.floor();
++
++        if (VECINRECT(coords, currentPos.x, currentPos.y, currentPos.x + w + BARBUTTONPADDING, currentPos.y + h))
++            return i;
++
++        offset += BARBUTTONPADDING + w;
+     }
+-    return false;
++
++    return -1;
+ }
+ 
+ void CHyprBar::renderBarTitle(const Vector2D& bufferSize, const float scale) {
+-    const auto COLORVAL         = g_pGlobalState->config.textColor->value();
++    const auto INACTIVETEXT     = g_pGlobalState->config.inactiveTextColor->value();
++    const auto COLORVAL         = !m_bWindowHasFocus && INACTIVETEXT > 0 ? INACTIVETEXT : g_pGlobalState->config.textColor->value();
+     const auto SIZE             = g_pGlobalState->config.barTextSize->value();
+-    const auto WEIGHT           = g_pGlobalState->config.barTextWeight->value();
++    const auto WEIGHT           = m_bWindowHasFocus ? g_pGlobalState->config.barTextWeight->value() : g_pGlobalState->config.barTextWeightInactive->value();
+     const auto FONT             = g_pGlobalState->config.barTextFont->value();
+     const auto ALIGN            = g_pGlobalState->config.barTextAlign->value();
+     const auto BARPADDING       = g_pGlobalState->config.barPadding->value();
+@@ -306,7 +359,7 @@ void CHyprBar::renderBarTitle(const Vector2D& bufferSize, const float scale) {
+ 
+     float      buttonSizes = BARBUTTONPADDING;
+     for (auto& b : g_pGlobalState->buttons) {
+-        buttonSizes += b.size + BARBUTTONPADDING;
++        buttonSizes += buttonWidth(b) + BARBUTTONPADDING;
+     }
+ 
+     const int  scaledSize        = std::round(SIZE * scale);
+@@ -329,7 +382,7 @@ size_t CHyprBar::getVisibleButtonCount(Config::INTEGER barButtonPadding, Config:
+     size_t count          = 0;
+ 
+     for (const auto& button : g_pGlobalState->buttons) {
+-        const float buttonSpace = (button.size + barButtonPadding) * scale;
++        const float buttonSpace = (buttonWidth(button) + barButtonPadding) * scale;
+         if (availableSpace >= buttonSpace) {
+             count++;
+             availableSpace -= buttonSpace;
+@@ -356,7 +409,18 @@ void CHyprBar::renderBarButtons(CBox* barBox, const float scale, const float a)
+         const auto scaledButtonSize = button.size * scale;
+         const auto scaledButtonsPad = BARBUTTONPADDING * scale;
+ 
+-        auto       color = button.bgcol;
++        if (!button.svg.empty()) {
++            const auto scaledWidth = button.width * scale;
++            CBox       svgBox      = {barBox->x + (BUTTONSRIGHT ? barBox->w - offset - scaledWidth : offset), barBox->y, scaledWidth, barBox->h};
++            svgBox.round();
++
++            renderSvgButton(button, svgBox, i, scale, a);
++
++            offset += scaledButtonsPad + scaledWidth;
++            continue;
++        }
++
++        auto color = button.bgcol;
+ 
+         if (INACTIVECOLOR > 0) {
+             color = m_bWindowHasFocus ? color : configColor(INACTIVECOLOR);
+@@ -376,6 +440,30 @@ void CHyprBar::renderBarButtons(CBox* barBox, const float scale, const float a)
+     }
+ }
+ 
++// the SVGs are rasterized at the monitor's scale the first time each state is drawn
++void CHyprBar::renderSvgButton(SHyprButton& button, const CBox& box, size_t idx, const float scale, const float a) {
++    static constexpr std::array<const char*, SVG_STATES> SUFFIX = {"-active.svg", "-inactive.svg", "_hover-active.svg"};
++
++    if (button.svgScale != scale) {
++        button.svgTex   = {};
++        button.svgTried = {};
++        button.svgScale = scale;
++    }
++
++    const auto PWINDOW = m_pWindow.lock();
++    const bool TOGGLED = !button.svgToggled.empty() && Fullscreen::controller()->getFullscreenModes(PWINDOW).internal == Fullscreen::FSMODE_MAXIMIZED;
++    const auto STATE   = m_iHoveredButton == (int)idx ? SVG_HOVER : m_bWindowHasFocus ? SVG_ACTIVE : SVG_INACTIVE;
++    const auto SLOT    = (TOGGLED ? SVG_STATES : 0) + STATE;
++
++    if (!button.svgTried[SLOT]) {
++        button.svgTried[SLOT] = true;
++        button.svgTex[SLOT]   = loadSvg((TOGGLED ? button.svgToggled : button.svg) + SUFFIX[STATE], box.size());
++    }
++
++    if (button.svgTex[SLOT])
++        g_pHyprOpenGL->renderTexture(button.svgTex[SLOT], box, {.a = a});
++}
++
+ void CHyprBar::renderBarButtonsText(CBox* barBox, const float scale, const float a) {
+     const auto HEIGHT           = g_pGlobalState->config.barHeight->value();
+     const auto BARBUTTONPADDING = g_pGlobalState->config.barButtonPadding->value();
+@@ -395,6 +483,13 @@ void CHyprBar::renderBarButtonsText(CBox* barBox, const float scale, const float
+         const auto scaledButtonSize = button.size * scale;
+         const auto scaledButtonsPad = BARBUTTONPADDING * scale;
+ 
++        // SVG buttons carry their icon (renderSvgButton)
++        if (!button.svg.empty()) {
++            offset += scaledButtonsPad + button.width * scale;
++            noScaleOffset += BARBUTTONPADDING + button.width;
++            continue;
++        }
++
+         // check if hovering here
+         const auto BARBUF     = Vector2D{(int)assignedBoxGlobal().w, HEIGHT};
+         Vector2D   currentPos = Vector2D{(BUTTONSRIGHT ? BARBUF.x - BARBUTTONPADDING - button.size - noScaleOffset : noScaleOffset), (BARBUF.y - button.size) / 2.0}.floor();
+@@ -458,17 +553,18 @@ void CHyprBar::renderPass(PHLMONITOR pMonitor, const float& a) {
+     const auto  ALIGNBUTTONS      = g_pGlobalState->config.barButtonsAlignment->value();
+     const auto  ENABLETITLE       = g_pGlobalState->config.barTitleEnabled->value();
+     const auto  ENABLEBLUR        = g_pGlobalState->config.barBlur->value();
+-    const auto  INACTIVECOLOR     = g_pGlobalState->config.inactiveButtonColor->value();
++    const auto  INACTIVEBARCOLOR  = g_pGlobalState->config.inactiveBarColor->value();
+ 
+-    if (INACTIVECOLOR > 0) {
+-        bool currentWindowFocus = PWINDOW == Desktop::focusState()->window();
+-        if (currentWindowFocus != m_bWindowHasFocus) {
+-            m_bWindowHasFocus = currentWindowFocus;
+-            m_bButtonsDirty   = true;
+-        }
++    // the bar, its title and the SVG buttons change with the focus, as in labwc
++    const bool currentWindowFocus = PWINDOW == Desktop::focusState()->window();
++    if (currentWindowFocus != m_bWindowHasFocus) {
++        m_bWindowHasFocus    = currentWindowFocus;
++        m_bButtonsDirty      = true;
++        m_bTitleColorChanged = true;
+     }
+ 
+-    const CHyprColor DEST_COLOR = m_bForcedBarColor.value_or(configColor(BARCOLOR));
++    const auto       BASECOLOR  = !m_bWindowHasFocus && INACTIVEBARCOLOR > 0 ? INACTIVEBARCOLOR : BARCOLOR;
++    const CHyprColor DEST_COLOR = m_bForcedBarColor.value_or(configColor(BASECOLOR));
+     if (DEST_COLOR != m_cRealBarColor->goal())
+         *m_cRealBarColor = DEST_COLOR;
+ 
+@@ -561,7 +657,7 @@ void CHyprBar::renderPass(PHLMONITOR pMonitor, const float& a) {
+ 
+         float      buttonSizes = BARBUTTONPADDING;
+         for (auto& b : g_pGlobalState->buttons) {
+-            buttonSizes += b.size + BARBUTTONPADDING;
++            buttonSizes += buttonWidth(b) + BARBUTTONPADDING;
+         }
+ 
+         const auto scaledBorderSize  = PWINDOW->getRealBorderSize() * pMonitor->m_scale;
+@@ -649,10 +745,11 @@ void CHyprBar::updateRules() {
+ 
+     m_bForcedBarColor   = std::nullopt;
+     m_bForcedTitleColor = std::nullopt;
+-    m_hidden            = false;
++    m_bClientDecorated  = clientDrawsOwnDecorations(PWINDOW);
++    m_hidden            = m_bClientDecorated;
+ 
+     if (PWINDOW->m_ruleApplicator->m_otherProps.props.contains(g_pGlobalState->nobarRuleIdx))
+-        m_hidden = truthy(PWINDOW->m_ruleApplicator->m_otherProps.props.at(g_pGlobalState->nobarRuleIdx)->effect);
++        m_hidden = m_hidden || truthy(PWINDOW->m_ruleApplicator->m_otherProps.props.at(g_pGlobalState->nobarRuleIdx)->effect);
+     if (PWINDOW->m_ruleApplicator->m_otherProps.props.contains(g_pGlobalState->barColorRuleIdx))
+         m_bForcedBarColor = CHyprColor(Config::ParserUtils::parseColor(PWINDOW->m_ruleApplicator->m_otherProps.props.at(g_pGlobalState->barColorRuleIdx)->effect).value_or(0));
+     if (PWINDOW->m_ruleApplicator->m_otherProps.props.contains(g_pGlobalState->titleColorRuleIdx))
+@@ -664,28 +761,23 @@ void CHyprBar::updateRules() {
+         m_bTitleColorChanged = true;
+ }
+ 
++// redraws the bar only when the pointer enters or leaves one of its buttons, not on every move
+ void CHyprBar::damageOnButtonHover() {
+-    const auto BARPADDING       = g_pGlobalState->config.barPadding->value();
+-    const auto BARBUTTONPADDING = g_pGlobalState->config.barButtonPadding->value();
+-    const auto HEIGHT           = g_pGlobalState->config.barHeight->value();
+-    const auto ALIGNBUTTONS     = g_pGlobalState->config.barButtonsAlignment->value();
+-    const bool BUTTONSRIGHT     = ALIGNBUTTONS != "left";
+-
+-    float      offset = BARPADDING;
+-
+-    const auto COORDS = cursorRelativeToBar();
+-
+-    for (auto& b : g_pGlobalState->buttons) {
+-        const auto BARBUF     = Vector2D{(int)assignedBoxGlobal().w, HEIGHT};
+-        Vector2D   currentPos = Vector2D{(BUTTONSRIGHT ? BARBUF.x - BARBUTTONPADDING - b.size - offset : offset), (BARBUF.y - b.size) / 2.0}.floor();
++    if (m_hidden || !validMapped(m_pWindow))
++        return;
+ 
+-        bool       hover = VECINRECT(COORDS, currentPos.x, currentPos.y, currentPos.x + b.size + BARBUTTONPADDING, currentPos.y + b.size);
++    int hovered = buttonAt(cursorRelativeToBar());
+ 
+-        if (hover != m_bButtonHovered) {
+-            m_bButtonHovered = hover;
+-            damageEntire();
+-        }
++    // a window on top of this bar's button
++    if (hovered >= 0) {
++        Desktop::CViewHitTester hitTester{*Desktop::viewState()};
++        if (hitTester.windowAt(g_pInputManager->getMouseCoordsInternal(), Desktop::View::RESERVED_EXTENTS | Desktop::View::INPUT_EXTENTS | Desktop::View::ALLOW_FLOATING) !=
++            m_pWindow.lock())
++            hovered = -1;
++    }
+ 
+-        offset += BARBUTTONPADDING + b.size;
++    if (hovered != m_iHoveredButton) {
++        m_iHoveredButton = hovered;
++        damageEntire();
+     }
+ }
+diff --git a/hyprbars/barDeco.hpp b/hyprbars/barDeco.hpp
+index a3b4e2d..31d0228 100644
+--- a/hyprbars/barDeco.hpp
++++ b/hyprbars/barDeco.hpp
+@@ -21,6 +21,9 @@ namespace Event {
+     struct SCallbackInfo;
+ }
+ 
++// whether the client draws its own title bar (ssd.cpp)
++bool clientDrawsOwnDecorations(PHLWINDOW window);
++
+ class CHyprBar : public IHyprWindowDecoration {
+   public:
+     CHyprBar(PHLWINDOW);
+@@ -68,6 +71,8 @@ class CHyprBar : public IHyprWindowDecoration {
+     bool                       m_bButtonHovered     = false;
+     bool                       m_bLastEnabledState  = false;
+     bool                       m_bWindowHasFocus    = false;
++    bool                       m_bClientDecorated   = false;
++    int                        m_iHoveredButton     = -1;
+     std::optional<CHyprColor>  m_bForcedBarColor;
+     std::optional<CHyprColor>  m_bForcedTitleColor;
+ 
+@@ -81,7 +86,9 @@ class CHyprBar : public IHyprWindowDecoration {
+     void                       renderBarTitle(const Vector2D& bufferSize, const float scale);
+     void renderBarButtons(CBox* barBox, const float scale, const float a);
+     void renderBarButtonsText(CBox* barBox, const float scale, const float a);
++    void renderSvgButton(SHyprButton& button, const CBox& box, size_t idx, const float scale, const float a);
+     void damageOnButtonHover();
++    int  buttonAt(Vector2D coords);
+ 
+     bool inputIsValid();
+     void onMouseButton(Event::SCallbackInfo& info, IPointer::SButtonEvent e);
+diff --git a/hyprbars/globals.hpp b/hyprbars/globals.hpp
+index 0ef19ae..75c01c7 100644
+--- a/hyprbars/globals.hpp
++++ b/hyprbars/globals.hpp
+@@ -8,8 +8,20 @@
+ #include <hyprland/src/config/values/types/ColorValue.hpp>
+ #include <hyprland/src/config/values/types/FontWeightValue.hpp>
+ 
++#include <array>
++
+ inline HANDLE PHANDLE = nullptr;
+ 
++// Command OS: an SVG button is drawn from whole-button images (background included), as labwc does:
++// <svg>-active.svg, <svg>-inactive.svg and <svg>_hover-active.svg, plus the same set under <svgToggled>
++// while the window is maximized. It is `width` wide and as tall as the bar.
++enum eSvgButtonState : uint8_t {
++    SVG_ACTIVE = 0,
++    SVG_INACTIVE,
++    SVG_HOVER,
++    SVG_STATES,
++};
++
+ struct SHyprButton {
+     std::string          cmd     = "";
+     bool                 userfg  = false;
+@@ -18,6 +30,13 @@ struct SHyprButton {
+     float                size    = 10;
+     std::string          icon    = "";
+     SP<Render::ITexture> iconTex;
++
++    std::string                                       svg        = "";
++    std::string                                       svgToggled = "";
++    float                                             width      = 0;
++    std::array<SP<Render::ITexture>, SVG_STATES * 2> svgTex;
++    std::array<bool, SVG_STATES * 2>                  svgTried = {};
++    float                                             svgScale = 0;
+ };
+ 
+ class CHyprBar;
+@@ -30,14 +49,14 @@ struct SGlobalState {
+     uint32_t                  titleColorRuleIdx = 0;
+ 
+     struct {
+-        SP<Config::Values::CColorValue>      barColor, textColor, inactiveButtonColor;
++        SP<Config::Values::CColorValue>      barColor, textColor, inactiveButtonColor, inactiveBarColor, inactiveTextColor;
+         SP<Config::Values::CIntValue>        barHeight;
+         SP<Config::Values::CIntValue>        barTextSize;
+-        SP<Config::Values::CFontWeightValue> barTextWeight;
++        SP<Config::Values::CFontWeightValue> barTextWeight, barTextWeightInactive;
+         SP<Config::Values::CIntValue>        barPadding;
+         SP<Config::Values::CIntValue>        barButtonPadding;
+         SP<Config::Values::CBoolValue>       barBlur, barTitleEnabled, barPartOfWindow, barPrecedenceOverBorder, enabled, iconOnHover;
+-        SP<Config::Values::CStringValue>     barTextFont, barTextAlign, barButtonsAlignment, onDoubleClick;
++        SP<Config::Values::CStringValue>     barTextFont, barTextAlign, barButtonsAlignment, onDoubleClick, onRightClick;
+     } config;
+ };
+ 
+diff --git a/hyprbars/main.cpp b/hyprbars/main.cpp
+index ae9c90b..7796518 100644
+--- a/hyprbars/main.cpp
++++ b/hyprbars/main.cpp
+@@ -57,6 +57,13 @@ static void onConfigReloaded() {
+     }
+ }
+ 
++static void onWindowActive() {
++    for (auto& b : g_pGlobalState->bars) {
++        if (b)
++            b->damageEntire();
++    }
++}
++
+ static void onUpdateWindowRules(PHLWINDOW window) {
+     const auto BARIT = std::find_if(g_pGlobalState->bars.begin(), g_pGlobalState->bars.end(), [window](const auto& bar) { return bar->getOwner() == window; });
+ 
+@@ -116,10 +123,70 @@ Hyprlang::CParseResult onNewButton(const char* K, const char* V) {
+     return result;
+ }
+ 
++// { svg = "<path without -active.svg>", svg_toggled = "<the same, maximized>", width = 36, action = "..." }
++static int newLuaSvgButton(lua_State* L) {
++    SHyprButton button;
++
++    {
++        Hyprutils::Utils::CScopeGuard x([L] { lua_pop(L, 1); });
++
++        lua_getfield(L, 1, "svg");
++        button.svg = lua_tostring(L, -1);
++    }
++
++    {
++        Hyprutils::Utils::CScopeGuard x([L] { lua_pop(L, 1); });
++
++        lua_getfield(L, 1, "svg_toggled");
++
++        if (lua_isstring(L, -1))
++            button.svgToggled = lua_tostring(L, -1);
++        else if (!lua_isnil(L, -1))
++            return Config::Lua::Bindings::Internal::configError(L, "add_button: svg_toggled must be a string");
++    }
++
++    {
++        Hyprutils::Utils::CScopeGuard x([L] { lua_pop(L, 1); });
++
++        lua_getfield(L, 1, "width");
++
++        if (!lua_isnumber(L, -1) || lua_tonumber(L, -1) <= 0)
++            return Config::Lua::Bindings::Internal::configError(L, "add_button: width must be a positive number");
++
++        button.width = lua_tonumber(L, -1);
++    }
++
++    {
++        Hyprutils::Utils::CScopeGuard x([L] { lua_pop(L, 1); });
++
++        lua_getfield(L, 1, "action");
++
++        if (!lua_isstring(L, -1))
++            return Config::Lua::Bindings::Internal::configError(L, "add_button: action must be a string");
++
++        button.cmd = lua_tostring(L, -1);
++    }
++
++    g_pGlobalState->buttons.push_back(std::move(button));
++
++    for (auto& b : g_pGlobalState->bars) {
++        b->m_bButtonsDirty = true;
++    }
++
++    return 0;
++}
++
+ int newLuaButton(lua_State* L) {
+     if (!lua_istable(L, 1))
+         return Config::Lua::Bindings::Internal::configError(L, "add_button: expected a table { bg_color, fg_color, size, icon, action }");
+ 
++    lua_getfield(L, 1, "svg");
++    const bool SVG = lua_isstring(L, -1);
++    lua_pop(L, 1);
++
++    if (SVG)
++        return newLuaSvgButton(L);
++
+     SHyprButton button;
+ 
+     {
+@@ -210,6 +277,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+ 
+     static auto P  = Event::bus()->m_events.window.open.listen([&](PHLWINDOW w) { onNewWindow(w); });
+     static auto P3 = Event::bus()->m_events.window.updateRules.listen([&](PHLWINDOW w) { onUpdateWindowRules(w); });
++    // the bars of the windows that gain and lose the focus change color
++    static auto P6 = Event::bus()->m_events.window.active.listen([&](PHLWINDOW w, Desktop::eFocusReason r) { onWindowActive(); });
+ 
+     g_pGlobalState->config.barColor            = makeShared<Config::Values::CColorValue>("plugin:hyprbars:bar_color", "Change the bar color", 0x88333333);
+     g_pGlobalState->config.textColor           = makeShared<Config::Values::CColorValue>("plugin:hyprbars:col.text", "Change the text color", 0xffffffff);
+@@ -232,6 +301,13 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+     g_pGlobalState->config.enabled             = makeShared<Config::Values::CBoolValue>("plugin:hyprbars:enabled", "Whether bars are enabled", true);
+     g_pGlobalState->config.iconOnHover         = makeShared<Config::Values::CBoolValue>("plugin:hyprbars:icon_on_hover", "Whether to use an icon on hover of the buttons", false);
+     g_pGlobalState->config.onDoubleClick       = makeShared<Config::Values::CStringValue>("plugin:hyprbars:on_double_click", "Action to execute on double click of the bar", "");
++    g_pGlobalState->config.onRightClick        = makeShared<Config::Values::CStringValue>("plugin:hyprbars:on_right_click", "Action to execute on right click of the bar", "");
++    g_pGlobalState->config.inactiveBarColor =
++        makeShared<Config::Values::CColorValue>("plugin:hyprbars:inactive_bar_color", "The bar's color when the window isn't focused. 0x00000000 means unset", 0x00000000);
++    g_pGlobalState->config.inactiveTextColor =
++        makeShared<Config::Values::CColorValue>("plugin:hyprbars:col.inactive_text", "The title's color when the window isn't focused. 0x00000000 means unset", 0x00000000);
++    g_pGlobalState->config.barTextWeightInactive =
++        makeShared<Config::Values::CFontWeightValue>("plugin:hyprbars:bar_text_weight_inactive", "Bar's title text weight when the window isn't focused", 400);
+ 
+     HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.barColor);
+     HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.textColor);
+@@ -251,6 +327,10 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+     HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.enabled);
+     HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.iconOnHover);
+     HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.onDoubleClick);
++    HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.onRightClick);
++    HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.inactiveBarColor);
++    HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.inactiveTextColor);
++    HyprlandAPI::addConfigValueV2(PHANDLE, g_pGlobalState->config.barTextWeightInactive);
+ 
+     if (Config::mgr()->type() == Config::CONFIG_LEGACY)
+         HyprlandAPI::addConfigKeyword(PHANDLE, "plugin:hyprbars:hyprbars-button", onNewButton, Hyprlang::SHandlerOptions{});
+diff --git a/hyprbars/ssd.cpp b/hyprbars/ssd.cpp
+new file mode 100644
+index 0000000..6f27ec6
+--- /dev/null
++++ b/hyprbars/ssd.cpp
+@@ -0,0 +1,38 @@
++#define WLR_USE_UNSTABLE
++
++#include <hyprland/src/desktop/view/Window.hpp>
++#include <hyprland/src/desktop/view/WLSurface.hpp>
++
++// what each client asked for is private to the protocols
++#define private public
++#include <hyprland/src/protocols/XDGShell.hpp>
++#include <hyprland/src/protocols/XDGDecoration.hpp>
++#include <hyprland/src/protocols/ServerDecorationKDE.hpp>
++#undef private
++
++#include "barDeco.hpp"
++
++// A client gets a bar only if it asked for server-side decorations (xdg-decoration or KDE's protocol), as
++// labwc decides it. Hyprland answers "server side" to everyone, so what the client requested is what
++// tells: GTK 4 and libadwaita windows with a header bar ask for client side, or never ask.
++bool clientDrawsOwnDecorations(PHLWINDOW window) {
++    if (!window || window->m_isX11)
++        return false;
++
++    if (PROTO::xdgDecoration && window->m_xdgSurface && window->m_xdgSurface->m_toplevel) {
++        const auto TOPLEVEL = window->m_xdgSurface->m_toplevel->m_resource->resource();
++        const auto IT       = PROTO::xdgDecoration->m_decorations.find(TOPLEVEL);
++        if (IT != PROTO::xdgDecoration->m_decorations.end() && IT->second)
++            return IT->second->mostRecentlyRequested == ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
++    }
++
++    if (PROTO::serverDecorationKDE && window->wlSurface()) {
++        const auto SURFACE = window->wlSurface()->resource();
++        for (const auto& deco : PROTO::serverDecorationKDE->m_decos) {
++            if (deco && deco->m_surf == SURFACE)
++                return deco->m_mostRecentlyRequested != ORG_KDE_KWIN_SERVER_DECORATION_MODE_SERVER;
++        }
++    }
++
++    return true;
++}

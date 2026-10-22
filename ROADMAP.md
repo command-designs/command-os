@@ -44,5 +44,7 @@ configurable) están hechas: `docs/DISENO.md` y `docs/notas/escritorio.md`.
    reserva. Si se adopta: Hyprland de serie y, si no arranca o se cierra al empezar,
    `command-os-session` arranca labwc solo y avisa (también en equipos sin aceleración 3D, como la
    VM); el selector de sesión queda discreto (inicio de sesión y Ajustes) para fallos que no la cierran.
-8. **Barra que se oculta sola** (Opus, medio: depende del 7). Con Hyprland, Ironbar (en Arch, con
-   ocultado nativo) o Waybar con un ayudante que mire el puntero (`hyprctl cursorpos`).
+   Estudio de paridad, 7.1 (sesión, selector y `hyprland.lua`), 7.2 (barras de título, paquete
+   `command-os-hyprbars`) y 7.3 (menús, Alt+Tab con rofi y encajar al soltar) hechos:
+   `docs/notas/escritorio.md` § «Sesión Hyprland de prueba». Queda que el usuario lo pruebe
+   (`docs/prueba-en-pc-real.md` § 9) y decidir si se adopta con sus medidas.

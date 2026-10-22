@@ -5,15 +5,23 @@
 #   command-os-desktops quitar   quita el último; sus ventanas pasan al 01 (Super+Ctrl+F4)
 #   command-os-desktops menu     submenú "mover a escritorio" del menú de ventana (pipemenu)
 # labwc no crea escritorios en caliente: se reescribe la lista <names> del rc.xml del usuario (que
-# labwc suma al de serie con --merge-config) y se recarga.
+# labwc suma al de serie con --merge-config) y se recarga. En la sesión de Hyprland de prueba, el número
+# va en ~/.config/command-os/escritorios y hyprland.lua los crea o los quita (command_os.escritorios).
 set -euo pipefail
 source /usr/lib/command-os/textos.sh
 
 RC="${XDG_CONFIG_HOME:-$HOME/.config}/labwc/rc.xml"
-[[ -e "${RC}" ]] || command-os-user-setup
+HYPR="${XDG_CONFIG_HOME:-$HOME/.config}/command-os/escritorios"
 MAX=4  # los atajos Super+1…4 llegan hasta aquí
 
-count=$(sed -n '/<names>/,/<\/names>/p' "${RC}" | grep -c '<name>')
+if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+  count=$(cat "${HYPR}" 2>/dev/null) || count=1
+  [[ "${count}" =~ ^[1-9]$ ]] || count=1
+  (( count <= MAX )) || count=${MAX}
+else
+  [[ -e "${RC}" ]] || command-os-user-setup
+  count=$(sed -n '/<names>/,/<\/names>/p' "${RC}" | grep -c '<name>')
+fi
 
 case "${1:-}" in
   menu)
@@ -41,6 +49,13 @@ case "${1:-}" in
     echo "uso: command-os-desktops nuevo|quitar" >&2
     exit 2 ;;
 esac
+
+if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+  mkdir -p "${HYPR%/*}"
+  echo "${count}" > "${HYPR}"
+  hyprctl eval "command_os.escritorios(${count})" >/dev/null
+  exit 0
+fi
 
 tmp=$(mktemp "${RC}.XXXXXX")
 awk -v n="${count}" '

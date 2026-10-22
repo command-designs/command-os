@@ -1,19 +1,35 @@
 #!/usr/bin/env bash
-# Command OS — la sesión de escritorio (labwc). La lanza greetd al entrar, con contraseña o con
-# inicio automático (/etc/command-os/greetd.toml). Vale para cualquier cuenta del equipo.
+# Command OS — la sesión de escritorio. La lanza greetd al entrar, con contraseña o con inicio automático
+# (/etc/command-os/greetd.toml). Vale para cualquier cuenta del equipo.
+#   command-os-session              la de la última vez (de serie, labwc)
+#   command-os-session labwc        labwc, y la recuerda
+#   command-os-session hyprland     Hyprland de prueba (si está instalado), y la recuerda; si no llega a
+#                                   arrancar, abre labwc y avisa (docs/notas/escritorio.md)
+# El selector está en la pantalla de inicio de sesión (lib/greeter.py), solo con Hyprland instalado.
 set -uo pipefail
 source /usr/lib/command-os/entorno-grafico
-export XDG_CURRENT_DESKTOP=labwc:wlroots XDG_SESSION_TYPE=wayland
+source /usr/lib/command-os/textos.sh
 
-# Cuenta lista antes de que labwc lea su configuración: la primera vez, tras una actualización, y
-# los ajustes del equipo (teclado, perfil de VM) en ~/.config/labwc/environment.d/local.env.
+ELEGIDA="${XDG_CONFIG_HOME:-$HOME/.config}/command-os/sesion"
+LOG="${XDG_RUNTIME_DIR:-/tmp}"
+# Menos de esto con un error es que Hyprland no ha llegado a arrancar (sin aceleración 3D, por ejemplo).
+ARRANQUE=15
+
+recordar() {
+  mkdir -p "${ELEGIDA%/*}" && printf '%s\n' "$1" > "${ELEGIDA}"
+}
+
+sesion=${1:-}
+case "${sesion}" in
+  labwc|hyprland) recordar "${sesion}" ;;
+  "") sesion=$(cat "${ELEGIDA}" 2>/dev/null) ;;
+  *) echo "uso: command-os-session [labwc|hyprland]" >&2; exit 2 ;;
+esac
+[[ "${sesion}" == hyprland ]] && command -v Hyprland >/dev/null || sesion=labwc
+
+# Cuenta lista antes de que el escritorio lea su configuración: la primera vez, tras una actualización,
+# y los ajustes del equipo (teclado, perfil de VM) en ~/.config/labwc/environment.d/local.env.
 command-os-user-setup >/dev/null 2>&1 || true
-
-# El menú de labwc, traducido al idioma del equipo, en una carpeta de configuración propia que va
-# la primera (lib/menus-labwc, docs/idioma.md). Sin ella, labwc no tendría menú.
-if menus=$(/usr/lib/command-os/menus-labwc); then
-  export XDG_CONFIG_DIRS="${menus}:${XDG_CONFIG_DIRS:-/etc/xdg}"
-fi
 
 # Aplicaciones de la tienda (Flatpak): sus .desktop e iconos, para el lanzador y las fijadas. Las
 # carpetas las da el propio flatpak (/etc/profile.d/flatpak.sh), que greetd no carga: no es un shell
@@ -40,6 +56,28 @@ if [[ -d "${XDG_RUNTIME_DIR:-}" && -O "${XDG_RUNTIME_DIR:-}" ]] && mkdir -p "${a
   export XDG_DATA_DIRS="${apps%/applications}:${XDG_DATA_DIRS}"
 fi
 
+if [[ "${sesion}" == hyprland ]]; then
+  # La configuración de serie con --config: sin ella, Hyprland escribiría la suya de ejemplo en
+  # ~/.config/hypr. Lo del usuario lo carga la de serie al final (os/dotfiles/hypr/hyprland.lua).
+  export XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland
+  inicio=${SECONDS}
+  Hyprland --config /etc/xdg/hypr/hyprland.lua > "${LOG}/hyprland-sesion.log" 2>&1
+  estado=$?
+  (( estado == 0 || SECONDS - inicio >= ARRANQUE )) && exit "${estado}"
+  # No ha llegado a arrancar: labwc, que se recuerda para el inicio automático, y un aviso cuando ya haya
+  # quien lo enseñe (swaync arranca con la sesión).
+  recordar labwc
+  aviso=$(t 'hyprland no ha podido arrancar (registro en %s): se ha abierto labwc.' "${LOG}/hyprland-sesion.log")
+  (sleep 8; notify-send --app-name "command os" --icon command-os --urgency critical "${aviso}") \
+    >/dev/null 2>&1 < /dev/null &
+fi
+
+export XDG_CURRENT_DESKTOP=labwc:wlroots XDG_SESSION_TYPE=wayland
+# El menú de labwc, traducido al idioma del equipo, en una carpeta de configuración propia que va
+# la primera (lib/menus-labwc, docs/idioma.md). Sin ella, labwc no tendría menú.
+if menus=$(/usr/lib/command-os/menus-labwc); then
+  export XDG_CONFIG_DIRS="${menus}:${XDG_CONFIG_DIRS:-/etc/xdg}"
+fi
 # --merge-config: la configuración de serie (/etc/xdg/labwc) más lo que el usuario añada en
 # ~/.config/labwc. El registro va a un archivo, no a la pantalla.
-exec labwc --merge-config > "${XDG_RUNTIME_DIR:-/tmp}/labwc.log" 2>&1
+exec labwc --merge-config > "${LOG}/labwc.log" 2>&1

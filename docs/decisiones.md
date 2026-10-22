@@ -3,6 +3,73 @@
 Decisiones no obvias: qué se decidió, por qué y qué se descartó, para no reabrirlas. Las anteriores
 al 2026-10-07 están repartidas por `docs/` y `AGENTS.md` («Qué se probó y qué se descartó»).
 
+## 2026-10-22 — Menús, Alt+Tab y encajar en Hyprland, 7.3 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
+
+- **Los menús salen de `menu.xml`**, no de una copia para Hyprland: un ayudante (`lib/menu-hyprland.py`,
+  un proceso corto por menú) lo lee traducido y pasa cada acción de labwc a una orden de Hyprland. Lo que
+  se añada al menú llega a las dos sesiones, y `--seco` falla si una acción no tiene equivalente.
+  Descartado: los menús en Lua dentro de `hyprland.lua` (otra lista que mantener y sin traducciones).
+- **Alt+Tab cambia al momento y enseña la lista solo si Alt sigue pulsado**: rofi tarda en abrirse y, si
+  se suelta Alt antes, no se entera y se quedaría abierto. Con `hl.is_key_down` a los 150 ms se sabe; un
+  toque rápido no abre nada. La lista la hace Lua con el historial de foco (de la más reciente, como
+  labwc) y rofi solo la enseña (`-dmenu`). Descartado `rofi -show window` (no va por orden de uso ni
+  sabe de las minimizadas) y escuchar el socket de eventos (proceso residente).
+- **rofi aparte (`optdepends`)**: solo hace falta en la sesión de prueba, y wofi no sirve (no elige al
+  soltar una tecla). Si se adopta Hyprland, entra con él.
+- **Encajar al soltar con dos atajos de ratón** (pulsar y soltar, `non_consuming`), no con un evento: la
+  0.56.2 no avisa a Lua del final de un arrastre. Solo encaja si la ventana se movió sin cambiar de
+  tamaño, para no confundirlo con redimensionar por el filo. Sin aviso previo: haría falta seguir el
+  puntero durante el arrastre (trabajo en cada movimiento del ratón).
+
+## 2026-10-22 — Barras de título de Hyprland, 7.2 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
+
+- **Los botones son los mismos SVG** que labwc y las cabeceras GTK, pintados enteros (con su fondo de
+  hover), no glifos de texto sobre los círculos de `hyprbars`: un solo dibujo para todo. Descartado
+  dibujarlos en C++ con Cairo (otra copia del dibujo que mantener) y los iconos de texto (no son los de la
+  marca y dependen de la fuente).
+- **Barra solo para quien la pide**, como labwc: el parche mira qué pidió cada cliente en xdg-decoration
+  y en el protocolo de KDE (Hyprland contesta «servidor» a todos). Lo de dentro de esos protocolos es
+  privado en Hyprland: `ssd.cpp` lo lee con `#define private public`, como el propio `hyprbars` hace con
+  `InputManager`. Descartado: una lista de apps con cabecera propia en reglas (no acaba nunca).
+- **Atado a una versión exacta de Hyprland** (`depends=('hyprland=0.56.2')`) y compilado contra la fecha
+  validada: un plugin para otra versión no carga. Si una fecha trae otro Hyprland, `tests/hyprbars.sh`
+  falla y la fecha no se valida hasta poner el plugin al día. Así una actualización nunca deja el
+  plugin sin cargar ni pacman parado por una dependencia rota. Se recompila al cambiar la fecha, porque la
+  comprobación del plugin incluye las versiones de las bibliotecas de Hyprland. Descartado `hyprpm`
+  (compila en cada equipo: compilador y cabeceras en todos, y tiempo al actualizar).
+- **Las órdenes de los botones con `hyprctl eval`** de funciones de `hyprland.lua` (`command_os.boton`):
+  minimizar reutiliza lo de Super+Abajo y la lógica queda en Lua. Cuesta un proceso corto por clic; nada
+  residente. Descartado llamar a los despachadores desde el plugin (otra copia de la lógica, en C++).
+- **La CI comprueba la configuración del plugin sin cargarlo**: `--verify-config` no tiene sistema de
+  plugins. `tests/hyprbars.lua` ejecuta `hyprland.lua` con un `hl` de mentira y compara lo que pide con lo
+  que registra el `.so` (sus cadenas), y `tests/hyprbars.sh` mira los símbolos frente al Hyprland
+  instalado. Descartado arrancar Hyprland sin pantalla en la CI: necesita una GPU (`/dev/dri`).
+- **Clic derecho y arrastre, solo con el izquierdo**: `hyprbars` lanzaba los botones con cualquiera.
+  El derecho queda para el menú de ventana (7.3, `on_right_click`).
+
+## 2026-10-21 — Sesión Hyprland de prueba, 7.1 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)
+
+- **Hyprland no va de serie** (`optdepends`, 64 MB): es una prueba y labwc sigue siendo el escritorio. El
+  selector de la pantalla de inicio de sesión solo sale si está instalado. Descartado: meterlo en
+  `packages.txt` antes de saber si se adopta (ligereza).
+- **Sin `start-hyprland`** (el vigilante que lo relanza en modo seguro): sería otro proceso residente. En su
+  lugar, `command-os-session` espera a Hyprland y, si sale con error en menos de 15 s, abre labwc, lo deja
+  elegido (el inicio automático no se queda en bucle) y avisa. Ese `bash` que espera (unos MB) solo
+  existe en la sesión de prueba.
+- **Una sola lista de arranque** (`/etc/xdg/labwc/autostart`) para las dos sesiones, en vez de copiarla
+  en `hyprland.lua`: lo que se añada llega a las dos.
+- **Minimizar sin escuchar el socket de eventos**: la 0.56.2 no tiene el evento `window.minimize` en Lua, y
+  la petición de minimizar de las apps solo llega por el socket de eventos, que necesitaría un proceso
+  residente leyéndolo. Se minimiza con atajos (y el botón de `hyprbars`) a un escritorio especial; el
+  botón de las cabeceras GTK espera a la versión con el evento.
+- **Los paneles se colocan con reglas estáticas** que leen el lado de la barra al cargar (y `hyprctl
+  reload config-only` al cambiarlo), no moviéndolos en `window.open`: moverlos después de abrirse se vería
+  como una animación desde el centro. Media pantalla (Super+Izquierda/Derecha) sí usa lo que la barra
+  reserva de verdad (`monitor.reserved`).
+- **Los escritorios fijos con reglas `persistent`** (el número en `~/.config/command-os/escritorios`), no
+  dejando que Hyprland los cree al visitarlos: así la barra los enseña aunque estén vacíos y Super+1…4 no
+  crea uno que no existe, como en labwc.
+
 ## 2026-10-21 — Barra configurable (`docs/notas/escritorio.md` § «Barra»)
 
 - **La configuración generada incluye a la de serie** (`barra.jsonc` con `include`), no al revés: en un

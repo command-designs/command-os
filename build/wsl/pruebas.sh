@@ -28,7 +28,7 @@ LIMPIO=1
 
 scripts() {
   local f
-  for f in os/install.sh os/lib/* os/bin/* os/initcpio/*/* os/system/sleep-* os/pkg/PKGBUILD build/x86/*.sh tests/*.sh; do
+  for f in os/install.sh os/lib/* os/bin/* os/initcpio/*/* os/system/sleep-* os/pkg/PKGBUILD os/hyprbars/PKGBUILD build/x86/*.sh tests/*.sh; do
     [ -f "$f" ] || continue # un __pycache__ local no existe en la CI
     case "$f" in
       *.py) python3 -c "import ast, sys; ast.parse(open(sys.argv[1]).read())" "$f" || return 1 ;;

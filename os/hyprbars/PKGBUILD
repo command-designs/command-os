@@ -1,0 +1,45 @@
+# Command OS — barras de título de la sesión Hyprland de prueba: hyprbars (hyprland-plugins) con el parche
+# de Command OS (command-os.patch), iguales a las de labwc (docs/notas/escritorio.md § «Sesión Hyprland de
+# prueba»). Hyprland carga el plugin al empezar (os/dotfiles/hypr/hyprland.lua).
+#
+# Un plugin solo carga en el Hyprland para el que se compiló (la versión de su API y la de sus bibliotecas):
+# va atado a la versión exacta de Hyprland y se compila contra el Arch de la fecha validada
+# (.github/workflows/publicar.yml). Si una fecha nueva trae otra versión de Hyprland, tests/hyprbars.sh falla
+# y la fecha no se valida hasta poner aquí la versión, el commit de hyprland-plugins para ella (su
+# hyprpm.toml) y el parche al día.
+#
+#   cd os/hyprbars && makepkg      (la versión de publicación la fija COMMAND_OS_PKGREL)
+
+pkgname=command-os-hyprbars
+_hyprland=0.56.2
+# hyprland-plugins para Hyprland 0.56.2 (commit_pins de su hyprpm.toml).
+_commit=7644cecdb947060682891a0db2a0cdc5c0b9e704
+pkgver=${_hyprland}
+pkgrel=${COMMAND_OS_PKGREL:-1}
+pkgdesc="Command OS: barras de título para la sesión Hyprland (hyprbars con parche)"
+arch=('x86_64' 'aarch64')
+url="https://github.com/hyprwm/hyprland-plugins"
+license=('BSD-3-Clause')
+# command-os: los botones (/usr/share/command-os/botones) y la configuración que carga el plugin.
+depends=("hyprland=${_hyprland}" 'command-os')
+makedepends=('gcc' 'make' 'pkgconf')
+options=('!debug')
+source=("hyprland-plugins-${_commit}.tar.gz::https://github.com/hyprwm/hyprland-plugins/archive/${_commit}.tar.gz"
+        'command-os.patch')
+sha256sums=('46b76d4c9f020273c50dba1bb816387e38e8e3b64d8fa33baa971d009b9de89f'
+            'SKIP')
+
+prepare() {
+  cd "hyprland-plugins-${_commit}"
+  patch -Np1 -i "${srcdir}/command-os.patch"
+}
+
+build() {
+  make -C "hyprland-plugins-${_commit}/hyprbars" all
+}
+
+package() {
+  cd "hyprland-plugins-${_commit}"
+  install -Dm 755 hyprbars/hyprbars.so "${pkgdir}/usr/lib/command-os/hyprbars.so"
+  install -Dm 644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

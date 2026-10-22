@@ -38,6 +38,33 @@ for cfg in /etc/xdg/hypr/hyprlock.conf /usr/share/command-os/config/hypr/hyprloc
     ok "hyprlock: ${cfg}"
   fi
 done
+# Sesión de Hyprland de prueba (opcional; la CI la instala): Hyprland ejecuta su configuración en Lua y
+# dice si algo no existe en esta versión (opciones, curvas, atajos, reglas). No necesita pantalla.
+if command -v Hyprland >/dev/null; then
+  if como Hyprland --verify-config --config /etc/xdg/hypr/hyprland.lua > "${SALIDA}/hyprland-verify.txt" 2>&1 \
+      && grep -qx 'config ok' "${SALIDA}/hyprland-verify.txt"; then
+    ok "hyprland: /etc/xdg/hypr/hyprland.lua ($(Hyprland --version 2>&1 | grep -oE '^Hyprland [0-9.]+'))"
+  else
+    mal "hyprland: errores en /etc/xdg/hypr/hyprland.lua (ver hyprland-verify.txt)"
+  fi
+else
+  echo "  --   hyprland: no está instalado, sin comprobar su configuración"
+fi
+# Los menús de labwc en la sesión de Hyprland (lib/menu-hyprland.py): cada opción de menu.xml tiene su orden
+# (con HYPRLAND_INSTANCE_SIGNATURE, «mover a escritorio» sale de la rama de Hyprland de command-os-desktops).
+for m in escritorio ventana; do
+  if como env HYPRLAND_INSTANCE_SIGNATURE=prueba /usr/lib/command-os/menu-hyprland.py --seco "${m}" \
+      > "${SALIDA}/menu-hyprland-${m}.txt" 2>&1 && [[ -s "${SALIDA}/menu-hyprland-${m}.txt" ]]; then
+    ok "hyprland: menú ${m} ($(grep -c . "${SALIDA}/menu-hyprland-${m}.txt") opciones)"
+  else
+    mal "hyprland: menú ${m} (ver menu-hyprland-${m}.txt)"
+  fi
+done
+if grep -q "command_os.enviar(1)" "${SALIDA}/menu-hyprland-ventana.txt"; then
+  ok "hyprland: «mover a escritorio» en el menú de ventana"
+else
+  mal "hyprland: el menú de ventana no lleva «mover a escritorio» (ver menu-hyprland-ventana.txt)"
+fi
 # Arranque (lib/apply-boot, al instalarse el paquete): menú oculto y sin las entradas «EFI BootNext».
 if [[ -f /etc/default/grub ]]; then
   for k in GRUB_DISABLE_BOOTNEXT=true GRUB_TIMEOUT_STYLE=hidden 'GRUB_DISTRIBUTOR="Command OS"'; do
@@ -199,7 +226,28 @@ if [[ "${primero}" == "${run}/command-os/xdg" && -z "${fallo}" ]]; then
 else
   mal "sesión: herramientas técnicas aún en el lanzador (${primero}${fallo:+, faltan:${fallo}})"
 fi
-rm -rf "${run}/bin" "${run}/datos"
+# Elegir escritorio (command-os-session labwc|hyprland, el selector del inicio de sesión) con un Hyprland
+# de mentira: se recuerda para la próxima vez y, si Hyprland no llega a arrancar, se abre labwc.
+elegida="/home/${USUARIO}/.config/command-os/sesion"
+printf '#!/bin/sh\necho "$XDG_CURRENT_DESKTOP $*" > "%s/hypr"\nexit "${HYPR_SALIDA:-0}"\n' "${run}" > "${run}/bin/Hyprland"
+chmod 755 "${run}/bin/Hyprland"
+rm -f "${run}/datos" "${elegida}"
+como env PATH="${run}/bin:${PATH}" command-os-session hyprland
+como env PATH="${run}/bin:${PATH}" command-os-session
+if [[ "$(cat "${run}/hypr" 2>/dev/null)" == "Hyprland --config /etc/xdg/hypr/hyprland.lua" \
+    && ! -e "${run}/datos" && "$(cat "${elegida}" 2>/dev/null)" == hyprland ]]; then
+  ok "sesión: hyprland elegido en el inicio de sesión, y recordado"
+else
+  mal "sesión: no abre hyprland al elegirlo ($(cat "${run}/hypr" 2>/dev/null), $(cat "${elegida}" 2>/dev/null))"
+fi
+rm -f "${run}/hypr"
+como env PATH="${run}/bin:${PATH}" HYPR_SALIDA=1 command-os-session
+if [[ -e "${run}/hypr" && -e "${run}/datos" && "$(cat "${elegida}" 2>/dev/null)" == labwc ]]; then
+  ok "sesión: si hyprland no arranca, labwc (y queda elegido)"
+else
+  mal "sesión: hyprland roto sin labwc de reserva ($(cat "${elegida}" 2>/dev/null))"
+fi
+rm -rf "${run}/bin" "${run}/datos" "${run}/hypr" "${elegida}"
 
 echo "==> Sesión de labwc sin pantalla"
 como command-os-user-setup || mal "command-os-user-setup"
