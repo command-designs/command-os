@@ -6,7 +6,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Comandos exactos: `docs/
 
 - **Marca:** la v2 de command-web (`BRAND.md`, casi monocromo, el rojo como señal), aplicada el
   2026-10-19; paleta, reglas y estado de cada ancla en `docs/DISENO.md`. Del 2026-10-04 al 2026-10-19
-  hubo otro estilo, descartado (historia en `docs/decisiones.md`). Las apps GTK/Qt (Thunar, Firefox,
+  hubo otro estilo, descartado (historia en `docs/decisiones/README.md`). Las apps GTK/Qt (Thunar, Firefox,
   pavucontrol) siguen el mismo tema: `adw-gtk3-dark` recoloreado en `os/dotfiles/gtk-{3,4}.0/gtk.css`,
   Papirus-Dark y modo oscuro por dconf. Assets en `os/branding/`
   (logo, fuentes OFL, wallpaper, tema Plymouth); se regeneran con `build/make-wallpaper.py` y

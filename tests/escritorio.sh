@@ -145,7 +145,7 @@ done < <(sed -n 's/^\([a-z-]*\/[^=]*\)=\(.*\)$/\1=\2/p' /usr/share/applications/
 (( fallos == antes )) && ok "tipos: cada uno se abre con su aplicación de serie"
 # La tienda y el gestor de comprimidos arrancan con las bibliotecas de esta fecha de Arch (LD_BIND_NOW
 # resuelve todos los símbolos al empezar). En la foto del 2026/10/05, Bazaar venía compilado contra un
-# libdex más nuevo y no abría (docs/decisiones.md): una fecha así no se valida.
+# libdex más nuevo y no abría (docs/decisiones/README.md): una fecha así no se valida.
 for p in bazaar xarchiver; do
   if ! command -v "${p}" >/dev/null; then
     mal "${p}: no está instalado"

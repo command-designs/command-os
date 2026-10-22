@@ -43,7 +43,7 @@ EXTRA = {
     },
 }
 
-# El estilo anterior (Cyberpunk, cambiado por la marca v2 el 2026-10-19; docs/decisiones.md).
+# El estilo anterior (Cyberpunk, cambiado por la marca v2 el 2026-10-19; docs/decisiones/README.md).
 # Sus colores se buscan también sin «#» (swaylock los lleva así) y sus palabras no pueden volver.
 # «HUD» ya no es una de ellas: desde BRAND 2.1 es el nombre del lenguaje de la marca.
 VIEJOS = {"d13449", "5bbfc4", "e2c044", "0d0b0e", "15121a", "2e2630", "e8607a", "1d1820", "6f6870",

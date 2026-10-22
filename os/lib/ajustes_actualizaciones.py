@@ -2,7 +2,7 @@
 # Solo enseña lo que ya dejó la comprobación del sistema (`command-os-updates datos`) y lanza lo de
 # siempre: «actualizar» abre `command-os-update` en una terminal (sudo y pacman piden confirmación)
 # y «comprobar ahora» arranca la comprobación manual. No instala nada por sí mismo: docs/actualizaciones.md
-# § 7 y docs/decisiones.md (por qué no se instala desde el panel).
+# § 7 y docs/decisiones/README.md (por qué no se instala desde el panel).
 import os
 import subprocess
 

@@ -3,6 +3,6 @@
 # está abierta, va a la sección pedida. Secciones: red (wifi), bluetooth, barra, pantalla, sonido, fondo,
 # bateria, cuentas, disco, actualizaciones, idioma (hora), sistema.
 # Renderizador cairo de GTK: para estas ventanas basta y gasta mucha menos memoria que el de GL
-# (docs/decisiones.md, 2026-10-21: 98 MB frente a 400 MB en la VM, y abre antes).
+# (docs/decisiones/README.md, 2026-10-21: 98 MB frente a 400 MB en la VM, y abre antes).
 export GTK_THEME=${GTK_THEME:-adw-gtk3:dark} GSK_RENDERER=${GSK_RENDERER:-cairo}
 PYTHONPATH=/usr/lib/command-os exec python3 /usr/lib/command-os/ajustes.py "$@"

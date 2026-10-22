@@ -37,7 +37,7 @@ configurable) están hechas: `docs/DISENO.md` y `docs/notas/escritorio.md`.
    las apps sin cabecera propia (Thunar, kitty) necesitan `hyprbars`, que no está en Arch y se
    compila para cada versión. No se prueba en la VM (sin 3D): la prueba el usuario en su portátil.
    Si no llega a la paridad o pesa bastante más que labwc (memoria y CPU en reposo, medidas en el
-   portátil), se queda labwc y se anota en `docs/decisiones.md`. Condiciones para
+   portátil), se queda labwc y se anota en `docs/decisiones/README.md`. Condiciones para
    adoptarla (que una actualización no lo rompa): `hyprbars` compilado por nosotros en el repositorio
    firmado y atado a la versión exacta de Hyprland, Hyprland solo cambia con la fecha validada de
    Arch, la CI comprueba plugin y configuración antes de publicar, y labwc queda como sesión de
@@ -55,7 +55,7 @@ El punto 7 sigue arriba: con las medidas del usuario (§ 9 de la guía) se decid
 de serie, con labwc de reserva, o se retira entero.
 
 8. **Ordenar la documentación** (Sonnet, medio: solo documentos). `AGENTS.md` está en 197 líneas (el
-   límite es ~200: pasar detalle a `docs/`); `docs/decisiones.md` (764 líneas) partido por meses, con
+   límite es ~200: pasar detalle a `docs/`); `docs/decisiones/README.md` (764 líneas) partido por meses, con
    un índice; y en `docs/notas/escritorio.md`, revisar si siguen vigentes las secciones viejas (rama
    `rediseno` del 2026-10-05, menú de energía, consola de desarrollo) y quitar o resumir lo superado.
 9. **Medida de ligereza repetible** (Opus, medio: script y método nuevos). Un script que mida en la VM

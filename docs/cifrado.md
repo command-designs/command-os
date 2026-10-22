@@ -4,7 +4,7 @@ Al instalar en un PC (disco entero o dual boot, [`instalacion.md`](instalacion.m
 pregunta **«¿Cifrar el disco? [S/n]»**, con sí por defecto. Con el disco cifrado, nadie puede leer
 lo que hay en Command OS sin la contraseña, aunque se lleve el equipo o saque el disco. La imagen USB
 de `build-image.sh` no se cifra: es genérica, para probar sin instalar. Por qué se decidió así:
-[`decisiones.md`](decisiones.md).
+[`decisiones/README.md`](decisiones/README.md).
 
 ## Qué se pide al instalar
 

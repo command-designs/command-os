@@ -44,7 +44,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   escritorio, barra, ventanas activa e inactiva, Thunar (GTK 3), pavucontrol (GTK 4), kitty con fastfetch,
   lanzador, menú de energía, notificación, bloqueo y splash. El menú de GRUB no se vio (el arranque lo
   oculta): solo las piezas generadas. Menús de labwc y Alt+Tab, sin captura.
-- **Marca v2, forma** (2026-10-19; por qué así, `docs/decisiones.md`): chaflanes con `border-image`
+- **Marca v2, forma** (2026-10-19; por qué así, `docs/decisiones/README.md`): chaflanes con `border-image`
   (`build/make-chaflanes.py`; regenerar y pasar `tests/marca.sh` al cambiar un color o un tamaño).
   Las hojas GTK de serie los buscan en `chaflanes/` junto a ellas (enlace a `../../chaflanes` en
   `/usr/share/command-os/config/gtk-*`; copias en `~/.config/gtk-*/chaflanes/`); wofi, swaync y el
@@ -90,7 +90,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
   `charge_control_start_threshold`; en los Dell, modo `Custom` (el de antes se apunta en
   `limite-carga.modos` y vuelve al quitarlo). Si el firmware rechaza un orden de escritura (inicio por
   encima del fin) prueba el otro; si rechaza el valor, todo queda como estaba. Apagado de serie. Por
-  qué así: `docs/decisiones.md`.
+  qué así: `docs/decisiones/README.md`.
 - **Probado**: `tests/barra.sh` (batería simulada con `COMMAND_OS_POWER_SUPPLY`, avisos, límite sobre
   un sysfs de mentira) y en la VM con una batería simulada (panel, avisos de mako, polkit sin
   contraseña en la sesión activa). **No probado**: un portátil real (la VM no tiene batería): el límite
@@ -139,7 +139,7 @@ Detalle movido de `CLAUDE.md` sin cambios (2026-10-06). Lenguaje visual: `docs/D
 ## Instalar aplicaciones (2026-10-19)
 
 Petición del usuario: que instalar algo nunca sea un problema (en su portátil, un Discord descargado
-en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: `docs/decisiones.md`.
+en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Tienda**: Bazaar (paquete `bazaar`), solo Flatpak, con Flathub (el paquete `flatpak` trae el remoto
   en `/usr/share/flatpak/remotes.d`). Las apps van en `/var/lib/flatpak` (instalación del sistema), aparte
@@ -193,7 +193,7 @@ en `.tar.gz` le preguntó con qué abrirse). Por qué así y qué se descartó: 
 ## Ventanas iguales (2026-10-21)
 
 Punto 2 de la tanda «Diseño 2.1» (`ROADMAP.md`): una sola barra de título para labwc, GTK 3,
-GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones.md`.
+GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Barra de título**: 32 px (botones de 36×32 en `themerc` y `build/make-labwc-buttons.py`, que
   también comprueba con `--comprobar` en `tests/marca.sh`). Las cabeceras GTK la copian en `gtk.css`
@@ -234,7 +234,7 @@ GTK 4/libadwaita y Firefox. Por qué así y qué se descartó: `docs/decisiones.
 ## Barra (2026-10-21)
 
 Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app HUD de `lenguaje.html`
-(cómo se ve: `docs/DISENO.md` § «Escritorio»). Por qué así y qué se descartó: `docs/decisiones.md`.
+(cómo se ve: `docs/DISENO.md` § «Escritorio»). Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Archivos**: `os/dotfiles/waybar/{config.jsonc,style.css}`; 36 px. Las reglas de labwc que cuelgan
   paneles junto a la barra (`MoveToEdge`) respetan su zona reservada: no dependen del alto ni del lado.
@@ -271,7 +271,7 @@ Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app H
   cambia el aire y el desliz de entrada (`command.css`). Colgado de abajo, si creciera se saldría por
   abajo (labwc lo coloca una vez, al abrirse, por su esquina de arriba): la lista de redes tiene alto
   fijo (`ListaRedes(fija=True)`) y cambiar de página abre otro panel (`App.reabrir`). El mezclador y
-  blueman siguen arriba a la derecha (`docs/decisiones.md`).
+  blueman siguen arriba a la derecha (`docs/decisiones/README.md`).
 - **Probado** (lado y flotante): `tests/barra.sh` y en la VM los cuatro lados y flotante (por orden y
   desde Ajustes con el teclado), la ventana activa a un lado, el centro en cada lado y el paso a redes
   con la barra abajo. Waybar, 68 MB de RSS en cualquier lado; nada residente nuevo. **No probado** (la VM
@@ -287,7 +287,7 @@ Punto 3 de la tanda «Diseño 2.1» (`ROADMAP.md`): la barra como la de la app H
 ## Ajustes y centro de control (2026-10-21)
 
 Punto 5 de la tanda 2 (`ROADMAP.md`). Cómo se ve: `docs/DISENO.md` § «Escritorio»; por qué así y qué se
-descartó: `docs/decisiones.md`.
+descartó: `docs/decisiones/README.md`.
 
 - **Ajustes** (`os/lib/ajustes.py`, `command-os-ajustes [sección]`): una ventana con una barra lateral y
   secciones hijas de `comun.Seccion` (`lib/ajustes_*.py`: red, bluetooth, barra, pantalla, sonido,
@@ -357,7 +357,7 @@ validada de Arch (2026/10/18):
 - **Sin probar**: nada de esto se ve en la VM (sin 3D). Lo prueba el usuario en su portátil, con la
   memoria y la CPU en reposo frente a labwc.
 
-**Hecho (7.1, sesión y configuración).** Por qué así y qué se descartó: `docs/decisiones.md`.
+**Hecho (7.1, sesión y configuración).** Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Instalarla**: `sudo pacman -S hyprland` (no va de serie: `optdepends` del paquete). Con Hyprland
   instalado, la pantalla de inicio de sesión enseña «escritorio»: «el de siempre» (el de la última vez),
@@ -402,7 +402,7 @@ validada de Arch (2026/10/18):
   GPU falla al empezar). **No probado**: Hyprland en marcha (WSL no tiene `/dev/dri` y la VM no tiene
   3D): `docs/prueba-en-pc-real.md` § 9.
 
-**Hecho (7.2, barras de título).** Por qué así y qué se descartó: `docs/decisiones.md`.
+**Hecho (7.2, barras de título).** Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Paquete `command-os-hyprbars`** (`os/hyprbars/`): `hyprbars` de `hyprland-plugins` en el commit de su
   `hyprpm.toml` para la 0.56.2 (`7644cecd`, tarball con su suma) y `command-os.patch`; deja el plugin en
@@ -436,7 +436,7 @@ validada de Arch (2026/10/18):
   plugins: el bloque de `hyprbars` lo ejecuta `tests/hyprbars.lua` con un `hl` de mentira. **No probado**:
   el plugin cargado en un Hyprland en marcha (`docs/prueba-en-pc-real.md` § 9).
 
-**Hecho (7.3, menús, Alt+Tab y encajar).** Por qué así y qué se descartó: `docs/decisiones.md`.
+**Hecho (7.3, menús, Alt+Tab y encajar).** Por qué así y qué se descartó: `docs/decisiones/README.md`.
 
 - **Menús** (`lib/menu-hyprland.py`): los mismos de `menu.xml`, traducidos como en `lib/menus-labwc`, en
   un panel de wofi con el aspecto de los pequeños (`wofi/power.css`) donde está el puntero, sin salirse de
@@ -471,7 +471,7 @@ validada de Arch (2026/10/18):
 
 ## Rediseño del escritorio (2026-10-05, rama `rediseno`)
 
-Historia: entonces el escritorio llevaba el estilo anterior a la marca v2 (`docs/decisiones.md`).
+Historia: entonces el escritorio llevaba el estilo anterior a la marca v2 (`docs/decisiones/README.md`).
 Criterio del usuario: se queda lo que **sirve** y lo que **crea ambiente y queda bien**; fuera lo que
 ni sirve ni aporta ambiente. Detalle visual en `docs/DISENO.md`. El usuario pidió que se le pregunte
 antes de cada cambio y que se le notifique (PushNotification) cuando haga falta su decisión.
