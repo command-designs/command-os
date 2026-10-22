@@ -48,13 +48,3 @@ configurable) están hechas: `docs/DISENO.md` y `docs/notas/escritorio.md`.
    `command-os-hyprbars`) y 7.3 (menús, Alt+Tab con rofi y encajar al soltar) hechos:
    `docs/notas/escritorio.md` § «Sesión Hyprland de prueba». Queda que el usuario lo pruebe
    (`docs/prueba-en-pc-real.md` § 9) y decidir si se adopta con sus medidas.
-
-### Tanda 4 — Orden y medida (aprobada el 2026-10-22)
-
-El punto 7 sigue arriba: con las medidas del usuario (§ 9 de la guía) se decide si Hyprland pasa a ser
-de serie, con labwc de reserva, o se retira entero.
-
-9. **Medida de ligereza repetible** (Opus, medio: script y método nuevos). Un script que mida en la VM
-   la memoria y la CPU en reposo y el tiempo de arranque siempre igual (mismo tiempo de espera tras
-   arrancar, PSS y RSS por proceso, tics de CPU por minuto) y deje las cifras en un registro con la
-   fecha y el commit, para comparar cada punto con el anterior. Hoy cada punto mide a mano.
