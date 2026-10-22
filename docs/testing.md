@@ -7,7 +7,8 @@
 ## Las pruebas de la CI en WSL
 
 `build/wsl/pruebas.sh` lanza en el Arch de WSL las mismas pruebas que `pruebas.yml`: scripts
-(sintaxis y shellcheck), marca, pantallas, barra, aplicaciones, instalador, discos y rollback. Resumen
+(sintaxis y shellcheck), marca, pantallas, barra, ajustes, aplicaciones, ligereza, instalador, discos y
+rollback. Resumen
 final con bien / FALLA / saltada (falta una herramienta) y salida distinta de 0 si algo no está en verde.
 Se puede pasar una lista (`… pruebas.sh marca rollback`). Desde PowerShell, siempre con el script en archivo:
 
@@ -19,6 +20,40 @@ Paquetes del Arch de WSL: `gptfdisk dosfstools ntfsprogs cryptsetup busybox btrf
 shellcheck` (en Arch `mkntfs` está en `ntfsprogs`, no en `ntfs-3g`). **No lanza** las del escritorio
 (`escritorio`, `cuentas`, `idioma`, `zona-horaria`, `actualizaciones`): necesitan el paquete instalado y
 `cuentas.sh` crea cuentas; esas corren solo en la CI (`escritorio.yml`).
+
+## Medir la ligereza
+
+Cada cambio que pueda pesar (un paquete, un servicio, un módulo de la barra, el compositor) se mide antes y
+después con el mismo método (`AGENTS.md` § «Ligereza»), y la cifra se apunta en `docs/medidas/`. Desde el
+anfitrión, con la VM `command-os-x86` apagada o encendida:
+
+```
+bash build/x86/medir-vm.sh --instalar --nota "qué cambió"
+```
+
+Reinicia la VM 3 veces (`-n` para cambiarlo), mide en cada arranque con `os/bin/command-os-medir` (el de este
+árbol) y apunta la mediana en `docs/medidas/registro.tsv` y el detalle de los 12 programas que más ocupan en
+`docs/medidas/procesos.tsv`, con la fecha, el commit (`+cambios` si `os/` tiene algo sin commit) y la
+versión del paquete. `--instalar` instala antes el paquete de este árbol; sin él, mide lo que ya tenga la
+VM. Tarda unos 5 min por arranque. `--sin-registro` solo enseña las cifras. Columnas: `docs/medidas/README.md`.
+
+Qué hace `command-os-medir` (también sirve en un PC: `sudo command-os-medir`):
+- Espera a que estén el compositor (labwc o Hyprland) y Waybar, y **120 s más desde ese momento**
+  (`--espera`; si ya pasaron, no espera): lo que se lanza al entrar ya ha terminado y el bloqueo por
+  inactividad (5 min) aún no ha llegado. hyprlock abierto suma unos 300 MB en la VM: una medida con la
+  pantalla bloqueada no vale.
+- Memoria: la usada (`MemTotal − MemAvailable`) y, por programa, **PSS** (la memoria compartida se reparte
+  entre quienes la usan, así que la suma es la memoria real) y RSS (con la compartida entera, como la
+  enseña `ps`). Los intérpretes van con el nombre del script (`pantallas.py`), los hilos del núcleo juntos.
+- CPU: tics durante 60 s (`--ventana`) de todo el sistema (sin idle ni iowait) y de los procesos. **En la
+  VM manda la cifra de los procesos**: casi todo lo del sistema son interrupciones del reloj de VirtualBox,
+  que no dependen de Command OS.
+- Arranque: segundos desde que arranca el núcleo hasta el escritorio (inicio del último de compositor y
+  Waybar) y los tiempos de `systemd-analyze` (núcleo, initrd, userspace).
+- No cuenta su propia sesión ni lo que la lanzó (sudo, el intérprete, SSH); la terminal del escritorio sí.
+
+Las cifras de la VM solo se comparan con otras de la VM (render por software, sin wi-fi ni Bluetooth); las
+de un PC, con las del mismo PC. La prueba del método es `tests/ligereza.sh` (un `/proc` de mentira).
 ## QEMU: validar el instalador
 
 QEMU con `virtio-gpu` es la herramienta para validar que `os/install.sh` corre sin errores

@@ -179,5 +179,8 @@ Alt+Tab); después, cerrar la sesión (Super+Mayús+M).
    puntero en el borde izquierdo o derecho: ocupa esa mitad sin tapar la barra; en el de arriba, se
    maximiza. Super+Abajo la devuelve a su tamaño. Soltarla lejos del borde o redimensionar por el filo
    hasta el borde no encaja nada.
-13. Memoria y arranque frente a labwc: `free -m` en reposo tras entrar con cada uno, y cuánto tarda en
-   salir la barra. Apuntarlo en el informe (decide si se adopta: `ROADMAP.md`, punto 7).
+13. Memoria, CPU y arranque frente a labwc, con el mismo método que en la VM: encender, entrar con una
+   sesión, abrir una terminal sin tocar nada más y lanzar `sudo command-os-medir` (espera sola hasta 2 min
+   después de salir la barra y mide 1 min; no tocar el equipo mientras tanto). Lo mismo con la otra sesión,
+   y mejor dos veces cada una. Copiar al informe las dos primeras líneas de cada medida (decide si se
+   adopta: `ROADMAP.md`, punto 7).
