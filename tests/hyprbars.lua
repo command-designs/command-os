@@ -48,6 +48,9 @@ rawset(hl, "get_monitor_at_cursor", function()
     return { x = 0, y = 0, width = 1920, height = 1080, scale = 1, reserved = { top = 36, bottom = 0, left = 0, right = 0 } }
 end)
 rawset(hl, "exec_cmd", function(orden) lanzadas[#lanzadas + 1] = orden end)
+-- Los manejadores de eventos (hl.on), para lanzarlos abajo.
+local eventos = {}
+rawset(hl, "on", function(nombre, f) eventos[nombre] = f end)
 rawset(hl, "plugin", {
     load = function() end,
     hyprbars = { add_button = function(t) botones[#botones + 1] = t end },
@@ -133,5 +136,18 @@ for _, llamada in ipairs({ { "menu", "ventana" }, { "menu", "escritorio" }, { "e
 end
 local MENU = "/usr/lib/command-os/menu-hyprland.py ventana 100 64 1920 1044"
 if lanzadas[1] == MENU then ok("menú de ventana: %s", MENU) else mal("menú de ventana: %s", tostring(lanzadas[1])) end
+
+-- Al cerrar una ventana, Hyprland 0.56.2 la pasa ya destruida y sin `address`: el manejador no puede fallar
+-- (el error de Lua sale arriba en la pantalla con cada ventana que se cierra).
+if type(eventos["window.destroy"]) ~= "function" then
+    mal("no hay manejador de window.destroy")
+else
+    local antes = fallos
+    for _, w in ipairs({ { address = "0x1" }, {}, false }) do
+        local hecho, e = pcall(eventos["window.destroy"], w or nil)
+        if not hecho then mal("window.destroy con %s: %s", w and (w.address or "ventana sin address") or "nil", tostring(e)) end
+    end
+    if fallos == antes then ok("window.destroy: con address, sin address y sin ventana") end
+end
 
 os.exit(fallos == 0 and 0 or 1)

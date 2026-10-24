@@ -357,8 +357,10 @@ local function abajo_o_minimizar()
     end
 end
 
+-- La ventana que llega aquí ya no existe y puede venir sin `address` (en la 0.56.2, sí): indexar con nil
+-- es un error de Lua que Hyprland enseña arriba al cerrar cualquier ventana.
 hl.on("window.destroy", function(w)
-    if w then antes[w.address] = nil end
+    if w and w.address then antes[w.address] = nil end
 end)
 
 -- Los botones de la barra de título (hyprbars) y el menú de ventana: cerrar, maximizar o devolver,
