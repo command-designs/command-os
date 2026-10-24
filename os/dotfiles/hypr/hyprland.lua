@@ -132,6 +132,8 @@ hl.config({
         -- abre labwc.
         disable_watchdog_warning = true,
     },
+    -- El puntero se queda donde está al cambiar de ventana (Alt+Tab) o al encajarla, como en labwc.
+    cursor = { no_warps = true },
     ecosystem = {
         no_update_news = true,
         no_donation_nag = true,
@@ -320,42 +322,106 @@ local function area(m)
         m.width / escala - izquierda - derecha, m.height / escala - arriba - abajo
 end
 
--- Media pantalla (Super+Izquierda/Derecha, como SnapToEdge de labwc); Super+Abajo la devuelve a su sitio.
--- Al soltarla en el borde, `previo` es dónde estaba antes de arrastrarla.
-local antes = {}
-local function encajar(lado, previo)
-    local w = hl.get_active_window()
-    local m = w and (w.monitor or hl.get_active_monitor())
-    if not m then return end
-    if not antes[w.address] then
+-- Maximizar y media pantalla (Super+Arriba, Super+Izquierda/Derecha, el botón, el doble clic, arrastrar al
+-- borde) son nuestros: la ventana, flotante, ocupa el área libre o su mitad. El «maximizado» de Hyprland
+-- admite uno por escritorio y lo quita al activar otra ventana (Alt+Tab, la barra de tareas); así cada
+-- ventana conserva su modo, como en labwc. `antes` guarda dónde estaba para devolverla y la etiqueta
+-- «maximizada» la lee hyprbars para dibujar el botón de restaurar (os/hyprbars/command-os.patch).
+local antes = {} -- [address] = { x, y, an, al, modo = "max" | "izquierda" | "derecha" }
+local MAXIMIZADA = "maximizada"
+
+-- La barra de título y el filo van por fuera del contenido, que es lo que se mueve y se redimensiona.
+-- Llevada al borde del área libre (direction), Hyprland deja el contenido a esa distancia: se mide así,
+-- porque depende de si la ventana lleva barra. Si la medida no cuadra, la de una ventana con barra.
+local FILO, BARRA = 1, 33
+local function margenes(w, x0, y0)
+    hl.dispatch(hl.dsp.window.move({ window = w, direction = "left" }))
+    hl.dispatch(hl.dsp.window.move({ window = w, direction = "up" }))
+    local cx, cy = par(w.at)
+    local filo, arriba = cx - x0, cy - y0
+    if filo < 0 or filo > 8 or arriba < filo or arriba > 80 then return FILO, BARRA end
+    return filo, arriba
+end
+
+local function colocar(w, modo, previo)
+    local m = w.monitor or hl.get_active_monitor()
+    if not (m and w.address) then return end
+    if w.fullscreen ~= 0 then
+        hl.dispatch(hl.dsp.window.fullscreen({
+            window = w, mode = w.fullscreen == 1 and "maximized" or "fullscreen", action = "unset",
+        }))
+    end
+    local guardado = antes[w.address]
+    if not guardado then
         local x, y = par(w.at)
         local an, al = par(w.size)
-        antes[w.address] = previo or { x = x, y = y, an = an, al = al }
+        guardado = previo or { x = x, y = y, an = an, al = al }
+        antes[w.address] = guardado
     end
-    local x, y, an, al = area(m)
-    if lado == "derecha" then x = x + an / 2 end
-    if w.fullscreen ~= 0 then
-        hl.dispatch(hl.dsp.window.fullscreen({ window = w, mode = "maximized", action = "unset" }))
-    end
-    hl.dispatch(hl.dsp.window.resize({ window = w, x = math.floor(an / 2), y = math.floor(al) }))
-    hl.dispatch(hl.dsp.window.move({ window = w, x = math.floor(x), y = math.floor(y) }))
+    guardado.modo = modo
+    local x0, y0, an0, al0 = area(m)
+    local filo, arriba = margenes(w, x0, y0)
+    local x, an = x0, an0
+    if modo ~= "max" then an = math.floor(an0 / 2) end
+    if modo == "derecha" then x = x0 + an0 - an end
+    hl.dispatch(hl.dsp.window.resize({ window = w, x = math.floor(an - 2 * filo), y = math.floor(al0 - arriba - filo) }))
+    hl.dispatch(hl.dsp.window.move({ window = w, x = math.floor(x + filo), y = math.floor(y0 + arriba) }))
+    hl.dispatch(hl.dsp.window.tag({ window = w, tag = (modo == "max" and "+" or "-") .. MAXIMIZADA }))
+end
+
+-- La devuelve a donde estaba antes de maximizarla o encajarla; false si no lo estaba.
+local function devolver(w)
+    local previo = w.address and antes[w.address]
+    if not previo then return false end
+    antes[w.address] = nil
+    hl.dispatch(hl.dsp.window.resize({ window = w, x = previo.an, y = previo.al }))
+    hl.dispatch(hl.dsp.window.move({ window = w, x = previo.x, y = previo.y }))
+    hl.dispatch(hl.dsp.window.tag({ window = w, tag = "-" .. MAXIMIZADA }))
+    return true
+end
+
+local function maximizar(w)
+    w = w or hl.get_active_window()
+    if not w then return end
+    local previo = w.address and antes[w.address]
+    if previo and previo.modo == "max" then devolver(w) else colocar(w, "max") end
+end
+
+local function encajar(lado, previo)
+    local w = hl.get_active_window()
+    if w then colocar(w, lado, previo) end
 end
 
 -- Super+Abajo: maximizada o encajada vuelve a su tamaño; si no, se minimiza (como en labwc).
 local function abajo_o_minimizar()
     local w = hl.get_active_window()
     if not w then return end
-    local previo = antes[w.address]
-    if w.fullscreen == 1 then
-        hl.dispatch(hl.dsp.window.fullscreen({ window = w, mode = "maximized", action = "unset" }))
-    elseif previo then
-        antes[w.address] = nil
-        hl.dispatch(hl.dsp.window.resize({ window = w, x = previo.an, y = previo.al }))
-        hl.dispatch(hl.dsp.window.move({ window = w, x = previo.x, y = previo.y }))
-    else
+    if w.fullscreen ~= 0 then
+        hl.dispatch(hl.dsp.window.fullscreen({
+            window = w, mode = w.fullscreen == 1 and "maximized" or "fullscreen", action = "unset",
+        }))
+    elseif not devolver(w) then
         minimizar(w)
     end
 end
+
+-- Lo que piden las apps (el botón de maximizar de las cabeceras GTK, el doble clic en la de Firefox) llega
+-- como el maximizado de Hyprland: se cambia por el nuestro. Va un momento después, fuera del evento.
+hl.on("window.fullscreen", function(w)
+    if not (w and w.address and w.fullscreen == 1) then return end
+    local direccion = w.address
+    hl.timer(function()
+        local v = hl.get_window("address:" .. direccion)
+        if not (v and v.fullscreen == 1) then return end
+        local previo = antes[direccion]
+        if previo and previo.modo == "max" then
+            hl.dispatch(hl.dsp.window.fullscreen({ window = v, mode = "maximized", action = "unset" }))
+            devolver(v)
+        else
+            colocar(v, "max")
+        end
+    end, { timeout = 1, type = "oneshot" })
+end)
 
 -- La ventana que llega aquí ya no existe y puede venir sin `address` (en la 0.56.2, sí): indexar con nil
 -- es un error de Lua que Hyprland enseña arriba al cerrar cualquier ventana.
@@ -372,7 +438,7 @@ function command_os.boton(nombre)
     if nombre == "cerrar" then
         hl.dispatch(hl.dsp.window.close({ window = w }))
     elseif nombre == "maximizar" then
-        hl.dispatch(hl.dsp.window.fullscreen({ window = w, mode = "maximized", action = "toggle" }))
+        maximizar(w)
     elseif nombre == "minimizar" then
         minimizar(w)
     elseif nombre == "pantalla_completa" then
@@ -463,13 +529,17 @@ local function al_soltar()
     elseif c.y <= m.y + BORDE then
         lado = "arriba"
     end
-    if not lado then return end
+    -- Una maximizada o encajada que se arrastra lejos del borde recupera su tamaño donde se suelta (labwc).
+    local guardado = antes[w.address]
+    if not (lado or guardado) then return end
     encaje = hl.timer(function()
         encaje = nil
-        if lado == "arriba" then
-            hl.dispatch(hl.dsp.window.fullscreen({ window = w, mode = "maximized", action = "set" }))
+        if lado then
+            colocar(w, lado == "arriba" and "max" or lado, previo)
         else
-            encajar(lado, previo)
+            antes[w.address] = nil
+            hl.dispatch(hl.dsp.window.resize({ window = w, x = guardado.an, y = guardado.al }))
+            hl.dispatch(hl.dsp.window.tag({ window = w, tag = "-" .. MAXIMIZADA }))
         end
     end, { timeout = 20, type = "oneshot" })
 end
@@ -591,12 +661,15 @@ end
 -- título) con rofi, de la más reciente a la más antigua: Tab avanza, Mayús+Tab retrocede, soltar Alt elige y
 -- Escape vuelve a la de antes. Salen las del escritorio, las fijadas y las minimizadas; el centro y los
 -- desplegables, no (labwc: skipWindowSwitcher). Sin rofi (aparte, como Hyprland) solo cambia de ventana.
--- Con la lista abierta, el submapa «alttab» deja que Alt+Tab llegue a rofi en vez de a este atajo.
+-- Con la lista abierta, el submapa «alttab» deja pasar Alt+Tab a rofi (non_consuming) y lleva la cuenta de
+-- la elegida: al soltar Alt la activa Hyprland y cierra rofi (soltar Alt no siempre le llega a rofi, que
+-- tiene el teclado desde después de pulsarlo). Intro o un clic en la lista eligen desde rofi.
 local ROFI = existe("/usr/bin/rofi")
 local ESPERA = 150 -- ms con Alt pulsado antes de enseñar la lista: un toque rápido solo cambia de ventana
+local VIGILAR = 40 -- ms entre miradas a Alt con la lista abierta (solo mientras dura Alt+Tab)
 local TECLAS_ROFI = "-kb-accept-entry '!Alt-Alt_L,!Alt-Alt_R,Return,KP_Enter' -kb-row-down 'Alt+Tab,Down'"
-    .. " -kb-row-up 'Alt+ISO_Left_Tab,Alt+Shift+ISO_Left_Tab,Up' -kb-cancel 'Escape'"
-local alttab_en_curso = nil -- { lista = direcciones, i = la elegida, temporizador }
+    .. " -kb-row-up 'Alt+ISO_Left_Tab,Alt+Shift+ISO_Left_Tab,Up' -kb-cancel 'Escape,Alt+Escape'"
+local alttab_en_curso = nil -- { lista = direcciones, i = la elegida, abierta = rofi enseña la lista, temporizador }
 
 local function fuera_de_la_lista(clase)
     return clase:match("^dev%.commandlab%.Centro") or clase == "org.pulseaudio.pavucontrol"
@@ -650,16 +723,31 @@ local function abrir_lista(estado)
     return true
 end
 
--- Mientras Alt siga pulsado, Alt+Tab sigue por la misma lista; al soltarlo antes de ESPERA, se acaba ahí.
+-- Acaba Alt+Tab con la elegida (número desde 0; -1 vuelve a la de antes). `cerrar`: rofi sigue abierto.
+local function acabar(i, cerrar)
+    hl.dispatch(hl.dsp.submap("reset"))
+    local estado = alttab_en_curso
+    alttab_en_curso = nil
+    if cerrar and estado and estado.abierta then
+        hl.exec_cmd("pkill -f -- '-input [^ ]*command-os-alttab'")
+    end
+    if not estado then return end
+    i = math.floor(tonumber(i) or -1)
+    activar(estado.lista[i >= 0 and i + 1 or 1])
+end
+
+-- Mientras Alt siga pulsado, Alt+Tab sigue por la misma lista; al soltarlo antes de ESPERA, se acaba ahí y,
+-- con la lista abierta, se elige la marcada.
 local function esperar_alt(estado)
     estado.temporizador = hl.timer(function()
         if alttab_en_curso ~= estado then return end
         if not (hl.is_key_down("Alt_L") or hl.is_key_down("Alt_R")) then
-            alttab_en_curso = nil
-        elseif not (ROFI and abrir_lista(estado)) then
-            esperar_alt(estado)
+            if estado.abierta then acabar(estado.i - 1, true) else alttab_en_curso = nil end
+            return
         end
-    end, { timeout = ESPERA, type = "oneshot" })
+        if ROFI and not estado.abierta then estado.abierta = abrir_lista(estado) end
+        esperar_alt(estado)
+    end, { timeout = estado.abierta and VIGILAR or ESPERA, type = "oneshot" })
 end
 
 local function alttab(paso)
@@ -682,17 +770,20 @@ end
 
 -- Lo llama la orden de abrir_lista al cerrarse rofi: el número de la elegida (desde 0) o -1 (Escape).
 function command_os.alttab_fin(i)
-    hl.dispatch(hl.dsp.submap("reset"))
+    acabar(i, false)
+end
+
+-- Con la lista abierta, Tab y Mayús+Tab mueven la marca en rofi y aquí a la vez.
+local function marcar(paso)
     local estado = alttab_en_curso
-    alttab_en_curso = nil
-    if not estado then return end
-    i = math.floor(tonumber(i) or -1)
-    activar(estado.lista[i >= 0 and i + 1 or 1])
+    if estado then estado.i = (estado.i - 1 + paso) % #estado.lista + 1 end
 end
 
 hl.define_submap("alttab", function()
-    -- Escape llega también a rofi, que se cierra y llama a alttab_fin; esto, por si rofi no llegara a salir.
-    hl.bind("Escape", function() command_os.alttab_fin(-1) end, { non_consuming = true })
+    hl.bind("ALT + Tab", function() marcar(1) end, { non_consuming = true })
+    hl.bind("ALT + SHIFT + Tab", function() marcar(-1) end, { non_consuming = true })
+    -- Escape llega también a rofi, que se cierra; esto, por si no le llegara (con Alt pulsado o sin él).
+    hl.bind("Escape", function() acabar(-1, true) end, { non_consuming = true, ignore_mods = true })
 end)
 
 ----------------
@@ -717,8 +808,8 @@ hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd("kitty --class btop -e btop"))
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("ALT + F4", hl.dsp.window.close())
 hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
-hl.bind("SUPER + up", hl.dsp.window.fullscreen({ mode = "maximized" }))
-hl.bind("SUPER + A", hl.dsp.window.fullscreen({ mode = "maximized" }))
+hl.bind("SUPER + up", function() maximizar() end)
+hl.bind("SUPER + A", function() maximizar() end)
 hl.bind("SUPER + down", abajo_o_minimizar)
 hl.bind("SUPER + left", function() encajar("izquierda") end)
 hl.bind("SUPER + right", function() encajar("derecha") end)

@@ -11,6 +11,7 @@ Al citar una decisión desde el código o un documento, enlaza a su archivo y t�
 ## [Octubre de 2026, del 16 al 31](2026-10-16-a-31.md)
 
 - [2026-10-22 — Medida de ligereza repetible (`docs/testing.md` § «Medir la ligereza»)](2026-10-16-a-31.md#2026-10-22--medida-de-ligereza-repetible-docstestingmd--medir-la-ligereza)
+- [2026-10-24 — Maximizado propio y Alt+Tab en Hyprland (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)](2026-10-16-a-31.md#2026-10-24--maximizado-propio-y-alttab-en-hyprland-docsnotasescritoriomd--sesión-hyprland-de-prueba)
 - [2026-10-22 — Menús, Alt+Tab y encajar en Hyprland, 7.3 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)](2026-10-16-a-31.md#2026-10-22--menús-alttab-y-encajar-en-hyprland-73-docsnotasescritoriomd--sesión-hyprland-de-prueba)
 - [2026-10-22 — Barras de título de Hyprland, 7.2 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)](2026-10-16-a-31.md#2026-10-22--barras-de-título-de-hyprland-72-docsnotasescritoriomd--sesión-hyprland-de-prueba)
 - [2026-10-21 — Sesión Hyprland de prueba, 7.1 (`docs/notas/escritorio.md` § «Sesión Hyprland de prueba»)](2026-10-16-a-31.md#2026-10-21--sesión-hyprland-de-prueba-71-docsnotasescritoriomd--sesión-hyprland-de-prueba)

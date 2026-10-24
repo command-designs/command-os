@@ -3,7 +3,8 @@ de la sesión Hyprland de prueba, iguales a las de labwc (docs/notas/escritorio.
 prueba»). Lo aplica os/hyprbars/PKGBUILD; patch ignora este texto.
 
 - Botones SVG (add_button con svg, svg_toggled y width): los de build/make-labwc-buttons.py, de 36×32,
-  con su fondo de hover, inactiva y restaurar (maximizada).
+  con su fondo de hover, inactiva y restaurar (maximizada: la de Hyprland o la de Command OS, que es la
+  etiqueta «maximizada» de os/dotfiles/hypr/hyprland.lua).
 - Barra solo para quien pide decoración del servidor (xdg-decoration o la de KDE), como labwc: las apps
   con cabecera propia (libadwaita) no llevan otra encima (ssd.cpp).
 - Barra y título según el foco: inactive_bar_color, col.inactive_text, bar_text_weight_inactive.
@@ -220,7 +221,7 @@ index c27653d..b9d0628 100644
 +    }
 +
 +    const auto PWINDOW = m_pWindow.lock();
-+    const bool TOGGLED = !button.svgToggled.empty() && Fullscreen::controller()->getFullscreenModes(PWINDOW).internal == Fullscreen::FSMODE_MAXIMIZED;
++    const bool TOGGLED = !button.svgToggled.empty() && (Fullscreen::controller()->getFullscreenModes(PWINDOW).internal == Fullscreen::FSMODE_MAXIMIZED || PWINDOW->m_ruleApplicator->m_tagKeeper.isTagged("maximizada", true));
 +    const auto STATE   = m_iHoveredButton == (int)idx ? SVG_HOVER : m_bWindowHasFocus ? SVG_ACTIVE : SVG_INACTIVE;
 +    const auto SLOT    = (TOGGLED ? SVG_STATES : 0) + STATE;
 +

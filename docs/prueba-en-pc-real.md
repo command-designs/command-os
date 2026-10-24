@@ -174,7 +174,12 @@ Alt+Tab); después, cerrar la sesión (Super+Mayús+M).
 11. Alt+Tab: un toque rápido pasa a la ventana anterior sin enseñar nada, y otro vuelve. Manteniendo Alt
    sale la lista (como la de labwc: icono, título y la elegida con filo rojo), Tab avanza, Mayús+Tab
    retrocede, soltar Alt elige y Escape vuelve a la de antes; las minimizadas salen y vuelven al elegirlas.
-   Que la lista no se quede abierta al soltar Alt justo cuando aparece (si pasa, apuntarlo).
+   Que la lista no se quede abierta al soltar Alt justo cuando aparece (si pasa, apuntarlo). Con una
+   ventana maximizada y otra no: cambiar entre ellas con Alt+Tab deja cada una como estaba, y el puntero
+   no salta (2026-10-24: soltar Alt no elegía y la maximizada volvía a su tamaño; arreglado sin probar).
+   Super+Izquierda y Super+Derecha: media pantalla con la barra de título dentro, sin tapar la barra
+   (2026-10-24: Super+Izquierda no hacía nada). Varias maximizadas a la vez, y el botón de maximizar con el
+   dibujo de restaurar en todas.
 12. Encajar: arrastrar una ventana por su barra de título (y con Super+arrastrar) y soltarla con el
    puntero en el borde izquierdo o derecho: ocupa esa mitad sin tapar la barra; en el de arriba, se
    maximiza. Super+Abajo la devuelve a su tamaño. Soltarla lejos del borde o redimensionar por el filo

@@ -56,7 +56,10 @@ de cada decisión está en `docs/decisiones/` y el detalle de cada zona, en `doc
 - Hyprland 0.56 (Lua): la API es la de `/usr/share/hypr/stubs/hl.meta.lua` instalada, no la de la wiki (va por
   delante: `window.minimize` no existe). `--verify-config` no mira dentro de las funciones (validar sus despachadores aparte)
   ni carga plugins (`tests/hyprbars.sh`). En `window.destroy` la ventana llega sin `address`: nunca indexar
-  con él sin mirarlo (error de Lua en pantalla al cerrar cada ventana). `os/hyprbars` va atado a la versión exacta de Hyprland: otra fecha con otro Hyprland no se valida sin ponerlo al día.
+  con él sin mirarlo (error de Lua en pantalla al cerrar cada ventana). El maximizado de Hyprland es uno por
+  escritorio y se pierde al activar otra ventana: maximizar va por `colocar` (geometría y etiqueta
+  `maximizada`), nunca por `fullscreen` con `maximized`. Con rofi abierto, soltar Alt no le llega
+  siempre: lo mira Hyprland. `os/hyprbars` va atado a la versión exacta de Hyprland: otra fecha con otro Hyprland no se valida sin ponerlo al día.
 
 ## Entrada, actualizaciones y aplicaciones
 

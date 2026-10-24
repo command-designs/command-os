@@ -43,9 +43,62 @@ rawset(hl, "window_rule", function(t)
 end)
 -- Un puntero y una pantalla de 1920×1080 con la barra arriba, y las órdenes que se lanzan.
 local lanzadas = {}
+local PANTALLA = { x = 0, y = 0, width = 1920, height = 1080, scale = 1, reserved = { top = 36, bottom = 0, left = 0, right = 0 } }
 rawset(hl, "get_cursor_pos", function() return { x = 100, y = 100 } end)
-rawset(hl, "get_monitor_at_cursor", function()
-    return { x = 0, y = 0, width = 1920, height = 1080, scale = 1, reserved = { top = 36, bottom = 0, left = 0, right = 0 } }
+rawset(hl, "get_monitor_at_cursor", function() return PANTALLA end)
+
+-- Una ventana activa con barra de título (33 px encima del contenido con el filo) y filo de 1 px, y los
+-- despachadores que la mueven, la redimensionan, la etiquetan o le quitan el maximizado de Hyprland: el
+-- resto no hace nada. Al llevarla al borde (direction), Hyprland deja el contenido a esa distancia del área libre.
+local ventana
+local function ventana_nueva()
+    ventana = {
+        address = "0x1", class = "kitty", title = "kitty", floating = true, fullscreen = 0, focus_history_id = 0,
+        at = { x = 500, y = 300 }, size = { x = 800, y = 600 }, monitor = PANTALLA, workspace = { id = 1, name = "1" },
+        tags = {},
+    }
+end
+ventana_nueva()
+rawset(hl, "get_active_window", function() return ventana end)
+rawset(hl, "get_window", function(selector) return selector == "address:" .. ventana.address and ventana or nil end)
+rawset(hl, "timer", function(f) f() return nada() end)
+local function despachador(tipo)
+    return function(t) return { despachar = tipo, args = t or {} } end
+end
+local dsp_ventana = setmetatable({
+    move = despachador("move"), resize = despachador("resize"), tag = despachador("tag"),
+    fullscreen = despachador("fullscreen"),
+}, { __index = function() return nada() end })
+rawset(hl, "dsp", setmetatable({ window = dsp_ventana }, { __index = function() return nada() end }))
+rawset(hl, "dispatch", function(d)
+    if type(d) ~= "table" or not rawget(d, "despachar") then return end
+    local a = d.args
+    if d.despachar == "move" and a.direction == "left" then
+        ventana.at.x = PANTALLA.x + PANTALLA.reserved.left + 1
+    elseif d.despachar == "move" and a.direction == "up" then
+        ventana.at.y = PANTALLA.y + PANTALLA.reserved.top + 33
+    elseif d.despachar == "move" and a.x and a.y then
+        ventana.at = { x = a.x, y = a.y }
+    elseif d.despachar == "resize" and a.x and a.y then
+        ventana.size = { x = a.x, y = a.y }
+    elseif d.despachar == "tag" then
+        ventana.tags[a.tag:sub(2)] = a.tag:sub(1, 1) == "+" or nil
+    elseif d.despachar == "fullscreen" and a.action == "unset" then
+        ventana.fullscreen = 0
+    end
+end)
+-- Los atajos de teclado con función (los de despachador no hacen falta aquí), los de cada submapa aparte.
+local atajos, submapas, submapa = {}, {}, nil
+rawset(hl, "bind", function(tecla, f)
+    if type(f) == "function" then
+        if submapa then submapas[submapa][tecla] = f else atajos[tecla] = f end
+    end
+    return nada()
+end)
+rawset(hl, "define_submap", function(nombre, f)
+    submapas[nombre], submapa = {}, nombre
+    f()
+    submapa = nil
 end)
 rawset(hl, "exec_cmd", function(orden) lanzadas[#lanzadas + 1] = orden end)
 -- Los manejadores de eventos (hl.on), para lanzarlos abajo.
@@ -55,6 +108,18 @@ rawset(hl, "plugin", {
     load = function() end,
     hyprbars = { add_button = function(t) botones[#botones + 1] = t end },
 })
+
+-- Con rofi (aunque no esté instalado aquí) y la lista de Alt+Tab en una carpeta temporal.
+local io_open, getenv = io.open, os.getenv
+local TEMPORAL = getenv("TMPDIR") or "/tmp"
+io.open = function(ruta, modo)
+    if ruta == "/usr/bin/rofi" then return { close = function() end } end
+    return io_open(ruta, modo)
+end
+os.getenv = function(nombre)
+    if nombre == "XDG_RUNTIME_DIR" then return TEMPORAL end
+    return getenv(nombre)
+end
 
 local cargada, err = pcall(dofile, CONFIG)
 if not cargada then
@@ -148,6 +213,111 @@ else
         if not hecho then mal("window.destroy con %s: %s", w and (w.address or "ventana sin address") or "nil", tostring(e)) end
     end
     if fallos == antes then ok("window.destroy: con address, sin address y sin ventana") end
+end
+
+-- Maximizar y media pantalla son geometría (no el maximizado de Hyprland, que quitaría el de otra ventana al
+-- cambiar con Alt+Tab): área libre 1920×1044 desde y = 36; el contenido, dentro del filo y bajo la barra.
+local function geometria(donde, x, y, an, al, maximizada)
+    local v = ventana
+    if v.at.x == x and v.at.y == y and v.size.x == an and v.size.y == al and (v.tags.maximizada == true) == maximizada then
+        ok("%s: %d,%d %d×%d%s", donde, x, y, an, al, maximizada and " (maximizada)" or "")
+    else
+        mal("%s: %d,%d %d×%d %s; tenía que ser %d,%d %d×%d %s", donde, v.at.x, v.at.y, v.size.x, v.size.y,
+            tostring(v.tags.maximizada == true), x, y, an, al, tostring(maximizada))
+    end
+end
+local function pulsar(tecla)
+    if atajos[tecla] then atajos[tecla]() else mal("no hay atajo %s", tecla) end
+end
+
+ventana_nueva()
+pulsar("SUPER + left")
+geometria("Super+Izquierda", 1, 69, 958, 1010, false)
+pulsar("SUPER + right")
+geometria("Super+Derecha", 961, 69, 958, 1010, false)
+pulsar("SUPER + up")
+geometria("Super+Arriba", 1, 69, 1918, 1010, true)
+pulsar("SUPER + up")
+geometria("Super+Arriba otra vez (donde estaba antes de encajarla)", 500, 300, 800, 600, false)
+pulsar("SUPER + left")
+pulsar("SUPER + down")
+geometria("Super+Izquierda y Super+Abajo", 500, 300, 800, 600, false)
+if type(command_os) == "table" and type(command_os.boton) == "function" then
+    command_os.boton("maximizar")
+    geometria("botón de maximizar", 1, 69, 1918, 1010, true)
+    command_os.boton("maximizar")
+    geometria("botón de maximizar otra vez", 500, 300, 800, 600, false)
+end
+
+-- Lo que pide una app (su botón de maximizar) llega como el maximizado de Hyprland: se cambia por el nuestro
+-- y, si ya lo estaba, la devuelve.
+if type(eventos["window.fullscreen"]) ~= "function" then
+    mal("no hay manejador de window.fullscreen")
+else
+    ventana_nueva()
+    ventana.fullscreen = 1
+    eventos["window.fullscreen"](ventana)
+    geometria("maximizar pedido por la app", 1, 69, 1918, 1010, true)
+    if ventana.fullscreen ~= 0 then mal("maximizar pedido por la app: sigue con el maximizado de Hyprland") end
+    ventana.fullscreen = 1
+    eventos["window.fullscreen"](ventana)
+    geometria("maximizar pedido por la app otra vez", 500, 300, 800, 600, false)
+end
+
+-- Alt+Tab con tres ventanas: la primera pulsación pasa a la anterior; con Alt pulsado sale la lista (rofi),
+-- Tab mueve la marca y, al soltar Alt, Hyprland activa la marcada y cierra rofi.
+do
+    local ventanas = {}
+    for i = 1, 3 do
+        ventanas[i] = { address = "0x" .. i, class = "app" .. i, title = "app " .. i, focus_history_id = i - 1,
+            workspace = { id = 1, name = "1" } }
+    end
+    local temporizadores, alt, activa = {}, true, nil
+    local function correr_temporizadores()
+        local ahora = temporizadores
+        temporizadores = {}
+        for _, f in ipairs(ahora) do f() end
+    end
+    rawset(hl, "timer", function(f) temporizadores[#temporizadores + 1] = f return nada() end)
+    rawset(hl, "is_key_down", function(tecla) return alt and tecla == "Alt_L" end)
+    rawset(hl, "get_windows", function() return ventanas end)
+    rawset(hl, "get_active_workspace", function() return { id = 1, name = "1" } end)
+    rawset(hl, "get_window", function(selector)
+        for _, v in ipairs(ventanas) do
+            if selector == "address:" .. v.address then return v end
+        end
+    end)
+    rawset(hl.dsp, "focus", function(t) return { despachar = "focus", args = t } end)
+    rawset(hl, "dispatch", function(d)
+        if type(d) == "table" and rawget(d, "despachar") == "focus" then activa = d.args.window.address end
+    end)
+    lanzadas = {}
+
+    pulsar("ALT + Tab")
+    if activa == "0x2" then ok("Alt+Tab: pasa al momento a la anterior") else mal("Alt+Tab: activa %s", tostring(activa)) end
+    correr_temporizadores() -- 150 ms con Alt pulsado: sale la lista
+    local rofi = lanzadas[#lanzadas] or ""
+    if rofi:find("rofi -dmenu", 1, true) and rofi:find("-selected-row 1", 1, true) then
+        ok("Alt+Tab: lista de rofi con la anterior marcada")
+    else
+        mal("Alt+Tab: no sale la lista (%s)", rofi)
+    end
+    -- Con la lista abierta, Alt+Tab llega a rofi y al submapa (non_consuming), que lleva la cuenta.
+    local tab = submapas.alttab and submapas.alttab["ALT + Tab"]
+    if not tab then
+        mal("Alt+Tab: el submapa alttab no tiene ALT + Tab")
+    else
+        tab()
+        alt = false
+        correr_temporizadores() -- soltar Alt
+        local cierra = lanzadas[#lanzadas] or ""
+        if activa == "0x3" then ok("Alt+Tab: al soltar Alt activa la marcada") else mal("Alt+Tab: al soltar Alt activa %s", tostring(activa)) end
+        if cierra:find("pkill", 1, true) and cierra:find("command-os-alttab", 1, true) then
+            ok("Alt+Tab: al soltar Alt se cierra rofi")
+        else
+            mal("Alt+Tab: rofi no se cierra (%s)", cierra)
+        end
+    end
 end
 
 os.exit(fallos == 0 and 0 or 1)
