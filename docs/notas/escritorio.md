@@ -339,7 +339,8 @@ validada de Arch (2026/10/18):
 | Barra de título y botones SVG (32 px, 36×32, hover) | `hyprbars`: botones **redondos** con un glifo en «sans», sin color al pasar el ratón | compilarlo nosotros con un parche: botones cuadrados de 36×32, colores de la marca y hover |
 | Menú de ventana (clic derecho en la barra de título) | no existe | el `client-menu` de `menu.xml` con wofi junto al puntero |
 | Menú del escritorio (clic derecho en el fondo) | no existe | atajo de ratón que no se come el clic (`non_consuming`): si no hay ventana debajo, el `root-menu` con wofi |
-| Alt+Tab con lista de icono y título | `cycle_next` sin lista | rofi en modo ventana (soltar Alt elige: `!Alt-Alt_L`); 1 MB, nada residente |
+| Alt+Tab con lista de icono y título | `cycle_next` sin lista | rofi en modo ventana; soltar Alt lo mira Hyprland (`hl.is_key_down`) y cierra rofi; 1 MB, nada residente |
+| Maximizar y encajar, cada ventana en su modo | un maximizado por escritorio, que se pierde al activar otra | geometría propia con la etiqueta `maximizada` (el botón de restaurar de `hyprbars` la lee) |
 | Minimizar (botón, Super+Abajo, barra de tareas) | no minimiza | escritorio especial `special:minimizadas`; lo que piden las apps (botón de las cabeceras GTK, barra de tareas) necesita el evento `window.minimize`, que **no está en la 0.56.2** |
 | Arrastrar al borde: maximiza o media pantalla, con aviso | `general.snap` solo pega al borde | al soltar el botón (atajo `non_consuming`), Lua mira si el puntero está en el borde y encaja; sin el aviso previo |
 | Escritorios dinámicos (`command-os-desktops`, `<names>` + SIGHUP + wtype) | escritorios numerados por `hyprctl` | rama Hyprland en `command-os-desktops` |
@@ -454,8 +455,22 @@ validada de Arch (2026/10/18):
   como la de labwc: icono, título y la elegida con filo Red Hot). Tab y Mayús+Tab recorren, soltar Alt
   elige y Escape vuelve a la de antes. Salen las del escritorio, las fijadas y las minimizadas (vuelven
   al escritorio al elegirlas), sin el centro ni los desplegables. Con la lista abierta, el submapa
-  `alttab` deja que Alt+Tab llegue a rofi. rofi no va de serie (`optdepends`, como Hyprland); sin él,
-  Alt+Tab cambia de ventana sin lista. Nada residente: rofi se abre y se cierra con cada Alt+Tab largo.
+  `alttab` deja pasar Alt+Tab y Mayús+Tab a rofi (`non_consuming`) y lleva la cuenta de la marcada; al
+  soltar Alt (mirado cada 40 ms mientras la lista está abierta) Hyprland activa la marcada y cierra rofi
+  (`pkill`): en el portátil, soltar Alt no elegía (rofi no recibía la tecla soltada, 2026-10-24). Intro o
+  un clic en la lista eligen desde rofi (`alttab_fin`). rofi no va de serie (`optdepends`, como Hyprland);
+  sin él, Alt+Tab cambia de ventana sin lista. Nada residente: rofi se abre y se cierra con cada Alt+Tab
+  largo. El puntero no salta a la ventana elegida (`cursor.no_warps`, como en labwc).
+- **Maximizar y media pantalla propios** (2026-10-24): Super+Arriba, Super+A, el botón, el doble clic en
+  el título, Super+Izquierda/Derecha y arrastrar al borde ponen la ventana (flotante) en el área libre o su
+  mitad, sin el maximizado de Hyprland. Ese admite uno por escritorio y lo quita al activar otra ventana
+  (Alt+Tab, barra de tareas): en el portátil, las maximizadas volvían a su tamaño al cambiar de ventana.
+  `command_os` guarda dónde estaba cada una (Super+Abajo, el botón otra vez o arrastrarla lejos del borde la
+  devuelven) y le pone la etiqueta `maximizada`, que el parche de `hyprbars` lee para dibujar «restaurar».
+  La barra de título y el filo van fuera del contenido: se miden llevando la ventana al borde del área libre
+  (`move` con `direction`), porque dependen de si la app lleva barra. Lo que piden las apps (el botón de las
+  cabeceras GTK, el doble clic de Firefox) llega como el maximizado de Hyprland (`window.fullscreen`) y se
+  cambia por el propio. Super+F sigue siendo la pantalla completa de Hyprland.
 - **Encajar al soltar**: al pulsar el botón izquierdo (atajo `non_consuming` con `ignore_mods`, también con
   Super) se apunta dónde está cada ventana; al soltarlo, si la activa se ha movido sin cambiar de tamaño y
   el puntero toca el borde (2 px), ocupa la mitad izquierda o derecha (como Super+Izquierda/Derecha;
